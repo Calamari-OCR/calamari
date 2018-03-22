@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+// Data required for resuming a training process
+message CheckpointParams {
+    ModelParams model = 1;
+
+    int32 processes = 2;
+    int32 max_iters = 3;
+    bool skip_invalid_gt = 4;
+    int32 display = 5;
+    int32 stats_size = 6;
+    int32 batch_size = 7;
+    int32 checkpoint_frequency = 8;
+    string output_path_prefix = 9;
+
+
+    // params for storing the training process
+    int32 iter = 10;
+    repeated float loss_stats = 11;
+    repeated float ler_stats = 12;
+    repeated float dt_stats = 13;
+    float total_time = 14;
+}
+
+message IntVec2D {
+    int32 x = 1;
+    int32 y = 2;
+}
+
+message LayerParams {
+    enum Type {
+        CONVOLUTIONAL = 0;
+        MAX_POOLING = 1;
+        LSTM = 2;
+    }
+
+    enum LSTMDirection {
+        BIDIRECTIONAL_LSTM = 0;
+    }
+
+    Type type = 1;
+
+    // conv/pool
+    int32 filters = 2;
+    IntVec2D kernel_size = 3;
+    IntVec2D stride = 4;
+
+    // LSTM
+    int32 hidden_nodes = 5;
+    bool peepholes = 6;
+    LSTMDirection lstm_direction = 7;
+}
+
+message NetworkParams {
+    enum SolverType {
+        MOMENTUM_SOLVER = 0;
+        ADAM_SOLVER = 1;
+    }
+
+    enum CTCType {
+        CTC_DEFAULT = 0;
+        CTC_FUZZY = 1;
+    }
+
+    BackendParams backend = 8;
+
+    repeated LayerParams layers = 1;
+    SolverType solver = 2;
+    float learning_rate = 11;
+    float momentum = 3;
+    float dropout = 5;
+
+    int32 features = 6;
+    int32 classes = 7;
+
+    bool ctc_merge_repeated = 9;
+    CTCType ctc = 10;
+}
+
+// Backend data
+message BackendParams {
+    enum Type {
+        TENSORFLOW = 0;
+    }
+
+    Type type = 1;
+    bool cudnn = 2;
+}
+
+// Data required to run a model
+message ModelParams {
+    NetworkParams network = 2;
+    int32 line_height = 3;
+    DataPreprocessorParams data_preprocessor = 4;
+    TextProcessorParams text_preprocessor = 5;
+    TextProcessorParams text_postprocessor = 6;
+    CodecParams codec = 7;
+}
+
+message DataPreprocessorParams {
+    enum Type {
+        DEFAULT_NORMALIZER = 0;
+        MULTI_NORMALIZER = 1;
+        NOOP_NORMALIZER = 2;
+        RANGE_NORMALIZER = 3;
+        CENTER_NORMALIZER = 4;
+        FINAL_PREPARATION = 5;
+    }
+
+    Type type = 1;
+    repeated DataPreprocessorParams children = 2;
+
+    int32 line_height = 3;
+    int32 range = 4;
+    int32 smoothness = 5;
+    int32 pad = 6;
+}
+
+message TextProcessorParams {
+    enum Type {
+        DEFAULT_NORMALIZER = 0;
+        DEFAULT_PRE_NORMALIZER = 1;
+        DEFAULT_POST_NORMALIZER = 2;
+        MULTI_NORMALIZER = 3;
+        NOOP_NORMALIZER = 4;
+        STRIP_NORMALIZER = 5;
+        BIDI_NORMALIZER = 6;
+    }
+
+    Type type = 1;
+    repeated TextProcessorParams children = 2;
+
+    // Bidirectional text processor
+    enum BidiDirection {
+        BIDI_LTR = 0;
+        BIDI_RTL = 1;
+    }
+    BidiDirection bidi_direction = 3;
+}
+
+
+message CodecParams {
+    repeated string charset = 1;
+}
