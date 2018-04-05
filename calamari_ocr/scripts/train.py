@@ -43,6 +43,8 @@ def main():
                         help="Prefix path for storing checkpoints and models")
     parser.add_argument("--bidi_dir", type=str, default=None,
                         help="The default direction of text. Defaults to ltr='left to right'. The other option is 'rtl'")
+    parser.add_argument("--weights", type=str, default=None,
+                        help="Load network weights from the given file.")
 
     # early stopping
     parser.add_argument("--validation", type=str, nargs="+",
@@ -123,6 +125,7 @@ def main():
     trainer = Trainer(params,
                       dataset,
                       validation_dataset=validation_dataset,
+                      weights=args.weights,
                       )
     trainer.train(progress_bar=True)
 
