@@ -13,6 +13,11 @@ message CheckpointParams {
     int32 checkpoint_frequency = 8;
     string output_path_prefix = 9;
 
+    // params for early stopping
+    int32 early_stopping_frequency = 15;           // How often to check on validation data
+    int32 early_stopping_nbest = 16;               // How many models must be worse to stop
+    string early_stopping_best_model_prefix = 17;  // Prefix for the best model
+
 
     // params for storing the training process
     int32 iter = 10;
@@ -20,6 +25,9 @@ message CheckpointParams {
     repeated float ler_stats = 12;
     repeated float dt_stats = 13;
     float total_time = 14;
+    float early_stopping_best_accuracy = 18;        // Current best model accuracy during training
+    int32 early_stopping_best_cur_nbest = 19;       // How often was a worse model found since the last best model
+    int32 early_stopping_best_at_iter = 20;         // Best model was found at iter?
 }
 
 message IntVec2D {

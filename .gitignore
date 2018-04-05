@@ -1,3 +1,14 @@
+# Calamari specific files
+# ======================
+
+# checkpoints
+*ckpt*
+checkpoint
+
+
+# Python general
+# ==============
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

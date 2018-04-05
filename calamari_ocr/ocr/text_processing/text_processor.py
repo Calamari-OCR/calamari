@@ -12,6 +12,9 @@ class TextProcessor(ABC):
         if isinstance(txts, str):
             return self._apply_single(txts)
         elif isinstance(txts, list):
+            if len(txts) == 0:
+                return []
+
             return parallel_map(self._apply_single, txts, desc="Text Preprocessing", processes=processes, progress_bar=progress_bar)
         else:
             raise Exception("Unknown instance of txts: {}. Supported list and str".format(type(txts)))

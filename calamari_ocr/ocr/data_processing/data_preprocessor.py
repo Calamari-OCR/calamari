@@ -14,6 +14,9 @@ class DataPreprocessor(ABC):
         if isinstance(data, np.ndarray):
             return self._apply_single(data)
         elif isinstance(data, list):
+            if len(data) == 0:
+                return []
+
             return parallel_map(self._apply_single, data, desc="Data Preprocessing", processes=processes, progress_bar=progress_bar)
         else:
             raise Exception("Unknown instance of txts: {}. Supported list and str".format(type(data)))

@@ -44,8 +44,19 @@ def main():
     parser.add_argument("--bidi_dir", type=str, default=None,
                         help="The default direction of text. Defaults to ltr='left to right'. The other option is 'rtl'")
 
+    # early stopping
+    parser.add_argument("--validation", type=str, nargs="+",
+                        help="Validation line files used for early stopping")
+    parser.add_argument("--early_stopping_frequency", type=int, default=-1,
+                        help="The frequency of early stopping. If -1, the checkpoint_frequency will be used")
+    parser.add_argument("--early_stopping_nbest", type=int, default=10,
+                        help="The number of models that must be worse than the current best model to stop")
+    parser.add_argument("--early_stopping_best_model_prefix", type=str, default="best",
+                        help="The prefix of the best model using early stopping")
+
     args = parser.parse_args()
 
+    # Trianing dataset
     input_image_files = glob_all(args.files)
     gt_txt_files = [split_all_ext(f)[0] + ".gt.txt" for f in input_image_files]
 
@@ -53,8 +64,20 @@ def main():
         raise Exception("Some image are occurring more than once in the data set.")
 
     dataset = FileDataSet(input_image_files, gt_txt_files)
-
     print("Found {} files in the dataset".format(len(dataset)))
+
+    # Validation dataset
+    if args.validation:
+        validation_image_files = glob_all(args.validation)
+        val_txt_files = [split_all_ext(f)[0] + ".gt.txt" for f in validation_image_files]
+
+        if len(set(val_txt_files)) != len(val_txt_files):
+            raise Exception("Some validation images are occurring more than once in the data set.")
+
+        validation_dataset = FileDataSet(validation_image_files, val_txt_files)
+        print("Found {} files in the validation dataset".format(len(validation_dataset)))
+    else:
+        validation_dataset = None
 
     params = CheckpointParams()
 
@@ -66,6 +89,10 @@ def main():
     params.display = args.display
     params.skip_invalid_gt = not args.no_skip_invalid_gt
     params.processes = args.num_threads
+
+    params.early_stopping_frequency = args.early_stopping_frequency if args.early_stopping_frequency >= 0 else args.checkpoint_frequency
+    params.early_stopping_nbest = args.early_stopping_nbest
+    params.early_stopping_best_model_prefix = args.early_stopping_best_model_prefix
 
     params.model.data_preprocessor.type = DataPreprocessorParams.DEFAULT_NORMALIZER
     params.model.data_preprocessor.line_height = args.line_height
@@ -95,6 +122,7 @@ def main():
     # create the actual trainer
     trainer = Trainer(params,
                       dataset,
+                      validation_dataset=validation_dataset,
                       )
     trainer.train(progress_bar=True)
 

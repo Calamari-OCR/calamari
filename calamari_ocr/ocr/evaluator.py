@@ -18,6 +18,10 @@ class Evaluator:
         gt_data = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
         pred_data = self.text_preprocessor.apply(pred_dataset.text_samples(), progress_bar=progress_bar)
 
+        return self.evaluate(gt_data=gt_data, pred_data=pred_data, progress_bar=progress_bar)
+
+    @staticmethod
+    def evaluate(_sentinel=None, gt_data=None, pred_data=None, progress_bar=False):
         if len(gt_data) != len(pred_data):
             raise Exception("Mismatch in gt and pred files count: {} vs {}".format(len(gt_data), len(pred_data)))
 
@@ -45,4 +49,5 @@ class Evaluator:
             "total_char_errs": total_char_errs,
             "confusion": confusion,
         }
+
 

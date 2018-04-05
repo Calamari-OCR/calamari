@@ -39,7 +39,7 @@ class Predictor:
         network_params = self.model_params.network
 
         backend = create_backend_from_proto(network_params, restore=self.checkpoint)
-        backend.set_data(datas)
+        backend.set_prediction_data(datas)
         backend.prepare(train=False)
 
         prediction_start_time = time.time()
