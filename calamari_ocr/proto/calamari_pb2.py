@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='calamari.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x0e\x63\x61lamari.proto\"\x98\x04\n\x10\x43heckpointParams\x12\x1b\n\x05model\x18\x01 \x01(\x0b\x32\x0c.ModelParams\x12\x11\n\tprocesses\x18\x02 \x01(\x05\x12\x11\n\tmax_iters\x18\x03 \x01(\x05\x12\x17\n\x0fskip_invalid_gt\x18\x04 \x01(\x08\x12\x0f\n\x07\x64isplay\x18\x05 \x01(\x05\x12\x12\n\nstats_size\x18\x06 \x01(\x05\x12\x12\n\nbatch_size\x18\x07 \x01(\x05\x12\x1c\n\x14\x63heckpoint_frequency\x18\x08 \x01(\x05\x12\x1a\n\x12output_path_prefix\x18\t \x01(\t\x12 \n\x18\x65\x61rly_stopping_frequency\x18\x0f \x01(\x05\x12\x1c\n\x14\x65\x61rly_stopping_nbest\x18\x10 \x01(\x05\x12(\n early_stopping_best_model_prefix\x18\x11 \x01(\t\x12\x0c\n\x04iter\x18\n \x01(\x05\x12\x12\n\nloss_stats\x18\x0b \x03(\x02\x12\x11\n\tler_stats\x18\x0c \x03(\x02\x12\x10\n\x08\x64t_stats\x18\r \x03(\x02\x12\x12\n\ntotal_time\x18\x0e \x01(\x02\x12$\n\x1c\x65\x61rly_stopping_best_accuracy\x18\x12 \x01(\x02\x12%\n\x1d\x65\x61rly_stopping_best_cur_nbest\x18\x13 \x01(\x05\x12#\n\x1b\x65\x61rly_stopping_best_at_iter\x18\x14 \x01(\x05\" \n\x08IntVec2D\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\"\xb6\x02\n\x0bLayerParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.LayerParams.Type\x12\x0f\n\x07\x66ilters\x18\x02 \x01(\x05\x12\x1e\n\x0bkernel_size\x18\x03 \x01(\x0b\x32\t.IntVec2D\x12\x19\n\x06stride\x18\x04 \x01(\x0b\x32\t.IntVec2D\x12\x14\n\x0chidden_nodes\x18\x05 \x01(\x05\x12\x11\n\tpeepholes\x18\x06 \x01(\x08\x12\x32\n\x0elstm_direction\x18\x07 \x01(\x0e\x32\x1a.LayerParams.LSTMDirection\"4\n\x04Type\x12\x11\n\rCONVOLUTIONAL\x10\x00\x12\x0f\n\x0bMAX_POOLING\x10\x01\x12\x08\n\x04LSTM\x10\x02\"\'\n\rLSTMDirection\x12\x16\n\x12\x42IDIRECTIONAL_LSTM\x10\x00\"\xf6\x02\n\rNetworkParams\x12\x1f\n\x07\x62\x61\x63kend\x18\x08 \x01(\x0b\x32\x0e.BackendParams\x12\x1c\n\x06layers\x18\x01 \x03(\x0b\x32\x0c.LayerParams\x12)\n\x06solver\x18\x02 \x01(\x0e\x32\x19.NetworkParams.SolverType\x12\x15\n\rlearning_rate\x18\x0b \x01(\x02\x12\x10\n\x08momentum\x18\x03 \x01(\x02\x12\x0f\n\x07\x64ropout\x18\x05 \x01(\x02\x12\x10\n\x08\x66\x65\x61tures\x18\x06 \x01(\x05\x12\x0f\n\x07\x63lasses\x18\x07 \x01(\x05\x12\x1a\n\x12\x63tc_merge_repeated\x18\t \x01(\x08\x12#\n\x03\x63tc\x18\n \x01(\x0e\x32\x16.NetworkParams.CTCType\"2\n\nSolverType\x12\x13\n\x0fMOMENTUM_SOLVER\x10\x00\x12\x0f\n\x0b\x41\x44\x41M_SOLVER\x10\x01\")\n\x07\x43TCType\x12\x0f\n\x0b\x43TC_DEFAULT\x10\x00\x12\r\n\tCTC_FUZZY\x10\x01\"Y\n\rBackendParams\x12!\n\x04type\x18\x01 \x01(\x0e\x32\x13.BackendParams.Type\x12\r\n\x05\x63udnn\x18\x02 \x01(\x08\"\x16\n\x04Type\x12\x0e\n\nTENSORFLOW\x10\x00\"\xf7\x01\n\x0bModelParams\x12\x1f\n\x07network\x18\x02 \x01(\x0b\x32\x0e.NetworkParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\x32\n\x11\x64\x61ta_preprocessor\x18\x04 \x01(\x0b\x32\x17.DataPreprocessorParams\x12/\n\x11text_preprocessor\x18\x05 \x01(\x0b\x32\x14.TextProcessorParams\x12\x30\n\x12text_postprocessor\x18\x06 \x01(\x0b\x32\x14.TextProcessorParams\x12\x1b\n\x05\x63odec\x18\x07 \x01(\x0b\x32\x0c.CodecParams\"\xc4\x02\n\x16\x44\x61taPreprocessorParams\x12*\n\x04type\x18\x01 \x01(\x0e\x32\x1c.DataPreprocessorParams.Type\x12)\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x17.DataPreprocessorParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\r\n\x05range\x18\x04 \x01(\x05\x12\x12\n\nsmoothness\x18\x05 \x01(\x05\x12\x0b\n\x03pad\x18\x06 \x01(\x05\"\x8d\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x14\n\x10MULTI_NORMALIZER\x10\x01\x12\x13\n\x0fNOOP_NORMALIZER\x10\x02\x12\x14\n\x10RANGE_NORMALIZER\x10\x03\x12\x15\n\x11\x43\x45NTER_NORMALIZER\x10\x04\x12\x15\n\x11\x46INAL_PREPARATION\x10\x05\"\xff\x02\n\x13TextProcessorParams\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.TextProcessorParams.Type\x12&\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x14.TextProcessorParams\x12:\n\x0e\x62idi_direction\x18\x03 \x01(\x0e\x32\".TextProcessorParams.BidiDirection\"\xad\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x1a\n\x16\x44\x45\x46\x41ULT_PRE_NORMALIZER\x10\x01\x12\x1b\n\x17\x44\x45\x46\x41ULT_POST_NORMALIZER\x10\x02\x12\x14\n\x10MULTI_NORMALIZER\x10\x03\x12\x13\n\x0fNOOP_NORMALIZER\x10\x04\x12\x14\n\x10STRIP_NORMALIZER\x10\x05\x12\x13\n\x0f\x42IDI_NORMALIZER\x10\x06\"+\n\rBidiDirection\x12\x0c\n\x08\x42IDI_LTR\x10\x00\x12\x0c\n\x08\x42IDI_RTL\x10\x01\"\x1e\n\x0b\x43odecParams\x12\x0f\n\x07\x63harset\x18\x01 \x03(\tb\x06proto3')
+  serialized_pb=_b('\n\x0e\x63\x61lamari.proto\"\x98\x04\n\x10\x43heckpointParams\x12\x1b\n\x05model\x18\x01 \x01(\x0b\x32\x0c.ModelParams\x12\x11\n\tprocesses\x18\x02 \x01(\x05\x12\x11\n\tmax_iters\x18\x03 \x01(\x05\x12\x17\n\x0fskip_invalid_gt\x18\x04 \x01(\x08\x12\x0f\n\x07\x64isplay\x18\x05 \x01(\x05\x12\x12\n\nstats_size\x18\x06 \x01(\x05\x12\x12\n\nbatch_size\x18\x07 \x01(\x05\x12\x1c\n\x14\x63heckpoint_frequency\x18\x08 \x01(\x05\x12\x1a\n\x12output_path_prefix\x18\t \x01(\t\x12 \n\x18\x65\x61rly_stopping_frequency\x18\x0f \x01(\x05\x12\x1c\n\x14\x65\x61rly_stopping_nbest\x18\x10 \x01(\x05\x12(\n early_stopping_best_model_prefix\x18\x11 \x01(\t\x12\x0c\n\x04iter\x18\n \x01(\x05\x12\x12\n\nloss_stats\x18\x0b \x03(\x02\x12\x11\n\tler_stats\x18\x0c \x03(\x02\x12\x10\n\x08\x64t_stats\x18\r \x03(\x02\x12\x12\n\ntotal_time\x18\x0e \x01(\x02\x12$\n\x1c\x65\x61rly_stopping_best_accuracy\x18\x12 \x01(\x02\x12%\n\x1d\x65\x61rly_stopping_best_cur_nbest\x18\x13 \x01(\x05\x12#\n\x1b\x65\x61rly_stopping_best_at_iter\x18\x14 \x01(\x05\" \n\x08IntVec2D\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\"\xb6\x02\n\x0bLayerParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.LayerParams.Type\x12\x0f\n\x07\x66ilters\x18\x02 \x01(\x05\x12\x1e\n\x0bkernel_size\x18\x03 \x01(\x0b\x32\t.IntVec2D\x12\x19\n\x06stride\x18\x04 \x01(\x0b\x32\t.IntVec2D\x12\x14\n\x0chidden_nodes\x18\x05 \x01(\x05\x12\x11\n\tpeepholes\x18\x06 \x01(\x08\x12\x32\n\x0elstm_direction\x18\x07 \x01(\x0e\x32\x1a.LayerParams.LSTMDirection\"4\n\x04Type\x12\x11\n\rCONVOLUTIONAL\x10\x00\x12\x0f\n\x0bMAX_POOLING\x10\x01\x12\x08\n\x04LSTM\x10\x02\"\'\n\rLSTMDirection\x12\x16\n\x12\x42IDIRECTIONAL_LSTM\x10\x00\"\xf6\x02\n\rNetworkParams\x12\x1f\n\x07\x62\x61\x63kend\x18\x08 \x01(\x0b\x32\x0e.BackendParams\x12\x1c\n\x06layers\x18\x01 \x03(\x0b\x32\x0c.LayerParams\x12)\n\x06solver\x18\x02 \x01(\x0e\x32\x19.NetworkParams.SolverType\x12\x15\n\rlearning_rate\x18\x0b \x01(\x02\x12\x10\n\x08momentum\x18\x03 \x01(\x02\x12\x0f\n\x07\x64ropout\x18\x05 \x01(\x02\x12\x10\n\x08\x66\x65\x61tures\x18\x06 \x01(\x05\x12\x0f\n\x07\x63lasses\x18\x07 \x01(\x05\x12\x1a\n\x12\x63tc_merge_repeated\x18\t \x01(\x08\x12#\n\x03\x63tc\x18\n \x01(\x0e\x32\x16.NetworkParams.CTCType\"2\n\nSolverType\x12\x13\n\x0fMOMENTUM_SOLVER\x10\x00\x12\x0f\n\x0b\x41\x44\x41M_SOLVER\x10\x01\")\n\x07\x43TCType\x12\x0f\n\x0b\x43TC_DEFAULT\x10\x00\x12\r\n\tCTC_FUZZY\x10\x01\"Y\n\rBackendParams\x12!\n\x04type\x18\x01 \x01(\x0e\x32\x13.BackendParams.Type\x12\r\n\x05\x63udnn\x18\x02 \x01(\x08\"\x16\n\x04Type\x12\x0e\n\nTENSORFLOW\x10\x00\"\xf7\x01\n\x0bModelParams\x12\x1f\n\x07network\x18\x02 \x01(\x0b\x32\x0e.NetworkParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\x32\n\x11\x64\x61ta_preprocessor\x18\x04 \x01(\x0b\x32\x17.DataPreprocessorParams\x12/\n\x11text_preprocessor\x18\x05 \x01(\x0b\x32\x14.TextProcessorParams\x12\x30\n\x12text_postprocessor\x18\x06 \x01(\x0b\x32\x14.TextProcessorParams\x12\x1b\n\x05\x63odec\x18\x07 \x01(\x0b\x32\x0c.CodecParams\"\xc4\x02\n\x16\x44\x61taPreprocessorParams\x12*\n\x04type\x18\x01 \x01(\x0e\x32\x1c.DataPreprocessorParams.Type\x12)\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x17.DataPreprocessorParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\r\n\x05range\x18\x04 \x01(\x05\x12\x12\n\nsmoothness\x18\x05 \x01(\x05\x12\x0b\n\x03pad\x18\x06 \x01(\x05\"\x8d\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x14\n\x10MULTI_NORMALIZER\x10\x01\x12\x13\n\x0fNOOP_NORMALIZER\x10\x02\x12\x14\n\x10RANGE_NORMALIZER\x10\x03\x12\x15\n\x11\x43\x45NTER_NORMALIZER\x10\x04\x12\x15\n\x11\x46INAL_PREPARATION\x10\x05\"\xff\x02\n\x13TextProcessorParams\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.TextProcessorParams.Type\x12&\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x14.TextProcessorParams\x12:\n\x0e\x62idi_direction\x18\x03 \x01(\x0e\x32\".TextProcessorParams.BidiDirection\"\xad\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x1a\n\x16\x44\x45\x46\x41ULT_PRE_NORMALIZER\x10\x01\x12\x1b\n\x17\x44\x45\x46\x41ULT_POST_NORMALIZER\x10\x02\x12\x14\n\x10MULTI_NORMALIZER\x10\x03\x12\x13\n\x0fNOOP_NORMALIZER\x10\x04\x12\x14\n\x10STRIP_NORMALIZER\x10\x05\x12\x13\n\x0f\x42IDI_NORMALIZER\x10\x06\"+\n\rBidiDirection\x12\x0c\n\x08\x42IDI_LTR\x10\x00\x12\x0c\n\x08\x42IDI_RTL\x10\x01\"\x1e\n\x0b\x43odecParams\x12\x0f\n\x07\x63harset\x18\x01 \x03(\t\"\xa1\x01\n\x0bVoterParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.VoterParams.Type\x12\x13\n\x0b\x62lank_index\x18\x02 \x01(\x05\"\\\n\x04Type\x12\x12\n\x0eSEQUENCE_VOTER\x10\x00\x12 \n\x1c\x43ONFIDENCE_VOTER_DEFAULT_CTC\x10\x01\x12\x1e\n\x1a\x43ONFIDENCE_VOTER_FUZZY_CTC\x10\x02\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -232,6 +232,32 @@ _TEXTPROCESSORPARAMS_BIDIDIRECTION = _descriptor.EnumDescriptor(
   serialized_end=2333,
 )
 _sym_db.RegisterEnumDescriptor(_TEXTPROCESSORPARAMS_BIDIDIRECTION)
+
+_VOTERPARAMS_TYPE = _descriptor.EnumDescriptor(
+  name='Type',
+  full_name='VoterParams.Type',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='SEQUENCE_VOTER', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CONFIDENCE_VOTER_DEFAULT_CTC', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CONFIDENCE_VOTER_FUZZY_CTC', index=2, number=2,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=2437,
+  serialized_end=2529,
+)
+_sym_db.RegisterEnumDescriptor(_VOTERPARAMS_TYPE)
 
 
 _CHECKPOINTPARAMS = _descriptor.Descriptor(
@@ -856,6 +882,45 @@ _CODECPARAMS = _descriptor.Descriptor(
   serialized_end=2365,
 )
 
+
+_VOTERPARAMS = _descriptor.Descriptor(
+  name='VoterParams',
+  full_name='VoterParams',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='VoterParams.type', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='blank_index', full_name='VoterParams.blank_index', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _VOTERPARAMS_TYPE,
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2368,
+  serialized_end=2529,
+)
+
 _CHECKPOINTPARAMS.fields_by_name['model'].message_type = _MODELPARAMS
 _LAYERPARAMS.fields_by_name['type'].enum_type = _LAYERPARAMS_TYPE
 _LAYERPARAMS.fields_by_name['kernel_size'].message_type = _INTVEC2D
@@ -884,6 +949,8 @@ _TEXTPROCESSORPARAMS.fields_by_name['children'].message_type = _TEXTPROCESSORPAR
 _TEXTPROCESSORPARAMS.fields_by_name['bidi_direction'].enum_type = _TEXTPROCESSORPARAMS_BIDIDIRECTION
 _TEXTPROCESSORPARAMS_TYPE.containing_type = _TEXTPROCESSORPARAMS
 _TEXTPROCESSORPARAMS_BIDIDIRECTION.containing_type = _TEXTPROCESSORPARAMS
+_VOTERPARAMS.fields_by_name['type'].enum_type = _VOTERPARAMS_TYPE
+_VOTERPARAMS_TYPE.containing_type = _VOTERPARAMS
 DESCRIPTOR.message_types_by_name['CheckpointParams'] = _CHECKPOINTPARAMS
 DESCRIPTOR.message_types_by_name['IntVec2D'] = _INTVEC2D
 DESCRIPTOR.message_types_by_name['LayerParams'] = _LAYERPARAMS
@@ -893,6 +960,7 @@ DESCRIPTOR.message_types_by_name['ModelParams'] = _MODELPARAMS
 DESCRIPTOR.message_types_by_name['DataPreprocessorParams'] = _DATAPREPROCESSORPARAMS
 DESCRIPTOR.message_types_by_name['TextProcessorParams'] = _TEXTPROCESSORPARAMS
 DESCRIPTOR.message_types_by_name['CodecParams'] = _CODECPARAMS
+DESCRIPTOR.message_types_by_name['VoterParams'] = _VOTERPARAMS
 
 CheckpointParams = _reflection.GeneratedProtocolMessageType('CheckpointParams', (_message.Message,), dict(
   DESCRIPTOR = _CHECKPOINTPARAMS,
@@ -956,6 +1024,13 @@ CodecParams = _reflection.GeneratedProtocolMessageType('CodecParams', (_message.
   # @@protoc_insertion_point(class_scope:CodecParams)
   ))
 _sym_db.RegisterMessage(CodecParams)
+
+VoterParams = _reflection.GeneratedProtocolMessageType('VoterParams', (_message.Message,), dict(
+  DESCRIPTOR = _VOTERPARAMS,
+  __module__ = 'calamari_pb2'
+  # @@protoc_insertion_point(class_scope:VoterParams)
+  ))
+_sym_db.RegisterMessage(VoterParams)
 
 
 # @@protoc_insertion_point(module_scope)

@@ -150,3 +150,15 @@ message TextProcessorParams {
 message CodecParams {
     repeated string charset = 1;
 }
+
+
+message VoterParams {
+    enum Type {
+        SEQUENCE_VOTER = 0;
+        CONFIDENCE_VOTER_DEFAULT_CTC = 1;
+        CONFIDENCE_VOTER_FUZZY_CTC = 2;
+    }
+
+    Type type = 1;
+    int32 blank_index = 2;
+}
