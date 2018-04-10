@@ -1,6 +1,6 @@
 # calamari
 OCR Engine based on OCRopy and Kraken.
-It is designed to both be easy to use from the command line but also be modular to be integrated and custumized from other python scripts.
+It is designed to both be easy to use from the command line but also be modular to be integrated and customized from other python scripts.
 
 ## Installing
 The suggested method is to install calamari into a virtual environment using pip:
@@ -24,11 +24,11 @@ python setup,py install
 ## Command line interface (Standard User)
 If you simply want to use calamari for applying existent models to your text lines and optionally train new models you probably should use the command line interface of calamari, which is very similar to the one of OCRopy.
 
-Note that you have to `activate` the virutal environmant if used during the installation in order to make the command line skripts available.
+Note that you have to `activate` the virtual environment if used during the installation in order to make the command line skripts available.
 
 ### Prediction of a page
 Currently only OCR on lines is supported.
-Modules to segment pages into lines will be soon available.
+Modules to segment pages into lines will be available soon.
 In the meantime you should use the scripts provided by OCRopus.
 
 The prediction step using very deep neural networks implemented on tensorflow as core feature of calamari should be used:
