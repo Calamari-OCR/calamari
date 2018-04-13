@@ -27,8 +27,7 @@ class CenterNormalizer(DataPreprocessor):
         super().__init__()
 
     def _apply_single(self, data):
-        dewarped = self.dewarp(data)
-        return self.normalize(dewarped, cval=np.amax(dewarped))
+        return self.normalize(data, cval=np.amax(data))
 
     def set_height(self, target_height):
         self.target_height = target_height
@@ -48,7 +47,9 @@ class CenterNormalizer(DataPreprocessor):
         return center, r
 
     def dewarp(self, img, cval=0, dtype=np.dtype('f')):
-        center, r = self.measure(np.amax(img) - img)
+        temp = np.amax(img) - img
+        temp = temp * 1.0 / np.amax(temp)
+        center, r = self.measure(temp)
         h, w = img.shape
         # The actual image img is embedded into a larger image by
         # adding vertical space on top and at the bottom (padding)

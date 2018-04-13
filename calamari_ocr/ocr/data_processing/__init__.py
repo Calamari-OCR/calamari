@@ -14,7 +14,7 @@ def data_processor_from_proto(data_preprocessor_params):
             [data_processor_from_proto(c) for c in data_preprocessor_params.children]
         )
     elif data_preprocessor_params.type == DataPreprocessorParams.DEFAULT_NORMALIZER:
-        return DefaultDataPreprocessor(data_preprocessor_params.line_height)
+        return DefaultDataPreprocessor(data_preprocessor_params.line_height, data_preprocessor_params.pad)
     elif data_preprocessor_params.type == DataPreprocessorParams.NOOP_NORMALIZER:
         return NoopDataPreprocessor()
     elif data_preprocessor_params.type == DataPreprocessorParams.RANGE_NORMALIZER:

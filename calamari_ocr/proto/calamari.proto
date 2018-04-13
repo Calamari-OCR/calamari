@@ -11,12 +11,14 @@ message CheckpointParams {
     int32 stats_size = 6;
     int32 batch_size = 7;
     int32 checkpoint_frequency = 8;
-    string output_path_prefix = 9;
+    string output_dir = 9;
+    string output_model_prefix = 22;
 
     // params for early stopping
-    int32 early_stopping_frequency = 15;           // How often to check on validation data
-    int32 early_stopping_nbest = 16;               // How many models must be worse to stop
-    string early_stopping_best_model_prefix = 17;  // Prefix for the best model
+    int32 early_stopping_frequency = 15;                // How often to check on validation data
+    int32 early_stopping_nbest = 16;                    // How many models must be worse to stop
+    string early_stopping_best_model_prefix = 17;       // Prefix for the best model
+    string early_stopping_best_model_output_dir = 21;   // Where to store the best model
 
 
     // params for storing the training process

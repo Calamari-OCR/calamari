@@ -12,7 +12,7 @@ from calamari_ocr.proto import VoterParams
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--files", nargs="+",
+    parser.add_argument("--files", nargs="+", required=True, default=[],
                         help="List all image files that shall be processed")
     parser.add_argument("--checkpoint", type=str, nargs="+", default=[],
                         help="Path to the checkpoint without file extension")
@@ -25,6 +25,10 @@ def main():
                              "confidence_voter_fuzzy_ctc, sequence_voter")
 
     args = parser.parse_args()
+
+    # allow user to specify json file for model definition, but remove the file extension
+    # for further processing
+    args.checkpoint = [(cp[:-5] if cp.endswith(".json") else cp) for cp in args.checkpoint]
 
     # create voter
     voter_params = VoterParams()

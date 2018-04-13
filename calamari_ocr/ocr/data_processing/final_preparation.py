@@ -23,6 +23,6 @@ class FinalPreparation(DataPreprocessor):
 
         if self.pad > 0:
             w = data.shape[1]
-            data = np.vstack([np.full((data.pad, w), self.pad_value), data, np.full((data.pad, w), self.pad_value)])
+            data = np.vstack([np.full((self.pad, w), self.pad_value), data, np.full((self.pad, w), self.pad_value)])
 
         return data

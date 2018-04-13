@@ -95,11 +95,11 @@ class Trainer:
         iter = checkpoint_params.iter
 
         # helper function to write a checkpoint
-        def make_checkpoint(version=None):
+        def make_checkpoint(base_dir, prefix, version=None):
             if version:
-                checkpoint_path = os.path.abspath("{}{}.ckpt".format(checkpoint_params.output_path_prefix, version))
+                checkpoint_path = os.path.abspath(os.path.join(base_dir, "{}{}.ckpt".format(prefix, version)))
             else:
-                checkpoint_path = os.path.abspath("{}{:08d}.ckpt".format(checkpoint_params.output_path_prefix, iter + 1))
+                checkpoint_path = os.path.abspath(os.path.join(base_dir, "{}{:08d}.ckpt".format(prefix, iter + 1)))
             print("Storing checkpoint to '{}'".format(checkpoint_path))
             backend.save_checkpoint(checkpoint_path)
             checkpoint_params.iter = iter
@@ -136,7 +136,7 @@ class Trainer:
                     print(" TRUE: '{}'".format(gt_sentence))
 
                 if (iter + 1) % checkpoint_params.checkpoint_frequency == 0:
-                    make_checkpoint()
+                    make_checkpoint(checkpoint_params.output_dir, checkpoint_params.output_model_prefix)
 
                 if early_stopping_enabled and (iter + 1) % checkpoint_params.early_stopping_frequency == 0:
                     print("Checking early stopping model")
@@ -157,7 +157,11 @@ class Trainer:
                         early_stopping_best_cur_nbest = 1
                         early_stopping_best_at_iter = iter + 1
                         # overwrite as best model
-                        make_checkpoint(checkpoint_params.early_stopping_best_model_prefix)
+                        make_checkpoint(
+                            checkpoint_params.early_stopping_best_model_output_dir,
+                            prefix="",
+                            version=checkpoint_params.early_stopping_best_model_prefix,
+                        )
                         print("Found better model with accuracy of {:%}".format(early_stopping_best_accuracy))
                     else:
                         early_stopping_best_cur_nbest += 1
@@ -171,7 +175,9 @@ class Trainer:
 
         except KeyboardInterrupt as e:
             print("Storing interrupted checkpoint")
-            make_checkpoint("interrupted")
+            make_checkpoint(checkpoint_params.output_dir,
+                            checkpoint_params.output_model_prefix,
+                            "interrupted")
             raise e
 
         print("Total time {}s for {} iterations.".format(time.time() - train_start_time, iter))

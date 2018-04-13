@@ -6,8 +6,13 @@ def glob_all(paths):
     if isinstance(paths, list):
         out = []
         for p in paths:
-            out += glob.glob(os.path.expanduser(p))
+            if p.endswith(".files"):
+                with open(p, 'r') as f:
+                    for line in f:
+                        out += glob.glob(line)
+            else:
+                out += glob.glob(os.path.expanduser(p))
 
         return out
     else:
-        return glob.glob(paths)
+        return glob_all([paths])

@@ -15,49 +15,62 @@ from calamari_ocr.proto import LayerParams, NetworkParams
 class TensorflowModel:
     @staticmethod
     def load(network_proto, restore):
-        filename = restore
-        graph = tf.Graph()
-        with graph.as_default() as g:
-            session = tf.Session(graph=graph,
-                                 config=tf.ConfigProto(intra_op_parallelism_threads=0,
-                                                       inter_op_parallelism_threads=0,
-                                                       #session_inter_op_thread_pool=[{'num_threads': threads}],
-                                                       #use_per_session_threads=True,
-                                                       ))
-            with tf.variable_scope("", reuse=False) as scope:
+        try:
+            filename = restore
+            graph = tf.Graph()
+            with graph.as_default() as g:
+                session = tf.Session(graph=graph,
+                                     config=tf.ConfigProto(intra_op_parallelism_threads=0,
+                                                           inter_op_parallelism_threads=0,
+                                                           #session_inter_op_thread_pool=[{'num_threads': threads}],
+                                                           #use_per_session_threads=True,
+                                                           ))
+                with tf.variable_scope("", reuse=False) as scope:
 
-                saver = tf.train.import_meta_graph(filename + '.meta')
-                saver.restore(session, filename)
+                    saver = tf.train.import_meta_graph(filename + '.meta')
+                    saver.restore(session, filename)
 
-                inputs = g.get_tensor_by_name("inputs:0")
-                seq_len = g.get_tensor_by_name("seq_len:0")
-                try:
-                    seq_len_out = g.get_tensor_by_name("seq_len_out:0")
-                except:
-                    print("loaded old model!")
-                    seq_len_out = seq_len / 4
+                    inputs = g.get_tensor_by_name("inputs:0")
+                    seq_len = g.get_tensor_by_name("seq_len:0")
+                    try:
+                        seq_len_out = g.get_tensor_by_name("seq_len_out:0")
+                    except:
+                        print("loaded old model!")
+                        seq_len_out = seq_len / 4
 
-                try:
-                    dropout_rate = g.get_tensor_by_name("dropout_rate:0")
-                except:
-                    print("loaded old model without dropout rate")
-                    dropout_rate = tf.placeholder(tf.float32, shape=(), name="dropout_rate")
+                    try:
+                        dropout_rate = g.get_tensor_by_name("dropout_rate:0")
+                    except:
+                        print("loaded old model without dropout rate")
+                        dropout_rate = tf.placeholder(tf.float32, shape=(), name="dropout_rate")
 
-                targets = tf.SparseTensor(
-                    g.get_tensor_by_name("targets/indices:0"),
-                    g.get_tensor_by_name("targets/values:0"),
-                    g.get_tensor_by_name("targets/shape:0"))
-                cost = g.get_tensor_by_name("cost:0")
-                train_op = g.get_operation_by_name('train_op')
-                ler = g.get_tensor_by_name("ler:0")
-                decoded = (
-                    g.get_tensor_by_name("decoded_indices:0"),
-                    g.get_tensor_by_name("decoded_values:0"),
-                    g.get_tensor_by_name("decoded_shape:0")
-                )
-                logits = g.get_tensor_by_name("softmax:0")
+                    targets = tf.SparseTensor(
+                        g.get_tensor_by_name("targets/indices:0"),
+                        g.get_tensor_by_name("targets/values:0"),
+                        g.get_tensor_by_name("targets/shape:0"))
+                    cost = g.get_tensor_by_name("cost:0")
+                    train_op = g.get_operation_by_name('train_op')
+                    ler = g.get_tensor_by_name("ler:0")
+                    decoded = (
+                        g.get_tensor_by_name("decoded_indices:0"),
+                        g.get_tensor_by_name("decoded_values:0"),
+                        g.get_tensor_by_name("decoded_shape:0")
+                    )
+                    logits = g.get_tensor_by_name("softmax:0")
 
-                return TensorflowModel(network_proto, graph, session, inputs, seq_len, seq_len_out, targets, train_op, cost, ler, decoded, logits, dropout_rate)
+                    return TensorflowModel(network_proto, graph, session, inputs, seq_len, seq_len_out, targets, train_op, cost, ler, decoded, logits, dropout_rate)
+        except KeyError as e:
+            # TODO: Crash if cudnn is loaded
+            # Workaround create new graph and load weights
+            print(e)
+            print("Attempting a workaround")
+
+            model = TensorflowModel.from_proto(network_proto)
+            with model.graph.as_default() as g:
+                saver = tf.train.Saver()
+                saver.restore(model.session, restore)
+
+            return model
 
     @staticmethod
     def from_proto(network_proto):
@@ -250,7 +263,6 @@ class TensorflowModel:
                 return TensorflowModel(network_proto, graph, session, inputs, seq_len, lstm_seq_len,
                                        targets, train_op, cost, ler, sparse_decoded,
                                        softmax, dropout_rate)
-        pass
 
     def __init__(self,
                  network_proto,
