@@ -37,11 +37,11 @@ def main():
     print("Evaluation result")
     print("=================")
     print("")
-    print("Got mean normalized label error rate of {:.2%} ({} errs, {} total chars)".format(
-        r["avg_ler"], r["total_char_errs"], r["total_chars"]))
+    print("Got mean normalized label error rate of {:.2%} ({} errs, {} total chars, {} sync errs)".format(
+        r["avg_ler"], r["total_char_errs"], r["total_chars"], r["total_sync_errs"]))
 
     # sort descending
-    if args.n_confusions != 0 and r["total_char_errs"] > 0:
+    if args.n_confusions != 0 and r["total_sync_errs"] > 0:
         total_percent = 0
         keys = sorted(r['confusion'].items(), key=lambda item: -item[1])
         print("{:8s} {:8s} {:8s} {:10s}".format("GT", "PRED", "COUNT", "PERCENT"))
@@ -52,7 +52,7 @@ def main():
             if i == args.n_confusions:
                 break
 
-            percent = count * max(len(gt), len(pred)) / r["total_char_errs"]
+            percent = count * max(len(gt), len(pred)) / r["total_sync_errs"]
             print("{:8s} {:8s} {:8d} {:10.2%}".format(gt_fmt, pred_fmt, count, percent))
             total_percent += percent
 

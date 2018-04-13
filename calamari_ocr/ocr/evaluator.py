@@ -28,8 +28,8 @@ class Evaluator:
         total_chars = 0
         total_char_errs = 0
         confusion = {}
+        total_sync_errs = 0
         for gt, pred in zip(gt_data, pred_data):
-            # TODO: more metrics, e.g. confusion matrix (using sequence alignment)
             errs, trues = edit_distance(gt, pred)
             total_chars += len(gt)
             total_char_errs += errs
@@ -38,15 +38,22 @@ class Evaluator:
                 gt_str, pred_str = sync.get_text()
                 if gt_str != pred_str:
                     key = (gt_str, pred_str)
+                    total_sync_errs += max(len(gt_str), len(pred_str))
                     if key not in confusion:
                         confusion[key] = 1
                     else:
                         confusion[key] += 1
 
+        # Note the sync errs can be higher than the true edit distance because
+        # replacements are counted as 1
+        # e.g. ed(in ewych, ierg ch) = 5
+        #      sync(in ewych, ierg ch) = [{i: i}, {n: erg}, {ewy: }, {ch: ch}] = 6
+
         return {
             "avg_ler": total_char_errs / total_chars,
             "total_chars": total_chars,
             "total_char_errs": total_char_errs,
+            "total_sync_errs": total_sync_errs,
             "confusion": confusion,
         }
 
