@@ -14,10 +14,14 @@ from calamari_ocr.proto import LayerParams, NetworkParams
 
 class TensorflowModel:
     @staticmethod
+    def set_seed(seed):
+        tf.set_random_seed(seed)
+
+    @staticmethod
     def load(network_proto, restore):
         try:
             filename = restore
-            graph = tf.Graph()
+            graph = tf.get_default_graph()
             with graph.as_default() as g:
                 session = tf.Session(graph=graph,
                                      config=tf.ConfigProto(intra_op_parallelism_threads=0,
@@ -78,7 +82,7 @@ class TensorflowModel:
         intra_threads = 0
         inter_threads = 0
 
-        graph = tf.Graph()
+        graph = tf.get_default_graph()
         with graph.as_default():
             session = tf.Session(graph=graph,
                                  config=tf.ConfigProto(intra_op_parallelism_threads=intra_threads,

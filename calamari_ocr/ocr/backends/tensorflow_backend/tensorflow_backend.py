@@ -8,8 +8,9 @@ class TensorflowBackend(BackendInterface):
     def __init__(self,
                  network_proto,
                  restore,
-                 weights):
-        super().__init__(network_proto)
+                 weights,
+                 seed):
+        super().__init__(network_proto, seed)
         if restore:
             self.model = TensorflowModel.load(network_proto, restore)
         else:
@@ -17,6 +18,9 @@ class TensorflowBackend(BackendInterface):
 
         if weights:
             self.model.load_weights(weights)
+
+    def set_seed(self, seed):
+        TensorflowModel.set_seed(seed)
 
     def prepare(self, train):
         pass

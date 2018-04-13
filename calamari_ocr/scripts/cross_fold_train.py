@@ -59,11 +59,22 @@ def main():
                              "manager such as slurm.")
     parser.add_argument("--max_parallel_models", type=int, default=-1,
                         help="Number of models to train in parallel. Defaults to all.")
+    parser.add_argument("--weights", type=str, nargs="+", default=[],
+                        help="Load network weights from the given file. If more than one file is provided the number "
+                             "models must match the number of folds. Each fold is then initialized with the weights "
+                             "of each model, respectively")
 
-    setup_train_args(parser, omit=["files", "validation",
+    # add the training args (omit those params, that are set by the cross fold training)
+    setup_train_args(parser, omit=["files", "validation", "weights",
                                    "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix"])
 
     args = parser.parse_args()
+
+    # argument checks
+    if len(args.weights) > 1 and len(args.weights) != args.n_folds:
+        raise Exception("Either no, one or n_folds (={}) models are required for pretraining but got {}.".format(
+            args.n_folds, len(args.weights)
+        ))
 
     # automatically set the number of models that shall be run in parallel
     if args.max_parallel_models <= 0:
@@ -103,7 +114,7 @@ def main():
         test_files = cross_fold.test_files(fold)
         path = os.path.join(args.temporary_dir, "fold_{}.json".format(fold))
         with open(path, 'w') as f:
-            fold_args = vars(args)
+            fold_args = vars(args).copy()
             fold_args["id"] = fold
             fold_args["files"] = train_files
             fold_args["validation"] = test_files
@@ -111,7 +122,16 @@ def main():
             fold_args["verbose"] = True
             fold_args["output_dir"] = os.path.join(args.temporary_dir, "fold_{}".format(fold))
             fold_args["early_stopping_best_model_output_dir"] = args.best_models_dir
-            fold_args["early_stopping_best_model_prefix"] = args.best_model_label.format(id=fold)
+            fold_args["early_stopping_best_model_output_dir_model_prefix"] = args.best_model_label.format(id=fold)
+
+            if args.seed >= 0:
+                fold_args["seed"] = args.seed + fold
+
+            if len(args.weights) == 1:
+                fold_args["weights"] = args.weights[0]
+            elif len(args.weights) > 1:
+                fold_args["weights"] = args.weights[fold]
+
             json.dump(
                 fold_args,
                 f,

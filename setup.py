@@ -17,6 +17,7 @@ setup(
             'calamari-predict=calamari_ocr.scripts.predict:main',
             'calamari-resume-training=calamari_ocr.scripts.resume_training:main',
             'calamari-train=calamari_ocr.scripts.train:main',
+            'calamari-cross-fold-train=calamari_ocr.scripts.cross_fold_train:main',
         ],
     },
     install_requires=open("requirements.txt").read().split(),

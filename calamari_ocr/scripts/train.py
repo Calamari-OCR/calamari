@@ -17,6 +17,8 @@ def setup_train_args(parser, omit=[]):
                             help="List all image files that shall be processed. Ground truth fils with the same "
                                  "base name but with '.gt.txt' as extension are required at the same location")
 
+    parser.add_argument("--seed", type=int, default="-1",
+                        help="Seed for random operations. If negative a 'random' seed is used")
     parser.add_argument("--backend", type=str, default="tensorflow",
                         help="The backend to use for the neural net computation. Currently supported only tensorflow")
     parser.add_argument("--network", type=str, default="cnn=40:3x3,pool=2x2,cnn=60:3x3,pool=2x2,lstm=200,dropout=0.5",
@@ -47,8 +49,9 @@ def setup_train_args(parser, omit=[]):
                         help="Prefix for storing checkpoints and models")
     parser.add_argument("--bidi_dir", type=str, default=None,
                         help="The default direction of text. Defaults to ltr='left to right'. The other option is 'rtl'")
-    parser.add_argument("--weights", type=str, default=None,
-                        help="Load network weights from the given file.")
+    if "weights" not in omit:
+        parser.add_argument("--weights", type=str, default=None,
+                            help="Load network weights from the given file.")
 
     # early stopping
     if "validation" not in omit:
@@ -153,7 +156,7 @@ def main():
                       validation_dataset=validation_dataset,
                       weights=args.weights,
                       )
-    trainer.train(progress_bar=True)
+    trainer.train(seed=args.seed, progress_bar=True)
 
 
 if __name__ == "__main__":

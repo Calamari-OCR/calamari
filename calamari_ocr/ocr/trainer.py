@@ -5,6 +5,8 @@ from calamari_ocr.ocr.backends import create_backend_from_proto
 import time
 import os
 from tqdm import tqdm
+import random
+import numpy as np
 
 from calamari_ocr.utils import RunningStatistics
 
@@ -32,7 +34,11 @@ class Trainer:
         self.restore = restore
         self.weights = weights
 
-    def train(self, progress_bar=False):
+    def train(self, seed=-1, progress_bar=False):
+        if seed >= 0:
+            random.seed(seed)
+            np.random.seed(seed)
+
         checkpoint_params = self.checkpoint_params
 
         train_start_time = time.time() + self.checkpoint_params.total_time
@@ -72,7 +78,10 @@ class Trainer:
         network_params.features = checkpoint_params.model.line_height
         network_params.classes = len(codec)
 
-        backend = create_backend_from_proto(network_params, restore=self.restore, weights=self.weights)
+        backend = create_backend_from_proto(network_params,
+                                            restore=self.restore,
+                                            weights=self.weights,
+                                            seed=seed if seed >= 0 else None)
         backend.set_train_data(datas, labels)
         backend.set_prediction_data(validation_datas)
         backend.prepare(train=True)

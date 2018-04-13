@@ -5,11 +5,18 @@ import numpy as np
 class BackendInterface(ABC):
     def __init__(self,
                  network_proto,
+                 seed,
                  ):
         self.network_proto = network_proto
         self.data_sets = {}
         self.implementation_handles_batching = False
         super().__init__()
+
+        if seed is not None:
+            self.set_seed(seed)
+
+    def set_seed(self, seed):
+        pass
 
     def set_prediction_data(self, data):
         self.set_data("prediction", data)
