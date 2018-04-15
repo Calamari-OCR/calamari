@@ -8,9 +8,8 @@ class TensorflowBackend(BackendInterface):
     def __init__(self,
                  network_proto,
                  restore,
-                 weights,
-                 seed):
-        super().__init__(network_proto, seed)
+                 weights):
+        super().__init__(network_proto)
         if restore:
             self.model = TensorflowModel.load(network_proto, restore)
         else:
@@ -19,11 +18,8 @@ class TensorflowBackend(BackendInterface):
         if weights:
             self.model.load_weights(weights)
 
-    def set_seed(self, seed):
-        TensorflowModel.set_seed(seed)
-
     def prepare(self, train):
-        pass
+        self.model.prepare(train)
 
     def train(self, batch_x, batch_y):
         x, len_x = TensorflowBackend.__sparse_data_to_dense(batch_x)
@@ -48,6 +44,9 @@ class TensorflowBackend(BackendInterface):
 
     def save_checkpoint(self, filepath):
         self.model.save(filepath)
+
+    def realign_model_labels(self, indices_to_delete, indices_to_add):
+        self.model.realign_labels(indices_to_delete, indices_to_add)
 
     @staticmethod
     def __to_sparse_matrix(y, shift_values=-1):

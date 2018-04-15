@@ -21,7 +21,7 @@ class PredictionResult:
 
 
 class Predictor:
-    def __init__(self, checkpoint=None, text_postproc=None, data_preproc=None):
+    def __init__(self, checkpoint=None, text_postproc=None, data_preproc=None, codec=None):
         if checkpoint:
             with open(checkpoint + '.json', 'r') as f:
                 checkpoint_params = json_format.Parse(f.read(), CheckpointParams())
@@ -32,6 +32,7 @@ class Predictor:
         self.checkpoint = checkpoint
         self.text_postproc = text_postproc if text_postproc else text_processor_from_proto(self.model_params.text_postprocessor, "post")
         self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(self.model_params.data_preprocessor)
+        self.codec = codec
 
     def predict_dataset(self, dataset, batch_size=1, processes=1, progress_bar=True):
         start_time = time.time()
@@ -51,7 +52,7 @@ class Predictor:
         if apply_preproc:
             datas = self.data_preproc.apply(datas, processes=processes, progress_bar=progress_bar)
 
-        codec = Codec(self.model_params.codec.charset)
+        codec = self.codec if self.codec else Codec(self.model_params.codec.charset)
 
         # create backend
         network_params = self.model_params.network

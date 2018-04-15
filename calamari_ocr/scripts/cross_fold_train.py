@@ -63,9 +63,11 @@ def main():
                         help="Load network weights from the given file. If more than one file is provided the number "
                              "models must match the number of folds. Each fold is then initialized with the weights "
                              "of each model, respectively")
+    parser.add_argument("--single_fold", type=int, nargs="+", default=[],
+                        help="Only train a single (list of single) specific fold(s).")
 
     # add the training args (omit those params, that are set by the cross fold training)
-    setup_train_args(parser, omit=["files", "validation", "weights",
+    setup_train_args(parser, omit=["files", "validation", "weights", "restore",
                                    "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix"])
 
     args = parser.parse_args()
@@ -75,6 +77,13 @@ def main():
         raise Exception("Either no, one or n_folds (={}) models are required for pretraining but got {}.".format(
             args.n_folds, len(args.weights)
         ))
+
+    if len(args.single_fold) > 0:
+        if len(set(args.single_fold)) != len(args.single_fold):
+            raise Exception("Repeated fold id's found.")
+        for fold_id in args.single_fold:
+            if fold_id < 0 or fold_id >= args.n_folds:
+                raise Exception("Invalid fold id found: 0 <= id <= {}, but id == {}".format(args.n_folds, fold_id))
 
     # automatically set the number of models that shall be run in parallel
     if args.max_parallel_models <= 0:
@@ -109,7 +118,8 @@ def main():
 
     # Create the json argument file for each individual training
     run_args = []
-    for fold in range(len(cross_fold.folds)):
+    folds_to_run = args.single_fold if len(args.single_fold) > 0 else range(len(cross_fold.folds))
+    for fold in folds_to_run:
         train_files = cross_fold.train_files(fold)
         test_files = cross_fold.test_files(fold)
         path = os.path.join(args.temporary_dir, "fold_{}.json".format(fold))

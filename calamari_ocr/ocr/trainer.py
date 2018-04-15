@@ -11,8 +11,9 @@ import numpy as np
 from calamari_ocr.utils import RunningStatistics
 
 from calamari_ocr.ocr import Predictor, Evaluator
+from calamari_ocr.proto import CheckpointParams
 
-from google.protobuf.json_format import MessageToJson
+from google.protobuf import json_format
 
 class Trainer:
     def __init__(self, checkpoint_params,
@@ -23,7 +24,9 @@ class Trainer:
                  data_preproc=None,
                  data_augmenter=None,
                  restore=None,
-                 weights=None):
+                 weights=None,
+                 codec=None,
+                 codec_whitelist=[]):
         self.checkpoint_params = checkpoint_params
         self.dataset = dataset
         self.validation_dataset = validation_dataset
@@ -33,12 +36,11 @@ class Trainer:
         self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(checkpoint_params.model.data_preprocessor)
         self.restore = restore
         self.weights = weights
+        self.codec = codec
+        self.codec_whitelist = codec_whitelist
 
-    def train(self, seed=-1, progress_bar=False):
-        if seed >= 0:
-            random.seed(seed)
-            np.random.seed(seed)
 
+    def train(self, progress_bar=False):
         checkpoint_params = self.checkpoint_params
 
         train_start_time = time.time() + self.checkpoint_params.total_time
@@ -50,7 +52,7 @@ class Trainer:
 
         if self.validation_dataset:
             self.validation_dataset.load_samples(processes=checkpoint_params.processes, progress_bar=progress_bar)
-            validation_datas, validation_txts = self.dataset.train_samples(skip_empty=checkpoint_params.skip_invalid_gt)
+            validation_datas, validation_txts = self.validation_dataset.train_samples(skip_empty=checkpoint_params.skip_invalid_gt)
             if len(validation_datas) == 0:
                 raise Exception("Validation dataset is empty. Provide valid validation data for early stopping.")
         else:
@@ -64,32 +66,52 @@ class Trainer:
         validation_datas = self.data_preproc.apply(validation_datas, processes=checkpoint_params.processes, progress_bar=progress_bar)
 
         # compute the codec
-        codec = Codec.from_texts(texts)
+        codec = self.codec if self.codec else Codec.from_texts(texts, whitelist=self.codec_whitelist)
         checkpoint_params.model.codec.charset[:] = codec.charset
 
-
         # TODO: Data augmentation
-
-        # compute the labels
-        labels = [codec.encode(txt) for txt in texts]
 
         # create backend
         network_params = checkpoint_params.model.network
         network_params.features = checkpoint_params.model.line_height
         network_params.classes = len(codec)
+        if self.weights:
+            # if we load the weights, take care of codec changes as-well
+            with open(self.weights + '.json', 'r') as f:
+                restore_checkpoint_params = json_format.Parse(f.read(), CheckpointParams())
+                restore_model_params = restore_checkpoint_params.model
+
+            # checks
+            if checkpoint_params.model.line_height != network_params.features:
+                raise Exception("The model to restore has a line height of {} but a line height of {} is requested".format(
+                    network_params.features, checkpoint_params.model.line_height
+                ))
+
+            restore_codec = Codec(restore_model_params.codec.charset)
+            # the codec changes as tuple (deletions/insertions), and the new codec is the changed old one
+            codec_changes = restore_codec.align(codec)
+            codec = restore_codec
+            print("Codec changes: {} deletions, {} appends".format(len(codec_changes[0]), len(codec_changes[1])))
+            # The actual weight/bias matrix will be changed after loading the old weights
+        else:
+            codec_changes = None
+
+        # compute the labels with (new/current) codec
+        labels = [codec.encode(txt) for txt in texts]
 
         backend = create_backend_from_proto(network_params,
-                                            restore=self.restore,
                                             weights=self.weights,
-                                            seed=seed if seed >= 0 else None)
+                                            restore=self.restore,
+                                            )
         backend.set_train_data(datas, labels)
         backend.set_prediction_data(validation_datas)
+        if codec_changes:
+            backend.realign_model_labels(*codec_changes)
         backend.prepare(train=True)
 
         loss_stats = RunningStatistics(checkpoint_params.stats_size, checkpoint_params.loss_stats)
         ler_stats = RunningStatistics(checkpoint_params.stats_size, checkpoint_params.ler_stats)
         dt_stats = RunningStatistics(checkpoint_params.stats_size, checkpoint_params.dt_stats)
-
 
         early_stopping_enabled = self.validation_dataset is not None \
                                  and checkpoint_params.early_stopping_frequency > 0 \
@@ -109,6 +131,7 @@ class Trainer:
                 checkpoint_path = os.path.abspath(os.path.join(base_dir, "{}{}.ckpt".format(prefix, version)))
             else:
                 checkpoint_path = os.path.abspath(os.path.join(base_dir, "{}{:08d}.ckpt".format(prefix, iter + 1)))
+            return checkpoint_path
             print("Storing checkpoint to '{}'".format(checkpoint_path))
             backend.save_checkpoint(checkpoint_path)
             checkpoint_params.iter = iter
@@ -121,7 +144,7 @@ class Trainer:
             checkpoint_params.early_stopping_best_at_iter = early_stopping_best_at_iter
 
             with open(checkpoint_path + ".json", 'w') as f:
-                f.write(MessageToJson(checkpoint_params))
+                f.write(json_format.MessageToJson(checkpoint_params))
 
             return checkpoint_path
 

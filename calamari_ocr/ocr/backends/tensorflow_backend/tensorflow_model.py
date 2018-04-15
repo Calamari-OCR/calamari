@@ -13,15 +13,12 @@ from calamari_ocr.proto import LayerParams, NetworkParams
 
 
 class TensorflowModel:
-    @staticmethod
-    def set_seed(seed):
-        tf.set_random_seed(seed)
 
     @staticmethod
     def load(network_proto, restore):
         try:
             filename = restore
-            graph = tf.get_default_graph()
+            graph = tf.Graph()
             with graph.as_default() as g:
                 session = tf.Session(graph=graph,
                                      config=tf.ConfigProto(intra_op_parallelism_threads=0,
@@ -82,8 +79,9 @@ class TensorflowModel:
         intra_threads = 0
         inter_threads = 0
 
-        graph = tf.get_default_graph()
+        graph = tf.Graph()
         with graph.as_default():
+            tf.set_random_seed(network_proto.backend.random_seed)
             session = tf.Session(graph=graph,
                                  config=tf.ConfigProto(intra_op_parallelism_threads=intra_threads,
                                                        inter_op_parallelism_threads=inter_threads,
@@ -211,13 +209,15 @@ class TensorflowModel:
                 if network_proto.dropout > 0:
                     time_major_outputs = tf.nn.dropout(time_major_outputs, 1 - dropout_rate, name="dropout")
 
-                W = tf.get_variable('W', initializer=tf.random_uniform([output_size, network_proto.classes], -0.1, 0.1))
-                b = tf.get_variable('B', initializer=tf.constant(0., shape=[network_proto.classes]))
+                # we need to turn off validate_shape so we can resize the variable on a codec resize
+                W = tf.get_variable('W', validate_shape=False, initializer=tf.random_uniform([output_size, network_proto.classes], -0.1, 0.1))
+                b = tf.get_variable('B', validate_shape=False, initializer=tf.constant(0., shape=[network_proto.classes]))
 
+                # the output layer
                 time_major_logits = tf.matmul(time_major_outputs, W) + b
 
                 # reshape back
-                time_major_logits = tf.reshape(time_major_logits, [-1, batch_size, network_proto.classes], name="time_major_logits")
+                time_major_logits = tf.reshape(time_major_logits, [-1, batch_size, tf.shape(W)[-1]], name="time_major_logits")
 
                 time_major_softmax = tf.nn.softmax(time_major_logits, -1, "time_major_softmax")
 
@@ -225,6 +225,9 @@ class TensorflowModel:
                 softmax = tf.transpose(time_major_softmax, [1, 0, 2], name="softmax")
 
                 # ctc predictions
+                # Note for codec change: the codec size is derived upon creation, therefore the ctc ops must be created
+                # using the true codec size (the W/B-Matrix may change its shape however during loading/codec change
+                # to match the true codec size
                 if network_proto.ctc == NetworkParams.CTC_DEFAULT:
                     loss = ctc_ops.ctc_loss(targets,
                                             time_major_logits,
@@ -257,10 +260,6 @@ class TensorflowModel:
                 train_op = optimizer.apply_gradients(gvs, name='train_op')
 
                 ler = tf.reduce_mean(tf.edit_distance(tf.cast(decoded, tf.int32), targets), name='ler')
-
-                init_op = tf.group(tf.global_variables_initializer(),
-                                   tf.local_variables_initializer())
-                session.run(init_op)
 
                 lstm_seq_len = tf.identity(lstm_seq_len, "seq_len_out")
 
@@ -297,16 +296,55 @@ class TensorflowModel:
         self.logits = logits
         self.dropout_rate = dropout_rate
 
+    def uninitialized_variables(self):
+        with self.graph.as_default():
+            global_vars = tf.global_variables()
+            is_not_initialized = self.session.run([tf.is_variable_initialized(var) for var in global_vars])
+            not_initialized_vars = [v for (v, f) in zip(global_vars, is_not_initialized) if not f]
+
+            return not_initialized_vars
+
+    def prepare(self, train, uninitialized_variables_only=True):
+        if train:
+            with self.graph.as_default():
+                if uninitialized_variables_only:
+                    self.session.run(tf.variables_initializer(self.uninitialized_variables()))
+                else:
+                    init_op = tf.group(tf.global_variables_initializer(),
+                                       tf.local_variables_initializer())
+                    self.session.run(init_op)
+
     def load_weights(self, model_file):
         with self.graph.as_default() as g:
-            # TODO: maybe use trainable_variables
-            all_var_names = [v for v in tf.global_variables()
-                             if not v.name.startswith("W:") and not v.name.startswith("B:")
-                             and "Adam" not in v.name and "beta1_power" not in v.name and "beta2_power" not in v.name]
-            saver = tf.train.Saver(all_var_names)
+            # reload trainable variables only (e. g. omitting solver specific variables)
+            saver = tf.train.Saver(tf.trainable_variables())
 
             # Restore variables from disk.
+            # This will possible load a weight matrix with wrong shape, thus a codec resize is necessary
             saver.restore(self.session, model_file)
+
+    def realign_labels(self, indices_to_delete, indices_to_add):
+        W = self.graph.get_tensor_by_name("W:0")
+        B = self.graph.get_tensor_by_name("B:0")
+
+        # removed desired entries from the data
+        # IMPORTANT: Blank index is last in tensorflow but 0 in indices!
+        W_val, B_val = self.session.run((W, B))
+        W_val = np.delete(W_val, [i - 1 for i in indices_to_delete], axis=1)
+        B_val = np.delete(B_val, [i - 1 for i in indices_to_delete], axis=0)
+
+        # add new indices at the end
+        if list(range(W_val.shape[1], W_val.shape[1] + len(indices_to_add))) != list(sorted(indices_to_add)):
+            raise Exception("Additional labels must be added at the end, but got label indices {} != {}".format(
+                range(W_val.shape[1], W_val.shape[1] + len(indices_to_add)), sorted(indices_to_add)))
+
+        W_val = np.concatenate((W_val[:, :-1], np.random.uniform(-0.1, 0.1, (W_val.shape[0], len(indices_to_add))), W_val[:, -1:]), axis=1)
+        B_val = np.concatenate((B_val[:-1], np.zeros((len(indices_to_add), )), B_val[-1:]), axis=0)
+
+        # reassign values
+        op_W = tf.assign(W, W_val, validate_shape=False)
+        op_B = tf.assign(B, B_val, validate_shape=False)
+        self.session.run((op_W, op_B))
 
     def save(self, output_file):
         with self.graph.as_default() as g:

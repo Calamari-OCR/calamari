@@ -1,7 +1,7 @@
 class Codec:
     @staticmethod
-    def from_texts(texts):
-        chars = set()
+    def from_texts(texts, whitelist=[]):
+        chars = set(whitelist)
 
         for text in texts:
             for c in text:
@@ -37,22 +37,22 @@ class Codec:
         return [self.code2char[c] for c in l]
 
     def extend(self, codec):
-        charset = self.code2char.values()
         size = self.size()
-        counter = 0
+        added = []
         for c in codec.code2char.values():
-            if c not in charset:  # append chars that doesn't appear in the codec
+            if c not in self.charset:  # append chars that don't appear in the codec
                 self.code2char[size] = c
                 self.char2code[c] = size
+                self.charset.append(c)
+                added.append(size)
                 size += 1
-                counter += 1
 
-        return counter
+        return added
 
     def shrink(self, codec):
         deleted_positions = []
         positions = []
-        for number, char in self.code2char.iteritems():
+        for number, char in self.code2char.items():
             if char not in codec.char2code:
                 deleted_positions.append(number)
             else:
@@ -66,6 +66,11 @@ class Codec:
             self.char2code[char] = code
 
         return deleted_positions
+
+    def align(self, codec):
+        deleted_positions = self.shrink(codec)
+        added_positions = self.extend(codec)
+        return deleted_positions, added_positions
 
 
 def ascii_codec():

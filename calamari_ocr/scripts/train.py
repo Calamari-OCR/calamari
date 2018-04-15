@@ -17,8 +17,8 @@ def setup_train_args(parser, omit=[]):
                             help="List all image files that shall be processed. Ground truth fils with the same "
                                  "base name but with '.gt.txt' as extension are required at the same location")
 
-    parser.add_argument("--seed", type=int, default="-1",
-                        help="Seed for random operations. If negative a 'random' seed is used")
+    parser.add_argument("--seed", type=int, default="0",
+                        help="Seed for random operations. If negative or zero a 'random' seed is used")
     parser.add_argument("--backend", type=str, default="tensorflow",
                         help="The backend to use for the neural net computation. Currently supported only tensorflow")
     parser.add_argument("--network", type=str, default="cnn=40:3x3,pool=2x2,cnn=60:3x3,pool=2x2,lstm=200,dropout=0.5",
@@ -52,6 +52,14 @@ def setup_train_args(parser, omit=[]):
     if "weights" not in omit:
         parser.add_argument("--weights", type=str, default=None,
                             help="Load network weights from the given file.")
+    if "restore" not in omit:
+        parser.add_argument("--restore", type=str, default=None,
+                            help="Restore old network and continue training. Support for codec change!")
+
+    parser.add_argument("--whitelist_files", type=str, nargs="+", default=[],
+                        help="Whitelist of txt files that may not be removed on restoring a model")
+    parser.add_argument("--whitelist", type=str, nargs="+", default=[],
+                        help="Whitelist of characters that may not be removed on restoring a model")
 
     # early stopping
     if "validation" not in omit:
@@ -82,6 +90,13 @@ def main():
             json_args = json.load(f)
             for key, value in json_args.items():
                 setattr(args, key, value)
+
+    # parse whitelist
+    whitelist = args.whitelist
+    whitelist_files = glob_all(args.whitelist_files)
+    for f in whitelist_files:
+        with open(f) as txt:
+            whitelist.append(list(txt.read()))
 
     # Training dataset
     input_image_files = glob_all(args.files)
@@ -134,6 +149,9 @@ def main():
     strip_processor_params = params.model.text_postprocessor.children.add()
     strip_processor_params.type = TextProcessorParams.STRIP_NORMALIZER
 
+    if args.seed > 0:
+        params.model.network.backend.random_seed = args.seed
+
     if args.bidi_dir:
         # change bidirectional text direction if desired
         bidi_dir_to_enum = {"rtl": TextProcessorParams.BIDI_RTL, "ltr": TextProcessorParams.BIDI_LTR}
@@ -155,8 +173,10 @@ def main():
                       dataset,
                       validation_dataset=validation_dataset,
                       weights=args.weights,
+                      restore=args.restore,
+                      codec_whitelist=whitelist,
                       )
-    trainer.train(seed=args.seed, progress_bar=True)
+    trainer.train(progress_bar=True)
 
 
 if __name__ == "__main__":

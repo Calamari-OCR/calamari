@@ -95,6 +95,7 @@ message BackendParams {
 
     Type type = 1;
     bool cudnn = 2;
+    int32 random_seed = 3;
 }
 
 // Data required to run a model

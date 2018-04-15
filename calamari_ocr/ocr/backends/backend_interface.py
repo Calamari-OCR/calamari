@@ -2,21 +2,20 @@ from abc import ABC, abstractmethod
 import random
 import numpy as np
 
+
 class BackendInterface(ABC):
     def __init__(self,
                  network_proto,
-                 seed,
                  ):
         self.network_proto = network_proto
         self.data_sets = {}
         self.implementation_handles_batching = False
+        seed = network_proto.backend.random_seed
+        if seed >= 0:
+            random.seed(seed)
+            np.random.seed(seed)
+
         super().__init__()
-
-        if seed is not None:
-            self.set_seed(seed)
-
-    def set_seed(self, seed):
-        pass
 
     def set_prediction_data(self, data):
         self.set_data("prediction", data)
@@ -57,6 +56,10 @@ class BackendInterface(ABC):
             batch_x = data[i:i + batch_size]
             for single in self.predict(batch_x):
                 yield single
+
+    @abstractmethod
+    def realign_model_labels(self, indices_to_delete, indices_to_add):
+        pass
 
     @abstractmethod
     def train(self, batch_x, batch_y):
