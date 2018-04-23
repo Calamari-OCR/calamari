@@ -131,7 +131,6 @@ class Trainer:
                 checkpoint_path = os.path.abspath(os.path.join(base_dir, "{}{}.ckpt".format(prefix, version)))
             else:
                 checkpoint_path = os.path.abspath(os.path.join(base_dir, "{}{:08d}.ckpt".format(prefix, iter + 1)))
-            return checkpoint_path
             print("Storing checkpoint to '{}'".format(checkpoint_path))
             backend.save_checkpoint(checkpoint_path)
             checkpoint_params.iter = iter
