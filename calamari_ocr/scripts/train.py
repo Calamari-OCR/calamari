@@ -105,7 +105,7 @@ def main():
     if len(set(gt_txt_files)) != len(gt_txt_files):
         raise Exception("Some image are occurring more than once in the data set.")
 
-    dataset = FileDataSet(input_image_files, gt_txt_files)
+    dataset = FileDataSet(input_image_files, gt_txt_files, skip_invalid=not args.no_skip_invalid_gt)
     print("Found {} files in the dataset".format(len(dataset)))
 
     # Validation dataset
@@ -116,7 +116,8 @@ def main():
         if len(set(val_txt_files)) != len(val_txt_files):
             raise Exception("Some validation images are occurring more than once in the data set.")
 
-        validation_dataset = FileDataSet(validation_image_files, val_txt_files)
+        validation_dataset = FileDataSet(validation_image_files, val_txt_files,
+                                         skip_invalid=not args.no_skip_invalid_gt)
         print("Found {} files in the validation dataset".format(len(validation_dataset)))
     else:
         validation_dataset = None

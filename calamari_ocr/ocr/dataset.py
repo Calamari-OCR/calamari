@@ -7,10 +7,11 @@ from calamari_ocr.utils import parallel_map, split_all_ext
 
 
 class DataSet(ABC):
-    def __init__(self):
+    def __init__(self, skip_invalid=False):
         self._samples = []
         super().__init__()
         self.loaded = False
+        self.skip_invalid = skip_invalid
 
     def __len__(self):
         return len(self._samples)
@@ -80,8 +81,8 @@ class DataSet(ABC):
 
 
 class FileDataSet(DataSet):
-    def __init__(self, images=None, texts=None):
-        super().__init__()
+    def __init__(self, images=None, texts=None, skip_invalid=False):
+        super().__init__(skip_invalid=skip_invalid)
 
         if images is None and texts is None:
             raise Exception("Empty data set is not allowed. Both images and text files are None")
@@ -104,28 +105,35 @@ class FileDataSet(DataSet):
             images = [None] * len(texts)
 
         for image, text in zip(images, texts):
-            if image is None and text is None:
-                raise Exception("An empty data set is not allowed. Both image and text file are None")
+            try:
+                if image is None and text is None:
+                    raise Exception("An empty data set is not allowed. Both image and text file are None")
 
-            img_bn, text_bn = None, None
-            if image:
-                img_path, img_fn = os.path.split(image)
-                img_bn, img_ext = split_all_ext(img_fn)
+                img_bn, text_bn = None, None
+                if image:
+                    img_path, img_fn = os.path.split(image)
+                    img_bn, img_ext = split_all_ext(img_fn)
 
-                if not os.path.exists(image):
-                    raise Exception("Image at '{}' must exist".format(image))
+                    if not os.path.exists(image):
+                        raise Exception("Image at '{}' must exist".format(image))
 
-            if text:
-                if not os.path.exists(text):
-                    raise Exception("Text file at '{}' must exist".format(text))
+                if text:
+                    if not os.path.exists(text):
+                        raise Exception("Text file at '{}' must exist".format(text))
 
-                text_path, text_fn = os.path.split(text)
-                text_bn, text_ext = split_all_ext(text_fn)
+                    text_path, text_fn = os.path.split(text)
+                    text_bn, text_ext = split_all_ext(text_fn)
 
-            if image and text and img_bn != text_bn:
-                raise Exception("Expected image base name equals text base name but got '{}' != '{}'".format(
-                    img_bn, text_bn
-                ))
+                if image and text and img_bn != text_bn:
+                    raise Exception("Expected image base name equals text base name but got '{}' != '{}'".format(
+                        img_bn, text_bn
+                    ))
+            except Exception as e:
+                if self.skip_invalid:
+                    print("Invalid data: {}".format(e))
+                    continue
+                else:
+                    raise e
 
             self.add_sample({
                 "image_path": image,
