@@ -96,7 +96,7 @@ def main():
     whitelist_files = glob_all(args.whitelist_files)
     for f in whitelist_files:
         with open(f) as txt:
-            whitelist.append(list(txt.read()))
+            whitelist += list(txt.read())
 
     # Training dataset
     input_image_files = glob_all(args.files)
