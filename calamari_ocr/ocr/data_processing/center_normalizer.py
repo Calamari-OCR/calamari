@@ -62,8 +62,15 @@ class CenterNormalizer(DataPreprocessor):
         return dewarped
 
     def normalize(self, img, order=1, dtype=np.dtype('f'), cval=0):
+        # resize the image to a appropriate height close to the target height to speed up dewarping
+        intermediate_height = int(self.target_height * 1.5)
+        if intermediate_height < img.shape[0]:
+            img = scale_to_h(img, intermediate_height, order=order, dtype=dtype, cval=cval)
+
+        # dewarp
         dewarped = self.dewarp(img, cval=cval, dtype=dtype)
-        h, w = dewarped.shape
+
+        # scale to target height
         scaled = scale_to_h(dewarped, self.target_height, order=order, dtype=dtype, cval=cval)
         return scaled
 
