@@ -8,7 +8,7 @@ from tqdm import tqdm
 import random
 import numpy as np
 
-from calamari_ocr.utils import RunningStatistics
+from calamari_ocr.utils import RunningStatistics, checkpoint_path
 
 from calamari_ocr.ocr import Predictor, Evaluator
 from calamari_ocr.proto import CheckpointParams
@@ -34,8 +34,8 @@ class Trainer:
         self.txt_preproc = txt_preproc if txt_preproc else text_processor_from_proto(checkpoint_params.model.text_preprocessor, "pre")
         self.txt_postproc = txt_postproc if txt_postproc else text_processor_from_proto(checkpoint_params.model.text_postprocessor, "post")
         self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(checkpoint_params.model.data_preprocessor)
-        self.restore = restore
-        self.weights = weights
+        self.restore = checkpoint_path(restore) if restore else None
+        self.weights = checkpoint_path(weights) if weights else None
         self.codec = codec
         self.codec_whitelist = codec_whitelist
 
