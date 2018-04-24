@@ -23,6 +23,9 @@ def main():
     parser.add_argument("--voter", type=str, default="confidence_voter_default_ctc",
                         help="The voting algorithm to use. Possible values: confidence_voter_default_ctc (default), "
                              "confidence_voter_fuzzy_ctc, sequence_voter")
+    parser.add_argument("--output_dir", type=str,
+                        help="By default the prediction files will be written to the same directory as the given files. "
+                             "You can use this argument to specify a specific output dir for the prediction files.")
 
     args = parser.parse_args()
 
@@ -56,7 +59,9 @@ def main():
         if args.verbose:
             print("{}: '{}'".format(sample['id'], sentence))
 
-        with codecs.open(os.path.join(os.path.dirname(filepath), sample['id'] + ".pred.txt"), 'w', 'utf-8') as f:
+        output_dir = args.output_dir if args.output_dir else os.path.dirname(filepath)
+
+        with codecs.open(os.path.join(output_dir, sample['id'] + ".pred.txt"), 'w', 'utf-8') as f:
             f.write(sentence)
 
     print("All files written")

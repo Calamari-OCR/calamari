@@ -11,7 +11,7 @@ class SequenceVoter(Voter):
         self.n_best = n_best
 
     def _apply_vote(self, prediction_result_tuple):
-        texts = [prediction_result.sequence for prediction_result in prediction_result_tuple]
+        texts = [prediction_result.sentence for prediction_result in prediction_result_tuple]
         return self.process_text(texts)
 
     def process_text(self, texts):

@@ -79,6 +79,42 @@ class DataSet(ABC):
     def _load_sample(self, sample):
         pass
 
+class RawDataSet(DataSet):
+    def __init__(self, images=None, texts=None):
+        super().__init__()
+
+        if images is None and texts is None:
+            raise Exception("Empty data set is not allowed. Both images and text files are None")
+
+        if images is not None and texts is not None and len(images) == 0 and len(texts) == 0:
+            raise Exception("Empty data set provided.")
+
+        if texts is None or len(texts) == 0:
+            if images is None:
+                raise Exception("Empty data set.")
+
+            # No gt provided, probably prediction
+            texts = [None] * len(images)
+
+        if images is None or len(images) == 0:
+            if len(texts) is None:
+                raise Exception("Empty data set.")
+
+            # No images provided, probably evaluation
+            images = [None] * len(texts)
+
+        for i, (image, text) in enumerate(zip(images, texts)):
+            self.add_sample({
+                "image": image,
+                "text": text,
+                "id": str(i),
+            })
+
+        self.loaded = True
+
+    def _load_sample(self, sample):
+        raise Exception("Raw dataset is always loaded")
+
 
 class FileDataSet(DataSet):
     def __init__(self, images=None, texts=None, skip_invalid=False):

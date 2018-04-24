@@ -33,44 +33,46 @@ def train_individual_model(run_args):
     return args
 
 
-def main():
-    parser = argparse.ArgumentParser()
+def main(args=None):
+    if args is None:
+        # parse args from command line
+        parser = argparse.ArgumentParser()
 
-    # fold parameters
-    parser.add_argument("files", nargs="+",
-                        help="List all image files that shall be processed. Ground truth fils with the same "
-                             "base name but with '.gt.txt' as extension are required at the same location")
-    parser.add_argument("--n_folds", type=int, default=5,
-                        help="The number of fold, that is the number of models to train")
-    parser.add_argument("--keep_temporary_files", action="store_true",
-                        help="By default all temporary files (e.g. intermediate checkpoints) will be erased. Set this "
-                             "flag if you want to keep those files.")
-    parser.add_argument("--best_models_dir", type=str, required=True,
-                        help="path where to store the best models of each fold")
-    parser.add_argument("--best_model_label", type=str, default="{id}",
-                        help="The label of the best model in best model dirs. This will be string formatted. "
-                             "The default '{id}' will label the models 0, 1, 2, 3, ...")
-    parser.add_argument("--temporary_dir", type=str, default=None,
-                        help="A path to a temporary dir, where the intermediate model training data will be stored"
-                             "for each fold. Use --keep_temporary_files flag to keep the files. By default a system"
-                             "temporary dir will be used")
-    parser.add_argument("--run", type=str, default=None,
-                        help="An optional command that will receive the train calls. Useful e.g. when using a resource "
-                             "manager such as slurm.")
-    parser.add_argument("--max_parallel_models", type=int, default=-1,
-                        help="Number of models to train in parallel. Defaults to all.")
-    parser.add_argument("--weights", type=str, nargs="+", default=[],
-                        help="Load network weights from the given file. If more than one file is provided the number "
-                             "models must match the number of folds. Each fold is then initialized with the weights "
-                             "of each model, respectively")
-    parser.add_argument("--single_fold", type=int, nargs="+", default=[],
-                        help="Only train a single (list of single) specific fold(s).")
+        # fold parameters
+        parser.add_argument("files", nargs="+",
+                            help="List all image files that shall be processed. Ground truth fils with the same "
+                                 "base name but with '.gt.txt' as extension are required at the same location")
+        parser.add_argument("--n_folds", type=int, default=5,
+                            help="The number of fold, that is the number of models to train")
+        parser.add_argument("--keep_temporary_files", action="store_true",
+                            help="By default all temporary files (e.g. intermediate checkpoints) will be erased. Set this "
+                                 "flag if you want to keep those files.")
+        parser.add_argument("--best_models_dir", type=str, required=True,
+                            help="path where to store the best models of each fold")
+        parser.add_argument("--best_model_label", type=str, default="{id}",
+                            help="The label of the best model in best model dirs. This will be string formatted. "
+                                 "The default '{id}' will label the models 0, 1, 2, 3, ...")
+        parser.add_argument("--temporary_dir", type=str, default=None,
+                            help="A path to a temporary dir, where the intermediate model training data will be stored"
+                                 "for each fold. Use --keep_temporary_files flag to keep the files. By default a system"
+                                 "temporary dir will be used")
+        parser.add_argument("--run", type=str, default=None,
+                            help="An optional command that will receive the train calls. Useful e.g. when using a resource "
+                                 "manager such as slurm.")
+        parser.add_argument("--max_parallel_models", type=int, default=-1,
+                            help="Number of models to train in parallel. Defaults to all.")
+        parser.add_argument("--weights", type=str, nargs="+", default=[],
+                            help="Load network weights from the given file. If more than one file is provided the number "
+                                 "models must match the number of folds. Each fold is then initialized with the weights "
+                                 "of each model, respectively")
+        parser.add_argument("--single_fold", type=int, nargs="+", default=[],
+                            help="Only train a single (list of single) specific fold(s).")
 
-    # add the training args (omit those params, that are set by the cross fold training)
-    setup_train_args(parser, omit=["files", "validation", "weights", "restore",
-                                   "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix"])
+        # add the training args (omit those params, that are set by the cross fold training)
+        setup_train_args(parser, omit=["files", "validation", "weights", "restore",
+                                       "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix"])
 
-    args = parser.parse_args()
+        args = parser.parse_args()
 
     # argument checks
     if len(args.weights) > 1 and len(args.weights) != args.n_folds:
@@ -132,7 +134,7 @@ def main():
             fold_args["verbose"] = True
             fold_args["output_dir"] = os.path.join(args.temporary_dir, "fold_{}".format(fold))
             fold_args["early_stopping_best_model_output_dir"] = args.best_models_dir
-            fold_args["early_stopping_best_model_output_dir_model_prefix"] = args.best_model_label.format(id=fold)
+            fold_args["early_stopping_best_model_prefix"] = args.best_model_label.format(id=fold)
 
             if args.seed >= 0:
                 fold_args["seed"] = args.seed + fold

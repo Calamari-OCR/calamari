@@ -1,0 +1,165 @@
+import argparse
+import os
+import copy
+import numpy as np
+import random
+import inspect
+from calamari_ocr.scripts.train import setup_train_args
+import calamari_ocr.scripts.cross_fold_train as cross_fold_train
+from calamari_ocr.utils import glob_all, split_all_ext
+from calamari_ocr.utils.multiprocessing import parallel_map, run, prefix_run_command
+from calamari_ocr.ocr import FileDataSet, Evaluator
+
+# path to the dir of this script to automatically detect the training script
+this_absdir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
+
+# create necessary directories
+def run_for_single_line(args):
+    args.base_dir = os.path.join(args.base_dir, "all" if args.n_lines < 0 else str(args.n_lines))
+    if not os.path.exists(args.base_dir):
+        os.makedirs(args.base_dir)
+
+    tmp_dir = os.path.join(args.base_dir, "tmp")
+    if not os.path.exists(tmp_dir):
+        os.makedirs(tmp_dir)
+
+    best_models_dir = os.path.join(args.base_dir, "models")
+    if not os.path.exists(best_models_dir):
+        os.makedirs(best_models_dir)
+
+    prediction_dir = os.path.join(args.base_dir, "predictions")
+    if not os.path.exists(prediction_dir):
+        os.makedirs(prediction_dir)
+
+    # select number of files
+    files = args.train_files
+    if args.n_lines > 0:
+        all_files = glob_all(args.train_files)
+        files = random.sample(all_files, args.n_lines)
+
+    # run the cross-fold-training
+    setattr(args, "max_parallel_models", -1)
+    setattr(args, "best_models_dir", best_models_dir)
+    setattr(args, "temporary_dir", tmp_dir)
+    setattr(args, "keep_temporary_files", False)
+    setattr(args, "files", files)
+    setattr(args, "best_model_label", "{id}")
+    if not args.skip_train:
+        cross_fold_train.main(args)
+
+    # run the prediction
+    if not args.skip_eval:
+        # locate the eval script (must be in the same dir as "this")
+        predict_script_path = os.path.join(this_absdir, "experiment_eval.py")
+        dump_file = os.path.join(tmp_dir, "prediction.pkl")
+        models = [os.path.join(best_models_dir, d) for d in sorted(os.listdir(best_models_dir)) if d.endswith("json")]
+
+        if len(models) != args.n_folds:
+            raise Exception("Expected {} models, one for each fold respectively, but only {} models were found".format(
+                args.n_folds, len(models)
+            ))
+
+        for line in run(prefix_run_command([
+                "python3",
+                predict_script_path,
+                "-j", str(args.num_threads),
+                "--dump", dump_file,
+                "--eval_imgs"] + args.eval_files + [
+                ] + (["--verbose"] if args.verbose else []) + [
+                "--checkpoint"] + models + [
+                ], args.run, {"threads": args.num_threads}), verbose=args.verbose):
+            # Print the output of the thread
+            if args.verbose:
+                print(line)
+
+        import pickle
+        with open(dump_file, 'rb') as f:
+            prediction = pickle.load(f)
+
+        return prediction
+
+    return None
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base_dir", type=str, required=True,
+                        help="The base directory where to store all working files")
+    parser.add_argument("--eval_files", type=str, nargs="+", required=True,
+                        help="All files that shall be used for evaluation")
+    parser.add_argument("--train_files", type=str, nargs="+", required=True,
+                        help="All files that shall be used for (cross-fold) training")
+    parser.add_argument("--n_lines", type=int, default=[-1], nargs="+",
+                        help="Optional argument to specify the number of lines (images) used for training. "
+                             "On default, all available lines will be used.")
+    parser.add_argument("--run", type=str, default=None,
+                        help="An optional command that will receive the train calls. Useful e.g. when using a resource "
+                             "manager such as slurm.")
+
+    parser.add_argument("--n_folds", type=int, default=5,
+                        help="The number of fold, that is the number of models to train")
+    parser.add_argument("--weights", type=str, nargs="+", default=[],
+                        help="Load network weights from the given file. If more than one file is provided the number "
+                             "models must match the number of folds. Each fold is then initialized with the weights "
+                             "of each model, respectively")
+    parser.add_argument("--single_fold", type=int, nargs="+", default=[],
+                        help="Only train a single (list of single) specific fold(s).")
+    parser.add_argument("--skip_train", action="store_true",
+                        help="Skip the cross fold training")
+    parser.add_argument("--skip_eval", action="store_true",
+                        help="Skip the cross fold evaluation")
+    parser.add_argument("--verbose", action="store_true",
+                        help="Verbose output")
+
+    setup_train_args(parser, omit=["files", "validation", "weights", "restore",
+                                   "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix"])
+
+    args = parser.parse_args()
+
+    args.base_dir = os.path.abspath(os.path.expanduser(args.base_dir))
+
+    np.random.seed(args.seed)
+    random.seed(args.seed)
+
+    # argument checks
+    if len(args.weights) > 1 and len(args.weights) != args.n_folds:
+        raise Exception("Either no, one or n_folds (={}) models are required for pretraining but got {}.".format(
+            args.n_folds, len(args.weights)
+        ))
+
+    if len(args.single_fold) > 0:
+        if len(set(args.single_fold)) != len(args.single_fold):
+            raise Exception("Repeated fold id's found.")
+        for fold_id in args.single_fold:
+            if fold_id < 0 or fold_id >= args.n_folds:
+                raise Exception("Invalid fold id found: 0 <= id <= {}, but id == {}".format(args.n_folds, fold_id))
+
+    # run for all lines
+    single_args = [copy.copy(args) for _ in args.n_lines]
+    for s_args, n_lines in zip(single_args, args.n_lines):
+        s_args.n_lines = n_lines
+
+    predictions = parallel_map(run_for_single_line, single_args, progress_bar=False, processes=len(single_args), use_thread_pool=True)
+
+    # output predictions as csv:
+    header = "lines," + ",".join([str(fold) for fold in range(args.n_folds)])\
+             + ",avg,std,seq. vot., def. conf. vot., fuz. conf. vot."
+
+    print(header)
+
+    for prediction, n_lines in zip(predictions, args.n_lines):
+        data = "{}".format(n_lines)
+        folds_lers = []
+        for fold in range(args.n_folds):
+            data += ",{}".format(prediction[str(fold)]['avg_ler'])
+            folds_lers.append(prediction[str(fold)]['avg_ler'])
+
+        data += ",{},{}".format(np.mean(folds_lers), np.std(folds_lers))
+        for voter in ['sequence_voter', 'confidence_voter_default_ctc', 'confidence_voter_fuzzy_ctc']:
+            data += ",{}".format(prediction[voter]['avg_ler'])
+
+        print(data)
+
+
+if __name__=="__main__":
+    main()

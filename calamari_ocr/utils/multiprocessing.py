@@ -1,11 +1,12 @@
 import multiprocessing
+from multiprocessing.pool import ThreadPool
 import os
 import time
 import subprocess
 from tqdm import tqdm
 
 
-def parallel_map(f, d, desc="", processes=1, progress_bar=False):
+def parallel_map(f, d, desc="", processes=1, progress_bar=False, use_thread_pool=False):
     if processes <= 0:
         processes = os.cpu_count()
 
@@ -16,11 +17,18 @@ def parallel_map(f, d, desc="", processes=1, progress_bar=False):
             out = list(map(f, d))
 
     else:
-        with multiprocessing.Pool(processes=processes) as pool:
-            if progress_bar:
-                out = list(tqdm(pool.imap(f, d), desc=desc, total=len(d)))
-            else:
-                out = pool.map(f, d)
+        if use_thread_pool:
+            with ThreadPool(processes=processes) as pool:
+                if progress_bar:
+                    out = list(tqdm(pool.imap(f, d), desc=desc, total=len(d)))
+                else:
+                    out = pool.map(f, d)
+        else:
+            with multiprocessing.Pool(processes=processes) as pool:
+                if progress_bar:
+                    out = list(tqdm(pool.imap(f, d), desc=desc, total=len(d)))
+                else:
+                    out = pool.map(f, d)
 
     return out
 
@@ -57,3 +65,6 @@ def run(command, verbose=False):
             time.sleep(0.1)
         else:
             yield line
+
+    if process.returncode != 0:
+        raise Exception("Error: Process finished with code {}".format(process.returncode))
