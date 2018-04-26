@@ -3,7 +3,8 @@ import argparse
 from calamari_ocr.utils.glob import glob_all
 from calamari_ocr.utils.path import split_all_ext
 from calamari_ocr.ocr.dataset import FileDataSet
-from calamari_ocr.ocr.trainer import Trainer
+from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
+from calamari_ocr.ocr import Trainer
 from calamari_ocr.ocr.data_processing.default_data_preprocessor import DefaultDataPreprocessor
 from calamari_ocr.ocr.text_processing import DefaultTextPreprocessor, text_processor_from_proto, BidiTextProcessor
 
@@ -76,6 +77,8 @@ def setup_train_args(parser, omit=[]):
     if "early_stopping_best_model_output_dir" not in omit:
         parser.add_argument("--early_stopping_best_model_output_dir", type=str, default=None,
                             help="Path where to store the best model. Default is ou")
+    parser.add_argument("--n_augmentations", type=int, default=0,
+                        help="Number of data augmentation per line (done before training)")
 
 
 def main():
@@ -173,6 +176,8 @@ def main():
     trainer = Trainer(params,
                       dataset,
                       validation_dataset=validation_dataset,
+                      data_augmenter=SimpleDataAugmenter(),
+                      n_augmentations=args.n_augmentations,
                       weights=args.weights,
                       restore=args.restore,
                       codec_whitelist=whitelist,

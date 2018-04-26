@@ -2,6 +2,7 @@ from calamari_ocr.ocr.text_processing import text_processor_from_proto
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
 from calamari_ocr.ocr import Codec
 from calamari_ocr.ocr.backends import create_backend_from_proto
+from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
 import time
 import os
 from tqdm import tqdm
@@ -23,6 +24,7 @@ class Trainer:
                  txt_postproc=None,
                  data_preproc=None,
                  data_augmenter=None,
+                 n_augmentations=0,
                  restore=None,
                  weights=None,
                  codec=None,
@@ -31,6 +33,7 @@ class Trainer:
         self.dataset = dataset
         self.validation_dataset = validation_dataset
         self.data_augmenter = data_augmenter
+        self.n_augmentations = n_augmentations
         self.txt_preproc = txt_preproc if txt_preproc else text_processor_from_proto(checkpoint_params.model.text_preprocessor, "pre")
         self.txt_postproc = txt_postproc if txt_postproc else text_processor_from_proto(checkpoint_params.model.text_postprocessor, "post")
         self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(checkpoint_params.model.data_preprocessor)
@@ -69,7 +72,10 @@ class Trainer:
         codec = self.codec if self.codec else Codec.from_texts(texts, whitelist=self.codec_whitelist)
         checkpoint_params.model.codec.charset[:] = codec.charset
 
-        # TODO: Data augmentation
+        # data augmentation on preprocessed data
+        if self.data_augmenter:
+            datas, texts = self.data_augmenter.augment_datas(datas, texts, n_augmentations=self.n_augmentations,
+                                                             processes=checkpoint_params.processes, progress_bar=progress_bar)
 
         # create backend
         network_params = checkpoint_params.model.network

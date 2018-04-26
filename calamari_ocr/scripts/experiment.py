@@ -151,12 +151,14 @@ def main():
         data = "{}".format(n_lines)
         folds_lers = []
         for fold in range(args.n_folds):
-            data += ",{}".format(prediction[str(fold)]['avg_ler'])
-            folds_lers.append(prediction[str(fold)]['avg_ler'])
+            eval = prediction[str(fold)]["eval"]
+            data += ",{}".format(eval['avg_ler'])
+            folds_lers.append(eval['avg_ler'])
 
         data += ",{},{}".format(np.mean(folds_lers), np.std(folds_lers))
         for voter in ['sequence_voter', 'confidence_voter_default_ctc', 'confidence_voter_fuzzy_ctc']:
-            data += ",{}".format(prediction[voter]['avg_ler'])
+            eval = prediction[voter]["eval"]
+            data += ",{}".format(eval['avg_ler'])
 
         print(data)
 
