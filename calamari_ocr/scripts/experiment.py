@@ -15,7 +15,14 @@ this_absdir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
 
 # create necessary directories
 def run_for_single_line(args):
+    # lines/network/pretraining as base dir
     args.base_dir = os.path.join(args.base_dir, "all" if args.n_lines < 0 else str(args.n_lines))
+    pretrain_prefix = "scratch"
+    if args.weights and len(args.weights) > 0:
+        pretrain_prefix = ",".join([split_all_ext(os.path.basename(path))[0] for path in args.weights])
+
+    args.base_dir = os.path.join(args.base_dir, args.network, pretrain_prefix)
+
     if not os.path.exists(args.base_dir):
         os.makedirs(args.base_dir)
 
