@@ -41,6 +41,9 @@ def transform_image(image, angle=0.0, scale=1.0, aniso=1.0, translation=(0, 0), 
     d = c - np.dot(m, c) + np.array([dx * w, dy * h])
     return ndi.affine_transform(image, m, offset=d, order=order, mode="nearest", output=dtype("f"))
 
+def random_pad(image, horizontal=(0, 100)):
+    l, r = np.random.randint(*horizontal, size=1), np.random.randint(*horizontal, size=1)
+    return np.pad(image, ((l[0], r[0]), (0, 0)), mode="constant")
 #
 # random distortions
 #

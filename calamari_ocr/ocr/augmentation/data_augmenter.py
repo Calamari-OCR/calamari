@@ -51,6 +51,7 @@ class SimpleDataAugmenter(DataAugmenter):
     def augment_single(self, data, gt_txt):
         from calamari_ocr.thirdparty.ocrodeg.degrade import printlike_multiscale
         import calamari_ocr.thirdparty.ocrodeg as ocrodeg
+        data = ocrodeg.random_pad(data, (0, data.shape[1] * 5))
         for sigma in [2, 5]:
             noise = ocrodeg.bounded_gaussian_noise(data.shape, sigma, 3.0)
             data = ocrodeg.distort_with_noise(data, noise)
