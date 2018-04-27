@@ -25,7 +25,7 @@ class TensorflowBackend(BackendInterface):
         x, len_x = TensorflowBackend.__sparse_data_to_dense(batch_x)
         y = TensorflowBackend.__to_sparse_matrix(batch_y)
 
-        cost, optimizer, logits, ler, decoded = self.model.train(x, len_x, y)
+        cost, optimizer, logits, seq_len, ler, decoded = self.model.train(x, len_x, y)
         logits = np.roll(logits, 1, axis=2)
         return {
             "loss": cost,
@@ -33,6 +33,7 @@ class TensorflowBackend(BackendInterface):
             "ler": ler,
             "decoded": TensorflowBackend.__sparse_to_lists(decoded),
             "gt": batch_y,
+            "logits_lengths": seq_len,
         }
 
     def predict(self, batch_x):
@@ -40,7 +41,7 @@ class TensorflowBackend(BackendInterface):
         logits, seq_len, decoded = self.model.predict(x, len_x)
         logits = np.roll(logits, 1, axis=2)
         decoded = TensorflowBackend.__sparse_to_lists(decoded)
-        return [{"logits": l, "sequence_lengths": s, "decoded": d} for l, s, d in zip(logits, seq_len, decoded)]
+        return [{"logits": l[:s], "sequence_length": s, "decoded": d} for l, s, d in zip(logits, seq_len, decoded)]
 
     def save_checkpoint(self, filepath):
         self.model.save(filepath)

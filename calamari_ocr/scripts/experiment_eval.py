@@ -21,6 +21,8 @@ def main():
     parser.add_argument("--voter", type=str, nargs="+", default=["sequence_voter", "confidence_voter_default_ctc", "confidence_voter_fuzzy_ctc"],
                         help="The voting algorithm to use. Possible values: confidence_voter_default_ctc (default), "
                              "confidence_voter_fuzzy_ctc, sequence_voter")
+    parser.add_argument("--batch_size", type=int, default=1,
+                        help="The batch size for prediction")
     parser.add_argument("--dump", type=str,
                         help="Dump the output as serialized pickle object")
 
@@ -41,7 +43,8 @@ def main():
 
     # predict for all models
     predictor = MultiPredictor(checkpoints=args.checkpoint)
-    result, samples = predictor.predict_dataset(dataset, processes=args.processes, progress_bar=True)
+    result, samples = predictor.predict_dataset(dataset, batch_size=args.batch_size,
+                                                processes=args.processes, progress_bar=True)
 
     # vote results
     all_voter_sentences = []

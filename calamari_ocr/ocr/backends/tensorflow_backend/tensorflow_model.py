@@ -353,7 +353,7 @@ class TensorflowModel:
 
     def train(self, x, len_x, y):
         return self.session.run(
-            [self.cost, self.optimizer, self.logits, self.ler, self.decoded],
+            [self.cost, self.optimizer, self.logits, self.seq_len_out, self.ler, self.decoded],
             feed_dict={
                 self.inputs: x,
                 self.seq_len: len_x,
