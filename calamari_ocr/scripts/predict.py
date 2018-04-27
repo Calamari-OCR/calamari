@@ -26,6 +26,8 @@ def main():
     parser.add_argument("--output_dir", type=str,
                         help="By default the prediction files will be written to the same directory as the given files. "
                              "You can use this argument to specify a specific output dir for the prediction files.")
+    parser.add_argument("--dump", type=str,
+                        help="Debugging: dump the prediction to a pickled file")
 
     args = parser.parse_args()
 
@@ -63,6 +65,12 @@ def main():
 
         with codecs.open(os.path.join(output_dir, sample['id'] + ".pred.txt"), 'w', 'utf-8') as f:
             f.write(sentence)
+
+    if args.dump:
+        import pickle
+        with open(args.dump, 'wb') as f:
+            to_pickle = [[(r.decoded, r.logits, r.sentence) for r in res] for res in result]
+            pickle.dump(to_pickle, f)
 
     print("All files written")
 
