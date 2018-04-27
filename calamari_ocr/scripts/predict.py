@@ -18,6 +18,8 @@ def main():
                         help="Path to the checkpoint without file extension")
     parser.add_argument("-j", "--processes", type=int, default=1,
                         help="Number of processes to use")
+    parser.add_argument("--batch_size", type=int, default=1,
+                        help="The batch size during the prediction (number of lines to process in parallel)")
     parser.add_argument("--verbose", action="store_true",
                         help="Print additional information")
     parser.add_argument("--voter", type=str, default="confidence_voter_default_ctc",
@@ -51,7 +53,8 @@ def main():
 
     # predict for all models
     predictor = MultiPredictor(checkpoints=args.checkpoint)
-    result, samples = predictor.predict_dataset(dataset, args.processes, progress_bar=True)
+    result, samples = predictor.predict_dataset(dataset, batch_size=args.batch_size,
+                                                processes=args.processes, progress_bar=True)
 
     # vote the results (if only one model is given, this will just return the sentences)
     voted_sentences = voter.vote_prediction_results(result)

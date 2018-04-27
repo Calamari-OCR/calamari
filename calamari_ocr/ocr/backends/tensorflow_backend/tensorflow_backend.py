@@ -85,6 +85,7 @@ class TensorflowBackend(BackendInterface):
 
         for index, value in zip(indices, values):
             x, y = tuple(index)
+            assert(len(out[x]) == y)  # consistency check
             out[x].append(value + shift_values)
 
         return out
