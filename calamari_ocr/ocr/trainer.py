@@ -25,7 +25,6 @@ class Trainer:
                  data_preproc=None,
                  data_augmenter=None,
                  n_augmentations=0,
-                 restore=None,
                  weights=None,
                  codec=None,
                  codec_whitelist=[]):
@@ -37,7 +36,6 @@ class Trainer:
         self.txt_preproc = txt_preproc if txt_preproc else text_processor_from_proto(checkpoint_params.model.text_preprocessor, "pre")
         self.txt_postproc = txt_postproc if txt_postproc else text_processor_from_proto(checkpoint_params.model.text_postprocessor, "post")
         self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(checkpoint_params.model.data_preprocessor)
-        self.restore = checkpoint_path(restore) if restore else None
         self.weights = checkpoint_path(weights) if weights else None
         self.codec = codec
         self.codec_whitelist = codec_whitelist
@@ -48,13 +46,13 @@ class Trainer:
 
         train_start_time = time.time() + self.checkpoint_params.total_time
 
-        self.dataset.load_samples(processes=checkpoint_params.processes, progress_bar=progress_bar)
+        self.dataset.load_samples(processes=1, progress_bar=progress_bar)
         datas, txts = self.dataset.train_samples(skip_empty=checkpoint_params.skip_invalid_gt)
         if len(datas) == 0:
             raise Exception("Empty dataset is not allowed. Check if the data is at the correct location")
 
         if self.validation_dataset:
-            self.validation_dataset.load_samples(processes=checkpoint_params.processes, progress_bar=progress_bar)
+            self.validation_dataset.load_samples(processes=1, progress_bar=progress_bar)
             validation_datas, validation_txts = self.validation_dataset.train_samples(skip_empty=checkpoint_params.skip_invalid_gt)
             if len(validation_datas) == 0:
                 raise Exception("Validation dataset is empty. Provide valid validation data for early stopping.")
@@ -76,6 +74,10 @@ class Trainer:
         if self.data_augmenter:
             datas, texts = self.data_augmenter.augment_datas(datas, texts, n_augmentations=self.n_augmentations,
                                                              processes=checkpoint_params.processes, progress_bar=progress_bar)
+
+            # TODO: validation data augmentation
+            # validation_datas, validation_txts = self.data_augmenter.augment_datas(validation_datas, validation_txts, n_augmentations=0,
+            #                                                  processes=checkpoint_params.processes, progress_bar=progress_bar)
 
         # create backend
         network_params = checkpoint_params.model.network
@@ -107,7 +109,6 @@ class Trainer:
 
         backend = create_backend_from_proto(network_params,
                                             weights=self.weights,
-                                            restore=self.restore,
                                             )
         backend.set_train_data(datas, labels)
         backend.set_prediction_data(validation_datas)

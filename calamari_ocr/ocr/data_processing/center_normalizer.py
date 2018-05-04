@@ -48,6 +48,11 @@ class CenterNormalizer(DataPreprocessor):
 
     def dewarp(self, img, cval=0, dtype=np.dtype('f')):
         temp = np.amax(img) - img
+        amax = np.amax(temp)
+        if amax == 0:
+            # white image
+            return temp
+
         temp = temp * 1.0 / np.amax(temp)
         center, r = self.measure(temp)
         h, w = img.shape

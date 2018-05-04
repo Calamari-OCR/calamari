@@ -25,6 +25,8 @@ def main():
                         help="The batch size for prediction")
     parser.add_argument("--dump", type=str,
                         help="Dump the output as serialized pickle object")
+    parser.add_argument("--no_skip_invalid_gt", action="store_true",
+                        help="Do no skip invalid gt, instead raise an exception.")
 
     args = parser.parse_args()
 
@@ -33,9 +35,10 @@ def main():
     args.checkpoint = [(cp[:-5] if cp.endswith(".json") else cp) for cp in args.checkpoint]
 
     # load files
-    input_image_files = sorted(glob_all(args.eval_imgs))
+    gt_images = sorted(glob_all(args.eval_imgs))
+    gt_txts = [split_all_ext(path)[0] + ".gt.txt" for path in sorted(glob_all(args.eval_imgs))]
 
-    dataset = FileDataSet(input_image_files)
+    dataset = FileDataSet(images=gt_images, texts=gt_txts, skip_invalid=not args.no_skip_invalid_gt)
 
     print("Found {} files in the dataset".format(len(dataset)))
     if len(dataset) == 0:
@@ -59,25 +62,22 @@ def main():
         all_voter_sentences.append(voted_sentences)
 
     # evaluation
-    gt_files = [split_all_ext(path)[0] + ".gt.txt" for path in sorted(glob_all(args.eval_imgs))]
-    gt_data_set = FileDataSet(texts=gt_files)
     evaluator = Evaluator()
 
     def single_evaluation(predicted_sentences):
-        if len(predicted_sentences) != len(gt_files):
+        if len(predicted_sentences) != len(dataset):
             raise Exception("Mismatch in number of gt and pred files: {} != {}. Probably, the prediction did "
-                            "not succeed".format(len(gt_files), len(predicted_sentences)))
+                            "not succeed".format(len(dataset), len(predicted_sentences)))
 
         pred_data_set = RawDataSet(texts=predicted_sentences)
 
-        r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, progress_bar=True)
+        r = evaluator.run(gt_dataset=dataset, pred_dataset=pred_data_set, progress_bar=True)
 
         return r
 
     full_evaluation = {}
     for id, data in [(str(i), [r.sentence for r in result[i]]) for i in range(len(result))] + list(zip(args.voter, all_voter_sentences)):
         full_evaluation[id] = {"eval": single_evaluation(data), "data": data}
-    
 
     if args.verbose:
         print(full_evaluation)

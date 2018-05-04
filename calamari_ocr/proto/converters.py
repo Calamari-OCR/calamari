@@ -28,12 +28,11 @@ def network_params_from_definition_string(str, params):
     for param in str_params:
         label, value = tuple(param.split("="))
         flags = ["ctc_merge_repeated", "cudnn"]
-        strs = ["ctc"]
         floats = ["l_rate", "momentum", "dropout"]
         if label in flags:
             setattr(params, label, value.lower() == "true")
-        elif label in strs:
-            setattr(params, label, value)
+        elif label == "ctc":
+            setattr(params, label, NetworkParams.CTCType.Value(value))
         elif label in floats:
             setattr(params, label, float(value))
         elif label == "solver":

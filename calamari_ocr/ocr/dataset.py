@@ -3,6 +3,8 @@ import skimage.io as skimage_io
 import codecs
 import os
 
+import numpy as np
+
 from calamari_ocr.utils import parallel_map, split_all_ext
 
 
@@ -67,9 +69,20 @@ class DataSet(ABC):
 
         data = parallel_map(self._load_sample, self._samples, desc="Loading Dataset", processes=processes, progress_bar=progress_bar)
 
-        for (line, text), sample in zip(data, self._samples):
+        invalid_samples = []
+        for i, ((line, text), sample) in enumerate(zip(data, self._samples)):
             sample["image"] = line
             sample["text"] = text
+            if line.size == 0 or np.amax(line) == np.amin(line):
+                if self.skip_invalid:
+                    invalid_samples.append(i)
+                    print("Empty data: Image at '{}' is empty".format(sample['id']))
+                else:
+                    raise Exception("Empty data: Image at '{}' is empty".format(sample['id']))
+
+        # remove all invalid samples (reversed order!)
+        for i in sorted(invalid_samples, reverse=True):
+            del self._samples[i]
 
         self.loaded = True
 

@@ -6,7 +6,10 @@ import subprocess
 from tqdm import tqdm
 
 
-def parallel_map(f, d, desc="", processes=1, progress_bar=False, use_thread_pool=False):
+def parallel_map(f, d, _sentinel=None, desc="", processes=1, progress_bar=False, use_thread_pool=False):
+    if _sentinel:
+        raise Exception("You must call parallel_map by using parameter names to specify additional parameters besides the default map(func, data).")
+
     if processes <= 0:
         processes = os.cpu_count()
 

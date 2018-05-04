@@ -21,9 +21,9 @@ def train_individual_model(run_args):
     args = run_args["args"]
     train_args_json = run_args["json"]
     for line in run(prefix_run_command([
-        "python3",
+        "python3", "-u",
         args["train_script"],
-        train_args_json,
+        "--files", train_args_json,
 
     ], args["run"], {"threads": args['num_threads']}), verbose=args["verbose"]):
         # Print the output of the thread
@@ -39,7 +39,7 @@ def main(args=None):
         parser = argparse.ArgumentParser()
 
         # fold parameters
-        parser.add_argument("files", nargs="+",
+        parser.add_argument("--files", nargs="+",
                             help="List all image files that shall be processed. Ground truth fils with the same "
                                  "base name but with '.gt.txt' as extension are required at the same location")
         parser.add_argument("--n_folds", type=int, default=5,
@@ -69,7 +69,7 @@ def main(args=None):
                             help="Only train a single (list of single) specific fold(s).")
 
         # add the training args (omit those params, that are set by the cross fold training)
-        setup_train_args(parser, omit=["files", "validation", "weights", "restore",
+        setup_train_args(parser, omit=["files", "validation", "weights",
                                        "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix"])
 
         args = parser.parse_args()

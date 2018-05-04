@@ -59,15 +59,21 @@ def run_for_single_line(args):
         # locate the eval script (must be in the same dir as "this")
         predict_script_path = os.path.join(this_absdir, "experiment_eval.py")
         dump_file = os.path.join(tmp_dir, "prediction.pkl")
-        models = [os.path.join(best_models_dir, d) for d in sorted(os.listdir(best_models_dir)) if d.endswith("json")]
 
-        if len(models) != args.n_folds:
-            raise Exception("Expected {} models, one for each fold respectively, but only {} models were found".format(
-                args.n_folds, len(models)
-            ))
+        if len(args.single_fold) > 0:
+            models = [os.path.join(best_models_dir, "{}.ckpt.json".format(sf)) for sf in args.single_fold]
+            for m in models:
+                if not os.path.exists(m):
+                    raise Exception("Expected model at '{}', but file does not exist".format(m))
+        else:
+            models = [os.path.join(best_models_dir, d) for d in sorted(os.listdir(best_models_dir)) if d.endswith("json")]
+            if len(models) != args.n_folds:
+                raise Exception("Expected {} models, one for each fold respectively, but only {} models were found".format(
+                    args.n_folds, len(models)
+                ))
 
         for line in run(prefix_run_command([
-                "python3",
+                "python3", "-u",
                 predict_script_path,
                 "-j", str(args.num_threads),
                 "--dump", dump_file,
@@ -118,7 +124,7 @@ def main():
     parser.add_argument("--verbose", action="store_true",
                         help="Verbose output")
 
-    setup_train_args(parser, omit=["files", "validation", "weights", "restore",
+    setup_train_args(parser, omit=["files", "validation", "weights",
                                    "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix"])
 
     args = parser.parse_args()
@@ -141,6 +147,10 @@ def main():
             if fold_id < 0 or fold_id >= args.n_folds:
                 raise Exception("Invalid fold id found: 0 <= id <= {}, but id == {}".format(args.n_folds, fold_id))
 
+        actual_folds = args.single_fold
+    else:
+        actual_folds = list(range(args.n_folds))
+
     # run for all lines
     single_args = [copy.copy(args) for _ in args.n_lines]
     for s_args, n_lines in zip(single_args, args.n_lines):
@@ -157,7 +167,7 @@ def main():
     for prediction, n_lines in zip(predictions, args.n_lines):
         data = "{}".format(n_lines)
         folds_lers = []
-        for fold in range(args.n_folds):
+        for fold in range(len(actual_folds)):
             eval = prediction[str(fold)]["eval"]
             data += ",{}".format(eval['avg_ler'])
             folds_lers.append(eval['avg_ler'])

@@ -79,6 +79,13 @@ class TensorflowModel:
         intra_threads = 0
         inter_threads = 0
 
+        # load fuzzy ctc module if available
+        if len(network_proto.backend.fuzzy_ctc_library_path) > 0 and network_proto.ctc == NetworkParams.CTC_FUZZY:
+            from calamari_ocr.ocr.backends.tensorflow_backend.tensorflow_fuzzy_ctc_loader import load as load_fuzzy
+            fuzzy_module = load_fuzzy(network_proto.backend.fuzzy_ctc_library_path)
+        else:
+            fuzzy_module = None
+
         graph = tf.Graph()
         with graph.as_default():
             tf.set_random_seed(network_proto.backend.random_seed)
@@ -235,9 +242,8 @@ class TensorflowModel:
                     decoded, log_prob = ctc_ops.ctc_greedy_decoder(time_major_logits, lstm_seq_len, merge_repeated=network_proto.ctc_merge_repeated)
                     # decoded, log_prob = ctc_ops.ctc_beam_search_decoder(time_major_logits, lstm_seq_len, merge_repeated=model_settings["merge_repeated"])
                 elif network_proto.ctc == NetworkParams.CTC_FUZZY:
-                    raise Exception("The fuzzy decoder is not supported yet!")
-                    # loss, deltas = fuzzy_module.fuzzy_ctc_loss(logits, targets.indices, targets.values, lstm_seq_len)
-                    # decoded, log_prob = fuzzy_ctc_greedy_decoder(softmax, lstm_seq_len)
+                    loss, deltas = fuzzy_module['module'].fuzzy_ctc_loss(logits, targets.indices, targets.values, lstm_seq_len)
+                    decoded, log_prob = fuzzy_module['decoder_op'](softmax, lstm_seq_len)
                 else:
                     raise Exception("Unknown ctc model: '%s'. Supported are Default and Fuzzy" % network_proto.ctc)
 

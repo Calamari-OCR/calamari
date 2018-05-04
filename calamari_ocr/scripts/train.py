@@ -14,7 +14,7 @@ from calamari_ocr.proto import CheckpointParams, DataPreprocessorParams, TextPro
 
 def setup_train_args(parser, omit=[]):
     if "files" not in omit:
-        parser.add_argument("files", nargs="+",
+        parser.add_argument("--files", nargs="+",
                             help="List all image files that shall be processed. Ground truth fils with the same "
                                  "base name but with '.gt.txt' as extension are required at the same location")
 
@@ -53,9 +53,6 @@ def setup_train_args(parser, omit=[]):
     if "weights" not in omit:
         parser.add_argument("--weights", type=str, default=None,
                             help="Load network weights from the given file.")
-    if "restore" not in omit:
-        parser.add_argument("--restore", type=str, default=None,
-                            help="Restore old network and continue training. Support for codec change!")
 
     parser.add_argument("--whitelist_files", type=str, nargs="+", default=[],
                         help="Whitelist of txt files that may not be removed on restoring a model")
@@ -81,6 +78,13 @@ def setup_train_args(parser, omit=[]):
                         help="Number of data augmentation per line (done before training)")
 
 
+    # backend specific params
+    parser.add_argument("--fuzzy_ctc_library_path", type=str, default="",
+                        help="The fuzzy ctc module is not included in the official tensorflow, you need to compile it "
+                             "yourself. The resulting library (.so) must be loaded explicitly to make the functions available "
+                             "to calamari")
+
+
 def main():
     parser = argparse.ArgumentParser()
     setup_train_args(parser)
@@ -102,6 +106,7 @@ def main():
             whitelist += list(txt.read())
 
     # Training dataset
+    print("Resolving input files")
     input_image_files = glob_all(args.files)
     gt_txt_files = [split_all_ext(f)[0] + ".gt.txt" for f in input_image_files]
 
@@ -113,6 +118,7 @@ def main():
 
     # Validation dataset
     if args.validation:
+        print("Resolving validation files")
         validation_image_files = glob_all(args.validation)
         val_txt_files = [split_all_ext(f)[0] + ".gt.txt" for f in validation_image_files]
 
@@ -171,6 +177,7 @@ def main():
     params.model.line_height = args.line_height
 
     network_params_from_definition_string(args.network, params.model.network)
+    params.model.network.backend.fuzzy_ctc_library_path = args.fuzzy_ctc_library_path
 
     # create the actual trainer
     trainer = Trainer(params,
@@ -179,7 +186,6 @@ def main():
                       data_augmenter=SimpleDataAugmenter(),
                       n_augmentations=args.n_augmentations,
                       weights=args.weights,
-                      restore=args.restore,
                       codec_whitelist=whitelist,
                       )
     trainer.train(progress_bar=True)
