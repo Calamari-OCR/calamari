@@ -63,13 +63,17 @@ class TensorflowModel:
         except KeyError as e:
             # TODO: Crash if cudnn is loaded
             # Workaround create new graph and load weights
-            print(e)
-            print("Attempting a workaround")
+            print("Attempting a workaround: New graph and load weights")
 
             model = TensorflowModel.from_proto(network_proto)
             with model.graph.as_default() as g:
-                saver = tf.train.Saver()
-                saver.restore(model.session, restore)
+                try:
+                    saver = tf.train.Saver()
+                    saver.restore(model.session, restore)
+                except tf.errors.NotFoundError as e:
+                    print("Attempting workaround: only loading trainable variables")
+                    saver = tf.train.Saver(tf.trainable_variables())
+                    saver.restore(model.session, restore)
 
             return model
 
