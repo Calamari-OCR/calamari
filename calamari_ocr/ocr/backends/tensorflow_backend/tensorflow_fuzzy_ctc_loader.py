@@ -14,7 +14,7 @@ def load(library_path):
             op.outputs[1], message="Currently there is no way to take the second "
                                    " derivative of ctc_loss due to the fused implementation's interaction "
                                    " with tf.gradients()")
-        return [_BroadcastMul(grad_loss, grad_without_gradient), None, None, None]
+        return [_BroadcastMul(tf.expand_dims(grad_loss, -1), grad_without_gradient), None, None, None]
 
     def fuzzy_ctc_greedy_decoder(inputs, sequence_length):
         outputs = fuzzy_module.fuzzy_ctc_greedy_decoder(inputs, sequence_length)
