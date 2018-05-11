@@ -61,6 +61,7 @@ def main():
 
         # vote the results (if only one model is given, this will just return the sentences)
         voted_sentences = voter.vote_prediction_results(result)
+        voted_sentences = ["".join([c for c, p in s]) for s in voted_sentences]
         all_voter_sentences.append(voted_sentences)
 
     # evaluation

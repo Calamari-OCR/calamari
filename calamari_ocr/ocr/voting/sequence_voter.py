@@ -37,7 +37,7 @@ class SequenceVoter(Voter):
     def perform_vote(inputs, synclist, voters):
         num_candidates = 0
         candidates = [{"char": None, "num_votes": 0} for _ in voters]
-        output = ""
+        output = []
 
         def place_vote(c, num_candidates, num_votes=1):
             index = 0
@@ -58,17 +58,19 @@ class SequenceVoter(Voter):
 
         def winner(num_candidates):
             if num_candidates == 0:
-                return True, ""
+                return True, "", 0
 
             leader = 0
+            total_votes = candidates[0]['num_votes']
             for i in range(1, num_candidates):
+                total_votes += candidates[i]['num_votes']
                 if candidates[i]['num_votes'] > candidates[leader]['num_votes']:
                     leader = i
 
             if candidates[leader]["char"] is None:
-                return False, ""
+                return False, "", 0
 
-            return True, candidates[leader]["char"]
+            return True, candidates[leader]["char"], candidates[leader]['num_votes'] / total_votes
 
         for sync in synclist:
             r = True
@@ -80,8 +82,9 @@ class SequenceVoter(Voter):
                     else:
                         num_candidates = place_vote(None, num_candidates)
 
-                r, out = winner(num_candidates)
-                output += out
+                r, out, p = winner(num_candidates)
+                if len(out) > 0:
+                    output.append((out, p))
                 num_candidates = 0
 
         return output

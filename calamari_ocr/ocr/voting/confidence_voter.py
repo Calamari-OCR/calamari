@@ -1,4 +1,5 @@
 import numpy as np
+import operator
 
 from calamari_ocr.ocr.voting.voter import Voter
 from calamari_ocr.ocr.text_processing.text_synchronizer import synchronize
@@ -12,11 +13,7 @@ def add_llocs(s, new):
             s[char] = new[char]
 
 
-def get_most_likely_char(s):
-    return max(s, key=lambda key: s[key])
-
-
-def find_voters_with_most_frequent_legth(sync, voters):
+def find_voters_with_most_frequent_length(sync, voters):
     lengths = {}
 
     for i, voter in enumerate(voters):
@@ -27,68 +24,51 @@ def find_voters_with_most_frequent_legth(sync, voters):
         else:
             lengths[length] = 1
 
-    most_freq_length = -1
-    occurrences = 0
+    most_freq = max(lengths.items(), key=operator.itemgetter(1))[0]
 
-    for length in lengths.keys():
-        if lengths[length] < occurrences:
-            continue
-        elif lengths[length] == occurrences:
-            if length < most_freq_length:
-                most_freq_length = length
-                occurrences = lengths[length]
-        else:
-            most_freq_length = length
-            occurrences = lengths[length]
-
-    actual_voters = []
-
-    for i, voter in enumerate(voters):
-        if sync.length(i) == most_freq_length:
-            actual_voters.append(i)
-
-    return actual_voters, most_freq_length
+    return [i for i, voter in enumerate(voters) if sync.length(i) == most_freq], most_freq
 
 
 def perform_conf_vote(voters):
-    results = [voter[1] for voter in voters]
-
+    results = [voter['sequence'] for voter in voters]
     synclist = synchronize(results)
 
-    final_result = ""
+    final_result = []
 
     for sync in synclist:
-        actual_voters, most_freq_length = find_voters_with_most_frequent_legth(sync, voters)
+        actual_voters, most_freq_length = find_voters_with_most_frequent_length(sync, voters)
 
         # check if all voters agree
         if len(actual_voters) == len(voters):
-            l = []
-
-            for i in range(len(voters)):
-                l.append(voters[i][1][sync.start(i):sync.stop(i) + 1])
-
-            s = set(l)
+            # set of all characters (check if all say the same, then the set size is one)
+            s = set([voter['sequence'][sync.start(i):sync.stop(i)+1] for i, voter in enumerate(voters)])
 
             if len(s) == 1:
-                final_result += s.pop()
+                sentences = s.pop()
+                for char in sentences:
+                    p = np.average([max([c_p[char] for c_p in voter['alternatives'][sync.start(i):sync.stop(i)+1] if char in c_p])
+                                    for i, voter in enumerate(voters)])
+                    final_result.append((char, p))
                 continue
 
         if len(actual_voters) == 1:
-            final_result += voters[actual_voters[0]][1][sync.start(actual_voters[0]):sync.stop(actual_voters[0]) + 1]
+            voter_id = actual_voters[0]
+            voter = voters[voter_id]
+            for i in range(sync.start(voter_id), sync.stop(voter_id)):
+                char = voter['sequence'][i]
+                p = voter['alternatives'][i][char]
+                final_result.append((char, p))
         else:
             for i in range(most_freq_length):
                 s = {}
 
-                for idx, voter in enumerate(actual_voters):
-                    new_llocs = voters[voter][2][sync.start(voter) + i:sync.start(voter) + i + 1]
-
-                    if len(new_llocs) == 0:
-                        continue
-
-                    add_llocs(s, new_llocs[0])
+                for voter_id in actual_voters:
+                    alternatives = voters[voter_id]['alternatives'][sync.start(voter_id) + i]
+                    add_llocs(s, alternatives)
 
                 if len(s) > 0:
-                    final_result += get_most_likely_char(s)
+                    c, p = max(s.items(), key=operator.itemgetter(1))
+                    final_result.append((c, p / len(actual_voters)))
 
     return final_result
 
@@ -169,7 +149,7 @@ class ConfidenceVoter(Voter):
         for seq, alt in zip(voter_sequences, voter_alternatives):
             assert (len(seq) == len(alt))
 
-        return perform_conf_vote(list(zip(range(len(voter_sequences)), voter_sequences, voter_alternatives)))
+        return perform_conf_vote([{"sequence": s, "alternatives": a} for s, a in zip(voter_sequences, voter_alternatives)])
 
     def _apply_default_vote(self, prediction_result_tuple):
         voter_sequences = []
@@ -223,5 +203,5 @@ class ConfidenceVoter(Voter):
         for seq, alt in zip(voter_sequences, voter_alternatives):
             assert (len(seq) == len(alt))
 
-        return perform_conf_vote(list(zip(range(len(voter_sequences)), voter_sequences, voter_alternatives)))
+        return perform_conf_vote([{"sequence": s, "alternatives": a} for s, a in zip(voter_sequences, voter_alternatives)])
 
