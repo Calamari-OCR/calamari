@@ -46,8 +46,10 @@ def main():
 
     # predict for all models
     predictor = MultiPredictor(checkpoints=args.checkpoint)
-    result, samples = predictor.predict_dataset(dataset, batch_size=args.batch_size,
-                                                processes=args.processes, progress_bar=True)
+    predictions = list(predictor.predict_dataset(dataset, batch_size=args.batch_size,
+                                                processes=args.processes, progress_bar=True))
+    result = [r for r, s in predictions]
+    samples = [s for r, s in predictions]
 
     # vote results
     all_voter_sentences = []
@@ -76,7 +78,7 @@ def main():
         return r
 
     full_evaluation = {}
-    for id, data in [(str(i), [r.sentence for r in result[i]]) for i in range(len(result))] + list(zip(args.voter, all_voter_sentences)):
+    for id, data in [(str(i), [r[i].sentence for r in result]) for i in range(len(result[0]))] + list(zip(args.voter, all_voter_sentences)):
         full_evaluation[id] = {"eval": single_evaluation(data), "data": data}
 
     if args.verbose:

@@ -34,6 +34,9 @@ class Predictor:
         self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(self.model_params.data_preprocessor)
         self.codec = codec
 
+        self.network_params = self.model_params.network
+        self.backend = create_backend_from_proto(self.network_params, restore=self.checkpoint)
+
     def predict_dataset(self, dataset, batch_size=1, processes=1, progress_bar=True):
         start_time = time.time()
         dataset.load_samples(processes=processes, progress_bar=progress_bar)
@@ -55,18 +58,15 @@ class Predictor:
         codec = self.codec if self.codec else Codec(self.model_params.codec.charset)
 
         # create backend
-        network_params = self.model_params.network
-
-        backend = create_backend_from_proto(network_params, restore=self.checkpoint)
-        backend.set_prediction_data(datas)
-        backend.prepare(train=False)
+        self.backend.set_prediction_data(datas)
+        self.backend.prepare(train=False)
 
         prediction_start_time = time.time()
 
         if progress_bar:
-            out = list(tqdm(backend.prediction_step(batch_size), desc="Prediction", total=backend.num_prediction_steps(batch_size)))
+            out = list(tqdm(self.backend.prediction_step(batch_size), desc="Prediction", total=self.backend.num_prediction_steps(batch_size)))
         else:
-            out = list(backend.prediction_step(batch_size))
+            out = list(self.backend.prediction_step(batch_size))
 
         prediction_results = [PredictionResult(
             decoded=d["decoded"],
@@ -100,12 +100,24 @@ class MultiPredictor:
         if self.same_preproc:
             datas = self.predictors[0].data_preproc.apply(datas, processes=processes, progress_bar=progress_bar)
 
-        results = []
-        for predictor in self.predictors:
-            prediction_results, prediction_time =\
-                predictor.predict_raw(datas, batch_size, processes, progress_bar,
-                                      apply_preproc=not self.same_preproc)
-            results.append(prediction_results)
+
+        def progress_bar(l):
+            if progress_bar:
+                l = list(l)
+                return tqdm(l, total=len(l), desc="Prediction")
+            else:
+                return l
+
+        for data_idx in progress_bar(range(0, len(datas), batch_size)):
+            batch_data = datas[data_idx:data_idx+batch_size]
+            samples = dataset.samples()[data_idx:data_idx+batch_size]
+
+            # predict_raw returns list of [pred (batch_size), time]
+            prediction = [predictor.predict_raw(batch_data, batch_size, processes, progress_bar=False,
+                                                apply_preproc=not self.same_preproc)[0]
+                          for predictor in self.predictors]
+
+            for result, sample in zip(zip(*prediction), samples):
+                yield result, sample
 
         print("Prediction of {} models took {}s".format(len(self.predictors), time.time() - start_time))
-        return results, dataset.samples()

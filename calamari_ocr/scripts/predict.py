@@ -53,14 +53,13 @@ def main():
 
     # predict for all models
     predictor = MultiPredictor(checkpoints=args.checkpoint)
-    result, samples = predictor.predict_dataset(dataset, batch_size=args.batch_size,
+    do_prediction = predictor.predict_dataset(dataset, batch_size=args.batch_size,
                                                 processes=args.processes, progress_bar=True)
 
-    # vote the results (if only one model is given, this will just return the sentences)
-    voted_sentences = voter.vote_prediction_results(result)
-
     # output the voted results to the appropriate files
-    for sentence, sample, filepath in zip(voted_sentences, samples, input_image_files):
+    for (result, sample), filepath in zip(do_prediction, input_image_files):
+        # vote the results (if only one model is given, this will just return the sentences)
+        sentence = voter.vote_prediction_result(result)
         if args.verbose:
             print("{}: '{}'".format(sample['id'], sentence))
 

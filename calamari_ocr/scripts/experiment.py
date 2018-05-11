@@ -45,7 +45,7 @@ def run_for_single_line(args):
         files = random.sample(all_files, args.n_lines)
 
     # run the cross-fold-training
-    setattr(args, "max_parallel_models", -1)
+    setattr(args, "max_parallel_models", args.max_parallel_models)
     setattr(args, "best_models_dir", best_models_dir)
     setattr(args, "temporary_dir", tmp_dir)
     setattr(args, "keep_temporary_files", False)
@@ -111,6 +111,8 @@ def main():
 
     parser.add_argument("--n_folds", type=int, default=5,
                         help="The number of fold, that is the number of models to train")
+    parser.add_argument("--max_parallel_models", type=int, default=-1,
+                        help="Number of models to train in parallel per fold. Defaults to all.")
     parser.add_argument("--weights", type=str, nargs="+", default=[],
                         help="Load network weights from the given file. If more than one file is provided the number "
                              "models must match the number of folds. Each fold is then initialized with the weights "
