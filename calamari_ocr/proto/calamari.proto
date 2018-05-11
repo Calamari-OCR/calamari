@@ -131,6 +131,12 @@ message DataPreprocessorParams {
     int32 pad = 6;
 }
 
+message TextNormalizerReplacementParams {
+    string old = 1;
+    string new = 2;
+    bool regex = 3;     // Match as reqular expression
+}
+
 message TextProcessorParams {
     enum Type {
         DEFAULT_NORMALIZER = 0;
@@ -140,6 +146,7 @@ message TextProcessorParams {
         NOOP_NORMALIZER = 4;
         STRIP_NORMALIZER = 5;
         BIDI_NORMALIZER = 6;
+        TEXT_NORMALIZER = 7;
     }
 
     Type type = 1;
@@ -151,6 +158,16 @@ message TextProcessorParams {
         BIDI_RTL = 1;
     }
     BidiDirection bidi_direction = 3;
+
+    // normalizer (see https://docs.python.org/3/library/unicodedata.html)
+    enum UnicodeNormalizationType {
+        NFC = 0;
+        NFKC = 1;
+        NFD = 2;
+        NFKD = 3;
+    }
+    UnicodeNormalizationType unicode_normalization = 4;
+    repeated TextNormalizerReplacementParams replacements = 5;
 }
 
 

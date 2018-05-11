@@ -1,4 +1,4 @@
-from calamari_ocr.ocr.text_processing import MultiTextProcessor, StripTextProcessor, BidiTextProcessor
+from calamari_ocr.ocr.text_processing import MultiTextProcessor, StripTextProcessor, BidiTextProcessor, TextNormalizer
 
 
 class DefaultTextPreprocessor(MultiTextProcessor):
@@ -7,5 +7,6 @@ class DefaultTextPreprocessor(MultiTextProcessor):
             [
                 BidiTextProcessor(),
                 StripTextProcessor(),
+                TextNormalizer(),
             ]
         )

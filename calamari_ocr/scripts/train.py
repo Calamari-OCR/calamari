@@ -6,7 +6,7 @@ from calamari_ocr.ocr.dataset import FileDataSet
 from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
 from calamari_ocr.ocr import Trainer
 from calamari_ocr.ocr.data_processing.default_data_preprocessor import DefaultDataPreprocessor
-from calamari_ocr.ocr.text_processing import DefaultTextPreprocessor, text_processor_from_proto, BidiTextProcessor
+from calamari_ocr.ocr.text_processing import DefaultTextPreprocessor, text_processor_from_proto, BidiTextProcessor, default_text_normalizer_params
 
 from calamari_ocr.proto import CheckpointParams, DataPreprocessorParams, TextProcessorParams, \
     network_params_from_definition_string
@@ -152,10 +152,16 @@ def main():
     params.model.data_preprocessor.type = DataPreprocessorParams.DEFAULT_NORMALIZER
     params.model.data_preprocessor.line_height = args.line_height
     params.model.data_preprocessor.pad = args.pad
+
+    # Text pre processing (reading)
     params.model.text_preprocessor.type = TextProcessorParams.MULTI_NORMALIZER
+    default_text_normalizer_params(params.model.text_postprocessor.children.add())
     strip_processor_params = params.model.text_preprocessor.children.add()
     strip_processor_params.type = TextProcessorParams.STRIP_NORMALIZER
+
+    # Text post processing (prediction)
     params.model.text_postprocessor.type = TextProcessorParams.MULTI_NORMALIZER
+    default_text_normalizer_params(params.model.text_postprocessor.children.add())
     strip_processor_params = params.model.text_postprocessor.children.add()
     strip_processor_params.type = TextProcessorParams.STRIP_NORMALIZER
 

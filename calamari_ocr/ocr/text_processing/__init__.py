@@ -1,11 +1,12 @@
 from calamari_ocr.proto import TextProcessorParams
 
 from calamari_ocr.ocr.text_processing.text_processor import MultiTextProcessor, TextProcessor, NoopTextProcessor
+
+from calamari_ocr.ocr.text_processing.text_normalizer import TextNormalizer, default_text_normalizer_params
 from calamari_ocr.ocr.text_processing.basic_text_processors import StripTextProcessor, BidiTextProcessor
 from calamari_ocr.ocr.text_processing.default_text_preprocessor import DefaultTextPreprocessor
 from calamari_ocr.ocr.text_processing.default_text_postprocessor import DefaultTextPostprocessor
 from calamari_ocr.ocr.text_processing.text_synchronizer import synchronize
-
 
 
 def text_processor_from_proto(text_processor_params, pre_or_post=None):
@@ -27,5 +28,7 @@ def text_processor_from_proto(text_processor_params, pre_or_post=None):
         return StripTextProcessor()
     elif text_processor_params.type == TextProcessorParams.BIDI_NORMALIZER:
         return BidiTextProcessor(text_processor_params.bidi_direction)
+    elif text_processor_params.type == TextProcessorParams.TEXT_NORMALIZER:
+        return TextNormalizer(text_processor_params)
 
     raise Exception("Unknown proto type {} of an text processor".format(text_processor_params.type))
