@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from calamari_ocr.ocr.predictor import PredictionResult
+from calamari_ocr.proto import Prediction
 
 
 class Voter(ABC):
@@ -12,16 +13,19 @@ class Voter(ABC):
             raise Exception("Empty prediction results")
         elif len(prediction_results) == 1:
             # no voting required
-            return prediction_results[0].sentence
+            return prediction_results[0].sentence_with_probs
         else:
             return self.vote_prediction_result_tuple(tuple(prediction_results))
 
     def vote_prediction_results(self, prediction_results):
         return [self.vote_prediction_result(p) for p in prediction_results]
 
-    def vote_prediction_result_tuple(self, prediction_result_tuple):
-        return self._apply_vote(prediction_result_tuple)
+    def vote_prediction_result_tuple(self, predictions):
+        p = Prediction()
+        p.is_voted_result = True
+        self._apply_vote(predictions, p)
+        return p
 
     @abstractmethod
-    def _apply_vote(self, prediction_result_tuple):
+    def _apply_vote(self, predictions, p):
         pass

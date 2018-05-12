@@ -32,6 +32,12 @@ message CheckpointParams {
     int32 early_stopping_best_at_iter = 20;         // Best model was found at iter?
 }
 
+message DoubleMatrix {
+    uint32 rows = 1;
+    uint32 cols = 2;
+    repeated double data = 3 [packed=true];
+}
+
 message IntVec2D {
     int32 x = 1;
     int32 y = 2;
@@ -185,4 +191,27 @@ message VoterParams {
 
     Type type = 1;
     int32 blank_index = 2;
+}
+
+message PredictionCharacter {
+    string char = 1;
+    int32 label = 2;
+    float probability = 3;
+}
+
+message PredictionPosition {
+    repeated PredictionCharacter chars = 1;
+    int32 start = 2;
+    int32 end = 3;
+}
+
+message Prediction {
+    string sentence = 1;
+    repeated int32 labels = 2;
+    repeated PredictionPosition positions = 3;
+    DoubleMatrix logits = 4;
+    float total_probability = 5;
+    bool is_voted_result = 6;
+
+    string line_path = 7;
 }

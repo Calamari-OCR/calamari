@@ -2,6 +2,8 @@ import time
 
 from tqdm import tqdm
 
+import numpy as np
+
 from google.protobuf import json_format
 
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
@@ -9,15 +11,24 @@ from calamari_ocr.ocr.data_processing import data_processor_from_proto
 from calamari_ocr.ocr import Codec
 from calamari_ocr.ocr.backends import create_backend_from_proto
 from calamari_ocr.proto import CheckpointParams
+from calamari_ocr.proto import Prediction as PredictionProto
+from calamari_ocr.proto import PredictionCharacter as PredictionCharProto
+from calamari_ocr.proto import PredictionPosition as PredictionPosProto
 
 
 class PredictionResult:
-    def __init__(self, decoded, logits, codec, text_postproc):
-        self.decoded = decoded
-        self.logits = logits
+    def __init__(self, prediction, codec, text_postproc):
+        self.prediction = prediction
+        self.logits = np.reshape(prediction.logits.data, (prediction.logits.rows, prediction.logits.cols))
         self.codec = codec
         self.text_postproc = text_postproc
-        self.sentence = self.text_postproc.apply("".join(codec.decode(decoded)))
+        chars = codec.decode(prediction.labels)
+        self.sentence = self.text_postproc.apply("".join(chars))
+        self.prediction.sentence = self.sentence
+
+        for p in self.prediction.positions:
+            for c in p.chars:
+                c.char = codec.code2char[c.label]
 
 
 class Predictor:
@@ -69,11 +80,10 @@ class Predictor:
             out = list(self.backend.prediction_step(batch_size))
 
         prediction_results = [PredictionResult(
-            decoded=d["decoded"],
-            logits=d["logits"],
+            p,
             codec=codec,
             text_postproc=self.text_postproc,
-        ) for d in out]
+        ) for p in out]
 
         return prediction_results, time.time() - prediction_start_time
 

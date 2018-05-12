@@ -40,8 +40,8 @@ class TensorflowBackend(BackendInterface):
         x, len_x = TensorflowBackend.__sparse_data_to_dense(batch_x)
         logits, seq_len, decoded = self.model.predict(x, len_x)
         logits = np.roll(logits, 1, axis=2)
-        decoded = TensorflowBackend.__sparse_to_lists(decoded)
-        return [{"logits": l[:s], "sequence_length": s, "decoded": d} for l, s, d in zip(logits, seq_len, decoded)]
+        # decoded = TensorflowBackend.__sparse_to_lists(decoded)
+        return [self.ctc_decoder.decode(l[:s]) for l, s in zip(logits, seq_len)]
 
     def save_checkpoint(self, filepath):
         self.model.save(filepath)

@@ -59,8 +59,8 @@ def main():
     # output the voted results to the appropriate files
     for (result, sample), filepath in zip(do_prediction, input_image_files):
         # vote the results (if only one model is given, this will just return the sentences)
-        sentence_with_probs = voter.vote_prediction_result(result)
-        sentence = "".join([c for c, p in sentence_with_probs])
+        prediction = voter.vote_prediction_result(result)
+        sentence = prediction.sentence
         if args.verbose:
             print("{}: '{}'".format(sample['id'], sentence))
 

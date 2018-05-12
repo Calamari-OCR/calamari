@@ -10,9 +10,12 @@ class SequenceVoter(Voter):
         self.optimize = optimize
         self.n_best = n_best
 
-    def _apply_vote(self, prediction_result_tuple):
-        texts = [prediction_result.sentence for prediction_result in prediction_result_tuple]
-        return self.process_text(texts)
+    def _apply_vote(self, predictions, prediction_out):
+        texts = [prediction_result.sentence for prediction_result in predictions]
+        out = self.process_text(texts)
+
+        # TODO:
+        prediction_out.sentence = "".join([c for c, p in out])
 
     def process_text(self, texts):
         voters = SequenceVoter.text_to_voters(texts)
