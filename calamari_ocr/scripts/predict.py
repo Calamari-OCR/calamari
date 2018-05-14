@@ -1,12 +1,14 @@
 import argparse
 import codecs
 import os
+import json
+
 
 from calamari_ocr.utils.glob import glob_all
 from calamari_ocr.ocr.dataset import FileDataSet
 from calamari_ocr.ocr import Predictor, MultiPredictor
 from calamari_ocr.ocr.voting import voter_from_proto
-from calamari_ocr.proto import VoterParams
+from calamari_ocr.proto import VoterParams, Predictions
 
 
 def main():
@@ -28,8 +30,10 @@ def main():
     parser.add_argument("--output_dir", type=str,
                         help="By default the prediction files will be written to the same directory as the given files. "
                              "You can use this argument to specify a specific output dir for the prediction files.")
-    parser.add_argument("--dump", type=str,
-                        help="Debugging: dump the prediction to a pickled file")
+    parser.add_argument("--extended_prediction_data", action="store_true",
+                        help="Write: Predicted string, labels; position, probabilities and alternatives of chars to a .pred (protobuf) file")
+    parser.add_argument("--extended_prediction_data_ext", type=str, default=".pred",
+                        help="Extension")
 
     args = parser.parse_args()
 
@@ -58,8 +62,12 @@ def main():
 
     # output the voted results to the appropriate files
     for (result, sample), filepath in zip(do_prediction, input_image_files):
+        for i, p in enumerate(result):
+            p.prediction.id = "fold_{}".format(i)
+
         # vote the results (if only one model is given, this will just return the sentences)
         prediction = voter.vote_prediction_result(result)
+        prediction.id = "voted"
         sentence = prediction.sentence
         if args.verbose:
             print("{}: '{}'".format(sample['id'], sentence))
@@ -69,11 +77,12 @@ def main():
         with codecs.open(os.path.join(output_dir, sample['id'] + ".pred.txt"), 'w', 'utf-8') as f:
             f.write(sentence)
 
-    if args.dump:
-        import pickle
-        with open(args.dump, 'wb') as f:
-            to_pickle = [[(r.decoded, r.logits, r.sentence) for r in res] for res in result]
-            pickle.dump(to_pickle, f)
+        if args.extended_prediction_data:
+            with open(os.path.join(output_dir, sample['id'] + args.extended_prediction_data_ext), 'wb') as f:
+                ps = Predictions()
+                ps.line_path = filepath
+                ps.predictions.extend([prediction] + [r.prediction for r in result])
+                f.write(ps.SerializeToString())
 
     print("All files written")
 

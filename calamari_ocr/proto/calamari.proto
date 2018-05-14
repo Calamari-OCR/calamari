@@ -200,18 +200,24 @@ message PredictionCharacter {
 }
 
 message PredictionPosition {
-    repeated PredictionCharacter chars = 1;
-    int32 start = 2;
-    int32 end = 3;
+    repeated PredictionCharacter chars = 1;         // All characters at this position with its individual probabilities
+    int32 start = 2;                                // Start of the character in the image (this is usually the center of a letter)
+    int32 end = 3;                                  // End of the character in the image (this is usually the center of a letter)
 }
 
 message Prediction {
-    string sentence = 1;
-    repeated int32 labels = 2;
-    repeated PredictionPosition positions = 3;
-    DoubleMatrix logits = 4;
-    float total_probability = 5;
-    bool is_voted_result = 6;
+    string id = 1;                                  // Use this as hint when saving several predictions into one file
+    string sentence = 2;                            // Postprocessed sentence
+    repeated int32 labels = 3;                      // [Optional] The labels (depending on the codec)
+    repeated PredictionPosition positions = 4;      // The individual predictions for each position
+    DoubleMatrix logits = 5;                        // The full prediction matrix
+    float total_probability = 6;
+    bool is_voted_result = 7;                       // A voted result does not have logits
 
-    string line_path = 7;
+    string line_path = 8;                           // [Optional] The original path to the corresponding image file
+}
+
+message Predictions {
+    repeated Prediction predictions = 1;
+    string line_path = 2;
 }

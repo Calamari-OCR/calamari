@@ -8,6 +8,7 @@ from calamari_ocr.proto.calamari_pb2 import \
     LayerParams, \
     VoterParams, \
     Prediction, \
+    Predictions, \
     PredictionCharacter, \
     PredictionPosition
 
