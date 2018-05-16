@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='calamari_ocr',
-    version='0.1.3',
+    version='0.1.4',
     packages=find_packages(),
     license='GPL-v3.0',
     long_description=open("README.md").read(),
@@ -18,6 +18,7 @@ setup(
             'calamari-resume-training=calamari_ocr.scripts.resume_training:main',
             'calamari-train=calamari_ocr.scripts.train:main',
             'calamari-cross-fold-train=calamari_ocr.scripts.cross_fold_train:main',
+            'calamari-pred_to_json=calamari_ocr.scripts.cross_fold_train:main',
         ],
     },
     install_requires=open("requirements.txt").read().split(),
