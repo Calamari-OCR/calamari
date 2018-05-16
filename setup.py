@@ -10,7 +10,7 @@ setup(
     author="Christoph Wick",
     author_email="christoph.wick@informatik.uni-wuerzburg.de",
     url="http://github.com/chwick/calamari",
-    download_url='https://github.com/ChWick/calamari/archive/v0.1.3.tar.gz',
+    download_url='https://github.com/ChWick/calamari/archive/v0.1.4.tar.gz',
     entry_points={
         'console_scripts': [
             'calamari-eval=calamari_ocr.scripts.eval:main',
