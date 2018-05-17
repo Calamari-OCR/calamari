@@ -127,6 +127,9 @@ class Trainer:
         early_stopping_best_cur_nbest = checkpoint_params.early_stopping_best_cur_nbest
         early_stopping_best_at_iter = checkpoint_params.early_stopping_best_at_iter
 
+        early_stopping_predictor = Predictor(codec=codec, text_postproc=self.txt_postproc,
+                                             backend=backend)
+
         # Start the actual training
         # ====================================================================================
 
@@ -179,14 +182,9 @@ class Trainer:
                 if early_stopping_enabled and (iter + 1) % checkpoint_params.early_stopping_frequency == 0:
                     print("Checking early stopping model")
 
-                    if progress_bar:
-                        out = list(tqdm(backend.prediction_step(checkpoint_params.batch_size),
-                                        desc="Prediction",
-                                        total=backend.num_prediction_steps(checkpoint_params.batch_size)))
-                    else:
-                        out = list(backend.prediction_step(checkpoint_params.batch_size))
-
-                    pred_texts = [self.txt_postproc.apply("".join(codec.decode(d["decoded"]))) for d in out]
+                    out, _ = early_stopping_predictor.predict_raw(validation_datas, batch_size=checkpoint_params.batch_size,
+                                                                  progress_bar=progress_bar, apply_preproc=False)
+                    pred_texts = [d.sentence for d in out]
                     result = Evaluator.evaluate(gt_data=validation_txts, pred_data=pred_texts, progress_bar=progress_bar)
                     accuracy = 1 - result["avg_ler"]
 

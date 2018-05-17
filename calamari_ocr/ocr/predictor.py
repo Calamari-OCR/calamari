@@ -32,21 +32,30 @@ class PredictionResult:
 
 
 class Predictor:
-    def __init__(self, checkpoint=None, text_postproc=None, data_preproc=None, codec=None):
+    def __init__(self, checkpoint=None, text_postproc=None, data_preproc=None, codec=None, backend=None):
+        self.backend = backend
+        self.checkpoint = checkpoint
+        self.codec = codec
+
         if checkpoint:
+            if backend:
+                raise Exception("Either a checkpoint or a backend can be provided")
+
             with open(checkpoint + '.json', 'r') as f:
                 checkpoint_params = json_format.Parse(f.read(), CheckpointParams())
                 self.model_params = checkpoint_params.model
+
+            self.network_params = self.model_params.network
+            self.backend = create_backend_from_proto(self.network_params, restore=self.checkpoint)
+            self.text_postproc = text_postproc if text_postproc else text_processor_from_proto(self.model_params.text_postprocessor, "post")
+            self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(self.model_params.data_preprocessor)
+        elif backend:
+            self.model_params = None
+            self.network_params = backend.network_proto
+            self.text_postproc = text_postproc
+            self.data_preproc = data_preproc
         else:
-            raise Exception("No checkpoint provided.")
-
-        self.checkpoint = checkpoint
-        self.text_postproc = text_postproc if text_postproc else text_processor_from_proto(self.model_params.text_postprocessor, "post")
-        self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(self.model_params.data_preprocessor)
-        self.codec = codec
-
-        self.network_params = self.model_params.network
-        self.backend = create_backend_from_proto(self.network_params, restore=self.checkpoint)
+            raise Exception("Either a checkpoint or a existing backend must be provided")
 
     def predict_dataset(self, dataset, batch_size=1, processes=1, progress_bar=True):
         start_time = time.time()

@@ -14,6 +14,8 @@ def main():
                         help="Extension of the predicted text files")
     parser.add_argument("--n_confusions", type=int, default=-1,
                         help="Only print n most common confusions")
+    parser.add_argument("--num_threads", type=int, default=1,
+                        help="Number of threads to use for evaluation")
 
     args = parser.parse_args()
 
@@ -31,7 +33,7 @@ def main():
     pred_data_set = FileDataSet(texts=pred_files)
 
     evaluator = Evaluator()
-    r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, progress_bar=True)
+    r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, processes=args.num_threads, progress_bar=True)
 
     # TODO: More output
     print("Evaluation result")

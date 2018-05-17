@@ -267,7 +267,22 @@ class TensorflowModel:
                     raise Exception("Unknown solver of type '%s'" % network_proto.solver)
 
                 gvs = optimizer.compute_gradients(cost)
-                train_op = optimizer.apply_gradients(gvs, name='train_op')
+
+                # exponentially follow the gradients to set clipping values
+                ema = tf.train.ExponentialMovingAverage(decay=0.99)
+
+                def get_ema_ops(a):
+                    l2 = tf.nn.l2_loss(a)
+                    return ema.apply([l2]), ema.average(l2)
+
+                means = [get_ema_ops(grad) for grad, var in gvs]
+                # maybe follow values instead of grads
+                gvs = [(tf.clip_by_value(grad, -avg * 10, avg * 10), var) for (grad, var), (m, avg) in zip(gvs, means)]
+
+                train_op = optimizer.apply_gradients(gvs, name='grad_update_op')
+
+                # resulting operation for training (grad update + ema update)
+                train_op = tf.group([train_op] + [m for m, _ in means])
 
                 ler = tf.reduce_mean(tf.edit_distance(tf.cast(decoded, tf.int32), targets), name='ler')
 

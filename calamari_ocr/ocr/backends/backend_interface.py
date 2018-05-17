@@ -35,7 +35,10 @@ class BackendInterface(ABC):
         self.set_data("train", data, labels)
 
     def set_data(self, role, data, labels=None):
-        self.data_sets[role] = (data, labels)
+        self.data_sets[role] = {"data": data,
+                                "labels": labels,
+                                "indices": np.arange(0, len(data)),
+                                "last_idx": len(data)}
 
         if labels is not None and len(data) != len(labels):
             raise Exception("Mismatch in size of data. Got {} images but {} labels".format(len(data), len(labels)))
@@ -45,21 +48,35 @@ class BackendInterface(ABC):
             batch_x = None
             batch_y = None
         else:
-            data, labels = self.data_sets[role]
-            indexes = [random.randint(0, len(data) - 1) for _ in range(batch_size)]
+            data_set = self.data_sets[role]
+            data, labels = data_set["data"], data_set["labels"]
+            indexes = [i for i in self.get_next_indices(data_set, batch_size)]
             batch_x = [data[i] for i in indexes]
             batch_y = [labels[i] for i in indexes]
 
         return self.train(batch_x, batch_y)
 
+    def get_next_indices(self, data_set, total):
+        last_idx = data_set["last_idx"]
+        indices = data_set["indices"]
+        for i in range(total):
+            if last_idx >= len(indices):
+                last_idx = 0
+                np.random.shuffle(indices)
+
+            yield indices[last_idx]
+            last_idx += 1
+
+        data_set["last_idx"] = last_idx
+
     def num_prediction_steps(self, batch_size, role="prediction"):
-        data, _ = self.data_sets[role]
+        data = self.data_sets[role]["data"]
         r = len(data) % batch_size
         n = len(data) // batch_size
         return n if r == 0 else n + 1
 
     def prediction_step(self, batch_size, role="prediction"):
-        data, _ = self.data_sets[role]
+        data = self.data_sets[role]["data"]
         for i in range(0, len(data), batch_size):
             batch_x = data[i:i + batch_size]
             for single in self.predict(batch_x):

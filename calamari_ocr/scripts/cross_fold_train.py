@@ -64,7 +64,8 @@ def main(args=None):
         parser.add_argument("--weights", type=str, nargs="+", default=[],
                             help="Load network weights from the given file. If more than one file is provided the number "
                                  "models must match the number of folds. Each fold is then initialized with the weights "
-                                 "of each model, respectively")
+                                 "of each model, respectively. If a model path is set to 'None', this model will start "
+                                 "from scratch")
         parser.add_argument("--single_fold", type=int, nargs="+", default=[],
                             help="Only train a single (list of single) specific fold(s).")
 
@@ -143,6 +144,10 @@ def main(args=None):
                 fold_args["weights"] = args.weights[0]
             elif len(args.weights) > 1:
                 fold_args["weights"] = args.weights[fold]
+
+            # start from scratch via None
+            if len(fold_args["weights"].strip()) == 0 or fold_args["weights"].upper() == "NONE":
+                fold_args["weights"] = None
 
             json.dump(
                 fold_args,
