@@ -144,10 +144,13 @@ def main(args=None):
                 fold_args["weights"] = args.weights[0]
             elif len(args.weights) > 1:
                 fold_args["weights"] = args.weights[fold]
+            else:
+                fold_args["weights"] = None
 
             # start from scratch via None
-            if len(fold_args["weights"].strip()) == 0 or fold_args["weights"].upper() == "NONE":
-                fold_args["weights"] = None
+            if fold_args["weights"]:
+                if len(fold_args["weights"].strip()) == 0 or fold_args["weights"].upper() == "NONE":
+                    fold_args["weights"] = None
 
             json.dump(
                 fold_args,

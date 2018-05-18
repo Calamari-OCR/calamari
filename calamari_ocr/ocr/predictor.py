@@ -59,7 +59,7 @@ class Predictor:
 
     def predict_dataset(self, dataset, batch_size=1, processes=1, progress_bar=True):
         start_time = time.time()
-        dataset.load_samples(processes=processes, progress_bar=progress_bar)
+        dataset.load_samples(processes=1, progress_bar=progress_bar)
         datas = dataset.prediction_samples()
 
         prediction_results, prediction_time = self.predict_raw(datas, batch_size, processes, progress_bar)
@@ -112,7 +112,7 @@ class MultiPredictor:
 
     def predict_dataset(self, dataset, batch_size=1, processes=1, progress_bar=True):
         start_time = time.time()
-        dataset.load_samples(processes=processes, progress_bar=progress_bar)
+        dataset.load_samples(processes=1, progress_bar=progress_bar)
         datas = dataset.prediction_samples()
 
         # preprocessing step (if all share the same preprocessor)

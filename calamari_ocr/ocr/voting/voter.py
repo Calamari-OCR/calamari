@@ -13,7 +13,7 @@ class Voter(ABC):
             raise Exception("Empty prediction results")
         elif len(prediction_results) == 1:
             # no voting required
-            return prediction_results[0].sentence_with_probs
+            return prediction_results[0].prediction
         else:
             return self.vote_prediction_result_tuple(tuple(prediction_results))
 
