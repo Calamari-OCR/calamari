@@ -1,20 +1,20 @@
 
 # calamari
-OCR Engine based on OCRopy and Kraken.
+OCR Engine based on OCRopy and Kraken based on python3.
 It is designed to both be easy to use from the command line but also be modular to be integrated and customized from other python scripts.
 
 ## Installing
 The suggested method is to install calamari into a virtual environment using pip:
 ```
-virtualenv PATH_TO_VENV_DIR (e. g. virtualenv calamari_venv)
+virtualenv -p python3 PATH_TO_VENV_DIR (e. g. virtualenv calamari_venv)
 source PATH_TO_VENV_DIR/bin/activate
-pip install calamari
+pip install calamari_ocr
 ```
 which will install calamari and all of its dependencies including Tensorflow as default backend.
 
 To install the package without a virtual environment simply run
 ```
-pip install calamari
+pip install calamari_ocr
 ```
 
 To install the package from its source, download the source code and run
