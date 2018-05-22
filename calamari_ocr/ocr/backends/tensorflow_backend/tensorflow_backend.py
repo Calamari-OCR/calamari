@@ -11,21 +11,21 @@ class TensorflowBackend(BackendInterface):
                  weights):
         super().__init__(network_proto)
         if restore:
-            self.model = TensorflowModel.load(network_proto, restore)
+            self._model = TensorflowModel.load(network_proto, restore)
         else:
-            self.model = TensorflowModel.from_proto(network_proto)
+            self._model = TensorflowModel.from_proto(network_proto)
 
         if weights:
-            self.model.load_weights(weights)
+            self._model.load_weights(weights)
 
     def prepare(self, train):
-        self.model.prepare(train)
+        self._model.prepare(train)
 
     def train(self, batch_x, batch_y):
         x, len_x = TensorflowBackend.__sparse_data_to_dense(batch_x)
         y = TensorflowBackend.__to_sparse_matrix(batch_y)
 
-        cost, optimizer, logits, seq_len, ler, decoded = self.model.train(x, len_x, y)
+        cost, optimizer, logits, seq_len, ler, decoded = self._model.train(x, len_x, y)
         logits = np.roll(logits, 1, axis=2)
         return {
             "loss": cost,
@@ -38,16 +38,19 @@ class TensorflowBackend(BackendInterface):
 
     def predict(self, batch_x):
         x, len_x = TensorflowBackend.__sparse_data_to_dense(batch_x)
-        logits, seq_len, decoded = self.model.predict(x, len_x)
+        logits, seq_len, decoded = self._model.predict(x, len_x)
         logits = np.roll(logits, 1, axis=2)
         # decoded = TensorflowBackend.__sparse_to_lists(decoded)
         return [self.ctc_decoder.decode(l[:s]) for l, s in zip(logits, seq_len)]
 
     def save_checkpoint(self, filepath):
-        self.model.save(filepath)
+        self._model.save(filepath)
+
+    def load_checkpoint_weights(self, filepath):
+        self._model.load_weights(filepath)
 
     def realign_model_labels(self, indices_to_delete, indices_to_add):
-        self.model.realign_labels(indices_to_delete, indices_to_add)
+        self._model.realign_labels(indices_to_delete, indices_to_add)
 
     @staticmethod
     def __to_sparse_matrix(y, shift_values=-1):
@@ -89,3 +92,4 @@ class TensorflowBackend(BackendInterface):
             out[x].append(value + shift_values)
 
         return out
+

@@ -102,4 +102,8 @@ class BackendInterface(ABC):
     def save_checkpoint(self, filepath):
         pass
 
+    @abstractmethod
+    def load_checkpoint_weights(self, filepath):
+        pass
+
 

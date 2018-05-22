@@ -158,6 +158,8 @@ class Trainer:
             return checkpoint_path
 
         try:
+            last_checkpoint = None
+
             # Training loop, can be interrupted by early stopping
             for iter in range(iter, checkpoint_params.max_iters):
                 checkpoint_params.iter = iter
@@ -166,6 +168,14 @@ class Trainer:
                 result = backend.train_step(checkpoint_params.batch_size)
                 loss_stats.push(result['loss'])
                 ler_stats.push(result['ler'])
+
+                if not np.isfinite(result['loss']):
+                    print("Error: Loss is not finite! Trying to restart from last checkpoint.")
+                    if not last_checkpoint:
+                        raise Exception("No checkpoint written yet. Training must be stopped.")
+                    else:
+                        backend.load_checkpoint_weights(last_checkpoint)
+
 
                 dt_stats.push(time.time() - iter_start_time)
 
@@ -177,7 +187,7 @@ class Trainer:
                     print(" TRUE: '{}'".format(gt_sentence))
 
                 if (iter + 1) % checkpoint_params.checkpoint_frequency == 0:
-                    make_checkpoint(checkpoint_params.output_dir, checkpoint_params.output_model_prefix)
+                    last_checkpoint = make_checkpoint(checkpoint_params.output_dir, checkpoint_params.output_model_prefix)
 
                 if early_stopping_enabled and (iter + 1) % checkpoint_params.early_stopping_frequency == 0:
                     print("Checking early stopping model")
@@ -193,7 +203,7 @@ class Trainer:
                         early_stopping_best_cur_nbest = 1
                         early_stopping_best_at_iter = iter + 1
                         # overwrite as best model
-                        make_checkpoint(
+                        last_checkpoint = make_checkpoint(
                             checkpoint_params.early_stopping_best_model_output_dir,
                             prefix="",
                             version=checkpoint_params.early_stopping_best_model_prefix,

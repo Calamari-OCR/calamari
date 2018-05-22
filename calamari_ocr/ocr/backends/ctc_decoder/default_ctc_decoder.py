@@ -1,7 +1,6 @@
 import numpy as np
 
 from calamari_ocr.ocr.backends.ctc_decoder.ctc_decoder import CTCDecoder
-from calamari_ocr.proto import PredictionCharacter, PredictionPosition, Prediction
 
 
 class DefaultCTCDecoder(CTCDecoder):
@@ -26,29 +25,8 @@ class DefaultCTCDecoder(CTCDecoder):
 
             last_char = c
 
-        # find alternatives
-        pred = Prediction()
-        pred.labels[:] = [c for c, _, _ in sentence]
-        pred.is_voted_result = False
-        pred.logits.rows, pred.logits.cols = logits.shape
-        pred.logits.data[:] = logits.reshape([-1])
-        for c, start, end in sentence:
-            p = logits[start:end]
-            p = np.max(p, axis=0)
+        return self.find_alternatives(logits, sentence, self.threshold)
 
-            pos = pred.positions.add()
-            pos.start = start
-            pos.end = end
-
-            for label in reversed(sorted(range(len(p)), key=lambda v: p[v])):
-                if p[label] < self.threshold and len(pos.chars) > 0:
-                    break
-                else:
-                    char = pos.chars.add()
-                    char.label = label
-                    char.probability = p[label]
-
-        return pred
 
     def prob_of_sentence(self, logits):
         # do a forward pass and compute the full sentence probability
