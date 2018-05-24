@@ -58,7 +58,7 @@ class Evaluator:
             total_chars += chars
             total_char_errs += char_errs
             total_sync_errs += sync_errs
-            for key, value in confusion.items():
+            for key, value in conf.items():
                 if key not in confusion:
                     confusion[key] = value
                 else:

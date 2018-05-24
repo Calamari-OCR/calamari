@@ -130,8 +130,9 @@ class RawDataSet(DataSet):
 
 
 class FileDataSet(DataSet):
-    def __init__(self, images=None, texts=None, skip_invalid=False):
+    def __init__(self, images=None, texts=None, skip_invalid=False, non_existing_as_empty=False):
         super().__init__(skip_invalid=skip_invalid)
+        self._non_existing_as_empty = non_existing_as_empty
 
         if images is None and texts is None:
             raise Exception("Empty data set is not allowed. Both images and text files are None")
@@ -163,11 +164,11 @@ class FileDataSet(DataSet):
                     img_path, img_fn = os.path.split(image)
                     img_bn, img_ext = split_all_ext(img_fn)
 
-                    if not os.path.exists(image):
+                    if not self._non_existing_as_empty and not os.path.exists(image):
                         raise Exception("Image at '{}' must exist".format(image))
 
                 if text:
-                    if not os.path.exists(text):
+                    if not self._non_existing_as_empty and not os.path.exists(text):
                         raise Exception("Text file at '{}' must exist".format(text))
 
                     text_path, text_fn = os.path.split(text)
@@ -198,6 +199,12 @@ class FileDataSet(DataSet):
         if gt_txt_path is None:
             return None
 
+        if not os.path.exists(gt_txt_path):
+            if self._non_existing_as_empty:
+                return ""
+            else:
+                raise Exception("Text file at '{}' does not exist".format(gt_txt_path))
+
         with codecs.open(gt_txt_path, 'r', 'utf-8') as f:
             return f.read()
 
@@ -206,6 +213,10 @@ class FileDataSet(DataSet):
             return None
 
         if not os.path.exists(image_path):
-            raise Exception("Image file at '{}' does not exist".format(image_path))
+            if self._non_existing_as_empty:
+                return np.zeros((1, 1))
+            else:
+                raise Exception("Image file at '{}' does not exist".format(image_path))
+
         img = skimage_io.imread(image_path, as_gray=True)
         return img
