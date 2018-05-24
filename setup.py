@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='calamari_ocr',
-    version='0.1.5',
+    version='0.1.6',
     packages=find_packages(),
     license='GPL-v3.0',
     long_description=open("README.md").read(),
@@ -10,7 +10,7 @@ setup(
     author="Christoph Wick",
     author_email="christoph.wick@informatik.uni-wuerzburg.de",
     url="http://github.com/chwick/calamari",
-    download_url='https://github.com/ChWick/calamari/archive/v0.1.5.tar.gz',
+    download_url='https://github.com/ChWick/calamari/archive/v0.1.6.tar.gz',
     entry_points={
         'console_scripts': [
             'calamari-eval=calamari_ocr.scripts.eval:main',
