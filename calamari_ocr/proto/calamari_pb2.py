@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='calamari_ocr/proto/calamari.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n!calamari_ocr/proto/calamari.proto\"\xdb\x04\n\x10\x43heckpointParams\x12\x1b\n\x05model\x18\x01 \x01(\x0b\x32\x0c.ModelParams\x12\x11\n\tprocesses\x18\x02 \x01(\x05\x12\x11\n\tmax_iters\x18\x03 \x01(\x05\x12\x17\n\x0fskip_invalid_gt\x18\x04 \x01(\x08\x12\x0f\n\x07\x64isplay\x18\x05 \x01(\x05\x12\x12\n\nstats_size\x18\x06 \x01(\x05\x12\x12\n\nbatch_size\x18\x07 \x01(\x05\x12\x1c\n\x14\x63heckpoint_frequency\x18\x08 \x01(\x05\x12\x12\n\noutput_dir\x18\t \x01(\t\x12\x1b\n\x13output_model_prefix\x18\x16 \x01(\t\x12 \n\x18\x65\x61rly_stopping_frequency\x18\x0f \x01(\x05\x12\x1c\n\x14\x65\x61rly_stopping_nbest\x18\x10 \x01(\x05\x12(\n early_stopping_best_model_prefix\x18\x11 \x01(\t\x12,\n$early_stopping_best_model_output_dir\x18\x15 \x01(\t\x12\x0c\n\x04iter\x18\n \x01(\x05\x12\x12\n\nloss_stats\x18\x0b \x03(\x02\x12\x11\n\tler_stats\x18\x0c \x03(\x02\x12\x10\n\x08\x64t_stats\x18\r \x03(\x02\x12\x12\n\ntotal_time\x18\x0e \x01(\x02\x12$\n\x1c\x65\x61rly_stopping_best_accuracy\x18\x12 \x01(\x02\x12%\n\x1d\x65\x61rly_stopping_best_cur_nbest\x18\x13 \x01(\x05\x12#\n\x1b\x65\x61rly_stopping_best_at_iter\x18\x14 \x01(\x05\"<\n\x0c\x44oubleMatrix\x12\x0c\n\x04rows\x18\x01 \x01(\r\x12\x0c\n\x04\x63ols\x18\x02 \x01(\r\x12\x10\n\x04\x64\x61ta\x18\x03 \x03(\x01\x42\x02\x10\x01\" \n\x08IntVec2D\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\"\xb6\x02\n\x0bLayerParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.LayerParams.Type\x12\x0f\n\x07\x66ilters\x18\x02 \x01(\x05\x12\x1e\n\x0bkernel_size\x18\x03 \x01(\x0b\x32\t.IntVec2D\x12\x19\n\x06stride\x18\x04 \x01(\x0b\x32\t.IntVec2D\x12\x14\n\x0chidden_nodes\x18\x05 \x01(\x05\x12\x11\n\tpeepholes\x18\x06 \x01(\x08\x12\x32\n\x0elstm_direction\x18\x07 \x01(\x0e\x32\x1a.LayerParams.LSTMDirection\"4\n\x04Type\x12\x11\n\rCONVOLUTIONAL\x10\x00\x12\x0f\n\x0bMAX_POOLING\x10\x01\x12\x08\n\x04LSTM\x10\x02\"\'\n\rLSTMDirection\x12\x16\n\x12\x42IDIRECTIONAL_LSTM\x10\x00\"\xf6\x02\n\rNetworkParams\x12\x1f\n\x07\x62\x61\x63kend\x18\x08 \x01(\x0b\x32\x0e.BackendParams\x12\x1c\n\x06layers\x18\x01 \x03(\x0b\x32\x0c.LayerParams\x12)\n\x06solver\x18\x02 \x01(\x0e\x32\x19.NetworkParams.SolverType\x12\x15\n\rlearning_rate\x18\x0b \x01(\x02\x12\x10\n\x08momentum\x18\x03 \x01(\x02\x12\x0f\n\x07\x64ropout\x18\x05 \x01(\x02\x12\x10\n\x08\x66\x65\x61tures\x18\x06 \x01(\x05\x12\x0f\n\x07\x63lasses\x18\x07 \x01(\x05\x12\x1a\n\x12\x63tc_merge_repeated\x18\t \x01(\x08\x12#\n\x03\x63tc\x18\n \x01(\x0e\x32\x16.NetworkParams.CTCType\"2\n\nSolverType\x12\x13\n\x0fMOMENTUM_SOLVER\x10\x00\x12\x0f\n\x0b\x41\x44\x41M_SOLVER\x10\x01\")\n\x07\x43TCType\x12\x0f\n\x0b\x43TC_DEFAULT\x10\x00\x12\r\n\tCTC_FUZZY\x10\x01\"\x8e\x01\n\rBackendParams\x12!\n\x04type\x18\x01 \x01(\x0e\x32\x13.BackendParams.Type\x12\r\n\x05\x63udnn\x18\x02 \x01(\x08\x12\x13\n\x0brandom_seed\x18\x03 \x01(\x05\x12\x1e\n\x16\x66uzzy_ctc_library_path\x18\x04 \x01(\t\"\x16\n\x04Type\x12\x0e\n\nTENSORFLOW\x10\x00\"\xf7\x01\n\x0bModelParams\x12\x1f\n\x07network\x18\x02 \x01(\x0b\x32\x0e.NetworkParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\x32\n\x11\x64\x61ta_preprocessor\x18\x04 \x01(\x0b\x32\x17.DataPreprocessorParams\x12/\n\x11text_preprocessor\x18\x05 \x01(\x0b\x32\x14.TextProcessorParams\x12\x30\n\x12text_postprocessor\x18\x06 \x01(\x0b\x32\x14.TextProcessorParams\x12\x1b\n\x05\x63odec\x18\x07 \x01(\x0b\x32\x0c.CodecParams\"\xc4\x02\n\x16\x44\x61taPreprocessorParams\x12*\n\x04type\x18\x01 \x01(\x0e\x32\x1c.DataPreprocessorParams.Type\x12)\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x17.DataPreprocessorParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\r\n\x05range\x18\x04 \x01(\x05\x12\x12\n\nsmoothness\x18\x05 \x01(\x05\x12\x0b\n\x03pad\x18\x06 \x01(\x05\"\x8d\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x14\n\x10MULTI_NORMALIZER\x10\x01\x12\x13\n\x0fNOOP_NORMALIZER\x10\x02\x12\x14\n\x10RANGE_NORMALIZER\x10\x03\x12\x15\n\x11\x43\x45NTER_NORMALIZER\x10\x04\x12\x15\n\x11\x46INAL_PREPARATION\x10\x05\"J\n\x1fTextNormalizerReplacementParams\x12\x0b\n\x03old\x18\x01 \x01(\t\x12\x0b\n\x03new\x18\x02 \x01(\t\x12\r\n\x05regex\x18\x03 \x01(\x08\"\xdc\x04\n\x13TextProcessorParams\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.TextProcessorParams.Type\x12&\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x14.TextProcessorParams\x12:\n\x0e\x62idi_direction\x18\x03 \x01(\x0e\x32\".TextProcessorParams.BidiDirection\x12L\n\x15unicode_normalization\x18\x04 \x01(\x0e\x32-.TextProcessorParams.UnicodeNormalizationType\x12\x36\n\x0creplacements\x18\x05 \x03(\x0b\x32 .TextNormalizerReplacementParams\"\xc2\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x1a\n\x16\x44\x45\x46\x41ULT_PRE_NORMALIZER\x10\x01\x12\x1b\n\x17\x44\x45\x46\x41ULT_POST_NORMALIZER\x10\x02\x12\x14\n\x10MULTI_NORMALIZER\x10\x03\x12\x13\n\x0fNOOP_NORMALIZER\x10\x04\x12\x14\n\x10STRIP_NORMALIZER\x10\x05\x12\x13\n\x0f\x42IDI_NORMALIZER\x10\x06\x12\x13\n\x0fTEXT_NORMALIZER\x10\x07\"+\n\rBidiDirection\x12\x0c\n\x08\x42IDI_LTR\x10\x00\x12\x0c\n\x08\x42IDI_RTL\x10\x01\"@\n\x18UnicodeNormalizationType\x12\x07\n\x03NFC\x10\x00\x12\x08\n\x04NFKC\x10\x01\x12\x07\n\x03NFD\x10\x02\x12\x08\n\x04NFKD\x10\x03\"\x1e\n\x0b\x43odecParams\x12\x0f\n\x07\x63harset\x18\x01 \x03(\t\"\xa1\x01\n\x0bVoterParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.VoterParams.Type\x12\x13\n\x0b\x62lank_index\x18\x02 \x01(\x05\"\\\n\x04Type\x12\x12\n\x0eSEQUENCE_VOTER\x10\x00\x12 \n\x1c\x43ONFIDENCE_VOTER_DEFAULT_CTC\x10\x01\x12\x1e\n\x1a\x43ONFIDENCE_VOTER_FUZZY_CTC\x10\x02\"G\n\x13PredictionCharacter\x12\x0c\n\x04\x63har\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\x05\x12\x13\n\x0bprobability\x18\x03 \x01(\x02\"U\n\x12PredictionPosition\x12#\n\x05\x63hars\x18\x01 \x03(\x0b\x32\x14.PredictionCharacter\x12\r\n\x05start\x18\x02 \x01(\x05\x12\x0b\n\x03\x65nd\x18\x03 \x01(\x05\"\xc8\x01\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\t\x12\x10\n\x08sentence\x18\x02 \x01(\t\x12\x0e\n\x06labels\x18\x03 \x03(\x05\x12&\n\tpositions\x18\x04 \x03(\x0b\x32\x13.PredictionPosition\x12\x1d\n\x06logits\x18\x05 \x01(\x0b\x32\r.DoubleMatrix\x12\x19\n\x11total_probability\x18\x06 \x01(\x02\x12\x17\n\x0fis_voted_result\x18\x07 \x01(\x08\x12\x11\n\tline_path\x18\x08 \x01(\t\"B\n\x0bPredictions\x12 \n\x0bpredictions\x18\x01 \x03(\x0b\x32\x0b.Prediction\x12\x11\n\tline_path\x18\x02 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n!calamari_ocr/proto/calamari.proto\"\xdb\x04\n\x10\x43heckpointParams\x12\x1b\n\x05model\x18\x01 \x01(\x0b\x32\x0c.ModelParams\x12\x11\n\tprocesses\x18\x02 \x01(\x05\x12\x11\n\tmax_iters\x18\x03 \x01(\x05\x12\x17\n\x0fskip_invalid_gt\x18\x04 \x01(\x08\x12\x0f\n\x07\x64isplay\x18\x05 \x01(\x05\x12\x12\n\nstats_size\x18\x06 \x01(\x05\x12\x12\n\nbatch_size\x18\x07 \x01(\x05\x12\x1c\n\x14\x63heckpoint_frequency\x18\x08 \x01(\x05\x12\x12\n\noutput_dir\x18\t \x01(\t\x12\x1b\n\x13output_model_prefix\x18\x16 \x01(\t\x12 \n\x18\x65\x61rly_stopping_frequency\x18\x0f \x01(\x05\x12\x1c\n\x14\x65\x61rly_stopping_nbest\x18\x10 \x01(\x05\x12(\n early_stopping_best_model_prefix\x18\x11 \x01(\t\x12,\n$early_stopping_best_model_output_dir\x18\x15 \x01(\t\x12\x0c\n\x04iter\x18\n \x01(\x05\x12\x12\n\nloss_stats\x18\x0b \x03(\x02\x12\x11\n\tler_stats\x18\x0c \x03(\x02\x12\x10\n\x08\x64t_stats\x18\r \x03(\x02\x12\x12\n\ntotal_time\x18\x0e \x01(\x02\x12$\n\x1c\x65\x61rly_stopping_best_accuracy\x18\x12 \x01(\x02\x12%\n\x1d\x65\x61rly_stopping_best_cur_nbest\x18\x13 \x01(\x05\x12#\n\x1b\x65\x61rly_stopping_best_at_iter\x18\x14 \x01(\x05\"<\n\x0c\x44oubleMatrix\x12\x0c\n\x04rows\x18\x01 \x01(\r\x12\x0c\n\x04\x63ols\x18\x02 \x01(\r\x12\x10\n\x04\x64\x61ta\x18\x03 \x03(\x01\x42\x02\x10\x01\" \n\x08IntVec2D\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\"\xb6\x02\n\x0bLayerParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.LayerParams.Type\x12\x0f\n\x07\x66ilters\x18\x02 \x01(\x05\x12\x1e\n\x0bkernel_size\x18\x03 \x01(\x0b\x32\t.IntVec2D\x12\x19\n\x06stride\x18\x04 \x01(\x0b\x32\t.IntVec2D\x12\x14\n\x0chidden_nodes\x18\x05 \x01(\x05\x12\x11\n\tpeepholes\x18\x06 \x01(\x08\x12\x32\n\x0elstm_direction\x18\x07 \x01(\x0e\x32\x1a.LayerParams.LSTMDirection\"4\n\x04Type\x12\x11\n\rCONVOLUTIONAL\x10\x00\x12\x0f\n\x0bMAX_POOLING\x10\x01\x12\x08\n\x04LSTM\x10\x02\"\'\n\rLSTMDirection\x12\x16\n\x12\x42IDIRECTIONAL_LSTM\x10\x00\"\x86\x04\n\rNetworkParams\x12\x1f\n\x07\x62\x61\x63kend\x18\x08 \x01(\x0b\x32\x0e.BackendParams\x12\x1c\n\x06layers\x18\x01 \x03(\x0b\x32\x0c.LayerParams\x12)\n\x06solver\x18\x02 \x01(\x0e\x32\x19.NetworkParams.SolverType\x12\x15\n\rlearning_rate\x18\x0b \x01(\x02\x12\x10\n\x08momentum\x18\x03 \x01(\x02\x12\x0f\n\x07\x64ropout\x18\x05 \x01(\x02\x12\x10\n\x08\x66\x65\x61tures\x18\x06 \x01(\x05\x12\x0f\n\x07\x63lasses\x18\x07 \x01(\x05\x12\x1a\n\x12\x63tc_merge_repeated\x18\t \x01(\x08\x12#\n\x03\x63tc\x18\n \x01(\x0e\x32\x16.NetworkParams.CTCType\x12\x32\n\rclipping_mode\x18\x0c \x01(\x0e\x32\x1b.NetworkParams.ClippingMode\x12\x19\n\x11\x63lipping_constant\x18\r \x01(\x02\"2\n\nSolverType\x12\x13\n\x0fMOMENTUM_SOLVER\x10\x00\x12\x0f\n\x0b\x41\x44\x41M_SOLVER\x10\x01\")\n\x07\x43TCType\x12\x0f\n\x0b\x43TC_DEFAULT\x10\x00\x12\r\n\tCTC_FUZZY\x10\x01\"?\n\x0c\x43lippingMode\x12\r\n\tCLIP_AUTO\x10\x00\x12\r\n\tCLIP_NONE\x10\x01\x12\x11\n\rCLIP_CONSTANT\x10\x02\"\xc4\x01\n\rBackendParams\x12!\n\x04type\x18\x01 \x01(\x0e\x32\x13.BackendParams.Type\x12\r\n\x05\x63udnn\x18\x02 \x01(\x08\x12\x13\n\x0brandom_seed\x18\x03 \x01(\x05\x12\x1e\n\x16\x66uzzy_ctc_library_path\x18\x04 \x01(\t\x12\x19\n\x11num_inter_threads\x18\x05 \x01(\x05\x12\x19\n\x11num_intra_threads\x18\x06 \x01(\x05\"\x16\n\x04Type\x12\x0e\n\nTENSORFLOW\x10\x00\"\xf7\x01\n\x0bModelParams\x12\x1f\n\x07network\x18\x02 \x01(\x0b\x32\x0e.NetworkParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\x32\n\x11\x64\x61ta_preprocessor\x18\x04 \x01(\x0b\x32\x17.DataPreprocessorParams\x12/\n\x11text_preprocessor\x18\x05 \x01(\x0b\x32\x14.TextProcessorParams\x12\x30\n\x12text_postprocessor\x18\x06 \x01(\x0b\x32\x14.TextProcessorParams\x12\x1b\n\x05\x63odec\x18\x07 \x01(\x0b\x32\x0c.CodecParams\"\xc4\x02\n\x16\x44\x61taPreprocessorParams\x12*\n\x04type\x18\x01 \x01(\x0e\x32\x1c.DataPreprocessorParams.Type\x12)\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x17.DataPreprocessorParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\r\n\x05range\x18\x04 \x01(\x05\x12\x12\n\nsmoothness\x18\x05 \x01(\x05\x12\x0b\n\x03pad\x18\x06 \x01(\x05\"\x8d\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x14\n\x10MULTI_NORMALIZER\x10\x01\x12\x13\n\x0fNOOP_NORMALIZER\x10\x02\x12\x14\n\x10RANGE_NORMALIZER\x10\x03\x12\x15\n\x11\x43\x45NTER_NORMALIZER\x10\x04\x12\x15\n\x11\x46INAL_PREPARATION\x10\x05\"J\n\x1fTextNormalizerReplacementParams\x12\x0b\n\x03old\x18\x01 \x01(\t\x12\x0b\n\x03new\x18\x02 \x01(\t\x12\r\n\x05regex\x18\x03 \x01(\x08\"\xdc\x04\n\x13TextProcessorParams\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.TextProcessorParams.Type\x12&\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x14.TextProcessorParams\x12:\n\x0e\x62idi_direction\x18\x03 \x01(\x0e\x32\".TextProcessorParams.BidiDirection\x12L\n\x15unicode_normalization\x18\x04 \x01(\x0e\x32-.TextProcessorParams.UnicodeNormalizationType\x12\x36\n\x0creplacements\x18\x05 \x03(\x0b\x32 .TextNormalizerReplacementParams\"\xc2\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x1a\n\x16\x44\x45\x46\x41ULT_PRE_NORMALIZER\x10\x01\x12\x1b\n\x17\x44\x45\x46\x41ULT_POST_NORMALIZER\x10\x02\x12\x14\n\x10MULTI_NORMALIZER\x10\x03\x12\x13\n\x0fNOOP_NORMALIZER\x10\x04\x12\x14\n\x10STRIP_NORMALIZER\x10\x05\x12\x13\n\x0f\x42IDI_NORMALIZER\x10\x06\x12\x13\n\x0fTEXT_NORMALIZER\x10\x07\"+\n\rBidiDirection\x12\x0c\n\x08\x42IDI_LTR\x10\x00\x12\x0c\n\x08\x42IDI_RTL\x10\x01\"@\n\x18UnicodeNormalizationType\x12\x07\n\x03NFC\x10\x00\x12\x08\n\x04NFKC\x10\x01\x12\x07\n\x03NFD\x10\x02\x12\x08\n\x04NFKD\x10\x03\"\x1e\n\x0b\x43odecParams\x12\x0f\n\x07\x63harset\x18\x01 \x03(\t\"\xa1\x01\n\x0bVoterParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.VoterParams.Type\x12\x13\n\x0b\x62lank_index\x18\x02 \x01(\x05\"\\\n\x04Type\x12\x12\n\x0eSEQUENCE_VOTER\x10\x00\x12 \n\x1c\x43ONFIDENCE_VOTER_DEFAULT_CTC\x10\x01\x12\x1e\n\x1a\x43ONFIDENCE_VOTER_FUZZY_CTC\x10\x02\"G\n\x13PredictionCharacter\x12\x0c\n\x04\x63har\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\x05\x12\x13\n\x0bprobability\x18\x03 \x01(\x02\"U\n\x12PredictionPosition\x12#\n\x05\x63hars\x18\x01 \x03(\x0b\x32\x14.PredictionCharacter\x12\r\n\x05start\x18\x02 \x01(\x05\x12\x0b\n\x03\x65nd\x18\x03 \x01(\x05\"\xc8\x01\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\t\x12\x10\n\x08sentence\x18\x02 \x01(\t\x12\x0e\n\x06labels\x18\x03 \x03(\x05\x12&\n\tpositions\x18\x04 \x03(\x0b\x32\x13.PredictionPosition\x12\x1d\n\x06logits\x18\x05 \x01(\x0b\x32\r.DoubleMatrix\x12\x19\n\x11total_probability\x18\x06 \x01(\x02\x12\x17\n\x0fis_voted_result\x18\x07 \x01(\x08\x12\x11\n\tline_path\x18\x08 \x01(\t\"B\n\x0bPredictions\x12 \n\x0bpredictions\x18\x01 \x03(\x0b\x32\x0b.Prediction\x12\x11\n\tline_path\x18\x02 \x01(\tb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -86,8 +86,8 @@ _NETWORKPARAMS_SOLVERTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1334,
-  serialized_end=1384,
+  serialized_start=1413,
+  serialized_end=1463,
 )
 _sym_db.RegisterEnumDescriptor(_NETWORKPARAMS_SOLVERTYPE)
 
@@ -108,10 +108,36 @@ _NETWORKPARAMS_CTCTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1386,
-  serialized_end=1427,
+  serialized_start=1465,
+  serialized_end=1506,
 )
 _sym_db.RegisterEnumDescriptor(_NETWORKPARAMS_CTCTYPE)
+
+_NETWORKPARAMS_CLIPPINGMODE = _descriptor.EnumDescriptor(
+  name='ClippingMode',
+  full_name='NetworkParams.ClippingMode',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='CLIP_AUTO', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CLIP_NONE', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='CLIP_CONSTANT', index=2, number=2,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=1508,
+  serialized_end=1571,
+)
+_sym_db.RegisterEnumDescriptor(_NETWORKPARAMS_CLIPPINGMODE)
 
 _BACKENDPARAMS_TYPE = _descriptor.EnumDescriptor(
   name='Type',
@@ -126,8 +152,8 @@ _BACKENDPARAMS_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1550,
-  serialized_end=1572,
+  serialized_start=1748,
+  serialized_end=1770,
 )
 _sym_db.RegisterEnumDescriptor(_BACKENDPARAMS_TYPE)
 
@@ -164,8 +190,8 @@ _DATAPREPROCESSORPARAMS_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2008,
-  serialized_end=2149,
+  serialized_start=2206,
+  serialized_end=2347,
 )
 _sym_db.RegisterEnumDescriptor(_DATAPREPROCESSORPARAMS_TYPE)
 
@@ -210,8 +236,8 @@ _TEXTPROCESSORPARAMS_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2527,
-  serialized_end=2721,
+  serialized_start=2725,
+  serialized_end=2919,
 )
 _sym_db.RegisterEnumDescriptor(_TEXTPROCESSORPARAMS_TYPE)
 
@@ -232,8 +258,8 @@ _TEXTPROCESSORPARAMS_BIDIDIRECTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2723,
-  serialized_end=2766,
+  serialized_start=2921,
+  serialized_end=2964,
 )
 _sym_db.RegisterEnumDescriptor(_TEXTPROCESSORPARAMS_BIDIDIRECTION)
 
@@ -262,8 +288,8 @@ _TEXTPROCESSORPARAMS_UNICODENORMALIZATIONTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2768,
-  serialized_end=2832,
+  serialized_start=2966,
+  serialized_end=3030,
 )
 _sym_db.RegisterEnumDescriptor(_TEXTPROCESSORPARAMS_UNICODENORMALIZATIONTYPE)
 
@@ -288,8 +314,8 @@ _VOTERPARAMS_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2936,
-  serialized_end=3028,
+  serialized_start=3134,
+  serialized_end=3226,
 )
 _sym_db.RegisterEnumDescriptor(_VOTERPARAMS_TYPE)
 
@@ -707,6 +733,20 @@ _NETWORKPARAMS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='clipping_mode', full_name='NetworkParams.clipping_mode', index=10,
+      number=12, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='clipping_constant', full_name='NetworkParams.clipping_constant', index=11,
+      number=13, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -714,6 +754,7 @@ _NETWORKPARAMS = _descriptor.Descriptor(
   enum_types=[
     _NETWORKPARAMS_SOLVERTYPE,
     _NETWORKPARAMS_CTCTYPE,
+    _NETWORKPARAMS_CLIPPINGMODE,
   ],
   options=None,
   is_extendable=False,
@@ -722,7 +763,7 @@ _NETWORKPARAMS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=1053,
-  serialized_end=1427,
+  serialized_end=1571,
 )
 
 
@@ -761,6 +802,20 @@ _BACKENDPARAMS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='num_inter_threads', full_name='BackendParams.num_inter_threads', index=4,
+      number=5, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='num_intra_threads', full_name='BackendParams.num_intra_threads', index=5,
+      number=6, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -774,8 +829,8 @@ _BACKENDPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1430,
-  serialized_end=1572,
+  serialized_start=1574,
+  serialized_end=1770,
 )
 
 
@@ -840,8 +895,8 @@ _MODELPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1575,
-  serialized_end=1822,
+  serialized_start=1773,
+  serialized_end=2020,
 )
 
 
@@ -907,8 +962,8 @@ _DATAPREPROCESSORPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1825,
-  serialized_end=2149,
+  serialized_start=2023,
+  serialized_end=2347,
 )
 
 
@@ -952,8 +1007,8 @@ _TEXTNORMALIZERREPLACEMENTPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2151,
-  serialized_end=2225,
+  serialized_start=2349,
+  serialized_end=2423,
 )
 
 
@@ -1014,8 +1069,8 @@ _TEXTPROCESSORPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2228,
-  serialized_end=2832,
+  serialized_start=2426,
+  serialized_end=3030,
 )
 
 
@@ -1045,8 +1100,8 @@ _CODECPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2834,
-  serialized_end=2864,
+  serialized_start=3032,
+  serialized_end=3062,
 )
 
 
@@ -1084,8 +1139,8 @@ _VOTERPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2867,
-  serialized_end=3028,
+  serialized_start=3065,
+  serialized_end=3226,
 )
 
 
@@ -1129,8 +1184,8 @@ _PREDICTIONCHARACTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3030,
-  serialized_end=3101,
+  serialized_start=3228,
+  serialized_end=3299,
 )
 
 
@@ -1174,8 +1229,8 @@ _PREDICTIONPOSITION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3103,
-  serialized_end=3188,
+  serialized_start=3301,
+  serialized_end=3386,
 )
 
 
@@ -1254,8 +1309,8 @@ _PREDICTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3191,
-  serialized_end=3391,
+  serialized_start=3389,
+  serialized_end=3589,
 )
 
 
@@ -1292,8 +1347,8 @@ _PREDICTIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3393,
-  serialized_end=3459,
+  serialized_start=3591,
+  serialized_end=3657,
 )
 
 _CHECKPOINTPARAMS.fields_by_name['model'].message_type = _MODELPARAMS
@@ -1307,8 +1362,10 @@ _NETWORKPARAMS.fields_by_name['backend'].message_type = _BACKENDPARAMS
 _NETWORKPARAMS.fields_by_name['layers'].message_type = _LAYERPARAMS
 _NETWORKPARAMS.fields_by_name['solver'].enum_type = _NETWORKPARAMS_SOLVERTYPE
 _NETWORKPARAMS.fields_by_name['ctc'].enum_type = _NETWORKPARAMS_CTCTYPE
+_NETWORKPARAMS.fields_by_name['clipping_mode'].enum_type = _NETWORKPARAMS_CLIPPINGMODE
 _NETWORKPARAMS_SOLVERTYPE.containing_type = _NETWORKPARAMS
 _NETWORKPARAMS_CTCTYPE.containing_type = _NETWORKPARAMS
+_NETWORKPARAMS_CLIPPINGMODE.containing_type = _NETWORKPARAMS
 _BACKENDPARAMS.fields_by_name['type'].enum_type = _BACKENDPARAMS_TYPE
 _BACKENDPARAMS_TYPE.containing_type = _BACKENDPARAMS
 _MODELPARAMS.fields_by_name['network'].message_type = _NETWORKPARAMS

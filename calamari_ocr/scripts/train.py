@@ -9,7 +9,7 @@ from calamari_ocr.ocr.data_processing.default_data_preprocessor import DefaultDa
 from calamari_ocr.ocr.text_processing import DefaultTextPreprocessor, text_processor_from_proto, BidiTextProcessor, default_text_normalizer_params
 
 from calamari_ocr.proto import CheckpointParams, DataPreprocessorParams, TextProcessorParams, \
-    network_params_from_definition_string
+    network_params_from_definition_string, NetworkParams
 
 
 def setup_train_args(parser, omit=[]):
@@ -59,6 +59,12 @@ def setup_train_args(parser, omit=[]):
     parser.add_argument("--whitelist", type=str, nargs="+", default=[],
                         help="Whitelist of characters that may not be removed on restoring a model")
 
+    # clipping
+    parser.add_argument("--gradient_clipping_mode", type=str, default="AUTO",
+                        help="Clipping mode of gradients. Defaults to AUTO, possible values are AUTO, NONE, CONSTANT")
+    parser.add_argument("--gradient_clipping_const", type=float, default=0,
+                        help="Clipping constant of gradients in CONSTANT mode.")
+
     # early stopping
     if "validation" not in omit:
         parser.add_argument("--validation", type=str, nargs="+",
@@ -77,12 +83,15 @@ def setup_train_args(parser, omit=[]):
     parser.add_argument("--n_augmentations", type=int, default=0,
                         help="Number of data augmentation per line (done before training)")
 
-
     # backend specific params
     parser.add_argument("--fuzzy_ctc_library_path", type=str, default="",
                         help="The fuzzy ctc module is not included in the official tensorflow, you need to compile it "
                              "yourself. The resulting library (.so) must be loaded explicitly to make the functions available "
                              "to calamari")
+    parser.add_argument("--num_inter_threads", type=int, default=0,
+                        help="Tensorflow's session inter threads param")
+    parser.add_argument("--num_intra_threads", type=int, default=0,
+                        help="Tensorflow's session intra threads param")
 
 
 def main():
@@ -183,7 +192,11 @@ def main():
     params.model.line_height = args.line_height
 
     network_params_from_definition_string(args.network, params.model.network)
+    params.model.network.clipping_mode = NetworkParams.ClippingMode.Value("CLIP_" + args.gradient_clipping_mode.upper())
+    params.model.network.clipping_constant = args.gradient_clipping_const
     params.model.network.backend.fuzzy_ctc_library_path = args.fuzzy_ctc_library_path
+    params.model.network.backend.num_inter_threads = args.num_inter_threads
+    params.model.network.backend.num_intra_threads = args.num_intra_threads
 
     # create the actual trainer
     trainer = Trainer(params,

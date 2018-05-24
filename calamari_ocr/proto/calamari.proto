@@ -78,6 +78,13 @@ message NetworkParams {
         CTC_FUZZY = 1;
     }
 
+    enum ClippingMode {
+        CLIP_AUTO = 0;
+        CLIP_NONE = 1;
+        CLIP_CONSTANT = 2;
+    }
+
+
     BackendParams backend = 8;
 
     repeated LayerParams layers = 1;
@@ -91,6 +98,9 @@ message NetworkParams {
 
     bool ctc_merge_repeated = 9;
     CTCType ctc = 10;
+
+    ClippingMode clipping_mode = 12;
+    float clipping_constant = 13;
 }
 
 // Backend data
@@ -103,9 +113,12 @@ message BackendParams {
     bool cudnn = 2;
     int32 random_seed = 3;
 
+
     // additional backend params for
     // - tensorflow
     string fuzzy_ctc_library_path = 4;
+    int32 num_inter_threads = 5;
+    int32 num_intra_threads = 6;
 }
 
 // Data required to run a model

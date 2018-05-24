@@ -166,8 +166,6 @@ class Trainer:
 
                 iter_start_time = time.time()
                 result = backend.train_step(checkpoint_params.batch_size)
-                loss_stats.push(result['loss'])
-                ler_stats.push(result['ler'])
 
                 if not np.isfinite(result['loss']):
                     print("Error: Loss is not finite! Trying to restart from last checkpoint.")
@@ -176,6 +174,8 @@ class Trainer:
                     else:
                         backend.load_checkpoint_weights(last_checkpoint)
 
+                loss_stats.push(result['loss'])
+                ler_stats.push(result['ler'])
 
                 dt_stats.push(time.time() - iter_start_time)
 

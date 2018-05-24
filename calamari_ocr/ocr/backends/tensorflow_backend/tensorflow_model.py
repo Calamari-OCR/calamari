@@ -21,10 +21,8 @@ class TensorflowModel:
             graph = tf.Graph()
             with graph.as_default() as g:
                 session = tf.Session(graph=graph,
-                                     config=tf.ConfigProto(intra_op_parallelism_threads=0,
-                                                           inter_op_parallelism_threads=0,
-                                                           #session_inter_op_thread_pool=[{'num_threads': threads}],
-                                                           #use_per_session_threads=True,
+                                     config=tf.ConfigProto(intra_op_parallelism_threads=network_proto.backend.num_intra_threads,
+                                                           inter_op_parallelism_threads=network_proto.backend.num_inter_threads,
                                                            ))
                 with tf.variable_scope("", reuse=False) as scope:
 
@@ -80,8 +78,8 @@ class TensorflowModel:
     @staticmethod
     def from_proto(network_proto):
         reuse_variables = False
-        intra_threads = 0
-        inter_threads = 0
+        intra_threads = network_proto.backend.num_intra_threads
+        inter_threads = network_proto.backend.num_inter_threads
 
         # load fuzzy ctc module if available
         if len(network_proto.backend.fuzzy_ctc_library_path) > 0 and network_proto.ctc == NetworkParams.CTC_FUZZY:
@@ -268,21 +266,32 @@ class TensorflowModel:
 
                 gvs = optimizer.compute_gradients(cost)
 
-                # exponentially follow the gradients to set clipping values
-                ema = tf.train.ExponentialMovingAverage(decay=0.99)
+                training_ops = []
+                if network_proto.clipping_mode == NetworkParams.CLIP_NONE:
+                    pass
+                elif network_proto.clipping_mode == NetworkParams.CLIP_AUTO:
+                    # exponentially follow the global average of gradients to set clipping
+                    ema = tf.train.ExponentialMovingAverage(decay=0.999)
 
-                def get_ema_ops(a):
-                    l2 = tf.nn.l2_loss(a)
-                    return ema.apply([l2]), ema.average(l2)
+                    grads = [grad for grad, _ in gvs]
+                    l2 = tf.global_norm([grad for grad in grads])
+                    l2_ema_op, l2_ema = ema.apply([l2]), ema.average(l2)
+                    grads, _ = tf.clip_by_global_norm(grads, clip_norm=tf.minimum(l2_ema * 0.001, 1))
+                    gvs = zip(grads, [var for _, var in gvs])
+                    training_ops.append(l2_ema_op)
+                elif network_proto.clipping_mode == NetworkParams.CLIP_CONSTANT:
+                    clip = network_proto.clipping_constant
+                    if clip <= 0:
+                        raise Exception("Invalid clipping constant. Must be greater than 0, but got {}".format(clip))
 
-                means = [get_ema_ops(grad) for grad, var in gvs]
-                # maybe follow values instead of grads
-                gvs = [(tf.clip_by_value(grad, -avg * 10, avg * 10), var) for (grad, var), (m, avg) in zip(gvs, means)]
+                    grads = [grad for grad, _ in gvs]
+                    grads, _ = tf.clip_by_global_norm(grads, clip_norm=clip)
+                    gvs = zip(grads, [var for _, var in gvs])
+                else:
+                    raise Exception("Unsupported clipping mode {}".format(network_proto.clipping_mode))
 
-                train_op = optimizer.apply_gradients(gvs, name='grad_update_op')
-
-                # resulting operation for training (grad update + ema update)
-                train_op = tf.group([train_op] + [m for m, _ in means])
+                training_ops.append(optimizer.apply_gradients(gvs, name='grad_update_op'))
+                train_op = tf.group(training_ops, name="train_op")
 
                 ler = tf.reduce_mean(tf.edit_distance(tf.cast(decoded, tf.int32), targets), name='ler')
 
