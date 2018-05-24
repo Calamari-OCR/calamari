@@ -53,7 +53,10 @@ def perform_conf_vote(voters):
         actual_voters, most_freq_length = find_voters_with_most_frequent_length(sync, voters)
 
         # set of all characters (check if all say the same, then the set size is one)
-        s = set([voters[voter_id]['sequence'][sync.start(voter_id):sync.stop(voter_id)+1] for voter_id in actual_voters])
+        s = []
+        for r in [voters[voter_id]['sequence'][sync.start(voter_id):sync.stop(voter_id)+1] for voter_id in actual_voters]:
+            if r not in s:
+                s.append(r)
 
         def add_char(actual_voters, i):
             c_p = {}
@@ -98,6 +101,8 @@ class ConfidenceVoter(Voter):
 
     def _apply_vote(self, predictions, prediction_out):
         def extract_data(prediction):
+            # We need to vote by chars not labels, because the labels
+            # can be different for different predictions, but labels are universal
             alternatives = []
             for pos in prediction.prediction.positions:
                 d = {}
@@ -105,7 +110,7 @@ class ConfidenceVoter(Voter):
                 for c in pos.chars:
                     d[c.char] = c.probability
 
-            return {"sequence": prediction.sentence,
+            return {"sequence": prediction.chars,
                     "alternatives": alternatives,
                     "positions": prediction.prediction.positions, }
 

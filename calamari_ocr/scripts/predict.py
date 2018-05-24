@@ -37,9 +37,10 @@ def main():
 
     args = parser.parse_args()
 
-    # allow user to specify json file for model definition, but remove the file extension
-    # for further processing
-    args.checkpoint = [(cp[:-5] if cp.endswith(".json") else cp) for cp in args.checkpoint]
+    # add json as extension, resolve wildcard, expand user, ... and remove .json again
+    args.checkpoint = [(cp if cp.endswith(".json") else cp + ".json") for cp in args.checkpoint]
+    args.checkpoint = glob_all(args.checkpoint)
+    args.checkpoint = [cp[:-5] for cp in args.checkpoint]
 
     # create voter
     voter_params = VoterParams()

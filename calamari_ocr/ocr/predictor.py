@@ -22,8 +22,8 @@ class PredictionResult:
         self.logits = np.reshape(prediction.logits.data, (prediction.logits.rows, prediction.logits.cols))
         self.codec = codec
         self.text_postproc = text_postproc
-        chars = codec.decode(prediction.labels)
-        self.sentence = self.text_postproc.apply("".join(chars))
+        self.chars = codec.decode(prediction.labels)
+        self.sentence = self.text_postproc.apply("".join(self.chars))
         self.prediction.sentence = self.sentence
 
         for p in self.prediction.positions:

@@ -69,6 +69,7 @@ class Trainer:
         # compute the codec
         codec = self.codec if self.codec else Codec.from_texts(texts, whitelist=self.codec_whitelist)
         checkpoint_params.model.codec.charset[:] = codec.charset
+        print(codec.charset)
 
         # data augmentation on preprocessed data
         if self.data_augmenter:
