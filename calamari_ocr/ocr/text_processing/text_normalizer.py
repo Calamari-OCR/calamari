@@ -39,6 +39,39 @@ def default_text_normalizer_params(params=TextProcessorParams()):
     replacement("ﬃ", "ffi")  # expand unicode ligatures
     replacement("ﬄ", "ffl")  # expand unicode ligatures
 
+    replacement("Ⅰ", "I")     # expand unicode roman digits
+    replacement("Ⅱ", "II")   # expand unicode roman digits
+    replacement("Ⅲ", "III")   # expand unicode roman digits
+    replacement("Ⅳ", "IV")   # expand unicode roman digits
+    replacement("Ⅴ", "V")   # expand unicode roman digits
+    replacement("Ⅵ", "VI")   # expand unicode roman digits
+    replacement("Ⅶ", "VII")   # expand unicode roman digits
+    replacement("Ⅷ", "VIII")   # expand unicode roman digits
+    replacement("Ⅸ", "IX")   # expand unicode roman digits
+    replacement("Ⅹ", "X")   # expand unicode roman digits
+    replacement("Ⅺ", "XI")   # expand unicode roman digits
+    replacement("Ⅻ", "XII")   # expand unicode roman digits
+    replacement("Ⅼ", "L")   # expand unicode roman digits
+    replacement("Ⅽ", "C")   # expand unicode roman digits
+    replacement("Ⅾ", "D")   # expand unicode roman digits
+    replacement("Ⅿ", "M")   # expand unicode roman digits
+    replacement("ⅰ", "i")     # expand unicode roman digits
+    replacement("ⅱ", "ii")   # expand unicode roman digits
+    replacement("ⅲ", "iii")   # expand unicode roman digits
+    replacement("ⅳ", "iv")   # expand unicode roman digits
+    replacement("ⅴ", "v")   # expand unicode roman digits
+    replacement("ⅵ", "vi")   # expand unicode roman digits
+    replacement("ⅶ", "vii")   # expand unicode roman digits
+    replacement("ⅷ", "viii")   # expand unicode roman digits
+    replacement("ⅸ", "ix")   # expand unicode roman digits
+    replacement("ⅹ", "x")   # expand unicode roman digits
+    replacement("ⅺ", "xi")   # expand unicode roman digits
+    replacement("ⅻ", "xii")   # expand unicode roman digits
+    replacement("ⅼ", "l")   # expand unicode roman digits
+    replacement("ⅽ", "c")   # expand unicode roman digits
+    replacement("ⅾ", "d")   # expand unicode roman digits
+    replacement("ⅿ", "m")   # expand unicode roman digits
+
     replacement(r"\s+(?u)", ' ', True)   # Multiple spaces to one
     replacement(r"\n(?u)", '', True)     # Remove line breaks
     replacement(r"^\s+(?u)", '', True)   # strip left

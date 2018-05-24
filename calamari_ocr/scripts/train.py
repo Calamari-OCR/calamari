@@ -164,7 +164,7 @@ def main():
 
     # Text pre processing (reading)
     params.model.text_preprocessor.type = TextProcessorParams.MULTI_NORMALIZER
-    default_text_normalizer_params(params.model.text_postprocessor.children.add())
+    default_text_normalizer_params(params.model.text_preprocessor.children.add())
     strip_processor_params = params.model.text_preprocessor.children.add()
     strip_processor_params.type = TextProcessorParams.STRIP_NORMALIZER
 
