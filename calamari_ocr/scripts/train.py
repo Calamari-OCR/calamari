@@ -44,12 +44,17 @@ def setup_train_args(parser, omit=[]):
                              "training time")
     parser.add_argument("--no_skip_invalid_gt", action="store_true",
                         help="Do no skip invalid gt, instead raise an exception.")
-    parser.add_argument("--output_dir", type=str, default="",
-                        help="Default directory where to store checkpoints and models")
-    parser.add_argument("--output_model_prefix", type=str, default="model_",
-                        help="Prefix for storing checkpoints and models")
+
+    if "output_dir" not in omit:
+        parser.add_argument("--output_dir", type=str, default="",
+                            help="Default directory where to store checkpoints and models")
+    if "output_model_prefix" not in omit:
+        parser.add_argument("--output_model_prefix", type=str, default="model_",
+                            help="Prefix for storing checkpoints and models")
+
     parser.add_argument("--bidi_dir", type=str, default=None,
                         help="The default direction of text. Defaults to ltr='left to right'. The other option is 'rtl'")
+
     if "weights" not in omit:
         parser.add_argument("--weights", type=str, default=None,
                             help="Load network weights from the given file.")

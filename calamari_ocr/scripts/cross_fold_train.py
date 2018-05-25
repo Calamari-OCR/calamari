@@ -71,7 +71,8 @@ def main(args=None):
 
         # add the training args (omit those params, that are set by the cross fold training)
         setup_train_args(parser, omit=["files", "validation", "weights",
-                                       "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix"])
+                                       "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix",
+                                       "output_dir"])
 
         args = parser.parse_args()
 
