@@ -10,7 +10,7 @@ def default_network_meta():
         "dropout": False,
         "solver": "Adam",
         "ctc": "Default",
-        "l_rate": 1e-3,
+        "learning_rate": 1e-3,
         "momentum": 0.9,
         "layers": [],
         "cudnn": True,
