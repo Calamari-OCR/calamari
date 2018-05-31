@@ -273,10 +273,14 @@ class TensorflowModel:
                     # exponentially follow the global average of gradients to set clipping
                     ema = tf.train.ExponentialMovingAverage(decay=0.999)
 
+                    max_l2 = 1000
+                    max_grads = 1000
+
                     grads = [grad for grad, _ in gvs]
-                    l2 = tf.global_norm([grad for grad in grads])
+                    l2 = tf.minimum(tf.global_norm([grad for grad in grads]), max_l2)
                     l2_ema_op, l2_ema = ema.apply([l2]), ema.average(l2)
-                    grads, _ = tf.clip_by_global_norm(grads, clip_norm=tf.minimum(l2_ema * 0.001, 1))
+                    grads, _ = tf.clip_by_global_norm(grads,
+                                                      clip_norm=tf.minimum(l2_ema / max_l2 * max_grads, max_grads))
                     gvs = zip(grads, [var for _, var in gvs])
                     training_ops.append(l2_ema_op)
                 elif network_proto.clipping_mode == NetworkParams.CLIP_CONSTANT:
