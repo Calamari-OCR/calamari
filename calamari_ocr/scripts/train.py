@@ -84,7 +84,7 @@ def setup_train_args(parser, omit=[]):
                             help="The prefix of the best model using early stopping")
     if "early_stopping_best_model_output_dir" not in omit:
         parser.add_argument("--early_stopping_best_model_output_dir", type=str, default=None,
-                            help="Path where to store the best model. Default is ou")
+                            help="Path where to store the best model. Default is output_dir")
     parser.add_argument("--n_augmentations", type=int, default=0,
                         help="Number of data augmentation per line (done before training)")
 
