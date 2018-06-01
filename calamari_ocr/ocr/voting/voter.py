@@ -4,7 +4,7 @@ from calamari_ocr.proto import Prediction
 
 
 class Voter(ABC):
-    def __abs__(self, text_postproc=None):
+    def __init__(self, text_postproc=None):
         super().__init__()
         self.text_postproc = text_postproc
 
@@ -48,3 +48,4 @@ class Voter(ABC):
     @abstractmethod
     def _apply_vote(self, predictions, p):
         pass
+
