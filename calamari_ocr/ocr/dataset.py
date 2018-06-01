@@ -71,6 +71,7 @@ class DataSet(ABC):
 
         invalid_samples = []
         for i, ((line, text), sample) in enumerate(zip(data, self._samples)):
+            assert(line.dtype == np.uint8)
             sample["image"] = line
             sample["text"] = text
             if line is not None and (line.size == 0 or np.amax(line) == np.amin(line)):
@@ -90,7 +91,8 @@ class DataSet(ABC):
 
     @abstractmethod
     def _load_sample(self, sample):
-        pass
+        return np.zeros((0, 0)), None
+
 
 class RawDataSet(DataSet):
     def __init__(self, images=None, texts=None):

@@ -10,14 +10,15 @@ class DataPreprocessor(ABC):
     def __init__(self):
         super().__init__()
 
-    def apply(self, data, processes=1, progress_bar=False):
+    def apply(self, data, processes=1, progress_bar=False, max_tasks_per_child=100):
         if isinstance(data, np.ndarray):
             return self._apply_single(data)
         elif isinstance(data, list):
             if len(data) == 0:
                 return []
 
-            return parallel_map(self._apply_single, data, desc="Data Preprocessing", processes=processes, progress_bar=progress_bar)
+            return parallel_map(self._apply_single, data, desc="Data Preprocessing",
+                                processes=processes, progress_bar=progress_bar, max_tasks_per_child=max_tasks_per_child)
         else:
             raise Exception("Unknown instance of txts: {}. Supported list and str".format(type(data)))
 

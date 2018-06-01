@@ -173,7 +173,8 @@ class Trainer:
                     if not last_checkpoint:
                         raise Exception("No checkpoint written yet. Training must be stopped.")
                     else:
-                        backend.load_checkpoint_weights(last_checkpoint)
+                        # reload also non trainable weights, such as solver-specific variables
+                        backend.load_checkpoint_weights(last_checkpoint, restore_only_trainable=False)
 
                 loss_stats.push(result['loss'])
                 ler_stats.push(result['ler'])
@@ -193,8 +194,8 @@ class Trainer:
                 if early_stopping_enabled and (iter + 1) % checkpoint_params.early_stopping_frequency == 0:
                     print("Checking early stopping model")
 
-                    out, _ = early_stopping_predictor.predict_raw(validation_datas, batch_size=checkpoint_params.batch_size,
-                                                                  progress_bar=progress_bar, apply_preproc=False)
+                    out = early_stopping_predictor.predict_raw(validation_datas, batch_size=checkpoint_params.batch_size,
+                                                               progress_bar=progress_bar, apply_preproc=False)
                     pred_texts = [d.sentence for d in out]
                     result = Evaluator.evaluate(gt_data=validation_txts, pred_data=pred_texts, progress_bar=progress_bar)
                     accuracy = 1 - result["avg_ler"]

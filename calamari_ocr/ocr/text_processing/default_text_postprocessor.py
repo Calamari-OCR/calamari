@@ -1,4 +1,6 @@
-from calamari_ocr.ocr.text_processing import MultiTextProcessor, StripTextProcessor, BidiTextProcessor, TextNormalizer
+from calamari_ocr.ocr.text_processing import \
+    MultiTextProcessor, StripTextProcessor, BidiTextProcessor, \
+    TextNormalizer, TextRegularizer
 
 
 class DefaultTextPostprocessor(MultiTextProcessor):
@@ -6,6 +8,7 @@ class DefaultTextPostprocessor(MultiTextProcessor):
         super().__init__(
             [
                 TextNormalizer(),
+                TextRegularizer(),
                 StripTextProcessor(),
                 BidiTextProcessor(),
             ]

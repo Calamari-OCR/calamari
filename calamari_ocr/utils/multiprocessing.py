@@ -6,7 +6,7 @@ import subprocess
 from tqdm import tqdm
 
 
-def parallel_map(f, d, _sentinel=None, desc="", processes=1, progress_bar=False, use_thread_pool=False):
+def parallel_map(f, d, _sentinel=None, desc="", processes=1, progress_bar=False, use_thread_pool=False, max_tasks_per_child=None):
     if _sentinel:
         raise Exception("You must call parallel_map by using parameter names to specify additional parameters besides the default map(func, data).")
 
@@ -27,7 +27,7 @@ def parallel_map(f, d, _sentinel=None, desc="", processes=1, progress_bar=False,
                 else:
                     out = pool.map(f, d)
         else:
-            with multiprocessing.Pool(processes=processes) as pool:
+            with multiprocessing.Pool(processes=processes, maxtasksperchild=max_tasks_per_child) as pool:
                 if progress_bar:
                     out = list(tqdm(pool.imap(f, d), desc=desc, total=len(d)))
                 else:

@@ -45,24 +45,29 @@ def main():
         raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
 
     # predict for all models
+    n_models = len(args.checkpoint)
     predictor = MultiPredictor(checkpoints=args.checkpoint)
-    predictions = list(predictor.predict_dataset(dataset, batch_size=args.batch_size,
-                                                processes=args.processes, progress_bar=True))
-    result = [r for r, s in predictions]
-    samples = [s for r, s in predictions]
+    do_prediction = predictor.predict_dataset(dataset, batch_size=args.batch_size,
+                                              processes=args.processes, progress_bar=True)
 
-    # vote results
+    voters = []
     all_voter_sentences = []
+    all_prediction_sentences = [[] for _ in range(n_models)]
+
     for voter in args.voter:
         # create voter
         voter_params = VoterParams()
         voter_params.type = VoterParams.Type.Value(voter.upper())
-        voter = voter_from_proto(voter_params)
+        voters.append(voter_from_proto(voter_params))
+        all_voter_sentences.append([])
 
-        # vote the results (if only one model is given, this will just return the sentences)
-        voted_sentences = voter.vote_prediction_results(result)
-        voted_sentences = [s.sentence for s in voted_sentences]
-        all_voter_sentences.append(voted_sentences)
+    for prediction, sample in do_prediction:
+        for sent, p in zip(all_prediction_sentences, prediction):
+            sent.append(p.sentence)
+
+        # vote results
+        for voter, voter_sentences in zip(voters, all_voter_sentences):
+            voter_sentences.append(voter.vote_prediction_result(prediction).sentence)
 
     # evaluation
     evaluator = Evaluator()
@@ -79,7 +84,7 @@ def main():
         return r
 
     full_evaluation = {}
-    for id, data in [(str(i), [r[i].sentence for r in result]) for i in range(len(result[0]))] + list(zip(args.voter, all_voter_sentences)):
+    for id, data in [(str(i), sent) for i, sent in enumerate(all_prediction_sentences)] + list(zip(args.voter, all_voter_sentences)):
         full_evaluation[id] = {"eval": single_evaluation(data), "data": data}
 
     if args.verbose:

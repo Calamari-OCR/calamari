@@ -51,7 +51,7 @@ class BackendInterface(ABC):
             data_set = self.data_sets[role]
             data, labels = data_set["data"], data_set["labels"]
             indexes = [i for i in self.get_next_indices(data_set, batch_size)]
-            batch_x = [data[i] for i in indexes]
+            batch_x = [data[i].astype(np.float32) / 255.0 for i in indexes]
             batch_y = [labels[i] for i in indexes]
 
         return self.train(batch_x, batch_y)
@@ -78,7 +78,7 @@ class BackendInterface(ABC):
     def prediction_step(self, batch_size, role="prediction"):
         data = self.data_sets[role]["data"]
         for i in range(0, len(data), batch_size):
-            batch_x = data[i:i + batch_size]
+            batch_x = [d.astype(np.float32) / 255.0 for d in data[i:i + batch_size]]
             for single in self.predict(batch_x):
                 yield single
 
@@ -103,7 +103,7 @@ class BackendInterface(ABC):
         pass
 
     @abstractmethod
-    def load_checkpoint_weights(self, filepath):
+    def load_checkpoint_weights(self, filepath, restore_only_trainable=True):
         pass
 
 

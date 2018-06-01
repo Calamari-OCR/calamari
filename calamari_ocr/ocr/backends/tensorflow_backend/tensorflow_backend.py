@@ -46,8 +46,8 @@ class TensorflowBackend(BackendInterface):
     def save_checkpoint(self, filepath):
         self._model.save(filepath)
 
-    def load_checkpoint_weights(self, filepath):
-        self._model.load_weights(filepath)
+    def load_checkpoint_weights(self, filepath, restore_only_trainable=True):
+        self._model.load_weights(filepath, restore_only_trainable)
 
     def realign_model_labels(self, indices_to_delete, indices_to_add):
         self._model.realign_labels(indices_to_delete, indices_to_add)

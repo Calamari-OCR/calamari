@@ -6,7 +6,8 @@ from calamari_ocr.ocr.dataset import FileDataSet
 from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
 from calamari_ocr.ocr import Trainer
 from calamari_ocr.ocr.data_processing.default_data_preprocessor import DefaultDataPreprocessor
-from calamari_ocr.ocr.text_processing import DefaultTextPreprocessor, text_processor_from_proto, BidiTextProcessor, default_text_normalizer_params
+from calamari_ocr.ocr.text_processing import DefaultTextPreprocessor, text_processor_from_proto, BidiTextProcessor, \
+    default_text_normalizer_params, default_text_regularizer_params
 
 from calamari_ocr.proto import CheckpointParams, DataPreprocessorParams, TextProcessorParams, \
     network_params_from_definition_string, NetworkParams
@@ -98,6 +99,12 @@ def setup_train_args(parser, omit=[]):
     parser.add_argument("--num_intra_threads", type=int, default=0,
                         help="Tensorflow's session intra threads param")
 
+    # text normalization/regularization
+    parser.add_argument("--text_regularization", type=str, nargs="+", default=["extended"],
+                        help="Text regularization to apply.")
+    parser.add_argument("--text_normalization", type=str, default="NFC",
+                        help="Unicode text normalization to apply. Defaults to NFC")
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -169,13 +176,15 @@ def main():
 
     # Text pre processing (reading)
     params.model.text_preprocessor.type = TextProcessorParams.MULTI_NORMALIZER
-    default_text_normalizer_params(params.model.text_preprocessor.children.add())
+    default_text_normalizer_params(params.model.text_preprocessor.children.add(), default=args.text_normalization)
+    default_text_regularizer_params(params.model.text_preprocessor.children.add(), groups=args.text_regularization)
     strip_processor_params = params.model.text_preprocessor.children.add()
     strip_processor_params.type = TextProcessorParams.STRIP_NORMALIZER
 
     # Text post processing (prediction)
     params.model.text_postprocessor.type = TextProcessorParams.MULTI_NORMALIZER
-    default_text_normalizer_params(params.model.text_postprocessor.children.add())
+    default_text_normalizer_params(params.model.text_postprocessor.children.add(), default=args.text_normalization)
+    default_text_regularizer_params(params.model.text_postprocessor.children.add(), groups=args.text_regularization)
     strip_processor_params = params.model.text_postprocessor.children.add()
     strip_processor_params.type = TextProcessorParams.STRIP_NORMALIZER
 

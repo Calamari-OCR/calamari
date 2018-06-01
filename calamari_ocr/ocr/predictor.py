@@ -58,17 +58,13 @@ class Predictor:
             raise Exception("Either a checkpoint or a existing backend must be provided")
 
     def predict_dataset(self, dataset, batch_size=1, processes=1, progress_bar=True):
-        start_time = time.time()
         dataset.load_samples(processes=1, progress_bar=progress_bar)
         datas = dataset.prediction_samples()
 
-        prediction_results, prediction_time = self.predict_raw(datas, batch_size, processes, progress_bar)
+        prediction_results = self.predict_raw(datas, batch_size, processes, progress_bar)
 
-        print("Total time: {}s, Prediction time: {}s, i. e. {}s per line.".format(
-            time.time() - start_time, prediction_time,
-            prediction_time / len(prediction_results)))
-
-        return prediction_results, dataset.samples()
+        for prediction, sample in zip(prediction_results, dataset.samples()):
+            yield prediction, sample
 
     def predict_raw(self, datas, batch_size=1, processes=1, progress_bar=True, apply_preproc=True):
         # preprocessing step
@@ -81,20 +77,13 @@ class Predictor:
         self.backend.set_prediction_data(datas)
         self.backend.prepare(train=False)
 
-        prediction_start_time = time.time()
-
         if progress_bar:
-            out = list(tqdm(self.backend.prediction_step(batch_size), desc="Prediction", total=self.backend.num_prediction_steps(batch_size)))
+            out = tqdm(self.backend.prediction_step(batch_size), desc="Prediction", total=self.backend.num_prediction_steps(batch_size))
         else:
-            out = list(self.backend.prediction_step(batch_size))
+            out = self.backend.prediction_step(batch_size)
 
-        prediction_results = [PredictionResult(
-            p,
-            codec=codec,
-            text_postproc=self.text_postproc,
-        ) for p in out]
-
-        return prediction_results, time.time() - prediction_start_time
+        for p in out:
+            yield PredictionResult(p, codec=codec, text_postproc=self.text_postproc)
 
 
 class MultiPredictor:
@@ -119,7 +108,6 @@ class MultiPredictor:
         if self.same_preproc:
             datas = self.predictors[0].data_preproc.apply(datas, processes=processes, progress_bar=progress_bar)
 
-
         def progress_bar(l):
             if progress_bar:
                 l = list(l)
@@ -133,7 +121,7 @@ class MultiPredictor:
 
             # predict_raw returns list of [pred (batch_size), time]
             prediction = [predictor.predict_raw(batch_data, batch_size, processes, progress_bar=False,
-                                                apply_preproc=not self.same_preproc)[0]
+                                                apply_preproc=not self.same_preproc)
                           for predictor in self.predictors]
 
             for result, sample in zip(zip(*prediction), samples):

@@ -10,6 +10,7 @@ class FinalPreparation(DataPreprocessor):
         self.transpose = transpose
         self.pad = pad
         self.pad_value = pad_value
+        self.as_uint8 = True            # To save memory!
 
     def _apply_single(self, data):
         if self.normalize:
@@ -24,5 +25,8 @@ class FinalPreparation(DataPreprocessor):
         if self.pad > 0:
             w = data.shape[1]
             data = np.vstack([np.full((self.pad, w), self.pad_value), data, np.full((self.pad, w), self.pad_value)])
+
+        if self.as_uint8:
+            data = (data * 255).astype(np.uint8)
 
         return data

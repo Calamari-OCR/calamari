@@ -166,6 +166,7 @@ message TextProcessorParams {
         STRIP_NORMALIZER = 5;
         BIDI_NORMALIZER = 6;
         TEXT_NORMALIZER = 7;
+        TEXT_REGULARIZER = 8;
     }
 
     Type type = 1;

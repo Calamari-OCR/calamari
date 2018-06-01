@@ -352,10 +352,13 @@ class TensorflowModel:
                                        tf.local_variables_initializer())
                     self.session.run(init_op)
 
-    def load_weights(self, model_file):
+    def load_weights(self, model_file, restore_only_trainable):
         with self.graph.as_default() as g:
             # reload trainable variables only (e. g. omitting solver specific variables)
-            saver = tf.train.Saver(tf.trainable_variables())
+            if restore_only_trainable:
+                saver = tf.train.Saver(tf.trainable_variables())
+            else:
+                saver = tf.train.Saver()
 
             # Restore variables from disk.
             # This will possible load a weight matrix with wrong shape, thus a codec resize is necessary
