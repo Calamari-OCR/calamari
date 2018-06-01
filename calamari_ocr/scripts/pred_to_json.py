@@ -29,7 +29,7 @@ def main():
 
         out_json_path = split_all_ext(file)[0] + ".json"
         with open(out_json_path, 'w') as f:
-            f.write(MessageToJson(predictions))
+            f.write(MessageToJson(predictions, including_default_value_fields=True))
 
 
 if __name__ == "__main__":

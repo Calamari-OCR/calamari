@@ -1,7 +1,8 @@
 import argparse
 import codecs
 import os
-import json
+
+from google.protobuf.json_format import MessageToJson
 
 
 from calamari_ocr.utils.glob import glob_all
@@ -32,10 +33,14 @@ def main():
                              "You can use this argument to specify a specific output dir for the prediction files.")
     parser.add_argument("--extended_prediction_data", action="store_true",
                         help="Write: Predicted string, labels; position, probabilities and alternatives of chars to a .pred (protobuf) file")
-    parser.add_argument("--extended_prediction_data_ext", type=str, default=".pred",
-                        help="Extension")
+    parser.add_argument("--extended_prediction_data_format", type=str, default="json",
+                        help="Extension format: Either pred or json. Note that json will not print logits.")
 
     args = parser.parse_args()
+
+    # checks
+    if args.extended_prediction_data_format not in ["pred", "json"]:
+        raise Exception("Only 'pred' and 'json' are allowed extended prediction data formats")
 
     # add json as extension, resolve wildcard, expand user, ... and remove .json again
     args.checkpoint = [(cp if cp.endswith(".json") else cp + ".json") for cp in args.checkpoint]
@@ -79,11 +84,23 @@ def main():
             f.write(sentence)
 
         if args.extended_prediction_data:
-            with open(os.path.join(output_dir, sample['id'] + args.extended_prediction_data_ext), 'wb') as f:
-                ps = Predictions()
-                ps.line_path = filepath
-                ps.predictions.extend([prediction] + [r.prediction for r in result])
-                f.write(ps.SerializeToString())
+            ps = Predictions()
+            ps.line_path = filepath
+            ps.predictions.extend([prediction] + [r.prediction for r in result])
+            if args.extended_prediction_data_format == "pred":
+                with open(os.path.join(output_dir, sample['id'] + ".json"), 'wb') as f:
+                    f.write(ps.SerializeToString())
+            elif args.extended_prediction_data_format == "json":
+                with open(os.path.join(output_dir, sample['id'] + ".json"), 'w') as f:
+                    # remove logits
+                    for prediction in ps.predictions:
+                        prediction.logits.rows = 0
+                        prediction.logits.cols = 0
+                        prediction.logits.data[:] = []
+
+                    f.write(MessageToJson(ps, including_default_value_fields=True))
+            else:
+                raise Exception("Unknown prediction format.")
 
     print("All files written")
 
