@@ -88,7 +88,7 @@ def main():
             ps.line_path = filepath
             ps.predictions.extend([prediction] + [r.prediction for r in result])
             if args.extended_prediction_data_format == "pred":
-                with open(os.path.join(output_dir, sample['id'] + ".json"), 'wb') as f:
+                with open(os.path.join(output_dir, sample['id'] + ".pred"), 'wb') as f:
                     f.write(ps.SerializeToString())
             elif args.extended_prediction_data_format == "json":
                 with open(os.path.join(output_dir, sample['id'] + ".json"), 'w') as f:
