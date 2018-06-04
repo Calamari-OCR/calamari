@@ -35,6 +35,8 @@ def main():
                         help="Write: Predicted string, labels; position, probabilities and alternatives of chars to a .pred (protobuf) file")
     parser.add_argument("--extended_prediction_data_format", type=str, default="json",
                         help="Extension format: Either pred or json. Note that json will not print logits.")
+    parser.add_argument("--no_progress_bars", action="store_true",
+                        help="Do not show any progress bars")
 
     args = parser.parse_args()
 
@@ -64,7 +66,7 @@ def main():
     # predict for all models
     predictor = MultiPredictor(checkpoints=args.checkpoint)
     do_prediction = predictor.predict_dataset(dataset, batch_size=args.batch_size,
-                                                processes=args.processes, progress_bar=True)
+                                              processes=args.processes, progress_bar=not args.no_progress_bars)
 
     # output the voted results to the appropriate files
     for (result, sample), filepath in zip(do_prediction, input_image_files):

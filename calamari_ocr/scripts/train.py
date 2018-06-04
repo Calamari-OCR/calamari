@@ -45,6 +45,8 @@ def setup_train_args(parser, omit=[]):
                              "training time")
     parser.add_argument("--no_skip_invalid_gt", action="store_true",
                         help="Do no skip invalid gt, instead raise an exception.")
+    parser.add_argument("--no_progress_bars", action="store_true",
+                        help="Do not show any progress bars")
 
     if "output_dir" not in omit:
         parser.add_argument("--output_dir", type=str, default="",
@@ -221,7 +223,7 @@ def main():
                       weights=args.weights,
                       codec_whitelist=whitelist,
                       )
-    trainer.train(progress_bar=True)
+    trainer.train(progress_bar=not args.no_progress_bars)
 
 
 if __name__ == "__main__":

@@ -108,14 +108,14 @@ class MultiPredictor:
         if self.same_preproc:
             datas = self.predictors[0].data_preproc.apply(datas, processes=processes, progress_bar=progress_bar)
 
-        def progress_bar(l):
+        def progress_bar_wrapper(l):
             if progress_bar:
                 l = list(l)
                 return tqdm(l, total=len(l), desc="Prediction")
             else:
                 return l
 
-        for data_idx in progress_bar(range(0, len(datas), batch_size)):
+        for data_idx in progress_bar_wrapper(range(0, len(datas), batch_size)):
             batch_data = datas[data_idx:data_idx+batch_size]
             samples = dataset.samples()[data_idx:data_idx+batch_size]
 

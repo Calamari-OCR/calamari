@@ -23,6 +23,8 @@ def main():
                              "'Skip' will simply skip the evaluation of that file (not counting it to errors). "
                              "'Empty' will handle this file as would it be empty (fully checking for errors)."
                              "'Error' will throw an exception if a file is not existing. This is the default behaviour.")
+    parser.add_argument("--no_progress_bars", action="store_true",
+                        help="Do not show any progress bars")
 
     args = parser.parse_args()
 
@@ -48,7 +50,8 @@ def main():
     pred_data_set = FileDataSet(texts=pred_files, non_existing_as_empty=non_existing_as_empty)
 
     evaluator = Evaluator()
-    r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, processes=args.num_threads, progress_bar=True)
+    r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, processes=args.num_threads,
+                      progress_bar=not args.no_progress_bars)
 
     # TODO: More output
     print("Evaluation result")

@@ -16,6 +16,7 @@ from calamari_ocr.proto import CheckpointParams
 
 from google.protobuf import json_format
 
+
 class Trainer:
     def __init__(self, checkpoint_params,
                  dataset,
@@ -39,7 +40,6 @@ class Trainer:
         self.weights = checkpoint_path(weights) if weights else None
         self.codec = codec
         self.codec_whitelist = codec_whitelist
-
 
     def train(self, progress_bar=False):
         checkpoint_params = self.checkpoint_params
@@ -69,7 +69,7 @@ class Trainer:
         # compute the codec
         codec = self.codec if self.codec else Codec.from_texts(texts, whitelist=self.codec_whitelist)
         checkpoint_params.model.codec.charset[:] = codec.charset
-        print(codec.charset)
+        print("CODEC: {}".format(codec.charset))
 
         # data augmentation on preprocessed data
         if self.data_augmenter:
