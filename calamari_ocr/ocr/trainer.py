@@ -175,6 +175,7 @@ class Trainer:
                     else:
                         # reload also non trainable weights, such as solver-specific variables
                         backend.load_checkpoint_weights(last_checkpoint, restore_only_trainable=False)
+                        continue
 
                 loss_stats.push(result['loss'])
                 ler_stats.push(result['ler'])

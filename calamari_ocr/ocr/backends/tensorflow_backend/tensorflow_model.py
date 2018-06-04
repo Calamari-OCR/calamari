@@ -244,7 +244,7 @@ class TensorflowModel:
                     decoded, log_prob = ctc_ops.ctc_greedy_decoder(time_major_logits, lstm_seq_len, merge_repeated=network_proto.ctc_merge_repeated)
                     # decoded, log_prob = ctc_ops.ctc_beam_search_decoder(time_major_logits, lstm_seq_len, merge_repeated=model_settings["merge_repeated"])
                 elif network_proto.ctc == NetworkParams.CTC_FUZZY:
-                    loss, deltas = fuzzy_module['module'].fuzzy_ctc_loss(logits, targets.indices, targets.values, lstm_seq_len)
+                    loss, deltas = fuzzy_module['module'].fuzzy_ctc_loss(logits, targets.indices, targets.values, lstm_seq_len, ignore_longer_outputs_than_inputs=True)
                     decoded, log_prob = fuzzy_module['decoder_op'](softmax, lstm_seq_len)
                 else:
                     raise Exception("Unknown ctc model: '%s'. Supported are Default and Fuzzy" % network_proto.ctc)
