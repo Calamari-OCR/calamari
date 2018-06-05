@@ -20,25 +20,25 @@ def parse_groups(string_list):
         if s == "none":
             groups["quotes"] = False
             groups["spaces"] = False
-            groups["roman_digis"] = False
+            groups["roman_digits"] = False
             groups["ligatures"] = False
             groups["various"] = False
         elif s == "simple":
             groups["quotes"] = False
             groups["spaces"] = True
-            groups["roman_digis"] = False
+            groups["roman_digits"] = False
             groups["ligatures"] = False
             groups["various"] = True
         elif s == "extended":
             groups["quotes"] = True
             groups["spaces"] = True
-            groups["roman_digis"] = True
+            groups["roman_digits"] = True
             groups["ligatures"] = False
             groups["various"] = True
         elif s == "all":
             groups["quotes"] = True
             groups["spaces"] = True
-            groups["roman_digis"] = True
+            groups["roman_digits"] = True
             groups["ligatures"] = True
             groups["various"] = True
         elif s in groups:
@@ -109,10 +109,10 @@ def default_text_regularizer_params(params=TextProcessorParams(), groups=["simpl
         replacement("œ", "oe")
         replacement("Ꝏ", "OO")
         replacement("ꝏ", "oo")
-        replacement("ẞ", "fs")
-        replacement("ß", "fz")
+        replacement("ẞ", "ſs")
+        replacement("ß", "ſz")
         replacement("ﬆ", "st")
-        replacement("ﬅ", "ft")
+        replacement("ﬅ", "ſt")
         replacement("Ꜩ", "TZ")
         replacement("ꜩ", "tz")
         replacement("ᵫ", "ue")
