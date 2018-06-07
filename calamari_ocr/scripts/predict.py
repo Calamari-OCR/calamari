@@ -57,7 +57,10 @@ def main():
     # load files
     input_image_files = sorted(glob_all(args.files))
 
-    dataset = FileDataSet(input_image_files)
+    # skip invalid files, but keep then so that empty predictions are created
+    dataset = FileDataSet(input_image_files,
+                          skip_invalid=True,
+                          remove_invalid=False)
 
     print("Found {} files in the dataset".format(len(dataset)))
     if len(dataset) == 0:

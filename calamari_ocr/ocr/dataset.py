@@ -9,11 +9,12 @@ from calamari_ocr.utils import parallel_map, split_all_ext
 
 
 class DataSet(ABC):
-    def __init__(self, skip_invalid=False):
+    def __init__(self, skip_invalid=False, remove_invalid=True):
         self._samples = []
         super().__init__()
         self.loaded = False
         self.skip_invalid = skip_invalid
+        self.remove_invalid = remove_invalid
 
     def __len__(self):
         return len(self._samples)
@@ -80,9 +81,10 @@ class DataSet(ABC):
                 else:
                     raise Exception("Empty data: Image at '{}' is empty".format(sample['id']))
 
-        # remove all invalid samples (reversed order!)
-        for i in sorted(invalid_samples, reverse=True):
-            del self._samples[i]
+        if self.remove_invalid:
+            # remove all invalid samples (reversed order!)
+            for i in sorted(invalid_samples, reverse=True):
+                del self._samples[i]
 
         self.loaded = True
 
@@ -131,8 +133,11 @@ class RawDataSet(DataSet):
 
 
 class FileDataSet(DataSet):
-    def __init__(self, images=None, texts=None, skip_invalid=False, non_existing_as_empty=False):
-        super().__init__(skip_invalid=skip_invalid)
+    def __init__(self, images=None, texts=None,
+                 skip_invalid=False, remove_invalid=True,
+                 non_existing_as_empty=False):
+        super().__init__(skip_invalid=skip_invalid,
+                         remove_invalid=remove_invalid)
         self._non_existing_as_empty = non_existing_as_empty
 
         if images is None and texts is None:
@@ -219,5 +224,9 @@ class FileDataSet(DataSet):
             else:
                 raise Exception("Image file at '{}' does not exist".format(image_path))
 
-        img = skimage_io.imread(image_path, as_gray=True)
+        try:
+            img = skimage_io.imread(image_path, as_gray=True)
+        except:
+            return None
+
         return img

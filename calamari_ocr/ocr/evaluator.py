@@ -8,15 +8,23 @@ from calamari_ocr.utils import parallel_map
 class Evaluator:
     def __init__(self, text_preprocessor=None):
         self.text_preprocessor = text_preprocessor if text_preprocessor is not None else DefaultTextPreprocessor()
+        self.preloaded_gt = None
+
+    def preload_gt(self, gt_dataset, progress_bar=False):
+        gt_dataset.load_samples(progress_bar=progress_bar)
+        self.preloaded_gt = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
 
     def run(self, _sentinel=None, gt_dataset=None, pred_dataset=None, processes=1, progress_bar=False):
         if _sentinel:
             raise Exception("You must call run by using parameter names.")
 
-        gt_dataset.load_samples(progress_bar=progress_bar)
-        pred_dataset.load_samples(progress_bar=progress_bar)
+        if self.preloaded_gt:
+            gt_data = self.preloaded_gt
+        else:
+            gt_dataset.load_samples(progress_bar=progress_bar)
+            gt_data = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
 
-        gt_data = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
+        pred_dataset.load_samples(progress_bar=progress_bar)
         pred_data = self.text_preprocessor.apply(pred_dataset.text_samples(), progress_bar=progress_bar)
 
         return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar)

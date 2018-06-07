@@ -16,7 +16,7 @@ class TensorflowBackend(BackendInterface):
             self._model = TensorflowModel.from_proto(network_proto)
 
         if weights:
-            self._model.load_weights(weights)
+            self._model.load_weights(weights, restore_only_trainable=True)
 
     def prepare(self, train):
         self._model.prepare(train)

@@ -6,6 +6,7 @@ import random
 import inspect
 from calamari_ocr.scripts.train import setup_train_args
 import calamari_ocr.scripts.cross_fold_train as cross_fold_train
+from calamari_ocr.scripts.eval import print_confusions
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.utils.multiprocessing import parallel_map, run, prefix_run_command
 from calamari_ocr.ocr import FileDataSet, Evaluator
@@ -54,11 +55,12 @@ def run_for_single_line(args):
     if not args.skip_train:
         cross_fold_train.main(args)
 
+    dump_file = os.path.join(tmp_dir, "prediction.pkl")
+
     # run the prediction
     if not args.skip_eval:
         # locate the eval script (must be in the same dir as "this")
         predict_script_path = os.path.join(this_absdir, "experiment_eval.py")
-        dump_file = os.path.join(tmp_dir, "prediction.pkl")
 
         if len(args.single_fold) > 0:
             models = [os.path.join(best_models_dir, "{}.ckpt.json".format(sf)) for sf in args.single_fold]
@@ -85,13 +87,11 @@ def run_for_single_line(args):
             if args.verbose:
                 print(line)
 
-        import pickle
-        with open(dump_file, 'rb') as f:
-            prediction = pickle.load(f)
+    import pickle
+    with open(dump_file, 'rb') as f:
+        prediction = pickle.load(f)
 
-        return prediction
-
-    return None
+    return prediction
 
 
 def main():
@@ -125,6 +125,8 @@ def main():
                         help="Skip the cross fold evaluation")
     parser.add_argument("--verbose", action="store_true",
                         help="Verbose output")
+    parser.add_argument("--n_confusions", type=int, default=0,
+                        help="Only print n most common confusions. Defaults to 0, use -1 for all.")
 
     setup_train_args(parser, omit=["files", "validation", "weights",
                                    "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix",
@@ -181,6 +183,21 @@ def main():
             data += ",{}".format(eval['avg_ler'])
 
         print(data)
+
+    if args.n_confusions != 0:
+        for prediction, n_lines in zip(predictions, args.n_lines):
+            print("")
+            print("CONFUSIONS (lines = {})".format(n_lines))
+            print("==========")
+            print()
+
+            for fold in range(len(actual_folds)):
+                print("FOLD {}".format(fold))
+                print_confusions(prediction[str(fold)]['eval'], args.n_confusions)
+
+            for voter in ['sequence_voter', 'confidence_voter_default_ctc', 'confidence_voter_fuzzy_ctc']:
+                print("VOTER {}".format(voter))
+                print_confusions(prediction[voter]['eval'], args.n_confusions)
 
 
 if __name__=="__main__":

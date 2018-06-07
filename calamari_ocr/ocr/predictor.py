@@ -78,7 +78,7 @@ class Predictor:
         self.backend.prepare(train=False)
 
         if progress_bar:
-            out = tqdm(self.backend.prediction_step(batch_size), desc="Prediction", total=self.backend.num_prediction_steps(batch_size))
+            out = tqdm(self.backend.prediction_step(batch_size), desc="Prediction", total=len(datas))
         else:
             out = self.backend.prediction_step(batch_size)
 

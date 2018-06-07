@@ -5,6 +5,26 @@ from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.ocr import FileDataSet, Evaluator
 
 
+def print_confusions(r, n_confusions):
+    # sort descending
+    if n_confusions != 0 and r["total_sync_errs"] > 0:
+        total_percent = 0
+        keys = sorted(r['confusion'].items(), key=lambda item: -item[1])
+        print("{:8s} {:8s} {:8s} {:10s}".format("GT", "PRED", "COUNT", "PERCENT"))
+
+        for i, ((gt, pred), count) in enumerate(keys):
+            gt_fmt = "{" + gt + "}"
+            pred_fmt = "{" + pred + "}"
+            if i == n_confusions:
+                break
+
+            percent = count * max(len(gt), len(pred)) / r["total_sync_errs"]
+            print("{:8s} {:8s} {:8d} {:10.2%}".format(gt_fmt, pred_fmt, count, percent))
+            total_percent += percent
+
+        print("The remaining but hidden errors make up {:.2%}".format(1.0 - total_percent))
+
+
 def main():
     parser = ArgumentParser()
     parser.add_argument("--gt", nargs="+", required=True,
@@ -61,23 +81,7 @@ def main():
         r["avg_ler"], r["total_char_errs"], r["total_chars"], r["total_sync_errs"]))
 
     # sort descending
-    if args.n_confusions != 0 and r["total_sync_errs"] > 0:
-        total_percent = 0
-        keys = sorted(r['confusion'].items(), key=lambda item: -item[1])
-        print("{:8s} {:8s} {:8s} {:10s}".format("GT", "PRED", "COUNT", "PERCENT"))
-
-        for i, ((gt, pred), count) in enumerate(keys):
-            gt_fmt = "{" + gt + "}"
-            pred_fmt = "{" + pred + "}"
-            if i == args.n_confusions:
-                break
-
-            percent = count * max(len(gt), len(pred)) / r["total_sync_errs"]
-            print("{:8s} {:8s} {:8d} {:10.2%}".format(gt_fmt, pred_fmt, count, percent))
-            total_percent += percent
-
-        print("The remaining but hidden errors make up {:.2%}".format(1.0 - total_percent))
-
+    print_confusions(r, args.n_confusions)
 
 
 if __name__ == '__main__':

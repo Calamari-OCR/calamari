@@ -50,13 +50,32 @@ class BackendInterface(ABC):
         else:
             data_set = self.data_sets[role]
             data, labels = data_set["data"], data_set["labels"]
-            indexes = [i for i in self.get_next_indices(data_set, batch_size)]
+            indexes = []
+            while len(indexes) != batch_size:
+                i = self.next_index(data_set)
+                if len(labels[i]) == 0:
+                    # skip empty labels
+                    continue
+                else:
+                    indexes.append(i)
+
             batch_x = [data[i].astype(np.float32) / 255.0 for i in indexes]
             batch_y = [labels[i] for i in indexes]
 
         return self.train(batch_x, batch_y)
 
-    def get_next_indices(self, data_set, total):
+    def next_index(self, data_set):
+        last_idx = data_set["last_idx"]
+        indices = data_set["indices"]
+        if last_idx >= len(indices):
+            last_idx = 0
+            np.random.shuffle(indices)
+
+        out = indices[last_idx]
+        data_set["last_idx"] = last_idx + 1
+        return out
+
+    def get_next_indices(self, data_set, total=1):
         last_idx = data_set["last_idx"]
         indices = data_set["indices"]
         for i in range(total):

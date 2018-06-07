@@ -6,6 +6,7 @@ import pickle
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.ocr.voting import VoterParams, voter_from_proto
 from calamari_ocr.ocr import FileDataSet, MultiPredictor, Evaluator, RawDataSet
+from calamari_ocr.ocr.text_processing import text_processor_from_proto
 
 
 def main():
@@ -21,7 +22,7 @@ def main():
     parser.add_argument("--voter", type=str, nargs="+", default=["sequence_voter", "confidence_voter_default_ctc", "confidence_voter_fuzzy_ctc"],
                         help="The voting algorithm to use. Possible values: confidence_voter_default_ctc (default), "
                              "confidence_voter_fuzzy_ctc, sequence_voter")
-    parser.add_argument("--batch_size", type=int, default=1,
+    parser.add_argument("--batch_size", type=int, default=10,
                         help="The batch size for prediction")
     parser.add_argument("--dump", type=str,
                         help="Dump the output as serialized pickle object")
@@ -70,7 +71,9 @@ def main():
             voter_sentences.append(voter.vote_prediction_result(prediction).sentence)
 
     # evaluation
-    evaluator = Evaluator()
+    text_preproc = text_processor_from_proto(predictor.predictors[0].model_params.text_preprocessor)
+    evaluator = Evaluator(text_preprocessor=text_preproc)
+    evaluator.preload_gt(gt_dataset=dataset, progress_bar=True)
 
     def single_evaluation(predicted_sentences):
         if len(predicted_sentences) != len(dataset):
@@ -79,7 +82,7 @@ def main():
 
         pred_data_set = RawDataSet(texts=predicted_sentences)
 
-        r = evaluator.run(gt_dataset=dataset, pred_dataset=pred_data_set, progress_bar=True)
+        r = evaluator.run(pred_dataset=pred_data_set, progress_bar=True)
 
         return r
 
