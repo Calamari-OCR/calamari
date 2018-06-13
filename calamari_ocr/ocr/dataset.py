@@ -74,7 +74,7 @@ class DataSet(ABC):
         for i, ((line, text), sample) in enumerate(zip(data, self._samples)):
             sample["image"] = line
             sample["text"] = text
-            if line is not None and (line.size == 0 or np.amax(line) == np.amin(line)):
+            if line is None or (line.size == 0 or np.amax(line) == np.amin(line)):
                 if self.skip_invalid:
                     invalid_samples.append(i)
                     print("Empty data: Image at '{}' is empty".format(sample['id']))

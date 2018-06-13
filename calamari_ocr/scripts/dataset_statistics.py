@@ -47,10 +47,12 @@ def main():
     statistics["av_line_width"] = np.average(statistics["widths"])
     statistics["max_line_width"] = np.max(statistics["widths"])
     statistics["min_line_width"] = np.min(statistics["widths"])
+    statistics["total_line_width"] = np.sum(statistics["widths"])
 
     statistics["av_chars"] = np.average(statistics["chars"])
     statistics["max_chars"] = np.max(statistics["chars"])
     statistics["min_chars"] = np.min(statistics["chars"])
+    statistics["total_chars"] = np.sum(statistics["chars"])
 
     statistics["av_px_per_char"] = statistics["av_line_width"] / statistics["av_chars"]
 
