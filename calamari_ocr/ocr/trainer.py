@@ -96,7 +96,8 @@ class Trainer:
                     network_params.features, checkpoint_params.model.line_height
                 ))
 
-            restore_codec = Codec(restore_model_params.codec.charset)
+            # create codec of the same type
+            restore_codec = codec.__class__(restore_model_params.codec.charset)
             # the codec changes as tuple (deletions/insertions), and the new codec is the changed old one
             codec_changes = restore_codec.align(codec)
             codec = restore_codec
