@@ -68,8 +68,6 @@ class Trainer:
 
         # compute the codec
         codec = self.codec if self.codec else Codec.from_texts(texts, whitelist=self.codec_whitelist)
-        checkpoint_params.model.codec.charset[:] = codec.charset
-        print("CODEC: {}".format(codec.charset))
 
         # data augmentation on preprocessed data
         if self.data_augmenter:
@@ -105,6 +103,10 @@ class Trainer:
             # The actual weight/bias matrix will be changed after loading the old weights
         else:
             codec_changes = None
+
+        # store the new codec
+        checkpoint_params.model.codec.charset[:] = codec.charset
+        print("CODEC: {}".format(codec.charset))
 
         # compute the labels with (new/current) codec
         labels = [codec.encode(txt) for txt in texts]
