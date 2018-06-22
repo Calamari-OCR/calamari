@@ -4,3 +4,4 @@ tqdm
 scikit-image
 python-bidi
 edit_distance
+xlsxwriter

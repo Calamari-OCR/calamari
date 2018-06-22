@@ -78,6 +78,7 @@ class Evaluator:
         #      sync(in ewych, ierg ch) = [{i: i}, {n: erg}, {ewy: }, {ch: ch}] = 6
 
         return {
+            "single": out,
             "avg_ler": total_char_errs / total_chars,
             "total_chars": total_chars,
             "total_char_errs": total_char_errs,

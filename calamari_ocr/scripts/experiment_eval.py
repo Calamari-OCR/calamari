@@ -82,7 +82,7 @@ def main():
 
         pred_data_set = RawDataSet(texts=predicted_sentences)
 
-        r = evaluator.run(pred_dataset=pred_data_set, progress_bar=True)
+        r = evaluator.run(pred_dataset=pred_data_set, progress_bar=True, processes=args.processes)
 
         return r
 
@@ -96,7 +96,7 @@ def main():
     if args.dump:
         import pickle
         with open(args.dump, 'wb') as f:
-            pickle.dump(full_evaluation, f)
+            pickle.dump({"full": full_evaluation, "gt_txts": gt_txts, "gt": dataset.text_samples()}, f)
 
 
 if __name__=="__main__":

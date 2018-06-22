@@ -14,11 +14,16 @@ class Handler:
         self.dry_run = dry_run
 
     def handle_single(self, path):
-        img = skimage_io.imread(path, flatten=True)
-        img = self.data_proc.apply(img)
+        try:
+            img = skimage_io.imread(path, flatten=True)
+            img = self.data_proc.apply(img)
 
-        if not self.dry_run:
-            skimage_io.imsave(path, img)
+            if not self.dry_run:
+                skimage_io.imsave(path, img)
+        except ValueError as e:
+            print(e)
+            print(path)
+
 
 def main():
     parser = argparse.ArgumentParser()

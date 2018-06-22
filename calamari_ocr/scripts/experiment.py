@@ -6,7 +6,7 @@ import random
 import inspect
 from calamari_ocr.scripts.train import setup_train_args
 import calamari_ocr.scripts.cross_fold_train as cross_fold_train
-from calamari_ocr.scripts.eval import print_confusions
+from calamari_ocr.scripts.eval import print_confusions, write_xlsx
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.utils.multiprocessing import parallel_map, run, prefix_run_command
 from calamari_ocr.ocr import FileDataSet, Evaluator
@@ -127,6 +127,8 @@ def main():
                         help="Verbose output")
     parser.add_argument("--n_confusions", type=int, default=0,
                         help="Only print n most common confusions. Defaults to 0, use -1 for all.")
+    parser.add_argument("--xlsx_output", type=str,
+                        help="Optionally write a xlsx file with the evaluation results")
 
     setup_train_args(parser, omit=["files", "validation", "weights",
                                    "early_stopping_best_model_output_dir", "early_stopping_best_model_prefix",
@@ -169,7 +171,8 @@ def main():
 
     print(header)
 
-    for prediction, n_lines in zip(predictions, args.n_lines):
+    for prediction_map, n_lines in zip(predictions, args.n_lines):
+        prediction = prediction_map["full"]
         data = "{}".format(n_lines)
         folds_lers = []
         for fold in range(len(actual_folds)):
@@ -185,7 +188,8 @@ def main():
         print(data)
 
     if args.n_confusions != 0:
-        for prediction, n_lines in zip(predictions, args.n_lines):
+        for prediction_map, n_lines in zip(predictions, args.n_lines):
+            prediction = prediction_map["full"]
             print("")
             print("CONFUSIONS (lines = {})".format(n_lines))
             print("==========")
@@ -198,6 +202,32 @@ def main():
             for voter in ['sequence_voter', 'confidence_voter_default_ctc', 'confidence_voter_fuzzy_ctc']:
                 print("VOTER {}".format(voter))
                 print_confusions(prediction[voter]['eval'], args.n_confusions)
+
+    if args.xlsx_output:
+        data_list = []
+        for prediction_map, n_lines in zip(predictions, args.n_lines):
+            prediction = prediction_map["full"]
+            for fold in actual_folds:
+                pred = prediction[str(fold)]
+                data_list.append({
+                    "prefix": "L{} - Fold{}".format(n_lines, fold),
+                    "results": pred['eval'],
+                    "gt_files": prediction_map['gt_txts'],
+                    "gts": prediction_map['gt'],
+                    "preds": pred['data']
+                })
+
+            for voter in ['sequence_voter', 'confidence_voter_default_ctc']:
+                pred = prediction[voter]
+                data_list.append({
+                    "prefix": "L{} - {}".format(n_lines, voter[:3]),
+                    "results": pred['eval'],
+                    "gt_files": prediction_map['gt_txts'],
+                    "gts": prediction_map['gt'],
+                    "preds": pred['data']
+                })
+
+        write_xlsx(args.xlsx_output, data_list)
 
 
 if __name__=="__main__":

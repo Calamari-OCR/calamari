@@ -55,6 +55,7 @@ def main():
     statistics["total_chars"] = np.sum(statistics["chars"])
 
     statistics["av_px_per_char"] = statistics["av_line_width"] / statistics["av_chars"]
+    statistics["codec_size"] = len(statistics["char_counts"])
 
     del statistics["chars"]
     del statistics["widths"]
