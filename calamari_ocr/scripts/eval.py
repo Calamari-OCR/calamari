@@ -42,6 +42,7 @@ def print_worst_lines(r, gt_files, gts, preds, n_worst_lines):
 
 
 def write_xlsx(xlsx_file, eval_datas):
+    print("Writing xlsx file to {}".format(xlsx_file))
     import xlsxwriter
     workbook = xlsxwriter.Workbook(xlsx_file)
 
@@ -55,7 +56,7 @@ def write_xlsx(xlsx_file, eval_datas):
         # all files
         ws = workbook.add_worksheet("{} - per line".format(prefix))
 
-        for i, heading in enumerate(["GT FILE", "GT", "PRED", "LEN", "ERR", "CER", "SYNC ERR", "CONFUSIONS"]):
+        for i, heading in enumerate(["GT FILE", "GT", "PRED", "LEN", "ERR", "CER", "REL. ERR", "SYNC ERR", "CONFUSIONS"]):
             ws.write(0, i, heading)
 
         sorted_lines = sorted(zip(r["single"], gt_files, gts, preds), key=lambda a: -a[0][1])
@@ -69,8 +70,9 @@ def write_xlsx(xlsx_file, eval_datas):
             ws.write(i + 1, 3, len_gt)
             ws.write(i + 1, 4, errs)
             ws.write(i + 1, 5, errs / max(len(gt), len(pred)))
-            ws.write(i + 1, 6, sync_errs)
-            ws.write(i + 1, 7, "{}".format(confusion))
+            ws.write(i + 1, 6, errs / r["total_char_errs"])
+            ws.write(i + 1, 7, sync_errs)
+            ws.write(i + 1, 8, "{}".format(confusion))
             all_cs.append(errs / max(len(gt), len(pred)))
 
         # total confusions
