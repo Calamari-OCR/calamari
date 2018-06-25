@@ -114,11 +114,16 @@ class Trainer:
         backend = create_backend_from_proto(network_params,
                                             weights=self.weights,
                                             )
-        backend.set_train_data(datas, labels)
-        backend.set_prediction_data(validation_datas)
+        train_net = backend.create_net(restore=None, weights=self.weights, graph_type="train", batch_size=checkpoint_params.batch_size)
+        test_net = backend.create_net(restore=None, weights=self.weights, graph_type="test", batch_size=checkpoint_params.batch_size)
+        train_net.set_data(datas, labels)
+        test_net.set_data(validation_datas, validation_txts)
         if codec_changes:
-            backend.realign_model_labels(*codec_changes)
-        backend.prepare(train=True)
+            # only required on one net, since the other shares the same variables
+            train_net.realign_model_labels(*codec_changes)
+
+        train_net.prepare()
+        test_net.prepare()
 
         loss_stats = RunningStatistics(checkpoint_params.stats_size, checkpoint_params.loss_stats)
         ler_stats = RunningStatistics(checkpoint_params.stats_size, checkpoint_params.ler_stats)
@@ -132,7 +137,7 @@ class Trainer:
         early_stopping_best_at_iter = checkpoint_params.early_stopping_best_at_iter
 
         early_stopping_predictor = Predictor(codec=codec, text_postproc=self.txt_postproc,
-                                             backend=backend)
+                                             network=test_net)
 
         # Start the actual training
         # ====================================================================================
@@ -146,7 +151,7 @@ class Trainer:
             else:
                 checkpoint_path = os.path.abspath(os.path.join(base_dir, "{}{:08d}.ckpt".format(prefix, iter + 1)))
             print("Storing checkpoint to '{}'".format(checkpoint_path))
-            backend.save_checkpoint(checkpoint_path)
+            train_net.save_checkpoint(checkpoint_path)
             checkpoint_params.iter = iter
             checkpoint_params.loss_stats[:] = loss_stats.values
             checkpoint_params.ler_stats[:] = ler_stats.values
@@ -169,7 +174,7 @@ class Trainer:
                 checkpoint_params.iter = iter
 
                 iter_start_time = time.time()
-                result = backend.train_step(checkpoint_params.batch_size)
+                result = train_net.train_step()
 
                 if not np.isfinite(result['loss']):
                     print("Error: Loss is not finite! Trying to restart from last checkpoint.")
@@ -198,7 +203,7 @@ class Trainer:
                 if early_stopping_enabled and (iter + 1) % checkpoint_params.early_stopping_frequency == 0:
                     print("Checking early stopping model")
 
-                    out = early_stopping_predictor.predict_raw(validation_datas, batch_size=checkpoint_params.batch_size,
+                    out = early_stopping_predictor.predict_raw(validation_datas,
                                                                progress_bar=progress_bar, apply_preproc=False)
                     pred_texts = [d.sentence for d in out]
                     result = Evaluator.evaluate(gt_data=validation_txts, pred_data=pred_texts, progress_bar=progress_bar)

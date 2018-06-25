@@ -1,0 +1,1 @@
+GPS-derived ellipsoid heights, the remainder is a measure of the offset of the AHD

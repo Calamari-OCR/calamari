@@ -18,11 +18,6 @@ class BackendInterface(ABC):
             random.seed(seed)
             np.random.seed(seed)
 
-        self.ctc_decoder = {
-            NetworkParams.CTC_FUZZY: FuzzyCTCDecoder(),
-            NetworkParams.CTC_DEFAULT: DefaultCTCDecoder(),
-        }[network_proto.ctc]
-
         super().__init__()
 
     def set_prediction_data(self, data):
@@ -42,87 +37,4 @@ class BackendInterface(ABC):
 
         if labels is not None and len(data) != len(labels):
             raise Exception("Mismatch in size of data. Got {} images but {} labels".format(len(data), len(labels)))
-
-    def train_step(self, batch_size, role="train"):
-        if self.implementation_handles_batching:
-            batch_x = None
-            batch_y = None
-        else:
-            data_set = self.data_sets[role]
-            data, labels = data_set["data"], data_set["labels"]
-            indexes = []
-            while len(indexes) != batch_size:
-                i = self.next_index(data_set)
-                if len(labels[i]) == 0:
-                    # skip empty labels
-                    continue
-                else:
-                    indexes.append(i)
-
-            batch_x = [data[i].astype(np.float32) / 255.0 for i in indexes]
-            batch_y = [labels[i] for i in indexes]
-
-        return self.train(batch_x, batch_y)
-
-    def next_index(self, data_set):
-        last_idx = data_set["last_idx"]
-        indices = data_set["indices"]
-        if last_idx >= len(indices):
-            last_idx = 0
-            np.random.shuffle(indices)
-
-        out = indices[last_idx]
-        data_set["last_idx"] = last_idx + 1
-        return out
-
-    def get_next_indices(self, data_set, total=1):
-        last_idx = data_set["last_idx"]
-        indices = data_set["indices"]
-        for i in range(total):
-            if last_idx >= len(indices):
-                last_idx = 0
-                np.random.shuffle(indices)
-
-            yield indices[last_idx]
-            last_idx += 1
-
-        data_set["last_idx"] = last_idx
-
-    def num_prediction_steps(self, batch_size, role="prediction"):
-        data = self.data_sets[role]["data"]
-        r = len(data) % batch_size
-        n = len(data) // batch_size
-        return n if r == 0 else n + 1
-
-    def prediction_step(self, batch_size, role="prediction"):
-        data = self.data_sets[role]["data"]
-        for i in range(0, len(data), batch_size):
-            batch_x = [d.astype(np.float32) / 255.0 for d in data[i:i + batch_size]]
-            for single in self.predict(batch_x):
-                yield single
-
-    @abstractmethod
-    def realign_model_labels(self, indices_to_delete, indices_to_add):
-        pass
-
-    @abstractmethod
-    def train(self, batch_x, batch_y):
-        pass
-
-    @abstractmethod
-    def predict(self, batch_x):
-        return []
-
-    @abstractmethod
-    def prepare(self, train):
-        pass
-
-    @abstractmethod
-    def save_checkpoint(self, filepath):
-        pass
-
-    @abstractmethod
-    def load_checkpoint_weights(self, filepath, restore_only_trainable=True):
-        pass
-
 

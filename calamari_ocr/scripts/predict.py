@@ -12,34 +12,7 @@ from calamari_ocr.ocr.voting import voter_from_proto
 from calamari_ocr.proto import VoterParams, Predictions
 
 
-def main():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--files", nargs="+", required=True, default=[],
-                        help="List all image files that shall be processed")
-    parser.add_argument("--checkpoint", type=str, nargs="+", default=[],
-                        help="Path to the checkpoint without file extension")
-    parser.add_argument("-j", "--processes", type=int, default=1,
-                        help="Number of processes to use")
-    parser.add_argument("--batch_size", type=int, default=1,
-                        help="The batch size during the prediction (number of lines to process in parallel)")
-    parser.add_argument("--verbose", action="store_true",
-                        help="Print additional information")
-    parser.add_argument("--voter", type=str, default="confidence_voter_default_ctc",
-                        help="The voting algorithm to use. Possible values: confidence_voter_default_ctc (default), "
-                             "confidence_voter_fuzzy_ctc, sequence_voter")
-    parser.add_argument("--output_dir", type=str,
-                        help="By default the prediction files will be written to the same directory as the given files. "
-                             "You can use this argument to specify a specific output dir for the prediction files.")
-    parser.add_argument("--extended_prediction_data", action="store_true",
-                        help="Write: Predicted string, labels; position, probabilities and alternatives of chars to a .pred (protobuf) file")
-    parser.add_argument("--extended_prediction_data_format", type=str, default="json",
-                        help="Extension format: Either pred or json. Note that json will not print logits.")
-    parser.add_argument("--no_progress_bars", action="store_true",
-                        help="Do not show any progress bars")
-
-    args = parser.parse_args()
-
+def run(args):
     # checks
     if args.extended_prediction_data_format not in ["pred", "json"]:
         raise Exception("Only 'pred' and 'json' are allowed extended prediction data formats")
@@ -67,8 +40,8 @@ def main():
         raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
 
     # predict for all models
-    predictor = MultiPredictor(checkpoints=args.checkpoint)
-    do_prediction = predictor.predict_dataset(dataset, batch_size=args.batch_size,
+    predictor = MultiPredictor(checkpoints=args.checkpoint, batch_size=args.batch_size)
+    do_prediction = predictor.predict_dataset(dataset,
                                               processes=args.processes, progress_bar=not args.no_progress_bars)
 
     # output the voted results to the appropriate files
@@ -109,6 +82,36 @@ def main():
 
     print("All files written")
 
+
+def main():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--files", nargs="+", required=True, default=[],
+                        help="List all image files that shall be processed")
+    parser.add_argument("--checkpoint", type=str, nargs="+", default=[],
+                        help="Path to the checkpoint without file extension")
+    parser.add_argument("-j", "--processes", type=int, default=1,
+                        help="Number of processes to use")
+    parser.add_argument("--batch_size", type=int, default=1,
+                        help="The batch size during the prediction (number of lines to process in parallel)")
+    parser.add_argument("--verbose", action="store_true",
+                        help="Print additional information")
+    parser.add_argument("--voter", type=str, default="confidence_voter_default_ctc",
+                        help="The voting algorithm to use. Possible values: confidence_voter_default_ctc (default), "
+                             "confidence_voter_fuzzy_ctc, sequence_voter")
+    parser.add_argument("--output_dir", type=str,
+                        help="By default the prediction files will be written to the same directory as the given files. "
+                             "You can use this argument to specify a specific output dir for the prediction files.")
+    parser.add_argument("--extended_prediction_data", action="store_true",
+                        help="Write: Predicted string, labels; position, probabilities and alternatives of chars to a .pred (protobuf) file")
+    parser.add_argument("--extended_prediction_data_format", type=str, default="json",
+                        help="Extension format: Either pred or json. Note that json will not print logits.")
+    parser.add_argument("--no_progress_bars", action="store_true",
+                        help="Do not show any progress bars")
+
+    args = parser.parse_args()
+
+    run(args)
 
 if __name__ == "__main__":
     main()

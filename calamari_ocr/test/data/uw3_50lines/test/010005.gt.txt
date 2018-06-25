@@ -1,0 +1,1 @@
+linear grid problem. Let X be the (two-dimensional) random set

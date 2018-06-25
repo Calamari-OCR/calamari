@@ -1,0 +1,1 @@
+(actually potential differences from the datum) are scaled by the mean value of

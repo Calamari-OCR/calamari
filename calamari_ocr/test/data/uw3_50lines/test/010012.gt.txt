@@ -1,0 +1,1 @@
+operations, the data reductions and the final elevation value assigned to a point

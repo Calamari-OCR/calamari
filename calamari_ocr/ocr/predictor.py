@@ -32,26 +32,27 @@ class PredictionResult:
 
 
 class Predictor:
-    def __init__(self, checkpoint=None, text_postproc=None, data_preproc=None, codec=None, backend=None):
-        self.backend = backend
+    def __init__(self, checkpoint=None, text_postproc=None, data_preproc=None, codec=None, network=None, batch_size=1):
+        self.network = network
         self.checkpoint = checkpoint
         self.codec = codec
 
         if checkpoint:
-            if backend:
-                raise Exception("Either a checkpoint or a backend can be provided")
+            if network:
+                raise Exception("Either a checkpoint or a network can be provided")
 
             with open(checkpoint + '.json', 'r') as f:
                 checkpoint_params = json_format.Parse(f.read(), CheckpointParams())
                 self.model_params = checkpoint_params.model
 
             self.network_params = self.model_params.network
-            self.backend = create_backend_from_proto(self.network_params, restore=self.checkpoint)
+            backend = create_backend_from_proto(self.network_params, restore=self.checkpoint)
+            self.network = backend.create_net(restore=self.checkpoint, weights=None, graph_type="predict", batch_size=1)
             self.text_postproc = text_postproc if text_postproc else text_processor_from_proto(self.model_params.text_postprocessor, "post")
             self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(self.model_params.data_preprocessor)
-        elif backend:
+        elif network:
             self.model_params = None
-            self.network_params = backend.network_proto
+            self.network_params = network.network_proto
             self.text_postproc = text_postproc
             self.data_preproc = data_preproc
         else:
@@ -66,7 +67,7 @@ class Predictor:
         for prediction, sample in zip(prediction_results, dataset.samples()):
             yield prediction, sample
 
-    def predict_raw(self, datas, batch_size=1, processes=1, progress_bar=True, apply_preproc=True):
+    def predict_raw(self, datas, processes=1, progress_bar=True, apply_preproc=True):
         # preprocessing step
         if apply_preproc:
             datas = self.data_preproc.apply(datas, processes=processes, progress_bar=progress_bar)
@@ -74,32 +75,32 @@ class Predictor:
         codec = self.codec if self.codec else Codec(self.model_params.codec.charset)
 
         # create backend
-        self.backend.set_prediction_data(datas)
-        self.backend.prepare(train=False)
+        self.network.set_data(datas)
 
         if progress_bar:
-            out = tqdm(self.backend.prediction_step(batch_size), desc="Prediction", total=len(datas))
+            out = tqdm(self.network.prediction_step(), desc="Prediction", total=len(datas))
         else:
-            out = self.backend.prediction_step(batch_size)
+            out = self.network.prediction_step()
 
         for p in out:
             yield PredictionResult(p, codec=codec, text_postproc=self.text_postproc)
 
 
 class MultiPredictor:
-    def __init__(self, checkpoints=[], text_postproc=None, data_preproc=None):
+    def __init__(self, checkpoints=[], text_postproc=None, data_preproc=None, batch_size=1):
         if len(checkpoints) == 0:
             raise Exception("No checkpoints provided.")
 
         self.checkpoints = checkpoints
-        self.predictors = [Predictor(cp) for cp in checkpoints]
+        self.predictors = [Predictor(cp, batch_size=batch_size) for cp in checkpoints]
+        self.batch_size = batch_size
 
         # check if all checkpoints share the same preprocessor
         # then we only need to apply the preprocessing once and share the data accross the models
         preproc_params = self.predictors[0].model_params.data_preprocessor
         self.same_preproc = all([preproc_params == p.model_params.data_preprocessor for p in self.predictors])
 
-    def predict_dataset(self, dataset, batch_size=1, processes=1, progress_bar=True):
+    def predict_dataset(self, dataset, processes=1, progress_bar=True):
         start_time = time.time()
         dataset.load_samples(processes=1, progress_bar=progress_bar)
         datas = dataset.prediction_samples()
@@ -115,13 +116,12 @@ class MultiPredictor:
             else:
                 return l
 
-        for data_idx in progress_bar_wrapper(range(0, len(datas), batch_size)):
-            batch_data = datas[data_idx:data_idx+batch_size]
-            samples = dataset.samples()[data_idx:data_idx+batch_size]
+        for data_idx in progress_bar_wrapper(range(0, len(datas), self.batch_size)):
+            batch_data = datas[data_idx:data_idx+self.batch_size]
+            samples = dataset.samples()[data_idx:data_idx+self.batch_size]
 
             # predict_raw returns list of [pred (batch_size), time]
-            prediction = [predictor.predict_raw(batch_data, batch_size, processes, progress_bar=False,
-                                                apply_preproc=not self.same_preproc)
+            prediction = [predictor.predict_raw(batch_data, processes, progress_bar=False, apply_preproc=not self.same_preproc)
                           for predictor in self.predictors]
 
             for result, sample in zip(zip(*prediction), samples):

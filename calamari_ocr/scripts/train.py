@@ -108,10 +108,7 @@ def setup_train_args(parser, omit=[]):
                         help="Unicode text normalization to apply. Defaults to NFC")
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    setup_train_args(parser)
-    args = parser.parse_args()
+def run(args):
 
     # check if loading a json file
     if len(args.files) == 1 and args.files[0].endswith("json"):
@@ -224,6 +221,13 @@ def main():
                       codec_whitelist=whitelist,
                       )
     trainer.train(progress_bar=not args.no_progress_bars)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    setup_train_args(parser)
+    args = parser.parse_args()
+    run(args)
 
 
 if __name__ == "__main__":
