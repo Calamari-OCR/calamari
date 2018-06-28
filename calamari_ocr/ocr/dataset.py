@@ -9,12 +9,18 @@ from calamari_ocr.utils import parallel_map, split_all_ext
 
 
 class DataSet(ABC):
-    def __init__(self, skip_invalid=False, remove_invalid=True):
+    def __init__(self, has_images, has_texts, skip_invalid=False, remove_invalid=True):
         self._samples = []
         super().__init__()
         self.loaded = False
+        self.has_images = has_images
+        self.has_texts = has_texts
+
         self.skip_invalid = skip_invalid
         self.remove_invalid = remove_invalid
+
+        if not self.has_images and not self.has_texts:
+            raise Exception("Empty data set is not allowed.")
 
     def __len__(self):
         return len(self._samples)
@@ -74,12 +80,17 @@ class DataSet(ABC):
         for i, ((line, text), sample) in enumerate(zip(data, self._samples)):
             sample["image"] = line
             sample["text"] = text
-            if line is not None and (line.size == 0 or np.amax(line) == np.amin(line)):
-                if self.skip_invalid:
-                    invalid_samples.append(i)
-                    print("Empty data: Image at '{}' is empty".format(sample['id']))
-                else:
-                    raise Exception("Empty data: Image at '{}' is empty".format(sample['id']))
+            if self.has_images:
+                # skip invalid imanges (e. g. corrupted or empty files)
+                if line is None or (line.size == 0 or np.amax(line) == np.amin(line)):
+                    if self.skip_invalid:
+                        invalid_samples.append(i)
+                        if line is None:
+                            print("Empty data: Image at '{}' is None (possibly corrupted)".format(sample['id']))
+                        else:
+                            print("Empty data: Image at '{}' is empty".format(sample['id']))
+                    else:
+                        raise Exception("Empty data: Image at '{}' is empty".format(sample['id']))
 
         if self.remove_invalid:
             # remove all invalid samples (reversed order!)
@@ -97,7 +108,7 @@ class DataSet(ABC):
 
 class RawDataSet(DataSet):
     def __init__(self, images=None, texts=None):
-        super().__init__()
+        super().__init__(has_images=images is not None, has_texts=texts is not None)
 
         if images is None and texts is None:
             raise Exception("Empty data set is not allowed. Both images and text files are None")
@@ -133,37 +144,27 @@ class RawDataSet(DataSet):
 
 
 class FileDataSet(DataSet):
-    def __init__(self, images=None, texts=None,
+    def __init__(self, images=[], texts=[],
                  skip_invalid=False, remove_invalid=True,
                  non_existing_as_empty=False):
-        super().__init__(skip_invalid=skip_invalid,
+        super().__init__(has_images=images is not None or len(images) > 0,
+                         has_texts=texts is not None or len(texts) > 0,
+                         skip_invalid=skip_invalid,
                          remove_invalid=remove_invalid)
         self._non_existing_as_empty = non_existing_as_empty
 
-        if images is None and texts is None:
-            raise Exception("Empty data set is not allowed. Both images and text files are None")
-
-        if images is not None and texts is not None and len(images) == 0 and len(texts) == 0:
-            raise Exception("Empty data set provided.")
-
-        if texts is None or len(texts) == 0:
-            if images is None:
-                raise Exception("Empty data set.")
-
+        if self.has_images and not self.has_texts:
             # No gt provided, probably prediction
             texts = [None] * len(images)
 
-        if images is None or len(images) == 0:
-            if len(texts) is None:
-                raise Exception("Empty data set.")
-
+        if self.has_texts and not self.has_images:
             # No images provided, probably evaluation
             images = [None] * len(texts)
 
         for image, text in zip(images, texts):
             try:
                 if image is None and text is None:
-                    raise Exception("An empty data set is not allowed. Both image and text file are None")
+                    raise Exception("An empty data point is not allowed. Both image and text file are None")
 
                 img_bn, text_bn = None, None
                 if image:

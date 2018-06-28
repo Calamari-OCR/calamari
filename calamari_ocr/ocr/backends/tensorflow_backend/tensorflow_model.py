@@ -245,16 +245,16 @@ class TensorflowModel(ModelInterface):
                 return data / 255, tf.SparseTensor(indices, values, shape), len_data, len_labels
 
             dataset = tf.data.Dataset.from_generator(gen, (tf.float32, tf.int32, tf.int32, tf.int32))
-            dataset = dataset.padded_batch(batch_size, ([None, line_height], [None], [1], [1]),
-                                           padding_values=(np.float32(0), np.int32(-1), np.int32(0), np.int32(0)))
-            dataset = dataset.map(convert_to_sparse).prefetch(batch_size * 10)
-
             if self.graph_type == "train":
-                dataset = dataset.shuffle(10000, seed=self.network_proto.backend.random_seed).repeat().prefetch(batch_size * 10)
+                dataset = dataset.repeat().shuffle(10000, seed=self.network_proto.backend.random_seed)
             else:
                 pass
 
-            data_initializer = dataset.make_initializable_iterator()
+            dataset = dataset.padded_batch(batch_size, ([None, line_height], [None], [1], [1]),
+                                           padding_values=(np.float32(0), np.int32(-1), np.int32(0), np.int32(0)))
+            dataset = dataset.map(convert_to_sparse)
+
+            data_initializer = dataset.prefetch(5).make_initializable_iterator()
             inputs = data_initializer.get_next()
             dropout_rate = tf.placeholder(tf.float32, shape=(), name="dropout_rate")
             return inputs[0], tf.reshape(inputs[2], [-1]), inputs[1], dropout_rate, data_initializer

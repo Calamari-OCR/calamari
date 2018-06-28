@@ -62,11 +62,10 @@ def write_xlsx(xlsx_file, eval_datas):
         sorted_lines = sorted(zip(r["single"], gt_files, gts, preds), key=lambda a: -a[0][1])
 
         all_cs = []
-
         for i, ((len_gt, errs, sync_errs, confusion), gt_file, gt, pred) in enumerate(sorted_lines):
             ws.write(i + 1, 0, gt_file)
-            ws.write(i + 1, 1, gt)
-            ws.write(i + 1, 2, pred)
+            ws.write(i + 1, 1, gt.strip())
+            ws.write(i + 1, 2, pred.strip())
             ws.write(i + 1, 3, len_gt)
             ws.write(i + 1, 4, errs)
             ws.write(i + 1, 5, errs / max(len(gt), len(pred)))

@@ -57,7 +57,7 @@ def run(command, verbose=False):
 
     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=False)
     while True:
-        line = process.stdout.readline().rstrip().decode("utf-8")
+        line = process.stdout.readline().decode("utf-8")
 
         # check if process has finished
         if process.poll() is not None:
