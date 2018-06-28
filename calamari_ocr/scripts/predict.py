@@ -40,9 +40,8 @@ def run(args):
         raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
 
     # predict for all models
-    predictor = MultiPredictor(checkpoints=args.checkpoint, batch_size=args.batch_size)
-    do_prediction = predictor.predict_dataset(dataset,
-                                              processes=args.processes, progress_bar=not args.no_progress_bars)
+    predictor = MultiPredictor(checkpoints=args.checkpoint, batch_size=args.batch_size, processes=args.processes)
+    do_prediction = predictor.predict_dataset(dataset, progress_bar=not args.no_progress_bars)
 
     # output the voted results to the appropriate files
     for (result, sample), filepath in zip(do_prediction, input_image_files):

@@ -147,8 +147,8 @@ class FileDataSet(DataSet):
     def __init__(self, images=[], texts=[],
                  skip_invalid=False, remove_invalid=True,
                  non_existing_as_empty=False):
-        super().__init__(has_images=images is not None or len(images) > 0,
-                         has_texts=texts is not None or len(texts) > 0,
+        super().__init__(has_images=images is None or len(images) > 0,
+                         has_texts=texts is None or len(texts) > 0,
                          skip_invalid=skip_invalid,
                          remove_invalid=remove_invalid)
         self._non_existing_as_empty = non_existing_as_empty

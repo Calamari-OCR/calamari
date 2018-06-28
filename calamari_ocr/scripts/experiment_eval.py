@@ -47,8 +47,8 @@ def main():
 
     # predict for all models
     n_models = len(args.checkpoint)
-    predictor = MultiPredictor(checkpoints=args.checkpoint, batch_size=args.batch_size)
-    do_prediction = predictor.predict_dataset(dataset, processes=args.processes, progress_bar=True)
+    predictor = MultiPredictor(checkpoints=args.checkpoint, batch_size=args.batch_size, processes=args.processes)
+    do_prediction = predictor.predict_dataset(dataset, progress_bar=True)
 
     voters = []
     all_voter_sentences = []
