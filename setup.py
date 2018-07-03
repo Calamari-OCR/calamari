@@ -9,8 +9,8 @@ setup(
     include_package_data=True,
     author="Christoph Wick",
     author_email="christoph.wick@informatik.uni-wuerzburg.de",
-    url="http://github.com/chwick/calamari",
-    download_url='https://github.com/ChWick/calamari/archive/v0.1.7.tar.gz',
+    url="https://github.com/Calamari-OCR/calamari",
+    download_url='https://github.com/Calamari-OCR/calamari/archive/v0.1.7.tar.gz',
     entry_points={
         'console_scripts': [
             'calamari-eval=calamari_ocr.scripts.eval:main',

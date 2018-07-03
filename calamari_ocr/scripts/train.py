@@ -55,8 +55,10 @@ def setup_train_args(parser, omit=[]):
         parser.add_argument("--output_model_prefix", type=str, default="model_",
                             help="Prefix for storing checkpoints and models")
 
-    parser.add_argument("--bidi_dir", type=str, default=None,
-                        help="The default direction of text. Defaults to ltr='left to right'. The other option is 'rtl'")
+    parser.add_argument("--bidi_dir", type=str, default=None, choices=["ltr", "rtl", "auto"],
+                        help="The default text direction when preprocessing bidirectional text. Supported values "
+                             "are 'auto' to automatically detect the direction, 'ltr' and 'rtl' for left-to-right and "
+                             "right-to-left, respectively")
 
     if "weights" not in omit:
         parser.add_argument("--weights", type=str, default=None,
@@ -192,7 +194,8 @@ def run(args):
 
     if args.bidi_dir:
         # change bidirectional text direction if desired
-        bidi_dir_to_enum = {"rtl": TextProcessorParams.BIDI_RTL, "ltr": TextProcessorParams.BIDI_LTR}
+        bidi_dir_to_enum = {"rtl": TextProcessorParams.BIDI_RTL, "ltr": TextProcessorParams.BIDI_LTR,
+                            "auto": TextProcessorParams.BIDI_AUTO}
 
         bidi_processor_params = params.model.text_preprocessor.children.add()
         bidi_processor_params.type = TextProcessorParams.BIDI_NORMALIZER
@@ -200,7 +203,7 @@ def run(args):
 
         bidi_processor_params = params.model.text_postprocessor.children.add()
         bidi_processor_params.type = TextProcessorParams.BIDI_NORMALIZER
-        bidi_processor_params.bidi_direction = bidi_dir_to_enum[args.bidi_dir]
+        bidi_processor_params.bidi_direction = TextProcessorParams.BIDI_AUTO
 
     params.model.line_height = args.line_height
 

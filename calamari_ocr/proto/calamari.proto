@@ -174,8 +174,9 @@ message TextProcessorParams {
 
     // Bidirectional text processor
     enum BidiDirection {
-        BIDI_LTR = 0;
-        BIDI_RTL = 1;
+        BIDI_AUTO = 0;
+        BIDI_LTR = 1;
+        BIDI_RTL = 2;
     }
     BidiDirection bidi_direction = 3;
 

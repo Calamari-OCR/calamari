@@ -2,6 +2,8 @@ import argparse
 import codecs
 import os
 
+from bidi.algorithm import get_base_level
+
 from google.protobuf.json_format import MessageToJson
 
 
@@ -53,7 +55,8 @@ def run(args):
         prediction.id = "voted"
         sentence = prediction.sentence
         if args.verbose:
-            print("{}: '{}'".format(sample['id'], sentence))
+            lr = "\u202A\u202B"
+            print("{}: '{}{}{}'".format(sample['id'], lr[get_base_level(sentence)], sentence, "\u202C" ))
 
         output_dir = args.output_dir if args.output_dir else os.path.dirname(filepath)
 

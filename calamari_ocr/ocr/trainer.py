@@ -8,6 +8,7 @@ import os
 from tqdm import tqdm
 import random
 import numpy as np
+import bidi.algorithm as bidi
 
 from calamari_ocr.utils import RunningStatistics, checkpoint_path
 
@@ -191,11 +192,15 @@ class Trainer:
                 dt_stats.push(time.time() - iter_start_time)
 
                 if iter % checkpoint_params.display == 0:
+                    # apply postprocessing to display the true output
                     pred_sentence = self.txt_postproc.apply("".join(codec.decode(result["decoded"][0])))
                     gt_sentence = self.txt_postproc.apply("".join(codec.decode(result["gt"][0])))
+
                     print("#{:08d}: loss={:.8f} ler={:.8f} dt={:.8f}s".format(iter, loss_stats.mean(), ler_stats.mean(), dt_stats.mean()))
-                    print(" PRED: '{}'".format(pred_sentence))
-                    print(" TRUE: '{}'".format(gt_sentence))
+                    # Insert utf-8 ltr/rtl direction marks for bidi support
+                    lr = "\u202A\u202B"
+                    print(" PRED: '{}{}{}'".format(lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C"))
+                    print(" TRUE: '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C"))
 
                 if (iter + 1) % checkpoint_params.checkpoint_frequency == 0:
                     last_checkpoint = make_checkpoint(checkpoint_params.output_dir, checkpoint_params.output_model_prefix)
