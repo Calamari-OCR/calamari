@@ -11,13 +11,23 @@ from calamari_ocr.ocr.data_processing import data_processor_from_proto
 from calamari_ocr.ocr import Codec
 from calamari_ocr.ocr.backends import create_backend_from_proto
 from calamari_ocr.proto import CheckpointParams
-from calamari_ocr.proto import Prediction as PredictionProto
-from calamari_ocr.proto import PredictionCharacter as PredictionCharProto
-from calamari_ocr.proto import PredictionPosition as PredictionPosProto
 
 
 class PredictionResult:
     def __init__(self, prediction, codec, text_postproc):
+        """ The output of a networks prediction (PredictionProto) with additional information
+
+        It stores all required information for decoding (`codec`) and interpreting the output.
+
+        Parameters
+        ----------
+        prediction : PredictionProto
+            prediction the DNN
+        codec : Codec
+            codec required to decode the `prediction`
+        text_postproc : TextPostprocessor
+            text processor to apply to the decodec `prediction` to receive the actual prediction sentence
+        """
         self.prediction = prediction
         self.logits = np.reshape(prediction.logits.data, (prediction.logits.rows, prediction.logits.cols))
         self.codec = codec
@@ -33,9 +43,30 @@ class PredictionResult:
 
 class Predictor:
     def __init__(self, checkpoint=None, text_postproc=None, data_preproc=None, codec=None, network=None, batch_size=1, processes=1):
+        """ Predicting a dataset based on a trained model
+
+        Parameters
+        ----------
+        checkpoint : str, optional
+            filepath of the checkpoint of the network to load, alternatively you can directly use a loaded `network`
+        text_postproc : TextProcessor, optional
+            text processor to be applied on the predicted sentence for the final output.
+            If loaded from a checkpoint the text processor will be loaded from it.
+        data_preproc : DataProcessor, optional
+            data processor (must be the same as of the trained model) to be applied to the input image.
+            If loaded from a checkpoint the text processor will be loaded from it.
+        codec : Codec, optional
+            Codec of the deep net to use for decoding. This parameter is only required if a custom codec is used,
+            or a `network` has been provided instead of a `checkpoint`
+        network : ModelInterface, optional
+            DNN instance to used. Alternatively you can provide a `checkpoint` to load a network.
+        batch_size : int, optional
+            Batch size to use for prediction
+        processes : int, optional
+            The number of processes to use for prediction
+        """
         self.network = network
         self.checkpoint = checkpoint
-        self.codec = codec
         self.processes = processes
 
         if checkpoint:
@@ -56,10 +87,30 @@ class Predictor:
             self.network_params = network.network_proto
             self.text_postproc = text_postproc
             self.data_preproc = data_preproc
+            if not codec:
+                raise Exception("A codec is required if preloaded network is used.")
         else:
             raise Exception("Either a checkpoint or a existing backend must be provided")
 
+        self.codec = codec if codec else Codec(self.model_params.codec.charset)
+
     def predict_dataset(self, dataset, progress_bar=True):
+        """ Predict a complete dataset
+
+        Parameters
+        ----------
+        dataset : Dataset
+            Dataset to predict
+        progress_bar : bool, optional
+            hide or show a progress bar
+
+        Yields
+        -------
+        PredictionResult
+            Single PredictionResult
+        dict
+            Dataset entry of the prediction result
+        """
         dataset.load_samples(processes=1, progress_bar=progress_bar)
         datas = dataset.prediction_samples()
 
@@ -69,11 +120,23 @@ class Predictor:
             yield prediction, sample
 
     def predict_raw(self, datas, progress_bar=True, apply_preproc=True):
+        """ Predict raw data
+        Parameters
+        ----------
+        datas : list of array_like
+            list of images
+        progress_bar : bool, optional
+            Show or hide a progress bar
+        apply_preproc : bool, optional
+            Apply the `data_preproc` to the `datas` before predicted by the DNN
+        Yields
+        -------
+        PredictionResult
+            A single PredictionResult
+        """
         # preprocessing step
         if apply_preproc:
             datas = self.data_preproc.apply(datas, processes=self.processes, progress_bar=progress_bar)
-
-        codec = self.codec if self.codec else Codec(self.model_params.codec.charset)
 
         # create backend
         self.network.set_data(datas)
@@ -84,11 +147,26 @@ class Predictor:
             out = self.network.prediction_step()
 
         for p in out:
-            yield PredictionResult(p, codec=codec, text_postproc=self.text_postproc)
+            yield PredictionResult(p, codec=self.codec, text_postproc=self.text_postproc)
 
 
 class MultiPredictor:
     def __init__(self, checkpoints=[], text_postproc=None, data_preproc=None, batch_size=1, processes=1):
+        """Predict multiple models to use voting
+
+        Parameters
+        ----------
+        checkpoints : list of str, optional
+            list of the checkpoints to load
+        text_postproc : TextProcessor, optional
+            TextProcessor for the predicted sentence
+        data_preproc : DataProcessor, optional
+            DataProcessor for all input files
+        batch_size : int, optional
+            The number of files to process simultaneously by the DNN
+        processes : int, optional
+            The number of processes to use
+        """
         if len(checkpoints) == 0:
             raise Exception("No checkpoints provided.")
 

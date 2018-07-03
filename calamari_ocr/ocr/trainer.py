@@ -2,11 +2,8 @@ from calamari_ocr.ocr.text_processing import text_processor_from_proto
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
 from calamari_ocr.ocr import Codec
 from calamari_ocr.ocr.backends import create_backend_from_proto
-from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
 import time
 import os
-from tqdm import tqdm
-import random
 import numpy as np
 import bidi.algorithm as bidi
 
@@ -30,6 +27,46 @@ class Trainer:
                  weights=None,
                  codec=None,
                  codec_whitelist=[]):
+        """Train a DNN using given preprocessing, weights, and data
+
+        The purpose of the Trainer is handle a default training mechanism.
+        As required input it expects a `dataset` and hyperparameters (`checkpoint_params`).
+
+        The steps are
+            1. Loading and preprocessing of the dataset
+            2. Computation of the codec
+            3. Construction of the DNN in the desired Deep Learning Framework
+            4. Launch of the training
+
+        During the training the Trainer will perform validation checks if a `validation_dataset` is given
+        to determine the best model.
+        Furthermore, the current status is printet and checkpoints are written.
+
+        Parameters
+        ----------
+        checkpoint_params : CheckpointParams
+            Proto parameter object that defines all hyperparameters of the model
+        dataset : Dataset
+            The Dataset used for training
+        validation_dataset : Dataset, optional
+            The Dataset used for validation, i.e. choosing the best model
+        txt_preproc : TextProcessor, optional
+            Text preprocessor that is applied on loaded text, before the Codec is computed
+        txt_postproc : TextProcessor, optional
+            Text processor that is applied on the loaded GT text and on the prediction to receive the final result
+        data_preproc : DataProcessor, optional
+            Preprocessing for the image lines (e. g. padding, inversion, deskewing, ...)
+        data_augmenter : DataAugmenter, optional
+            A DataAugmenter object to use for data augmentation. Count is set by `n_augmentations`
+        n_augmentations : int, optional
+            The number of augmentations performend by the `data_augmenter`
+        weights : str, optional
+            Path to a trained model for loading its weights
+        codec : Codec, optional
+            If provided the Codec will not be computed automaticall based on the GT, but instead `codec` will be used
+        codec_whitelist : obj:`list` of :obj:`str`
+            List of characters to be kept when the loaded `weights` have a different codec than the new one.
+        """
         self.checkpoint_params = checkpoint_params
         self.dataset = dataset
         self.validation_dataset = validation_dataset
@@ -43,6 +80,14 @@ class Trainer:
         self.codec_whitelist = codec_whitelist
 
     def train(self, progress_bar=False):
+        """ Launch the training
+
+        Parameters
+        ----------
+        progress_bar : bool
+            Show or hide any progress bar
+
+        """
         checkpoint_params = self.checkpoint_params
 
         train_start_time = time.time() + self.checkpoint_params.total_time
@@ -59,7 +104,6 @@ class Trainer:
                 raise Exception("Validation dataset is empty. Provide valid validation data for early stopping.")
         else:
             validation_datas, validation_txts = [], []
-
 
         # preprocessing steps
         texts = self.txt_preproc.apply(txts, processes=checkpoint_params.processes, progress_bar=progress_bar)
@@ -243,5 +287,3 @@ class Trainer:
             raise e
 
         print("Total time {}s for {} iterations.".format(time.time() - train_start_time, iter))
-
-

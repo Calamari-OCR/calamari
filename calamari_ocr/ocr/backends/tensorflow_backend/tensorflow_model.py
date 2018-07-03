@@ -229,7 +229,7 @@ class TensorflowModel(ModelInterface):
 
         return inputs, seq_len, targets, dropout_rate
 
-    def create_dataset_inputs(self, batch_size, line_height):
+    def create_dataset_inputs(self, batch_size, line_height, buffer_size=1000):
         with tf.variable_scope("", reuse=False):
             def gen():
                 for i, l in zip(self.raw_images, self.raw_labels):
@@ -246,7 +246,7 @@ class TensorflowModel(ModelInterface):
 
             dataset = tf.data.Dataset.from_generator(gen, (tf.float32, tf.int32, tf.int32, tf.int32))
             if self.graph_type == "train":
-                dataset = dataset.repeat().shuffle(10000, seed=self.network_proto.backend.random_seed)
+                dataset = dataset.repeat().shuffle(buffer_size, seed=self.network_proto.backend.random_seed)
             else:
                 pass
 
