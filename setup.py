@@ -6,6 +6,7 @@ setup(
     packages=find_packages(),
     license='GPL-v3.0',
     long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     include_package_data=True,
     author="Christoph Wick",
     author_email="christoph.wick@informatik.uni-wuerzburg.de",
