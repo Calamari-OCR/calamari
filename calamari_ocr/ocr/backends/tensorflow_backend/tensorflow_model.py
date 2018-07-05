@@ -1,16 +1,10 @@
+import sys
 import tensorflow as tf
-from tensorflow.python.framework import ops
-from tensorflow.python.ops import array_ops
-from tensorflow.python.ops.nn_grad import _BroadcastMul
-from tensorflow.python.ops import rnn
-from tensorflow.contrib.rnn import LSTMCell, MultiRNNCell, DropoutWrapper, LSTMBlockFusedCell, LSTMBlockCell
 import tensorflow.contrib.cudnn_rnn as cudnn_rnn
-from tensorflow.python.framework import sparse_tensor
 from tensorflow.python.ops import ctc_ops
 import numpy as np
 
 from calamari_ocr.ocr.backends.model_interface import ModelInterface
-
 from calamari_ocr.proto import LayerParams, NetworkParams
 
 
@@ -395,7 +389,7 @@ class TensorflowModel(ModelInterface):
             saver.save(self.session, output_file)
 
     def train_batch(self, x, len_x, y):
-        return self.session.run(
+        out = self.session.run(
             [self.loss, self.train_op, self.logits, self.output_seq_len, self.cer, self.decoded],
             feed_dict={
                 self.inputs: x,
@@ -405,13 +399,42 @@ class TensorflowModel(ModelInterface):
             }
         )
 
+        if np.isfinite(out[0]):
+            # only update gradients if finite loss
+            self.session.run(
+                [self.train_op],
+                feed_dict={
+                    self.inputs: x,
+                    self.input_seq_len: len_x,
+                    self.targets: y,
+                    self.dropout_rate: self.network_proto.dropout,
+                }
+            )
+        else:
+            print("WARNING: Infinite loss. Skipping batch.", file=sys.stderr)
+
+        return out
+
     def train_dataset(self):
-        return self.session.run(
-            [self.loss, self.train_op, self.logits, self.output_seq_len, self.cer, self.decoded, self.targets],
+        out = self.session.run(
+            [self.loss, self.logits, self.output_seq_len, self.cer, self.decoded, self.targets],
             feed_dict={
                 self.dropout_rate: self.network_proto.dropout,
             }
         )
+
+        if np.isfinite(out[0]):
+            # only update gradients if finite loss
+            self.session.run(
+                [self.train_op],
+                feed_dict={
+                    self.dropout_rate: self.network_proto.dropout,
+                }
+            )
+        else:
+            print("WARNING: Infinite loss. Skipping batch.", file=sys.stderr)
+
+        return out
 
     def predict_raw(self, x, len_x):
         return self.session.run(
@@ -434,10 +457,10 @@ class TensorflowModel(ModelInterface):
             x, len_x = TensorflowModel.__sparse_data_to_dense(batch_x)
             y = TensorflowModel.__to_sparse_matrix(batch_y)
 
-            cost, optimizer, logits, seq_len, ler, decoded = self.train_batch(x, len_x, y)
+            cost, logits, seq_len, ler, decoded = self.train_batch(x, len_x, y)
             gt = batch_y
         else:
-            cost, optimizer, logits, seq_len, ler, decoded, gt = self.train_dataset()
+            cost, logits, seq_len, ler, decoded, gt = self.train_dataset()
             gt = TensorflowModel.__sparse_to_lists(gt)
 
         logits = np.roll(logits, 1, axis=2)

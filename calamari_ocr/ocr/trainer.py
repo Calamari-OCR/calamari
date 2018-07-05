@@ -213,6 +213,8 @@ class Trainer:
 
         try:
             last_checkpoint = None
+            n_infinite_losses = 0
+            n_max_infinite_losses = 5
 
             # Training loop, can be interrupted by early stopping
             for iter in range(iter, checkpoint_params.max_iters):
@@ -222,13 +224,20 @@ class Trainer:
                 result = train_net.train_step()
 
                 if not np.isfinite(result['loss']):
-                    print("Error: Loss is not finite! Trying to restart from last checkpoint.")
-                    if not last_checkpoint:
-                        raise Exception("No checkpoint written yet. Training must be stopped.")
+                    n_infinite_losses += 1
+
+                    if n_max_infinite_losses == n_infinite_losses:
+                        print("Error: Loss is not finite! Trying to restart from last checkpoint.")
+                        if not last_checkpoint:
+                            raise Exception("No checkpoint written yet. Training must be stopped.")
+                        else:
+                            # reload also non trainable weights, such as solver-specific variables
+                            train_net.load_weights(last_checkpoint, restore_only_trainable=False)
+                            continue
                     else:
-                        # reload also non trainable weights, such as solver-specific variables
-                        backend.load_checkpoint_weights(last_checkpoint, restore_only_trainable=False)
                         continue
+
+                n_infinite_losses = 0
 
                 loss_stats.push(result['loss'])
                 ler_stats.push(result['ler'])
