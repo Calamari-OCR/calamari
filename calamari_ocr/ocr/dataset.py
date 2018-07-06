@@ -10,6 +10,19 @@ from calamari_ocr.utils import parallel_map, split_all_ext
 
 class DataSet(ABC):
     def __init__(self, has_images, has_texts, skip_invalid=False, remove_invalid=True):
+        """ Dataset that stores a list of raw images and corresponding labels.
+
+        Parameters
+        ----------
+        has_images : bool
+            this dataset contains images
+        has_texts : bool
+            this dataset contains texts
+        skip_invalid : bool
+            skip invalid files instead of throwing an Exception
+        remove_invalid : bool
+            remove invalid files, thus dont count them to possible error on this data set
+        """
         self._samples = []
         super().__init__()
         self.loaded = False
@@ -23,24 +36,66 @@ class DataSet(ABC):
             raise Exception("Empty data set is not allowed.")
 
     def __len__(self):
+        """ Number of samples
+
+        Returns
+        -------
+        int
+            Number of samples
+        """
         return len(self._samples)
 
     def samples(self):
+        """ List of all samples
+
+        Returns
+        -------
+        list of dict
+            List of all samples
+
+        """
         return self._samples
 
     def prediction_samples(self):
+        """ Extract all images from this set
+
+        Returns
+        -------
+        list of images
+
+        """
         if not self.loaded:
             raise Exception("Dataset must be loaded to access its training samples")
 
         return [sample["image"] for sample in self._samples]
 
     def text_samples(self):
+        """ Extract all texts from this set
+
+        Returns
+        -------
+        list of str
+
+        """
         if not self.loaded:
             raise Exception("Dataset must be loaded to access its text")
 
         return [sample["text"] for sample in self._samples]
 
     def train_samples(self, skip_empty=False):
+        """ Extract both list of images and list of texts
+
+        Parameters
+        ----------
+        skip_empty : bool
+            do not add empty files
+
+        Returns
+        -------
+        list of images
+        list of str
+
+        """
         if not self.loaded:
             raise Exception("Dataset must be loaded to access its training samples")
 
@@ -61,6 +116,13 @@ class DataSet(ABC):
         return data, text
 
     def add_sample(self, sample):
+        """ Add a sample
+
+        Parameters
+        ----------
+        sample : dict
+            The sample
+        """
         if not isinstance(sample, dict):
             raise Exception("A sample is expected to be a dictionary")
 
@@ -71,6 +133,21 @@ class DataSet(ABC):
         self._samples.append(sample)
 
     def load_samples(self, processes=1, progress_bar=False):
+        """ Load the samples into the memory
+
+        This is usefull if a FileDataset shall load its files.
+
+        Parameters
+        ----------
+        processes : int
+            number of processes to use for loading
+        progress_bar : bool
+            show a progress bar of the progress
+
+        Returns
+        -------
+        list of samples
+        """
         if self.loaded:
             return self._samples
 
@@ -103,11 +180,35 @@ class DataSet(ABC):
 
     @abstractmethod
     def _load_sample(self, sample):
+        """ Load a single sample
+
+        Parameters
+        ----------
+        sample : dict
+            the sample to load
+
+        Returns
+        -------
+        image
+        text
+
+        """
         return np.zeros((0, 0)), None
 
 
 class RawDataSet(DataSet):
     def __init__(self, images=None, texts=None):
+        """ Create a dataset from memory
+
+        Since this dataset already contains all data in the memory, this dataset may not be loaded
+
+        Parameters
+        ----------
+        images : list of images
+            the images of the dataset
+        texts : list of str
+            the texts of this dataset
+        """
         super().__init__(has_images=images is not None, has_texts=texts is not None)
 
         if images is None and texts is None:
@@ -147,6 +248,23 @@ class FileDataSet(DataSet):
     def __init__(self, images=[], texts=[],
                  skip_invalid=False, remove_invalid=True,
                  non_existing_as_empty=False):
+        """ Create a dataset from a list of files
+
+        Images or texts may be empty to create a dataset for prediction or evaluation only.
+
+        Parameters
+        ----------
+        images : list of str, optional
+            image files
+        texts : list of str, optional
+            text files
+        skip_invalid : bool, optional
+            skip invalid files
+        remove_invalid : bool, optional
+            remove invalid files
+        non_existing_as_empty : bool, optional
+            tread non existing files as empty. This is relevant for evaluation a dataset
+        """
         super().__init__(has_images=images is None or len(images) > 0,
                          has_texts=texts is None or len(texts) > 0,
                          skip_invalid=skip_invalid,

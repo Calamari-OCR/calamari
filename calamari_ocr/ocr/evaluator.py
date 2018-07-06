@@ -7,14 +7,52 @@ from calamari_ocr.utils import parallel_map
 
 class Evaluator:
     def __init__(self, text_preprocessor=None):
+        """ Class to evaluation the CER and errors of two datasets
+
+        Parameters
+        ----------
+        text_preprocessor : TextProcessor
+            a text preprocessor to apply before computing the errors
+        """
         self.text_preprocessor = text_preprocessor if text_preprocessor is not None else DefaultTextPreprocessor()
         self.preloaded_gt = None
 
     def preload_gt(self, gt_dataset, progress_bar=False):
+        """ Preload gt to be used for several experiments
+
+        Use this method to specify ground truth data to be tested versus many predictions
+
+        Parameters
+        ----------
+        gt_dataset : Dataset
+            the ground truth
+        progress_bar : bool, optional
+            show a progress bar
+
+        """
         gt_dataset.load_samples(progress_bar=progress_bar)
         self.preloaded_gt = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
 
     def run(self, _sentinel=None, gt_dataset=None, pred_dataset=None, processes=1, progress_bar=False):
+        """ evaluate on the given dataset
+
+        Parameters
+        ----------
+        _sentinel : do not use
+            Forcing the use of `gt_dataset` and `pred_dataset` fore safety
+        gt_dataset : Dataset, optional
+            the ground truth
+        pred_dataset : Dataset
+            the prediction dataset
+        processes : int, optional
+            the processes to use for preprocesing and evaluation
+        progress_bar : bool, optional
+            show a progress bar
+
+        Returns
+        -------
+        evaluation dictionary
+        """
         if _sentinel:
             raise Exception("You must call run by using parameter names.")
 
@@ -31,6 +69,24 @@ class Evaluator:
 
     @staticmethod
     def evaluate_single(args):
+        """ Evaluate a single pair of data
+
+        Parameters
+        ----------
+        args : ground truth, prediction
+
+        Returns
+        -------
+        int
+            length of ground truth
+        int
+            number of errors
+        int
+            number of synchronisation errors
+        dict
+            confusions dictionary
+
+        """
         gt, pred = args
         confusion = {}
         total_sync_errs = 0
@@ -50,6 +106,25 @@ class Evaluator:
 
     @staticmethod
     def evaluate(_sentinel=None, gt_data=None, pred_data=None, processes=1, progress_bar=False):
+        """ evaluate on the given raw data
+
+        Parameters
+        ----------
+        _sentinel : do not use
+            Forcing the use of `gt_dataset` and `pred_dataset` fore safety
+        gt_data : Dataset, optional
+            the ground truth
+        pred_data : Dataset
+            the prediction dataset
+        processes : int, optional
+            the processes to use for preprocesing and evaluation
+        progress_bar : bool, optional
+            show a progress bar
+
+        Returns
+        -------
+        evaluation dictionary
+        """
         if len(gt_data) != len(pred_data):
             raise Exception("Mismatch in gt and pred files count: {} vs {}".format(len(gt_data), len(pred_data)))
 
