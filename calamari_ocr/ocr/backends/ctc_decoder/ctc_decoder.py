@@ -10,15 +10,15 @@ class CTCDecoder(ABC):
         super().__init__()
 
     @abstractmethod
-    def decode(self, logits):
+    def decode(self, probabilities):
         """
         Decoding algorithm of the individual CTCDecoder. This abstract function is reimplemented
         by the DefaultCTCDecoder and the FuzzyCTCDecoder.
 
         Parameters
         ----------
-        logits : array_like
-            Prediction of the neural net to decode or shape (length x character probability).
+        probabilities : array_like
+            Prediction probabilities of the neural net to decode or shape (length x character probability).
             The blank index must be 0.
 
         Returns
@@ -27,7 +27,7 @@ class CTCDecoder(ABC):
         """
         return Prediction()
 
-    def find_alternatives(self, logits, sentence, threshold):
+    def find_alternatives(self, probabilities, sentence, threshold):
         """
         Find alternatives to the decoded sentence in the logits.
         E.g. if a 'c' is decoded in the range 2 to 4, this algorithm will add all characters in the interval [2, 4] to
@@ -36,7 +36,7 @@ class CTCDecoder(ABC):
 
         Parameters
         ----------
-        logits : array_like
+        probabilities : array_like
             Prediction of the neural net to decode or shape (length x character probability).
             The blank index must be 0.
         sentence : list of tuple (character index, start pos, end pos)
@@ -53,10 +53,10 @@ class CTCDecoder(ABC):
         pred = Prediction()
         pred.labels[:] = [c for c, _, _ in sentence]
         pred.is_voted_result = False
-        pred.logits.rows, pred.logits.cols = logits.shape
-        pred.logits.data[:] = logits.reshape([-1])
+        pred.logits.rows, pred.logits.cols = probabilities.shape
+        pred.logits.data[:] = probabilities.reshape([-1])
         for c, start, end in sentence:
-            p = logits[start:end]
+            p = probabilities[start:end]
             p = np.max(p, axis=0)
 
             pos = pred.positions.add()

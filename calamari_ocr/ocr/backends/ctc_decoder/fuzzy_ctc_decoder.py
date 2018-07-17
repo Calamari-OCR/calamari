@@ -10,8 +10,8 @@ class FuzzyCTCDecoder(CTCDecoder):
         self._blank_threshold = blank_threshold
         self._alternatives_threshold = alternatives_threshold
 
-    def decode(self, logits):
-        blanks = logits[:, self._blank] >= self._blank_threshold
+    def decode(self, probabilities):
+        blanks = probabilities[:, self._blank] >= self._blank_threshold
         sentence = []
         # where blank is True 'character changes' are expected
         for idx in range(len(blanks)):
@@ -28,9 +28,9 @@ class FuzzyCTCDecoder(CTCDecoder):
                         sentence.append((-1, idx, idx + 1))
 
         # get the best char in each range
-        sentence = [(np.argmax(np.max(logits[start:end], axis=0)), start, end) for _, start, end in sentence]
+        sentence = [(np.argmax(np.max(probabilities[start:end], axis=0)), start, end) for _, start, end in sentence]
 
-        return self.find_alternatives(logits, sentence, self._alternatives_threshold)
+        return self.find_alternatives(probabilities, sentence, self._alternatives_threshold)
 
 
 if __name__ == "__main__":

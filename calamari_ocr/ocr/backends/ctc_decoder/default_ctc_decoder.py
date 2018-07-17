@@ -10,9 +10,9 @@ class DefaultCTCDecoder(CTCDecoder):
 
         super().__init__()
 
-    def decode(self, logits):
+    def decode(self, probabilities):
         last_char = self.blank
-        chars = np.argmax(logits, axis=1)
+        chars = np.argmax(probabilities, axis=1)
         sentence = []
         for idx, c in enumerate(chars):
             if c != self.blank:
@@ -25,10 +25,9 @@ class DefaultCTCDecoder(CTCDecoder):
 
             last_char = c
 
-        return self.find_alternatives(logits, sentence, self.threshold)
+        return self.find_alternatives(probabilities, sentence, self.threshold)
 
-
-    def prob_of_sentence(self, logits):
+    def prob_of_sentence(self, probabilities):
         # do a forward pass and compute the full sentence probability
         pass
 

@@ -417,7 +417,7 @@ class TensorflowModel(ModelInterface):
 
     def train_dataset(self):
         out = self.session.run(
-            [self.loss, self.logits, self.output_seq_len, self.cer, self.decoded, self.targets],
+            [self.loss, self.softmax, self.output_seq_len, self.cer, self.decoded, self.targets],
             feed_dict={
                 self.dropout_rate: self.network_proto.dropout,
             }
@@ -438,7 +438,7 @@ class TensorflowModel(ModelInterface):
 
     def predict_raw(self, x, len_x):
         return self.session.run(
-            [self.logits, self.output_seq_len, self.decoded],
+            [self.softmax, self.output_seq_len, self.decoded],
             feed_dict={
                 self.inputs: x,
                 self.input_seq_len: len_x,
@@ -447,7 +447,7 @@ class TensorflowModel(ModelInterface):
 
     def predict_dataset(self):
         return self.session.run(
-            [self.logits, self.output_seq_len, self.decoded],
+            [self.softmax, self.output_seq_len, self.decoded],
             feed_dict={
                 self.dropout_rate: 0,
             })
@@ -457,16 +457,16 @@ class TensorflowModel(ModelInterface):
             x, len_x = TensorflowModel.__sparse_data_to_dense(batch_x)
             y = TensorflowModel.__to_sparse_matrix(batch_y)
 
-            cost, logits, seq_len, ler, decoded = self.train_batch(x, len_x, y)
+            cost, probs, seq_len, ler, decoded = self.train_batch(x, len_x, y)
             gt = batch_y
         else:
-            cost, logits, seq_len, ler, decoded, gt = self.train_dataset()
+            cost, probs, seq_len, ler, decoded, gt = self.train_dataset()
             gt = TensorflowModel.__sparse_to_lists(gt)
 
-        logits = np.roll(logits, 1, axis=2)
+        probs = np.roll(probs, 1, axis=2)
         return {
             "loss": cost,
-            "logits": logits,
+            "probabilities": probs,
             "ler": ler,
             "decoded": TensorflowModel.__sparse_to_lists(decoded),
             "gt": gt,
@@ -476,10 +476,10 @@ class TensorflowModel(ModelInterface):
     def predict(self):
         try:
             while True:
-                logits, seq_len, decoded = self.predict_dataset()
-                logits = np.roll(logits, 1, axis=2)
+                probs, seq_len, decoded = self.predict_dataset()
+                probs = np.roll(probs, 1, axis=2)
                 # decoded = TensorflowBackend.__sparse_to_lists(decoded)
-                for l, s in zip(logits, seq_len):
+                for l, s in zip(probs, seq_len):
                     yield self.ctc_decoder.decode(l[:s])
 
         except tf.errors.OutOfRangeError as e:
