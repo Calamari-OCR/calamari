@@ -1,3 +1,4 @@
+from copy import deepcopy
 from abc import ABC, abstractmethod
 
 from calamari_ocr.proto import Prediction
@@ -13,7 +14,7 @@ class Voter(ABC):
             raise Exception("Empty prediction results")
         elif len(prediction_results) == 1:
             # no voting required
-            return prediction_results[0].prediction
+            return deepcopy(prediction_results[0].prediction)
         else:
             return self.vote_prediction_result_tuple(tuple(prediction_results))
 
