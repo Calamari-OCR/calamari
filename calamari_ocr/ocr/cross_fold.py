@@ -23,7 +23,7 @@ class CrossFold:
             where to store the folds
         """
         self.n_folds = n_folds
-        self.inputs = glob_all(source_files)
+        self.inputs = sorted(glob_all(source_files))
         self.output_dir = os.path.abspath(output_dir)
 
         if len(self.inputs) == 0:

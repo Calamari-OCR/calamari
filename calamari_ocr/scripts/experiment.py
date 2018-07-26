@@ -43,7 +43,7 @@ def run_for_single_line(args):
     files = args.train_files
     if args.n_lines > 0:
         all_files = glob_all(args.train_files)
-        files = random.sample(all_files, args.n_lines)
+        file = random.sample(all_files, args.n_lines)
 
     # run the cross-fold-training
     setattr(args, "max_parallel_models", args.max_parallel_models)
@@ -78,6 +78,7 @@ def run_for_single_line(args):
                 "python3", "-u",
                 predict_script_path,
                 "-j", str(args.num_threads),
+                "--batch_size", str(args.batch_size),
                 "--dump", dump_file,
                 "--eval_imgs"] + args.eval_files + [
                 ] + (["--verbose"] if args.verbose else []) + [

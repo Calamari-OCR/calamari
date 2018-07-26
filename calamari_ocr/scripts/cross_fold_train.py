@@ -28,7 +28,7 @@ def train_individual_model(run_args):
     ], args["run"], {"threads": args['num_threads']}), verbose=args["verbose"]):
         # Print the output of the thread
         if args["verbose"]:
-            print("FOLD {} | {}".format(args["id"], line))
+            print("FOLD {} | {}".format(args["id"], line), end="")
 
     return args
 
