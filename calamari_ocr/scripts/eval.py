@@ -2,8 +2,12 @@ from argparse import ArgumentParser
 import os
 import numpy as np
 
+from google.protobuf import json_format
+
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.ocr import FileDataSet, Evaluator
+from calamari_ocr.proto import CheckpointParams
+from calamari_ocr.ocr.text_processing import text_processor_from_proto
 
 
 def print_confusions(r, n_confusions):
@@ -137,6 +141,8 @@ def main():
                              "'Error' will throw an exception if a file is not existing. This is the default behaviour.")
     parser.add_argument("--no_progress_bars", action="store_true",
                         help="Do not show any progress bars")
+    parser.add_argument("--checkpoint", type=str, default=None,
+                        help="Specify an optional checkpoint to parse the text preprocessor (for the gt txt files)")
 
     args = parser.parse_args()
 
@@ -158,11 +164,17 @@ def main():
             del pred_files[idx]
             del gt_files[idx]
 
+    text_preproc = None
+    if args.checkpoint:
+        with open(args.checkpoint if args.checkpoint.endswith(".json") else args.checkpoint + '.json', 'r') as f:
+            checkpoint_params = json_format.Parse(f.read(), CheckpointParams())
+            text_preproc = text_processor_from_proto(checkpoint_params.model.text_preprocessor)
+
     non_existing_as_empty = args.non_existing_file_handling_mode.lower() == "empty"
     gt_data_set = FileDataSet(texts=gt_files, non_existing_as_empty=non_existing_as_empty)
     pred_data_set = FileDataSet(texts=pred_files, non_existing_as_empty=non_existing_as_empty)
 
-    evaluator = Evaluator()
+    evaluator = Evaluator(text_preprocessor=text_preproc)
     r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, processes=args.num_threads,
                       progress_bar=not args.no_progress_bars)
 
