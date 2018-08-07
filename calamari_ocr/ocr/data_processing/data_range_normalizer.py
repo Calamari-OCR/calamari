@@ -30,4 +30,4 @@ class DataRangeNormalizer(DataPreprocessor):
         if data.ndim == 3:
             data = np.mean(data, axis=2)
 
-        return data
+        return data, None

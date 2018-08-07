@@ -36,15 +36,15 @@ class TensorflowModel(ModelInterface):
 
             # create network and solver (if train)
             if graph_type == "train":
-                self.output_seq_len, self.time_major_logits, self.time_major_softmax, self.logits, self.softmax, self.decoded, self.sparse_decoded = \
+                self.output_seq_len, self.time_major_logits, self.time_major_softmax, self.logits, self.softmax, self.decoded, self.sparse_decoded, self.scale_factor = \
                     self.create_network(self.inputs, self.input_seq_len, self.dropout_rate, reuse_variables=reuse_weights)
                 self.train_op, self.loss, self.cer = self.create_solver(self.targets, self.time_major_logits, self.logits, self.output_seq_len, self.decoded)
             elif graph_type == "test":
-                self.output_seq_len, self.time_major_logits, self.time_major_softmax, self.logits, self.softmax, self.decoded, self.sparse_decoded = \
+                self.output_seq_len, self.time_major_logits, self.time_major_softmax, self.logits, self.softmax, self.decoded, self.sparse_decoded, self.scale_factor = \
                     self.create_network(self.inputs, self.input_seq_len, self.dropout_rate, reuse_variables=reuse_weights)
                 self.cer = self.create_cer(self.decoded, self.targets)
             else:
-                self.output_seq_len, self.time_major_logits, self.time_major_softmax, self.logits, self.softmax, self.decoded, self.sparse_decoded = \
+                self.output_seq_len, self.time_major_logits, self.time_major_softmax, self.logits, self.softmax, self.decoded, self.sparse_decoded, self.scale_factor = \
                     self.create_network(self.inputs, self.input_seq_len, self.dropout_rate, reuse_variables=reuse_weights)
 
     def is_gpu_available(self):
@@ -71,6 +71,7 @@ class TensorflowModel(ModelInterface):
             else:
                 has_conv_or_pool = False
 
+            factor = 1
             if has_conv_or_pool:
                 cnn_inputs = tf.reshape(inputs, [batch_size, -1, network_proto.features, 1])
                 shape = seq_len, network_proto.features
@@ -102,6 +103,7 @@ class TensorflowModel(ModelInterface):
 
                         shape = (tf.to_int32(shape[0] // layer.stride.x),
                                  shape[1] // layer.stride.y)
+                        factor *= layer.stride.x
                     else:
                         raise Exception("Unknown layer of type %s" % layer.type)
 
@@ -212,7 +214,7 @@ class TensorflowModel(ModelInterface):
                 tf.identity(decoded.dense_shape, name="decoded_shape"),
             )
 
-            return lstm_seq_len, time_major_logits, time_major_softmax, logits, softmax, decoded, sparse_decoded
+            return lstm_seq_len, time_major_logits, time_major_softmax, logits, softmax, decoded, sparse_decoded, factor
 
     def create_placeholders(self):
         with tf.variable_scope("", reuse=False) as scope:
@@ -526,3 +528,6 @@ class TensorflowModel(ModelInterface):
             out[x].append(value + shift_values)
 
         return out
+
+    def output_to_input_position(self, x):
+        return x * self.scale_factor

@@ -107,9 +107,9 @@ class Trainer:
 
         # preprocessing steps
         texts = self.txt_preproc.apply(txts, processes=checkpoint_params.processes, progress_bar=progress_bar)
-        datas = self.data_preproc.apply(datas, processes=checkpoint_params.processes, progress_bar=progress_bar)
+        datas, params = [list(a) for a in zip(*self.data_preproc.apply(datas, processes=checkpoint_params.processes, progress_bar=progress_bar))]
         validation_txts = self.txt_preproc.apply(validation_txts, processes=checkpoint_params.processes, progress_bar=progress_bar)
-        validation_datas = self.data_preproc.apply(validation_datas, processes=checkpoint_params.processes, progress_bar=progress_bar)
+        validation_data_params = self.data_preproc.apply(validation_datas, processes=checkpoint_params.processes, progress_bar=progress_bar)
 
         # compute the codec
         codec = self.codec if self.codec else Codec.from_texts(texts, whitelist=self.codec_whitelist)
@@ -261,7 +261,7 @@ class Trainer:
                 if early_stopping_enabled and (iter + 1) % checkpoint_params.early_stopping_frequency == 0:
                     print("Checking early stopping model")
 
-                    out = early_stopping_predictor.predict_raw(validation_datas,
+                    out = early_stopping_predictor.predict_raw(validation_data_params,
                                                                progress_bar=progress_bar, apply_preproc=False)
                     pred_texts = [d.sentence for d in out]
                     pred_texts = self.txt_preproc.apply(pred_texts, processes=checkpoint_params.processes, progress_bar=progress_bar)

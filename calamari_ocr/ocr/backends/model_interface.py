@@ -37,6 +37,9 @@ class ModelInterface(ABC):
             NetworkParams.CTC_DEFAULT: DefaultCTCDecoder(),
         }[network_proto.ctc]
 
+    def output_to_input_position(self, x):
+        return x
+
     def set_data(self, images, labels=None):
         """ Set the networks data (images, and labels)
 

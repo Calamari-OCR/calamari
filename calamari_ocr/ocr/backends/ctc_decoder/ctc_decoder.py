@@ -60,8 +60,8 @@ class CTCDecoder(ABC):
             p = np.max(p, axis=0)
 
             pos = pred.positions.add()
-            pos.start = start
-            pos.end = end
+            pos.local_start = start
+            pos.local_end = end
 
             for label in reversed(sorted(range(len(p)), key=lambda v: p[v])):
                 if p[label] < threshold and len(pos.chars) > 0:

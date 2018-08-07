@@ -35,4 +35,10 @@ class FinalPreparation(DataPreprocessor):
         if self.as_uint8:
             data = (data * 255).astype(np.uint8)
 
-        return data
+        return data, None
+
+    def local_to_global_pos(self, x, params):
+        if self.pad > 0 and self.transpose:
+            return x - self.pad
+        else:
+            return x

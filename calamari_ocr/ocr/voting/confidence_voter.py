@@ -66,9 +66,9 @@ def perform_conf_vote(voters):
                 pos = voters[voter_id]['positions'][idx]
                 for k, p in alts.items():
                     if k in c_p:
-                        c_p[k].merge(k, p / len(actual_voters), pos.start, pos.end)
+                        c_p[k].merge(k, p / len(actual_voters), pos.global_start, pos.global_end)
                     else:
-                        c_p[k] = MergeableCharacter(k, p / len(actual_voters), pos.start, pos.end)
+                        c_p[k] = MergeableCharacter(k, p / len(actual_voters), pos.global_start, pos.global_end)
 
             chars = sorted(c_p.values(), key=lambda v: -v.p)
             final_result.append(chars)
@@ -126,10 +126,9 @@ class ConfidenceVoter(Voter):
                 char.probability = character.p
 
             if len(voted_pos) > 0:
-                pos.start = voted_pos[0].start
-                pos.end = voted_pos[0].stop
+                pos.global_start = voted_pos[0].start
+                pos.global_end = voted_pos[0].stop
                 sentence += voted_pos[0].char
-
 
         prediction_out.sentence = sentence
 

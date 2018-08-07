@@ -216,8 +216,10 @@ message PredictionCharacter {
 
 message PredictionPosition {
     repeated PredictionCharacter chars = 1;         // All characters at this position with its individual probabilities
-    int32 start = 2;                                // Start of the character in the image (this is usually the center of a letter)
-    int32 end = 3;                                  // End of the character in the image (this is usually the center of a letter)
+    int32 local_start = 2;                          // Start of the character in the prediction
+    int32 local_end = 3;                            // End of the character in the prediction
+    int32 global_start = 4;                         // Start of the character in the image (this is usually the center of a letter)
+    int32 global_end = 5;                           // End of the character in the image (this is usually the center of a letter)
 }
 
 message Prediction {

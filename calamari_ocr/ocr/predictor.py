@@ -11,10 +11,11 @@ from calamari_ocr.ocr.data_processing import data_processor_from_proto
 from calamari_ocr.ocr import Codec
 from calamari_ocr.ocr.backends import create_backend_from_proto
 from calamari_ocr.proto import CheckpointParams
+from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransformer
 
 
 class PredictionResult:
-    def __init__(self, prediction, codec, text_postproc):
+    def __init__(self, prediction, codec, text_postproc, out_to_in_trans, data_proc_params):
         """ The output of a networks prediction (PredictionProto) with additional information
 
         It stores all required information for decoding (`codec`) and interpreting the output.
@@ -35,10 +36,15 @@ class PredictionResult:
         self.chars = codec.decode(prediction.labels)
         self.sentence = self.text_postproc.apply("".join(self.chars))
         self.prediction.sentence = self.sentence
+        self.out_to_in_trans = out_to_in_trans
+        self.data_proc_params = data_proc_params
 
         for p in self.prediction.positions:
             for c in p.chars:
                 c.char = codec.code2char[c.label]
+
+            p.global_start = int(self.out_to_in_trans.local_to_global(p.local_start, self.data_proc_params))
+            p.global_end = int(self.out_to_in_trans.local_to_global(p.local_end, self.data_proc_params))
 
 
 class Predictor:
@@ -93,6 +99,7 @@ class Predictor:
             raise Exception("Either a checkpoint or a existing backend must be provided")
 
         self.codec = codec if codec else Codec(self.model_params.codec.charset)
+        self.out_to_in_trans = OutputToInputTransformer(self.data_preproc, self.network)
 
     def predict_dataset(self, dataset, progress_bar=True):
         """ Predict a complete dataset
@@ -113,13 +120,14 @@ class Predictor:
         """
         dataset.load_samples(processes=1, progress_bar=progress_bar)
         datas = dataset.prediction_samples()
+        data_params = zip(datas, [None] * len(datas))
 
-        prediction_results = self.predict_raw(datas, progress_bar)
+        prediction_results = self.predict_raw(data_params, progress_bar)
 
         for prediction, sample in zip(prediction_results, dataset.samples()):
             yield prediction, sample
 
-    def predict_raw(self, datas, progress_bar=True, apply_preproc=True):
+    def predict_raw(self, data_params, progress_bar=True, apply_preproc=True):
         """ Predict raw data
         Parameters
         ----------
@@ -134,11 +142,13 @@ class Predictor:
         PredictionResult
             A single PredictionResult
         """
+
+        datas, params = zip(*data_params)
+
         # preprocessing step
         if apply_preproc:
-            datas = self.data_preproc.apply(datas, processes=self.processes, progress_bar=progress_bar)
+            datas, params = zip(*self.data_preproc.apply(datas, processes=self.processes, progress_bar=progress_bar))
 
-        # create backend
         self.network.set_data(datas)
 
         if progress_bar:
@@ -146,8 +156,8 @@ class Predictor:
         else:
             out = self.network.prediction_step()
 
-        for p in out:
-            yield PredictionResult(p, codec=self.codec, text_postproc=self.text_postproc)
+        for p, param in zip(out, params):
+            yield PredictionResult(p, codec=self.codec, text_postproc=self.text_postproc, out_to_in_trans=self.out_to_in_trans, data_proc_params=param)
 
 
 class MultiPredictor:

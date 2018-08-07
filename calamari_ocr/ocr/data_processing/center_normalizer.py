@@ -27,7 +27,8 @@ class CenterNormalizer(DataPreprocessor):
         super().__init__()
 
     def _apply_single(self, data):
-        return self.normalize(data, cval=np.amax(data))
+        out, params = self.normalize(data, cval=np.amax(data))
+        return out, params
 
     def set_height(self, target_height):
         self.target_height = target_height
@@ -69,13 +70,21 @@ class CenterNormalizer(DataPreprocessor):
     def normalize(self, img, order=1, dtype=np.dtype('f'), cval=0):
         # resize the image to a appropriate height close to the target height to speed up dewarping
         intermediate_height = int(self.target_height * 1.5)
+        m1 = 1
         if intermediate_height < img.shape[0]:
+            m1 = intermediate_height / img.shape[0]
             img = scale_to_h(img, intermediate_height, order=order, dtype=dtype, cval=cval)
 
         # dewarp
         dewarped = self.dewarp(img, cval=cval, dtype=dtype)
 
+        t = dewarped.shape[0] - img.shape[0]
         # scale to target height
         scaled = scale_to_h(dewarped, self.target_height, order=order, dtype=dtype, cval=cval)
-        return scaled
+        m2 = scaled.shape[1] / dewarped.shape[1]
+        return scaled, (m1, m2, t)
+
+    def local_to_global_pos(self, x, params):
+        m1, m2, t = params
+        return x / m1 / m2
 
