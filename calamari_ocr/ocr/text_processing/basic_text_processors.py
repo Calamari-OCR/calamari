@@ -18,8 +18,8 @@ class BidiTextProcessor(TextProcessor):
         self.set_base_dir_from_enum(default_bidi_direction)
 
     def set_base_dir_from_enum(self, d):
-        self.base_dir = {TextProcessorParams.BIDI_LTR: 'R',
-                         TextProcessorParams.BIDI_RTL: 'L',
+        self.base_dir = {TextProcessorParams.BIDI_LTR: 'L',
+                         TextProcessorParams.BIDI_RTL: 'R',
                          TextProcessorParams.BIDI_AUTO: None,
                          }[d]
 
