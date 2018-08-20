@@ -1,4 +1,5 @@
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
+from calamari_ocr.ocr.text_processing.basic_text_processors import BidiTextProcessor
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
 from calamari_ocr.ocr import Codec
 from calamari_ocr.ocr.backends import create_backend_from_proto
@@ -73,6 +74,8 @@ class Trainer:
         self.data_augmenter = data_augmenter
         self.n_augmentations = n_augmentations
         self.txt_preproc = txt_preproc if txt_preproc else text_processor_from_proto(checkpoint_params.model.text_preprocessor, "pre")
+        self.val_txt_preproc = txt_preproc if txt_preproc else text_processor_from_proto(checkpoint_params.model.text_preprocessor, "pre")
+        self.val_txt_preproc.sub_processors.remove(self.val_txt_preproc.child_by_type(BidiTextProcessor))
         self.txt_postproc = txt_postproc if txt_postproc else text_processor_from_proto(checkpoint_params.model.text_postprocessor, "post")
         self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(checkpoint_params.model.data_preprocessor)
         self.weights = checkpoint_path(weights) if weights else None
@@ -108,7 +111,7 @@ class Trainer:
         # preprocessing steps
         texts = self.txt_preproc.apply(txts, processes=checkpoint_params.processes, progress_bar=progress_bar)
         datas = self.data_preproc.apply(datas, processes=checkpoint_params.processes, progress_bar=progress_bar)
-        validation_txts = self.txt_preproc.apply(validation_txts, processes=checkpoint_params.processes, progress_bar=progress_bar)
+        validation_txts = self.val_txt_preproc.apply(validation_txts, processes=checkpoint_params.processes, progress_bar=progress_bar)
         validation_datas = self.data_preproc.apply(validation_datas, processes=checkpoint_params.processes, progress_bar=progress_bar)
 
         # compute the codec
