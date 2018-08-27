@@ -264,6 +264,7 @@ class Trainer:
                     out = early_stopping_predictor.predict_raw(validation_datas,
                                                                progress_bar=progress_bar, apply_preproc=False)
                     pred_texts = [d.sentence for d in out]
+                    pred_texts = self.txt_preproc.apply(pred_texts, processes=checkpoint_params.processes, progress_bar=progress_bar)
                     result = Evaluator.evaluate(gt_data=validation_txts, pred_data=pred_texts, progress_bar=progress_bar)
                     accuracy = 1 - result["avg_ler"]
 
