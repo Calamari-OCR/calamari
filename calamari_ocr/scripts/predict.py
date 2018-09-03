@@ -46,7 +46,7 @@ def run(args):
     do_prediction = predictor.predict_dataset(dataset, progress_bar=not args.no_progress_bars)
 
     # output the voted results to the appropriate files
-    for (result, sample), filepath in zip(do_prediction, input_image_files):
+    for result, sample in do_prediction:
         for i, p in enumerate(result):
             p.prediction.id = "fold_{}".format(i)
 
@@ -58,14 +58,14 @@ def run(args):
             lr = "\u202A\u202B"
             print("{}: '{}{}{}'".format(sample['id'], lr[get_base_level(sentence)], sentence, "\u202C" ))
 
-        output_dir = args.output_dir if args.output_dir else os.path.dirname(filepath)
+        output_dir = args.output_dir if args.output_dir else os.path.dirname(sample['image_path'])
 
         with codecs.open(os.path.join(output_dir, sample['id'] + ".pred.txt"), 'w', 'utf-8') as f:
             f.write(sentence)
 
         if args.extended_prediction_data:
             ps = Predictions()
-            ps.line_path = filepath
+            ps.line_path = sample['image_path']
             ps.predictions.extend([prediction] + [r.prediction for r in result])
             if args.extended_prediction_data_format == "pred":
                 with open(os.path.join(output_dir, sample['id'] + ".pred"), 'wb') as f:
