@@ -1,6 +1,15 @@
 import os
 
 
+def keep_files_with_same_file_name(files1, files2):
+    valid_files = set(map(filename, files1)).intersection(map(filename, files2))
+    return [f for f in files1 if filename(f) in valid_files], [f for f in files2 if filename(f) in valid_files]
+
+
+def filename(file) -> str:
+    return split_all_ext(os.path.basename(file))[0]
+
+
 def split_all_ext(path):
     path, basename = os.path.split(path)
     pos = basename.find(".")

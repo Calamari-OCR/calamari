@@ -18,7 +18,7 @@ def main():
                         help="The number of fold, that is the number of models to train")
     parser.add_argument("--output_dir", type=str, required=True,
                         help="Where to write the folds")
-    parser.add_argument("--keep_original_filename", action="restore_true",
+    parser.add_argument("--keep_original_filename", action="store_true",
                         help="By default the copied new files get a new 8 digit name. Use this flag to keep the "
                              "original name but be aware, that this might override lines with the same name")
 

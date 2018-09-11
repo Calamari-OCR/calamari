@@ -5,6 +5,7 @@ import multiprocessing
 
 import skimage.io as skimage_io
 
+from calamari_ocr.proto import DataPreprocessorParams
 from calamari_ocr.ocr.data_processing import MultiDataProcessor, DataRangeNormalizer, FinalPreparation, CenterNormalizer
 
 
@@ -44,10 +45,17 @@ def main():
 
     args = parser.parse_args()
 
+    params = DataPreprocessorParams()
+    params.line_height = args.line_height
+    params.pad = args.pad
+    params.pad_value = args.pad_value
+    params.no_invert = not args.invert
+    params.no_transpos = not args.transpose
+
     data_proc = MultiDataProcessor([
         DataRangeNormalizer(),
-        CenterNormalizer(target_height=args.line_height),
-        FinalPreparation(pad=args.pad, pad_value=args.pad_value, normalize=True, invert=args.invert, transpose=args.transpose, as_uint8=True),
+        CenterNormalizer(params),
+        FinalPreparation(params, as_uint8=True),
     ])
 
     print("Resolving files")

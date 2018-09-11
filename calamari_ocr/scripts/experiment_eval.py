@@ -5,7 +5,7 @@ import pickle
 
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.ocr.voting import VoterParams, voter_from_proto
-from calamari_ocr.ocr import FileDataSet, MultiPredictor, Evaluator, RawDataSet
+from calamari_ocr.ocr import create_dataset, DataSetType, MultiPredictor, Evaluator, RawDataSet
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 
 
@@ -13,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--eval_imgs", type=str, nargs="+", required=True,
                         help="The evaluation files")
+    parser.add_argument("--eval_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
     parser.add_argument("--checkpoint", type=str, nargs="+", default=[],
                         help="Path to the checkpoint without file extension")
     parser.add_argument("-j", "--processes", type=int, default=1,
@@ -39,7 +40,12 @@ def main():
     gt_images = sorted(glob_all(args.eval_imgs))
     gt_txts = [split_all_ext(path)[0] + ".gt.txt" for path in sorted(glob_all(args.eval_imgs))]
 
-    dataset = FileDataSet(images=gt_images, texts=gt_txts, skip_invalid=not args.no_skip_invalid_gt)
+    dataset = create_dataset(
+        args.eval_dataset,
+        images=gt_images,
+        texts=gt_txts,
+        skip_invalid=not args.no_skip_invalid_gt
+    )
 
     print("Found {} files in the dataset".format(len(dataset)))
     if len(dataset) == 0:
@@ -79,7 +85,7 @@ def main():
             raise Exception("Mismatch in number of gt and pred files: {} != {}. Probably, the prediction did "
                             "not succeed".format(len(dataset), len(predicted_sentences)))
 
-        pred_data_set = RawDataSet(texts=predicted_sentences)
+        pred_data_set = create_dataset(DataSetType.RAW, texts=predicted_sentences)
 
         r = evaluator.run(pred_dataset=pred_data_set, progress_bar=True, processes=args.processes)
 

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='calamari_ocr',
-    version='0.1.8',
+    version='0.1.9',
     packages=find_packages(),
     license='GPL-v3.0',
     long_description=open("README.md").read(),
@@ -11,7 +11,7 @@ setup(
     author="Christoph Wick",
     author_email="christoph.wick@informatik.uni-wuerzburg.de",
     url="https://github.com/Calamari-OCR/calamari",
-    download_url='https://github.com/Calamari-OCR/calamari/archive/v0.1.8.tar.gz',
+    download_url='https://github.com/Calamari-OCR/calamari/archive/v0.1.9.tar.gz',
     entry_points={
         'console_scripts': [
             'calamari-eval=calamari_ocr.scripts.eval:main',

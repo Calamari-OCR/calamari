@@ -5,7 +5,8 @@ import numpy as np
 from google.protobuf import json_format
 
 from calamari_ocr.utils import glob_all, split_all_ext
-from calamari_ocr.ocr import FileDataSet, Evaluator
+from calamari_ocr.ocr import Evaluator
+from calamari_ocr.ocr.datasets import create_dataset, DataSetType
 from calamari_ocr.proto import CheckpointParams
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 
@@ -30,19 +31,19 @@ def print_confusions(r, n_confusions):
         print("The remaining but hidden errors make up {:.2%}".format(1.0 - total_percent))
 
 
-def print_worst_lines(r, gt_files, gts, preds, n_worst_lines):
-    if len(r["single"]) != len(gt_files):
+def print_worst_lines(r, gt_samples, preds, n_worst_lines):
+    if len(r["single"]) != len(gt_samples) or len(gt_samples) != len(preds):
         raise Exception("Mismatch in number of predictions and gt files")
 
-    sorted_lines = sorted(zip(r["single"], gt_files, gts, preds), key=lambda a: -a[0][1])
+    sorted_lines = sorted(zip(r["single"], gt_samples, preds), key=lambda a: -a[0][1])
 
     if n_worst_lines < 0:
-        n_worst_lines = len(gt_files)
+        n_worst_lines = len(gt_samples)
 
     if n_worst_lines > 0:
         print("{:60s} {:4s} {:3s} {:3s} {}".format("GT FILE", "LEN", "ERR", "SER", "CONFUSIONS"))
-        for (len_gt, errs, sync_errs, confusion), gt_file, gt, pred in sorted_lines[:n_worst_lines]:
-            print("{:60s} {:4d} {:3d} {:3d} {}".format(gt_file[-60:], len_gt, errs, sync_errs, confusion))
+        for (len_gt, errs, sync_errs, confusion), gt, pred in sorted_lines[:n_worst_lines]:
+            print("{:60s} {:4d} {:3d} {:3d} {}".format(gt['id'][-60:], len_gt, errs, sync_errs, confusion))
 
 
 def write_xlsx(xlsx_file, eval_datas):
@@ -119,6 +120,7 @@ def write_xlsx(xlsx_file, eval_datas):
 
 def main():
     parser = ArgumentParser()
+    parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
     parser.add_argument("--gt", nargs="+", required=True,
                         help="Ground truth files (.gt.txt extension)")
     parser.add_argument("--pred", nargs="+", default=None,
@@ -171,8 +173,16 @@ def main():
             text_preproc = text_processor_from_proto(checkpoint_params.model.text_preprocessor)
 
     non_existing_as_empty = args.non_existing_file_handling_mode.lower() == "empty"
-    gt_data_set = FileDataSet(texts=gt_files, non_existing_as_empty=non_existing_as_empty)
-    pred_data_set = FileDataSet(texts=pred_files, non_existing_as_empty=non_existing_as_empty)
+    gt_data_set = create_dataset(
+        args.dataset,
+        texts=gt_files,
+        non_existing_as_empty=non_existing_as_empty
+    )
+    pred_data_set = create_dataset(
+        args.dataset,
+        texts=pred_files,
+        non_existing_as_empty=non_existing_as_empty
+    )
 
     evaluator = Evaluator(text_preprocessor=text_preproc)
     r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, processes=args.num_threads,
@@ -188,16 +198,17 @@ def main():
     # sort descending
     print_confusions(r, args.n_confusions)
 
-    print_worst_lines(r, gt_files, gt_data_set.text_samples(), pred_data_set.text_samples(), args.n_worst_lines)
+    print_worst_lines(r, gt_data_set.samples(), pred_data_set.text_samples(), args.n_worst_lines)
 
     if args.xlsx_output:
         write_xlsx(args.xlsx_output,
                    [{
                        "prefix": "evaluation",
                        "results": r,
-                     "gt_files": gt_files,
-                     "gts": gt_data_set.text_samples(),
-                     "preds": pred_data_set.text_samples()}])
+                       "gt_files": gt_files,
+                       "gts": gt_data_set.text_samples(),
+                       "preds": pred_data_set.text_samples()
+                   }])
 
 if __name__ == '__main__':
     main()

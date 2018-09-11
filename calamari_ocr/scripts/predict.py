@@ -8,7 +8,7 @@ from google.protobuf.json_format import MessageToJson
 
 
 from calamari_ocr.utils.glob import glob_all
-from calamari_ocr.ocr.dataset import FileDataSet
+from calamari_ocr.ocr.datasets import DataSetType, create_dataset
 from calamari_ocr.ocr import Predictor, MultiPredictor
 from calamari_ocr.ocr.voting import voter_from_proto
 from calamari_ocr.proto import VoterParams, Predictions
@@ -30,12 +30,18 @@ def run(args):
     voter = voter_from_proto(voter_params)
 
     # load files
-    input_image_files = sorted(glob_all(args.files))
+    input_image_files = glob_all(args.files)
+    if args.text_files:
+        args.text_files = glob_all(args.text_files)
 
     # skip invalid files and remove them, there wont be predictions of invalid files
-    dataset = FileDataSet(input_image_files,
-                          skip_invalid=True,
-                          remove_invalid=True)
+    dataset = create_dataset(
+        args.dataset,
+        input_image_files,
+        args.text_files,
+        skip_invalid=True,
+        remove_invalid=True,
+    )
 
     print("Found {} files in the dataset".format(len(dataset)))
     if len(dataset) == 0:
@@ -60,8 +66,8 @@ def run(args):
 
         output_dir = args.output_dir if args.output_dir else os.path.dirname(sample['image_path'])
 
-        with codecs.open(os.path.join(output_dir, sample['id'] + ".pred.txt"), 'w', 'utf-8') as f:
-            f.write(sentence)
+        dataset.store_text(sentence, sample, output_dir=output_dir, extension=".pred.txt")
+
 
         if args.extended_prediction_data:
             ps = Predictions()
@@ -82,6 +88,7 @@ def run(args):
             else:
                 raise Exception("Unknown prediction format.")
 
+    dataset.store()
     print("All files written")
 
 
@@ -90,6 +97,9 @@ def main():
 
     parser.add_argument("--files", nargs="+", required=True, default=[],
                         help="List all image files that shall be processed")
+    parser.add_argument("--text_files", nargs="+", default=None,
+                        help="Optional list of additional text files. E.g. when updating Abbyy prediction, this parameter must be used for the xml files.")
+    parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
     parser.add_argument("--checkpoint", type=str, nargs="+", default=[],
                         help="Path to the checkpoint without file extension")
     parser.add_argument("-j", "--processes", type=int, default=1,

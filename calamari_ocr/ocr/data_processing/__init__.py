@@ -14,15 +14,15 @@ def data_processor_from_proto(data_preprocessor_params):
             [data_processor_from_proto(c) for c in data_preprocessor_params.children]
         )
     elif data_preprocessor_params.type == DataPreprocessorParams.DEFAULT_NORMALIZER:
-        return DefaultDataPreprocessor(data_preprocessor_params.line_height, data_preprocessor_params.pad)
+        return DefaultDataPreprocessor(data_preprocessor_params)
     elif data_preprocessor_params.type == DataPreprocessorParams.NOOP_NORMALIZER:
         return NoopDataPreprocessor()
     elif data_preprocessor_params.type == DataPreprocessorParams.RANGE_NORMALIZER:
         return DataRangeNormalizer()
     elif data_preprocessor_params.type == DataPreprocessorParams.CENTER_NORMALIZER:
-        return CenterNormalizer(data_preprocessor_params.line_height)
+        return CenterNormalizer(data_preprocessor_params)
     elif data_preprocessor_params.type == DataPreprocessorParams.FINAL_PREPARATION:
-        return FinalPreparation()
+        return FinalPreparation(data_preprocessor_params)
 
     raise Exception("Unknown proto type {} of an data processor".format(data_preprocessor_params.type))
 

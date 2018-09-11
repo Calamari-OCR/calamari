@@ -141,6 +141,11 @@ message DataPreprocessorParams {
         FINAL_PREPARATION = 5;
     }
 
+    enum Binarization {
+        GRAY = 0;
+        OTSU = 1;
+    }
+
     Type type = 1;
     repeated DataPreprocessorParams children = 2;
 
@@ -148,6 +153,12 @@ message DataPreprocessorParams {
     int32 range = 4;
     int32 smoothness = 5;
     int32 pad = 6;
+    Binarization binarization = 7;
+
+    bool no_normalize = 8;
+    bool no_invert = 9;
+    bool no_transpose = 10;
+    int32 pad_value = 11;
 }
 
 message TextNormalizerReplacementParams {

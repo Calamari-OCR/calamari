@@ -5,11 +5,11 @@ from calamari_ocr.ocr.data_processing.final_preparation import FinalPreparation
 
 
 class DefaultDataPreprocessor(MultiDataProcessor):
-    def __init__(self, line_height, pad=0):
+    def __init__(self, params):
         super().__init__(
             [
                 DataRangeNormalizer(),
-                CenterNormalizer(target_height=line_height),
-                FinalPreparation(pad=pad),
+                CenterNormalizer(params),
+                FinalPreparation(params),
             ]
         )

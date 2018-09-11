@@ -20,10 +20,10 @@ def scale_to_h(img, target_height, order=1, dtype=np.dtype('f'), cval=0):
 
 
 class CenterNormalizer(DataPreprocessor):
-    def __init__(self, target_height=48, params=(4, 1.0, 0.3), debug=False):
+    def __init__(self, params, extra_params=(4, 1.0, 0.3), debug=False):
         self.debug = debug
-        self.target_height = target_height
-        self.range, self.smoothness, self.extra = params
+        self.target_height = params.line_height if params.line_height else 48
+        self.range, self.smoothness, self.extra = extra_params
         super().__init__()
 
     def _apply_single(self, data):

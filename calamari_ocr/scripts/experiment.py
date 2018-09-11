@@ -9,7 +9,6 @@ import calamari_ocr.scripts.cross_fold_train as cross_fold_train
 from calamari_ocr.scripts.eval import print_confusions, write_xlsx
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.utils.multiprocessing import parallel_map, run, prefix_run_command
-from calamari_ocr.ocr import FileDataSet, Evaluator
 
 # path to the dir of this script to automatically detect the training script
 this_absdir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
