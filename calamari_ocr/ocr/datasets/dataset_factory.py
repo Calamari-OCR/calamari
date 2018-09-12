@@ -21,17 +21,30 @@ class DataSetType(Enum):
         except KeyError:
             raise ValueError()
 
+    @staticmethod
+    def files(type):
+        files_meta = {
+            DataSetType.RAW: False,
+            DataSetType.FILE: True,
+            DataSetType.ABBYY: True,
+        }
+
+        return files_meta[type]
+
 
 def create_dataset(type: DataSetType,
                    images = list(),
                    texts = list(),
                    skip_invalid=False,
                    remove_invalid=True,
-                   non_existing_as_empty=False):
-    images.sort()
-    texts.sort()
-    if images and texts and len(images) > 0 and len(texts) > 0:
-        images, texts = keep_files_with_same_file_name(images, texts)
+                   non_existing_as_empty=False,
+                   ):
+
+    if DataSetType.files(type):
+        images.sort()
+        texts.sort()
+        if images and texts and len(images) > 0 and len(texts) > 0:
+            images, texts = keep_files_with_same_file_name(images, texts)
 
     if type == DataSetType.RAW:
         return RawDataSet(images, texts)
