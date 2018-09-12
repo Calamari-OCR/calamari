@@ -28,8 +28,8 @@ class FileDataSet(DataSet):
         non_existing_as_empty : bool, optional
             tread non existing files as empty. This is relevant for evaluation a dataset
         """
-        super().__init__(has_images=images is None or len(images) > 0,
-                         has_texts=texts is None or len(texts) > 0,
+        super().__init__(has_images=images is not None and len(images) > 0,
+                         has_texts=texts is not None and len(texts) > 0,
                          skip_invalid=skip_invalid,
                          remove_invalid=remove_invalid)
         self._non_existing_as_empty = non_existing_as_empty

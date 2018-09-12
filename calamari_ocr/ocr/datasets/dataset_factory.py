@@ -39,10 +39,13 @@ def create_dataset(type: DataSetType,
                    remove_invalid=True,
                    non_existing_as_empty=False,
                    ):
-
     if DataSetType.files(type):
-        images.sort()
-        texts.sort()
+        if images:
+            images.sort()
+
+        if texts:
+            texts.sort()
+
         if images and texts and len(images) > 0 and len(texts) > 0:
             images, texts = keep_files_with_same_file_name(images, texts)
 
