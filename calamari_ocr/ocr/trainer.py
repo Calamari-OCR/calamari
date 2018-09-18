@@ -289,6 +289,10 @@ class Trainer:
                         print("Early stopping now.")
                         break
 
+                    if accuracy >= 1:
+                        print("Reached perfect score on validation set. Early stopping now.")
+                        break
+
         except KeyboardInterrupt as e:
             print("Storing interrupted checkpoint")
             make_checkpoint(checkpoint_params.output_dir,
