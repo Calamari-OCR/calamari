@@ -15,6 +15,14 @@ from calamari_ocr.proto import VoterParams, Predictions
 
 
 def run(args):
+    # check if loading a json file
+    if len(args.files) == 1 and args.files[0].endswith("json"):
+        import json
+        with open(args.files[0], 'r') as f:
+            json_args = json.load(f)
+            for key, value in json_args.items():
+                setattr(args, key, value)
+
     # checks
     if args.extended_prediction_data_format not in ["pred", "json"]:
         raise Exception("Only 'pred' and 'json' are allowed extended prediction data formats")
