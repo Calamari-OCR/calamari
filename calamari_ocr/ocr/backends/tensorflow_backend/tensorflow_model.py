@@ -64,7 +64,7 @@ class TensorflowModel(ModelInterface):
         batch_size = tf.shape(inputs)[0]
         gpu_enabled = self.gpu_available
 
-        with tf.variable_scope("", reuse=reuse_variables) as scope:
+        with tf.variable_scope("", reuse=tf.AUTO_REUSE) as scope:
             no_layers = len(network_proto.layers) == 0
             if not no_layers:
                 has_conv_or_pool = network_proto.layers[0].type != LayerParams.LSTM
