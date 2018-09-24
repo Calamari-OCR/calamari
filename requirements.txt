@@ -1,8 +1,7 @@
-tensorflow
+tensorflow >=1.6,!=1.9.*,!=1.10.*
 numpy
 tqdm
 scikit-image
 python-bidi
 edit_distance
 xlsxwriter
-lxml

@@ -8,7 +8,7 @@ from google.protobuf.json_format import MessageToJson
 
 
 from calamari_ocr.utils.glob import glob_all
-from calamari_ocr.ocr.datasets import DataSetType, create_dataset
+from calamari_ocr.ocr.datasets import DataSetType, create_dataset, DataSetMode
 from calamari_ocr.ocr import Predictor, MultiPredictor
 from calamari_ocr.ocr.voting import voter_from_proto
 from calamari_ocr.proto import VoterParams, Predictions
@@ -45,10 +45,12 @@ def run(args):
     # skip invalid files and remove them, there wont be predictions of invalid files
     dataset = create_dataset(
         args.dataset,
+        DataSetMode.PREDICT,
         input_image_files,
         args.text_files,
         skip_invalid=True,
         remove_invalid=True,
+        args={'text_index': args.pagexml_text_index},
     )
 
     print("Found {} files in the dataset".format(len(dataset)))
@@ -72,7 +74,7 @@ def run(args):
             lr = "\u202A\u202B"
             print("{}: '{}{}{}'".format(sample['id'], lr[get_base_level(sentence)], sentence, "\u202C" ))
 
-        output_dir = args.output_dir if args.output_dir else os.path.dirname(sample['image_path'])
+        output_dir = args.output_dir
 
         dataset.store_text(sentence, sample, output_dir=output_dir, extension=".pred.txt")
 
@@ -128,6 +130,9 @@ def main():
                         help="Extension format: Either pred or json. Note that json will not print logits.")
     parser.add_argument("--no_progress_bars", action="store_true",
                         help="Do not show any progress bars")
+
+    # PageXML extra args
+    parser.add_argument("--pagexml_text_index", default=1)
 
     args = parser.parse_args()
 

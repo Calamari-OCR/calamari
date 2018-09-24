@@ -5,13 +5,14 @@ from .reader import XMLReader
 from .writer import XMLWriter
 from tqdm import tqdm
 
-from calamari_ocr.ocr.datasets import DataSet
+from calamari_ocr.ocr.datasets import DataSet, DataSetMode
 from calamari_ocr.utils import split_all_ext
 
 
 class AbbyyDataSet(DataSet):
 
     def __init__(self,
+                 mode: DataSetMode,
                  files,
                  xmlfiles=list(),
                  skip_invalid=False,
@@ -33,8 +34,7 @@ class AbbyyDataSet(DataSet):
         """
 
         super().__init__(
-            files and len(files) > 0,
-            xmlfiles and len(xmlfiles) > 0,
+            mode,
             skip_invalid, remove_invalid)
 
         self._non_existing_as_empty = non_existing_as_empty
@@ -55,18 +55,18 @@ class AbbyyDataSet(DataSet):
                         "xml_path": page.xmlFile,
                         "id": "{}_{}_{}_{}".format(os.path.splitext(page.xmlFile if page.xmlFile else page.imgFile)[0], p, l, f),
                         "line": line,
-                        "format": fo
+                        "format": fo,
                     })
 
     def _load_sample(self, sample):
         image_path = sample["image_path"]
         line = sample["line"]
         text = None
-        if self.has_texts:
+        if self.mode == DataSetMode.EVAL or self.mode == DataSetMode.TRAIN:
             text = sample["format"].text
 
         img = None
-        if self.has_images:
+        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT:
             img = np.array(Image.open(image_path))
 
             ly, lx = img.shape

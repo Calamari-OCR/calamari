@@ -1,2 +1,2 @@
-from .dataset import DataSet
+from .dataset import DataSet, DataSetMode
 from .dataset_factory import *

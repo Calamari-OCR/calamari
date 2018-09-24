@@ -1,14 +1,21 @@
 from abc import ABC, abstractmethod
 import codecs
 import os
+from enum import Enum
 
 import numpy as np
 
 from calamari_ocr.utils import parallel_map, split_all_ext
 
 
+class DataSetMode(Enum):
+    TRAIN = 0
+    PREDICT = 1
+    EVAL = 2
+
+
 class DataSet(ABC):
-    def __init__(self, has_images, has_texts, skip_invalid=False, remove_invalid=True):
+    def __init__(self, mode: DataSetMode, skip_invalid=False, remove_invalid=True):
         """ Dataset that stores a list of raw images and corresponding labels.
 
         Parameters
@@ -25,14 +32,10 @@ class DataSet(ABC):
         self._samples = []
         super().__init__()
         self.loaded = False
-        self.has_images = has_images
-        self.has_texts = has_texts
+        self.mode = mode
 
         self.skip_invalid = skip_invalid
         self.remove_invalid = remove_invalid
-
-        if not self.has_images and not self.has_texts:
-            raise Exception("Empty data set is not allowed.")
 
     def __len__(self):
         """ Number of samples
@@ -156,7 +159,7 @@ class DataSet(ABC):
         for i, ((line, text), sample) in enumerate(zip(data, self._samples)):
             sample["image"] = line
             sample["text"] = text
-            if self.has_images:
+            if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN:
                 # skip invalid imanges (e. g. corrupted or empty files)
                 if line is None or (line.size == 0 or np.amax(line) == np.amin(line)):
                     if self.skip_invalid:
@@ -195,6 +198,7 @@ class DataSet(ABC):
         return np.zeros((0, 0)), None
 
     def store_text(self, sentence, sample, output_dir, extension):
+        output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
         with codecs.open(os.path.join(output_dir, sample['id'] + extension), 'w', 'utf-8') as f:
             f.write(sentence)
 
@@ -204,7 +208,7 @@ class DataSet(ABC):
 
 
 class RawDataSet(DataSet):
-    def __init__(self, images=None, texts=None):
+    def __init__(self, mode: DataSetMode, images=None, texts=None):
         """ Create a dataset from memory
 
         Since this dataset already contains all data in the memory, this dataset may not be loaded
@@ -216,7 +220,7 @@ class RawDataSet(DataSet):
         texts : list of str
             the texts of this dataset
         """
-        super().__init__(has_images=images is not None, has_texts=texts is not None)
+        super().__init__(mode)
 
         if images is None and texts is None:
             raise Exception("Empty data set is not allowed. Both images and text files are None")

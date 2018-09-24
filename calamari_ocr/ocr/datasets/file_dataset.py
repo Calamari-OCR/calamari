@@ -4,11 +4,12 @@ from PIL import Image
 import numpy as np
 
 from calamari_ocr.utils import split_all_ext
-from .dataset import DataSet
+from .dataset import DataSet, DataSetMode
 
 
 class FileDataSet(DataSet):
-    def __init__(self, images=list(), texts=list(),
+    def __init__(self, mode: DataSetMode,
+                 images=list(), texts=list(),
                  skip_invalid=False, remove_invalid=True,
                  non_existing_as_empty=False):
         """ Create a dataset from a list of files
@@ -28,18 +29,15 @@ class FileDataSet(DataSet):
         non_existing_as_empty : bool, optional
             tread non existing files as empty. This is relevant for evaluation a dataset
         """
-        super().__init__(has_images=images is not None and len(images) > 0,
-                         has_texts=texts is not None and len(texts) > 0,
+        super().__init__(mode,
                          skip_invalid=skip_invalid,
                          remove_invalid=remove_invalid)
         self._non_existing_as_empty = non_existing_as_empty
 
-        if self.has_images and not self.has_texts:
-            # No gt provided, probably prediction
+        if mode == DataSetMode.PREDICT:
             texts = [None] * len(images)
 
-        if self.has_texts and not self.has_images:
-            # No images provided, probably evaluation
+        if mode == DataSetMode.EVAL:
             images = [None] * len(texts)
 
         for image, text in zip(images, texts):

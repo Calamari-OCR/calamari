@@ -6,7 +6,7 @@ from google.protobuf import json_format
 
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.ocr import Evaluator
-from calamari_ocr.ocr.datasets import create_dataset, DataSetType
+from calamari_ocr.ocr.datasets import create_dataset, DataSetType, DataSetMode
 from calamari_ocr.proto import CheckpointParams
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 
@@ -146,6 +146,11 @@ def main():
     parser.add_argument("--checkpoint", type=str, default=None,
                         help="Specify an optional checkpoint to parse the text preprocessor (for the gt txt files)")
 
+    # page xml specific args
+    parser.add_argument("--pagexml_gt_text_index", default=0)
+    parser.add_argument("--pagexml_pred_text_index", default=1)
+
+
     args = parser.parse_args()
 
     print("Resolving files")
@@ -172,16 +177,20 @@ def main():
             checkpoint_params = json_format.Parse(f.read(), CheckpointParams())
             text_preproc = text_processor_from_proto(checkpoint_params.model.text_preprocessor)
 
-    non_existing_as_empty = args.non_existing_file_handling_mode.lower() == "empty"
+    non_existing_as_empty = args.non_existing_file_handling_mode.lower() != "error "
     gt_data_set = create_dataset(
         args.dataset,
+        DataSetMode.EVAL,
         texts=gt_files,
-        non_existing_as_empty=non_existing_as_empty
+        non_existing_as_empty=non_existing_as_empty,
+        args={'text_index': args.pagexml_gt_text_index},
     )
     pred_data_set = create_dataset(
         args.dataset,
+        DataSetMode.EVAL,
         texts=pred_files,
-        non_existing_as_empty=non_existing_as_empty
+        non_existing_as_empty=non_existing_as_empty,
+        args={'text_index': args.pagexml_pred_text_index},
     )
 
     evaluator = Evaluator(text_preprocessor=text_preproc)

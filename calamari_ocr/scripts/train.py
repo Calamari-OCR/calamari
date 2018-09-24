@@ -2,7 +2,7 @@ import argparse
 import os
 
 from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_file_name
-from calamari_ocr.ocr.datasets import create_dataset, DataSetType
+from calamari_ocr.ocr.datasets import create_dataset, DataSetType, DataSetMode
 from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
 from calamari_ocr.ocr import Trainer
 from calamari_ocr.ocr.data_processing.default_data_preprocessor import DefaultDataPreprocessor
@@ -20,6 +20,8 @@ def setup_train_args(parser, omit=[]):
                                  "base name but with '.gt.txt' as extension are required at the same location")
         parser.add_argument("--text_files", nargs="+", default=None,
                             help="Optional list of GT files if they are in other directory")
+        parser.add_argument("--gt_extension", default=None,
+                            help="Default extension of the gt files (expected to exist in same dir)")
         parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
 
     parser.add_argument("--seed", type=int, default="0",
@@ -82,6 +84,10 @@ def setup_train_args(parser, omit=[]):
     if "validation" not in omit:
         parser.add_argument("--validation", type=str, nargs="+",
                             help="Validation line files used for early stopping")
+        parser.add_argument("--validation_text_files", nargs="+", default=None,
+                            help="Optional list of validation GT files if they are in other directory")
+        parser.add_argument("--validation_extension", default=None,
+                            help="Default extension of the gt files (expected to exist in same dir)")
         parser.add_argument("--validation_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
 
     parser.add_argument("--early_stopping_frequency", type=int, default=-1,
@@ -131,15 +137,20 @@ def run(args):
         with open(f) as txt:
             whitelist += list(txt.read())
 
+    if args.gt_extension is None:
+        args.gt_extension = DataSetType.gt_extension(args.dataset)
+
+    if args.validation_extension is None:
+        args.validation_extension = DataSetType.gt_extension(args.validation_dataset)
+
     # Training dataset
     print("Resolving input files")
     input_image_files = sorted(glob_all(args.files))
     if not args.text_files:
-        gt_txt_files = [split_all_ext(f)[0] + ".gt.txt" for f in input_image_files]
+        gt_txt_files = [split_all_ext(f)[0] + args.gt_extension for f in input_image_files]
     else:
         gt_txt_files = sorted(glob_all(args.text_files))
         input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
-        print(input_image_files, gt_txt_files)
         for img, gt in zip(input_image_files, gt_txt_files):
             if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:
                 raise Exception("Expected identical basenames of file: {} and {}".format(img, gt))
@@ -149,6 +160,7 @@ def run(args):
 
     dataset = create_dataset(
         args.dataset,
+        DataSetMode.TRAIN,
         images=input_image_files,
         texts=gt_txt_files,
         skip_invalid=not args.no_skip_invalid_gt
@@ -159,13 +171,21 @@ def run(args):
     if args.validation:
         print("Resolving validation files")
         validation_image_files = glob_all(args.validation)
-        val_txt_files = [split_all_ext(f)[0] + ".gt.txt" for f in validation_image_files]
+        if not args.validation_text_files:
+            val_txt_files = [split_all_ext(f)[0] + args.validation_extension for f in validation_image_files]
+        else:
+            val_txt_files = sorted(glob_all(args.validation_text_files))
+            validation_image_files, val_txt_files = keep_files_with_same_file_name(validation_image_files, val_txt_files)
+            for img, gt in zip(validation_image_files, val_txt_files):
+                if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:
+                    raise Exception("Expected identical basenames of validation file: {} and {}".format(img, gt))
 
         if len(set(val_txt_files)) != len(val_txt_files):
             raise Exception("Some validation images are occurring more than once in the data set.")
 
         validation_dataset = create_dataset(
             args.validation_dataset,
+            DataSetMode.TRAIN,
             images=validation_image_files,
             texts=val_txt_files,
             skip_invalid=not args.no_skip_invalid_gt)
