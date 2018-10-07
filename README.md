@@ -4,6 +4,12 @@ OCR Engine based on OCRopy and Kraken based on python3.
 It is designed to both be easy to use from the command line but also be modular to be integrated and customized from other python scripts.
 
 ## Installing
+- **Installation using Conda:**
+```
+conda env create -f environment.yml
+```
+ - **Installation using Pip:**
+
 The suggested method is to install calamari into a virtual environment using pip:
 ```
 virtualenv -p python3 PATH_TO_VENV_DIR (e. g. virtualenv calamari_venv)
