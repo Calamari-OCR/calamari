@@ -1,4 +1,4 @@
-name: calamari-cpu
+name: calamari-dev-cpu
 channels:
   - conda-forge
   - defaults
