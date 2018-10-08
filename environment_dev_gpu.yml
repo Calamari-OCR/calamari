@@ -1,4 +1,4 @@
-name: calamari-dev
+name: calamari-dev-gpu
 channels:
   - conda-forge
   - defaults
