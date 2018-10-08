@@ -139,7 +139,7 @@ class TensorflowModel(ModelInterface):
                         = tf.contrib.rnn.stack_bidirectional_dynamic_rnn(list(fw), list(bw), time_major_inputs,
                                                                          sequence_length=lstm_seq_len,
                                                                          dtype=tf.float32,
-                                                                         scope="{}cudnn_lstm/stack_bidirectional_rnn".format(scope.name),
+                                                                         scope="cudnn_lstm/stack_bidirectional_rnn",
                                                                          time_major=True,
                                                                          )
 
@@ -217,7 +217,7 @@ class TensorflowModel(ModelInterface):
             return lstm_seq_len, time_major_logits, time_major_softmax, logits, softmax, decoded, sparse_decoded, factor
 
     def create_placeholders(self):
-        with tf.variable_scope("", reuse=False) as scope:
+        with tf.variable_scope("cnn_lstm", reuse=False) as scope:
             inputs = tf.placeholder(tf.float32, shape=(None, None, self.network_proto.features), name="inputs")
             seq_len = tf.placeholder(tf.int32, shape=(None,), name="seq_len")
             targets = tf.sparse_placeholder(tf.int32, shape=(None, None), name="targets")
@@ -226,7 +226,7 @@ class TensorflowModel(ModelInterface):
         return inputs, seq_len, targets, dropout_rate
 
     def create_dataset_inputs(self, batch_size, line_height, buffer_size=1000):
-        with tf.variable_scope("", reuse=False):
+        with tf.variable_scope("cnn_lstm", reuse=False):
             def gen():
                 for i, l in zip(self.raw_images, self.raw_labels):
                     if self.graph_type == "train" and len(l) == 0:
@@ -363,8 +363,8 @@ class TensorflowModel(ModelInterface):
             saver.restore(self.session, filepath)
 
     def realign_model_labels(self, indices_to_delete, indices_to_add):
-        W = self.graph.get_tensor_by_name("W:0")
-        B = self.graph.get_tensor_by_name("B:0")
+        W = self.graph.get_tensor_by_name("cnn_lstm/W:0")
+        B = self.graph.get_tensor_by_name("cnn_lstm/B:0")
 
         # removed desired entries from the data
         # IMPORTANT: Blank index is last in tensorflow but 0 in indices!

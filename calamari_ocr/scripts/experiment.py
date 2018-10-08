@@ -142,6 +142,7 @@ def main():
     random.seed(args.seed)
 
     # argument checks
+    args.weights = glob_all(args.weights)
     if len(args.weights) > 1 and len(args.weights) != args.n_folds:
         raise Exception("Either no, one or n_folds (={}) models are required for pretraining but got {}.".format(
             args.n_folds, len(args.weights)
