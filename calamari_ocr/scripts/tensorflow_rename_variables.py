@@ -10,6 +10,7 @@ usage_str = 'python tensorflow_rename_variables.py --checkpoints=path_to_models.
 
 
 def rename(checkpoint, replace_from, replace_to, add_prefix, dry_run):
+    tf.reset_default_graph()
     with tf.Session() as sess:
         for var_name, _ in tf.contrib.framework.list_variables(checkpoint):
             # Load the variable
