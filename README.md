@@ -6,11 +6,13 @@ It is designed to both be easy to use from the command line but also be modular 
 ## Notes
 
 ### Upgrading of old models
-Trained models  calamari <0.2 must be upgraded te support the current Calamari version. For each model to upgrade
-run either `calamari-tensorflow-rename-variables` or the `tensorflow_rename_variables.py` script located at
-`calamari_ocr/scripts` with the parameters:
-`python3 calamari_ocr/scripts/tensorflow_rename_valiables.py --checkpoints PATH/MODEL/*.ckpt.json --add_prefix cnn_lstm/`
-(Note the imporance of the training slash!)
+Trained models  calamari <0.2 must be upgraded to support the current Calamari version. For each model to upgrade
+run either `calamari-tensorflow-rename-variables` or the `tensorflow_rename_variables.py`
+script located at `calamari_ocr/scripts` with the parameters:
+```
+python3 calamari_ocr/scripts/tensorflow_rename_variables.py --checkpoints PATH/TO/MODELS/*.ckpt.json --add_prefix cnn_lstm/
+```
+(Note the importance of the trailing slash!)
 
 If you experience an error message similar to
 ```
