@@ -78,11 +78,11 @@ def run(args):
 
         dataset.store_text(sentence, sample, output_dir=output_dir, extension=".pred.txt")
 
-
         if args.extended_prediction_data:
             ps = Predictions()
             ps.line_path = sample['image_path']
             ps.predictions.extend([prediction] + [r.prediction for r in result])
+            output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
             if args.extended_prediction_data_format == "pred":
                 with open(os.path.join(output_dir, sample['id'] + ".pred"), 'wb') as f:
                     f.write(ps.SerializeToString())
