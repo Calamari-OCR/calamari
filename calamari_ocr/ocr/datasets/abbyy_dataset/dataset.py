@@ -84,7 +84,7 @@ class AbbyyDataSet(DataSet):
         return img, text
 
     def store_text(self, sentence, sample, output_dir, extension):
-        # an Abbyy dataset stores the predtion in one XML file
+        # an Abbyy dataset stores the prediction in one XML file
         sample["format"].text = sentence
 
     def store(self):
