@@ -6,6 +6,11 @@
 checkpoint
 
 
+# Operating system
+# ================
+
+.DS_Store
+
 # Python general
 # ==============
 
