@@ -89,7 +89,7 @@ class PageXMLDataset(DataSet):
 
     def store_text(self, sentence, sample, output_dir, extension):
         ns = sample['ns']
-        line: Element = sample['xml_element']
+        line = sample['xml_element']
         textequivxml = line.find('./ns:TextEquiv[@index="{}"]'.format(self.text_index),
                                     namespaces=ns)
         if textequivxml is None:

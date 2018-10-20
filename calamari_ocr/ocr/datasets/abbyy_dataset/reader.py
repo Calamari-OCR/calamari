@@ -124,7 +124,7 @@ class XMLReader:
                     # Reads rectangle data and controls if they are empty
                     name = blockNode.get('blockName')
 
-                    block: Block = Block(type, name, XMLReader.parseRect(blockNode, required=False))
+                    block = Block(type, name, XMLReader.parseRect(blockNode, required=False))
 
                     for textNode in blockNode:
 
@@ -136,12 +136,12 @@ class XMLReader:
                                 startIndent = parNode.get('startIndent')
                                 lineSpacing = parNode.get('lineSpacing')
 
-                                par: Par = Par(align, startIndent, lineSpacing)
+                                par = Par(align, startIndent, lineSpacing)
 
                                 for linecount, lineNode in enumerate(parNode):
                                     baseline = lineNode.get('baseline')
 
-                                    line: Line = Line(baseline, XMLReader.parseRect(lineNode))
+                                    line = Line(baseline, XMLReader.parseRect(lineNode))
 
                                     lang = None
                                     text = ""
@@ -161,7 +161,7 @@ class XMLReader:
                                             lang = formNode.get('lang')
                                             text = str(formNode.text)
 
-                                    format: Format = Format(lang, text)
+                                    format = Format(lang, text)
                                     line.formats.append(format)
                                     par.lines.append(line)
 
