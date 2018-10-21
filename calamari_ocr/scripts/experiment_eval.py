@@ -1,11 +1,8 @@
 import argparse
-import codecs
-import os
-import pickle
 
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.ocr.voting import VoterParams, voter_from_proto
-from calamari_ocr.ocr import create_dataset, DataSetType, MultiPredictor, Evaluator, RawDataSet, DataSetMode
+from calamari_ocr.ocr import create_dataset, DataSetType, MultiPredictor, Evaluator, DataSetMode
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 
 

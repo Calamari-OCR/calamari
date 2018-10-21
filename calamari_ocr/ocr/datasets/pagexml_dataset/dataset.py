@@ -2,8 +2,7 @@ import os
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
-from lxml import etree, html
-from lxml.etree import Element, ElementTree
+from lxml import etree
 from skimage.draw import polygon
 
 from calamari_ocr.ocr.datasets import DataSet, DataSetMode

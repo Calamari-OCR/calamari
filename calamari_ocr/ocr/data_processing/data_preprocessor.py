@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
-from tqdm import tqdm
 import numpy as np
-import multiprocessing
 
 from calamari_ocr.utils import parallel_map
 

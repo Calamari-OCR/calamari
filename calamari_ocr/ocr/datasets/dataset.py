@@ -5,7 +5,7 @@ from enum import Enum
 
 import numpy as np
 
-from calamari_ocr.utils import parallel_map, split_all_ext
+from calamari_ocr.utils import parallel_map
 
 
 class DataSetMode(Enum):

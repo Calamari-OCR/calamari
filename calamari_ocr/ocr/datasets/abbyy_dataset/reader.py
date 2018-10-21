@@ -3,7 +3,6 @@ from lxml import etree as ET
 from .data import *
 from .exceptions import *
 from tqdm import tqdm
-from collections import defaultdict
 
 
 class XMLReader:

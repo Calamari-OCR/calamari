@@ -1,6 +1,3 @@
-import re
-
-
 def default_network_meta():
     return {
         "inter_threads": 0,
@@ -16,4 +13,3 @@ def default_network_meta():
         "cudnn": True,
         "features": 40,                     # i. e. the line heigth
     }
-

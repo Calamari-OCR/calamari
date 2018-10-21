@@ -1,6 +1,6 @@
 from enum import Enum
 
-from .dataset import DataSet, RawDataSet, DataSetMode
+from .dataset import RawDataSet, DataSetMode
 from .file_dataset import FileDataSet
 from .abbyy_dataset import AbbyyDataSet
 from .pagexml_dataset import PageXMLDataset
