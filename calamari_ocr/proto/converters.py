@@ -41,6 +41,7 @@ def network_params_from_definition_string(str, params):
             params.solver = {"momentum": NetworkParams.MOMENTUM_SOLVER,
                              "adam": NetworkParams.ADAM_SOLVER}[value.lower()]
         elif label == "lstm":
+            lstm_appeared = True
             layer = params.layers.add()
             layer.type = LayerParams.LSTM
             layer.lstm_direction = LayerParams.BIDIRECTIONAL_LSTM

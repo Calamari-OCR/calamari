@@ -5,7 +5,7 @@ from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_fil
 from calamari_ocr.ocr.datasets import create_dataset, DataSetType, DataSetMode
 from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
 from calamari_ocr.ocr import Trainer
-from calamari_ocr.ocr.text_processing import text_processor_from_proto, \
+from calamari_ocr.ocr.text_processing import \
     default_text_normalizer_params, default_text_regularizer_params
 
 from calamari_ocr.proto import CheckpointParams, DataPreprocessorParams, TextProcessorParams, \

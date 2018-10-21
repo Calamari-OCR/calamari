@@ -48,8 +48,6 @@ class Sync:
 
 
 def synchronize(texts):
-    num_text = len(texts)
-
     def init():
         sync = Sync(texts)
         for i, text in enumerate(texts):
