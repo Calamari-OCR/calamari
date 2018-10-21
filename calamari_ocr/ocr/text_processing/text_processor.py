@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from tqdm import tqdm
 
 from calamari_ocr.utils import parallel_map
 

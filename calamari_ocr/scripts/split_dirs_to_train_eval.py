@@ -1,7 +1,6 @@
 import argparse
 import os
 import random
-import sys
 
 
 def mkdir(d):

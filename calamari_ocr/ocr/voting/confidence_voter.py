@@ -1,4 +1,3 @@
-import numpy as np
 import operator
 
 from calamari_ocr.ocr.voting.voter import Voter

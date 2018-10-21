@@ -1,12 +1,9 @@
 import argparse
-import os
 
 import numpy as np
 
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.ocr import create_dataset, DataSetType, DataSetMode
-from calamari_ocr.ocr.data_processing import data_processor_from_proto
-from calamari_ocr.proto import DataPreprocessorParams
 
 def main():
     parser = argparse.ArgumentParser()

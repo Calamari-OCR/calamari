@@ -1,4 +1,3 @@
-import numpy as np
 import tensorflow as tf
 
 from calamari_ocr.ocr.backends.backend_interface import BackendInterface

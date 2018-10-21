@@ -1,5 +1,4 @@
 import argparse
-import codecs
 import os
 
 from bidi.algorithm import get_base_level
@@ -9,7 +8,7 @@ from google.protobuf.json_format import MessageToJson
 
 from calamari_ocr.utils.glob import glob_all
 from calamari_ocr.ocr.datasets import DataSetType, create_dataset, DataSetMode
-from calamari_ocr.ocr import Predictor, MultiPredictor
+from calamari_ocr.ocr import MultiPredictor
 from calamari_ocr.ocr.voting import voter_from_proto
 from calamari_ocr.proto import VoterParams, Predictions
 

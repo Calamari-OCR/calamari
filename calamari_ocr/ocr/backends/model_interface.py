@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
-from calamari_ocr.proto import LayerParams, NetworkParams
+from calamari_ocr.proto import NetworkParams
 from .ctc_decoder.default_ctc_decoder import DefaultCTCDecoder
 from .ctc_decoder.fuzzy_ctc_decoder import FuzzyCTCDecoder
 

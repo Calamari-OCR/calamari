@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from calamari_ocr.proto import PredictionCharacter, PredictionPosition, Prediction
+from calamari_ocr.proto import Prediction
 
 
 class CTCDecoder(ABC):

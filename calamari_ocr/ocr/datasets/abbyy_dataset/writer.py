@@ -1,7 +1,5 @@
 from lxml import etree as ET
-import os, stat
-from .data import Book, Page
-from shutil import copy
+from .data import Page
 
 
 class XMLWriter:

@@ -1,6 +1,6 @@
 import numpy as np
 from calamari_ocr.ocr.data_processing.data_preprocessor import DataPreprocessor
-from scipy.ndimage import measurements, interpolation, filters
+from scipy.ndimage import interpolation, filters
 
 
 def scale_to_h(img, target_height, order=1, dtype=np.dtype('f'), cval=0):
