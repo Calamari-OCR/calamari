@@ -23,7 +23,6 @@ def network_params_from_definition_string(str, params):
     cnn_matcher = re.compile("^([\d]+)(:([\d]+)(x([\d]+))?)?$")
     pool_matcher = re.compile("^([\d]+)(x([\d]+))?(:([\d]+)x([\d]+))?$")
     str_params = str.split(",")
-    lstm_appeared = False
     set_default_network_params(params)
     for param in str_params:
         label, value = tuple(param.split("="))
@@ -46,9 +45,6 @@ def network_params_from_definition_string(str, params):
             layer.lstm_direction = LayerParams.BIDIRECTIONAL_LSTM
             layer.hidden_nodes = int(value)
         elif label == "cnn":
-            if lstm_appeared:
-                raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
-
             match = cnn_matcher.match(value)
             if match is None:
                 raise Exception("CNN structure needs: cnn=[filters]:[h]x[w]")
@@ -68,8 +64,6 @@ def network_params_from_definition_string(str, params):
             layer.stride.x = 1
             layer.stride.y = 1
         elif label == "pool":
-            if lstm_appeared:
-                raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
             match = pool_matcher.match(value)
             if match is None:
                 raise Exception("Pool structure needs: pool=[h];[w]")
