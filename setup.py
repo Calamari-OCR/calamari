@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='calamari_ocr',
-    version='0.2.0',
+    version='0.2.1',
     packages=find_packages(),
     license='GPL-v3.0',
     long_description=open("README.md").read(),
