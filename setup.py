@@ -23,6 +23,7 @@ setup(
             'calamari-tensorflow-rename-variables=calamari_ocr.scripts.tensorflow_rename_variables:main',
         ],
     },
+    python_requires='>=3.5',
     install_requires=open("requirements.txt").read().split('\n'),
     keywords=['OCR', 'optical character recognition', 'ocropy', 'ocropus', 'kraken'],
     data_files=[('', ["requirements.txt"])],
