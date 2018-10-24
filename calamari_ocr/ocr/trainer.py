@@ -114,6 +114,10 @@ class Trainer:
         # compute the codec
         codec = self.codec if self.codec else Codec.from_texts(texts, whitelist=self.codec_whitelist)
 
+        # store original data in case data augmentation is used with a second step
+        original_texts = texts
+        original_datas = datas
+
         # data augmentation on preprocessed data
         if self.data_augmenter:
             datas, texts = self.data_augmenter.augment_datas(datas, texts, n_augmentations=self.n_augmentations,
@@ -169,6 +173,28 @@ class Trainer:
 
         train_net.prepare()
         test_net.prepare()
+
+        if checkpoint_params.current_stage == 0:
+            self._run_train(train_net, test_net, codec, validation_data_params, train_start_time, progress_bar)
+
+        if checkpoint_params.data_aug_retrain_on_original and self.data_augmenter and self.n_augmentations > 0:
+            print("Starting training on original data only")
+            if checkpoint_params.current_stage == 0:
+                checkpoint_params.current_stage = 1
+                checkpoint_params.iter = 0
+                checkpoint_params.early_stopping_best_at_iter = 0
+                checkpoint_params.early_stopping_best_cur_nbest = 0
+                checkpoint_params.early_stopping_best_accuracy = 0
+
+            train_net.set_data(original_datas, [codec.encode(txt) for txt in original_texts])
+            test_net.set_data(validation_datas, validation_txts)
+            train_net.prepare()
+            test_net.prepare()
+            self._run_train(train_net, test_net, codec, validation_data_params, train_start_time, progress_bar)
+
+    def _run_train(self, train_net, test_net, codec, validation_data_params, train_start_time, progress_bar):
+        checkpoint_params = self.checkpoint_params
+        validation_txts = test_net.raw_labels
 
         loss_stats = RunningStatistics(checkpoint_params.stats_size, checkpoint_params.loss_stats)
         ler_stats = RunningStatistics(checkpoint_params.stats_size, checkpoint_params.ler_stats)

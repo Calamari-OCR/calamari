@@ -101,6 +101,10 @@ def setup_train_args(parser, omit=[]):
                             help="Path where to store the best model. Default is output_dir")
     parser.add_argument("--n_augmentations", type=int, default=0,
                         help="Number of data augmentation per line (done before training)")
+    parser.add_argument("--only_train_on_augmented", action="store_true", default=False,
+                        help="When training with augmentations usually the model is retrained in a second run with "
+                             "only the non augmented data. This will take longer. Use this flag to disable this "
+                             "behavior.")
 
     # backend specific params
     parser.add_argument("--fuzzy_ctc_library_path", type=str, default="",
@@ -203,6 +207,7 @@ def run(args):
     params.display = args.display
     params.skip_invalid_gt = not args.no_skip_invalid_gt
     params.processes = args.num_threads
+    params.data_aug_retrain_on_original = not args.only_train_on_augmented
 
     params.early_stopping_frequency = args.early_stopping_frequency if args.early_stopping_frequency >= 0 else args.checkpoint_frequency
     params.early_stopping_nbest = args.early_stopping_nbest

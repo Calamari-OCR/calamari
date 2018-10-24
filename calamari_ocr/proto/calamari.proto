@@ -14,6 +14,9 @@ message CheckpointParams {
     string output_dir = 9;
     string output_model_prefix = 22;
 
+    bool data_aug_retrain_on_original = 23;        // Retrain the model with only the non augmented data in a second run
+    int32 current_stage = 24;                      // Current training progress: 0 standard, 1 retraining on non aug.
+
     // params for early stopping
     int32 early_stopping_frequency = 15;                // How often to check on validation data
     int32 early_stopping_nbest = 16;                    // How many models must be worse to stop
