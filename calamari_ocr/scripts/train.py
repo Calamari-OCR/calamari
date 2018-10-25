@@ -35,12 +35,14 @@ def setup_train_args(parser, omit=[]):
                         help="Padding (left right) of the line")
     parser.add_argument("--num_threads", type=int, default=1,
                         help="The number of threads to use for all operations")
-    parser.add_argument("--display", type=int, default=1,
-                        help="Frequency of how often an output shall occur during training")
+    parser.add_argument("--display", type=float, default=100,
+                        help="Frequency of how often an output shall occur during training. If 0 < display <= 1 "
+                             "the display is in units of epochs.")
     parser.add_argument("--batch_size", type=int, default=1,
                         help="The batch size to use for training")
-    parser.add_argument("--checkpoint_frequency", type=int, default=-1,
-                        help="The frequency how often to write checkpoints during training. "
+    parser.add_argument("--checkpoint_frequency", type=float, default=-1,
+                        help="The frequency how often to write checkpoints during training. If 0 < value <= 1 the "
+                             "unit is in epochs, thus relative to the number of training examples."
                              "If -1, the early_stopping_frequency will be used.")
     parser.add_argument("--max_iters", type=int, default=1000000,
                         help="The number of iterations for training. "
@@ -90,10 +92,12 @@ def setup_train_args(parser, omit=[]):
                             help="Default extension of the gt files (expected to exist in same dir)")
         parser.add_argument("--validation_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
 
-    parser.add_argument("--early_stopping_frequency", type=int, default=1000,
+    parser.add_argument("--early_stopping_frequency", type=float, default=0.5,
                         help="The frequency of early stopping. By default the checkpoint frequency uses the early "
-                             "stopping frequency.")
-    parser.add_argument("--early_stopping_nbest", type=int, default=10,
+                             "stopping frequency. By default (value = 0.5) the early stopping frequency equates to a "
+                             "half epoch. If 0 < value <= 1 the frequency has the unit of an epoch (relative to "
+                             "number of training data).")
+    parser.add_argument("--early_stopping_nbest", type=int, default=5,
                         help="The number of models that must be worse than the current best model to stop")
     if "early_stopping_best_model_prefix" not in omit:
         parser.add_argument("--early_stopping_best_model_prefix", type=str, default="best",
@@ -211,7 +215,7 @@ def run(args):
     params.processes = args.num_threads
     params.data_aug_retrain_on_original = not args.only_train_on_augmented
 
-    params.early_stopping_frequency = args.early_stopping_frequency if args.early_stopping_frequency >= 0 else args.checkpoint_frequency
+    params.early_stopping_frequency = args.early_stopping_frequency
     params.early_stopping_nbest = args.early_stopping_nbest
     params.early_stopping_best_model_prefix = args.early_stopping_best_model_prefix
     params.early_stopping_best_model_output_dir = \
