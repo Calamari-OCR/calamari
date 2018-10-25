@@ -5,22 +5,8 @@ OCR Engine based on OCRopy and Kraken using python3.
 It is designed to both be easy to use from the command line but also be modular to be integrated and customized from other python scripts.
 
 ## Notes
-
-### Upgrading of old models
-Trained models  calamari <0.2 must be upgraded to support the current Calamari version. For each model to upgrade
-run either `calamari-tensorflow-rename-variables` or the `tensorflow_rename_variables.py`
-script located at `calamari_ocr/scripts` with the parameters:
-```
-python3 calamari_ocr/scripts/tensorflow_rename_variables.py --checkpoints PATH/TO/MODELS/*.ckpt.json --add_prefix cnn_lstm/
-```
-(Note the importance of the trailing slash!)
-
-If you experience an error message similar to
-```
-NotFoundError: Key cnn_lstm/B not found in checkpoint
-```
-you probably must run the upgrader.
-
+Older versions required to update old models manually.
+The current version of Calamari automated this process.
 
 ## Installing
 ### Installation using Pip

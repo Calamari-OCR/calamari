@@ -2,6 +2,8 @@ syntax = "proto3";
 
 // Data required for resuming a training process
 message CheckpointParams {
+    int32 version = 25;                                 // Rolling version
+
     ModelParams model = 1;
 
     int32 processes = 2;

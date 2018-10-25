@@ -1,3 +1,4 @@
+from calamari_ocr.ocr.checkpoint import Checkpoint
 from calamari_ocr.ocr.codec import Codec
 from calamari_ocr.ocr.datasets import *
 from calamari_ocr.ocr.evaluator import Evaluator

@@ -8,7 +8,7 @@ from google.protobuf import json_format
 
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
-from calamari_ocr.ocr import Codec
+from calamari_ocr.ocr import Codec, Checkpoint
 from calamari_ocr.ocr.backends import create_backend_from_proto
 from calamari_ocr.proto import CheckpointParams
 from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransformer
@@ -48,7 +48,9 @@ class PredictionResult:
 
 
 class Predictor:
-    def __init__(self, checkpoint=None, text_postproc=None, data_preproc=None, codec=None, network=None, batch_size=1, processes=1):
+    def __init__(self, checkpoint=None, text_postproc=None, data_preproc=None, codec=None, network=None,
+                 batch_size=1, processes=1,
+                 auto_update_checkpoints=True):
         """ Predicting a dataset based on a trained model
 
         Parameters
@@ -70,18 +72,21 @@ class Predictor:
             Batch size to use for prediction
         processes : int, optional
             The number of processes to use for prediction
+        auto_update_checkpoints : bool, optional
+            Update old models automatically (this will change the checkpoint files)
         """
         self.network = network
         self.checkpoint = checkpoint
         self.processes = processes
+        self.auto_update_checkpoints = auto_update_checkpoints
 
         if checkpoint:
             if network:
                 raise Exception("Either a checkpoint or a network can be provided")
 
-            with open(checkpoint + '.json', 'r') as f:
-                checkpoint_params = json_format.Parse(f.read(), CheckpointParams())
-                self.model_params = checkpoint_params.model
+            ckpt = Checkpoint(checkpoint, auto_update=self.auto_update_checkpoints)
+            checkpoint_params = ckpt.checkpoint
+            self.model_params = checkpoint_params.model
 
             self.network_params = self.model_params.network
             backend = create_backend_from_proto(self.network_params, restore=self.checkpoint, processes=processes)
@@ -161,7 +166,7 @@ class Predictor:
 
 
 class MultiPredictor:
-    def __init__(self, checkpoints=[], text_postproc=None, data_preproc=None, batch_size=1, processes=1):
+    def __init__(self, checkpoints=None, text_postproc=None, data_preproc=None, batch_size=1, processes=1):
         """Predict multiple models to use voting
 
         Parameters
@@ -177,6 +182,7 @@ class MultiPredictor:
         processes : int, optional
             The number of processes to use
         """
+        checkpoints = checkpoints if checkpoints else []
         if len(checkpoints) == 0:
             raise Exception("No checkpoints provided.")
 

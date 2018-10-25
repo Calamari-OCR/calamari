@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='calamari_ocr/proto/calamari.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n!calamari_ocr/proto/calamari.proto\"\x98\x05\n\x10\x43heckpointParams\x12\x1b\n\x05model\x18\x01 \x01(\x0b\x32\x0c.ModelParams\x12\x11\n\tprocesses\x18\x02 \x01(\x05\x12\x11\n\tmax_iters\x18\x03 \x01(\x05\x12\x17\n\x0fskip_invalid_gt\x18\x04 \x01(\x08\x12\x0f\n\x07\x64isplay\x18\x05 \x01(\x02\x12\x12\n\nstats_size\x18\x06 \x01(\x05\x12\x12\n\nbatch_size\x18\x07 \x01(\x05\x12\x1c\n\x14\x63heckpoint_frequency\x18\x08 \x01(\x02\x12\x12\n\noutput_dir\x18\t \x01(\t\x12\x1b\n\x13output_model_prefix\x18\x16 \x01(\t\x12$\n\x1c\x64\x61ta_aug_retrain_on_original\x18\x17 \x01(\x08\x12\x15\n\rcurrent_stage\x18\x18 \x01(\x05\x12 \n\x18\x65\x61rly_stopping_frequency\x18\x0f \x01(\x02\x12\x1c\n\x14\x65\x61rly_stopping_nbest\x18\x10 \x01(\x05\x12(\n early_stopping_best_model_prefix\x18\x11 \x01(\t\x12,\n$early_stopping_best_model_output_dir\x18\x15 \x01(\t\x12\x0c\n\x04iter\x18\n \x01(\x05\x12\x12\n\nloss_stats\x18\x0b \x03(\x02\x12\x11\n\tler_stats\x18\x0c \x03(\x02\x12\x10\n\x08\x64t_stats\x18\r \x03(\x02\x12\x12\n\ntotal_time\x18\x0e \x01(\x02\x12$\n\x1c\x65\x61rly_stopping_best_accuracy\x18\x12 \x01(\x02\x12%\n\x1d\x65\x61rly_stopping_best_cur_nbest\x18\x13 \x01(\x05\x12#\n\x1b\x65\x61rly_stopping_best_at_iter\x18\x14 \x01(\x05\"<\n\x0c\x44oubleMatrix\x12\x0c\n\x04rows\x18\x01 \x01(\r\x12\x0c\n\x04\x63ols\x18\x02 \x01(\r\x12\x10\n\x04\x64\x61ta\x18\x03 \x03(\x01\x42\x02\x10\x01\" \n\x08IntVec2D\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\"\xb6\x02\n\x0bLayerParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.LayerParams.Type\x12\x0f\n\x07\x66ilters\x18\x02 \x01(\x05\x12\x1e\n\x0bkernel_size\x18\x03 \x01(\x0b\x32\t.IntVec2D\x12\x19\n\x06stride\x18\x04 \x01(\x0b\x32\t.IntVec2D\x12\x14\n\x0chidden_nodes\x18\x05 \x01(\x05\x12\x11\n\tpeepholes\x18\x06 \x01(\x08\x12\x32\n\x0elstm_direction\x18\x07 \x01(\x0e\x32\x1a.LayerParams.LSTMDirection\"4\n\x04Type\x12\x11\n\rCONVOLUTIONAL\x10\x00\x12\x0f\n\x0bMAX_POOLING\x10\x01\x12\x08\n\x04LSTM\x10\x02\"\'\n\rLSTMDirection\x12\x16\n\x12\x42IDIRECTIONAL_LSTM\x10\x00\"\x86\x04\n\rNetworkParams\x12\x1f\n\x07\x62\x61\x63kend\x18\x08 \x01(\x0b\x32\x0e.BackendParams\x12\x1c\n\x06layers\x18\x01 \x03(\x0b\x32\x0c.LayerParams\x12)\n\x06solver\x18\x02 \x01(\x0e\x32\x19.NetworkParams.SolverType\x12\x15\n\rlearning_rate\x18\x0b \x01(\x02\x12\x10\n\x08momentum\x18\x03 \x01(\x02\x12\x0f\n\x07\x64ropout\x18\x05 \x01(\x02\x12\x10\n\x08\x66\x65\x61tures\x18\x06 \x01(\x05\x12\x0f\n\x07\x63lasses\x18\x07 \x01(\x05\x12\x1a\n\x12\x63tc_merge_repeated\x18\t \x01(\x08\x12#\n\x03\x63tc\x18\n \x01(\x0e\x32\x16.NetworkParams.CTCType\x12\x32\n\rclipping_mode\x18\x0c \x01(\x0e\x32\x1b.NetworkParams.ClippingMode\x12\x19\n\x11\x63lipping_constant\x18\r \x01(\x02\"2\n\nSolverType\x12\x13\n\x0fMOMENTUM_SOLVER\x10\x00\x12\x0f\n\x0b\x41\x44\x41M_SOLVER\x10\x01\")\n\x07\x43TCType\x12\x0f\n\x0b\x43TC_DEFAULT\x10\x00\x12\r\n\tCTC_FUZZY\x10\x01\"?\n\x0c\x43lippingMode\x12\r\n\tCLIP_AUTO\x10\x00\x12\r\n\tCLIP_NONE\x10\x01\x12\x11\n\rCLIP_CONSTANT\x10\x02\"\xc4\x01\n\rBackendParams\x12!\n\x04type\x18\x01 \x01(\x0e\x32\x13.BackendParams.Type\x12\r\n\x05\x63udnn\x18\x02 \x01(\x08\x12\x13\n\x0brandom_seed\x18\x03 \x01(\x05\x12\x1e\n\x16\x66uzzy_ctc_library_path\x18\x04 \x01(\t\x12\x19\n\x11num_inter_threads\x18\x05 \x01(\x05\x12\x19\n\x11num_intra_threads\x18\x06 \x01(\x05\"\x16\n\x04Type\x12\x0e\n\nTENSORFLOW\x10\x00\"\xf7\x01\n\x0bModelParams\x12\x1f\n\x07network\x18\x02 \x01(\x0b\x32\x0e.NetworkParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\x32\n\x11\x64\x61ta_preprocessor\x18\x04 \x01(\x0b\x32\x17.DataPreprocessorParams\x12/\n\x11text_preprocessor\x18\x05 \x01(\x0b\x32\x14.TextProcessorParams\x12\x30\n\x12text_postprocessor\x18\x06 \x01(\x0b\x32\x14.TextProcessorParams\x12\x1b\n\x05\x63odec\x18\x07 \x01(\x0b\x32\x0c.CodecParams\"\xf6\x03\n\x16\x44\x61taPreprocessorParams\x12*\n\x04type\x18\x01 \x01(\x0e\x32\x1c.DataPreprocessorParams.Type\x12)\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x17.DataPreprocessorParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\r\n\x05range\x18\x04 \x01(\x05\x12\x12\n\nsmoothness\x18\x05 \x01(\x05\x12\x0b\n\x03pad\x18\x06 \x01(\x05\x12:\n\x0c\x62inarization\x18\x07 \x01(\x0e\x32$.DataPreprocessorParams.Binarization\x12\x14\n\x0cno_normalize\x18\x08 \x01(\x08\x12\x11\n\tno_invert\x18\t \x01(\x08\x12\x14\n\x0cno_transpose\x18\n \x01(\x08\x12\x11\n\tpad_value\x18\x0b \x01(\x05\"\x8d\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x14\n\x10MULTI_NORMALIZER\x10\x01\x12\x13\n\x0fNOOP_NORMALIZER\x10\x02\x12\x14\n\x10RANGE_NORMALIZER\x10\x03\x12\x15\n\x11\x43\x45NTER_NORMALIZER\x10\x04\x12\x15\n\x11\x46INAL_PREPARATION\x10\x05\"\"\n\x0c\x42inarization\x12\x08\n\x04GRAY\x10\x00\x12\x08\n\x04OTSU\x10\x01\"J\n\x1fTextNormalizerReplacementParams\x12\x0b\n\x03old\x18\x01 \x01(\t\x12\x0b\n\x03new\x18\x02 \x01(\t\x12\r\n\x05regex\x18\x03 \x01(\x08\"\x81\x05\n\x13TextProcessorParams\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.TextProcessorParams.Type\x12&\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x14.TextProcessorParams\x12:\n\x0e\x62idi_direction\x18\x03 \x01(\x0e\x32\".TextProcessorParams.BidiDirection\x12L\n\x15unicode_normalization\x18\x04 \x01(\x0e\x32-.TextProcessorParams.UnicodeNormalizationType\x12\x36\n\x0creplacements\x18\x05 \x03(\x0b\x32 .TextNormalizerReplacementParams\"\xd8\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x1a\n\x16\x44\x45\x46\x41ULT_PRE_NORMALIZER\x10\x01\x12\x1b\n\x17\x44\x45\x46\x41ULT_POST_NORMALIZER\x10\x02\x12\x14\n\x10MULTI_NORMALIZER\x10\x03\x12\x13\n\x0fNOOP_NORMALIZER\x10\x04\x12\x14\n\x10STRIP_NORMALIZER\x10\x05\x12\x13\n\x0f\x42IDI_NORMALIZER\x10\x06\x12\x13\n\x0fTEXT_NORMALIZER\x10\x07\x12\x14\n\x10TEXT_REGULARIZER\x10\x08\":\n\rBidiDirection\x12\r\n\tBIDI_AUTO\x10\x00\x12\x0c\n\x08\x42IDI_LTR\x10\x01\x12\x0c\n\x08\x42IDI_RTL\x10\x02\"@\n\x18UnicodeNormalizationType\x12\x07\n\x03NFC\x10\x00\x12\x08\n\x04NFKC\x10\x01\x12\x07\n\x03NFD\x10\x02\x12\x08\n\x04NFKD\x10\x03\"\x1e\n\x0b\x43odecParams\x12\x0f\n\x07\x63harset\x18\x01 \x03(\t\"\xa1\x01\n\x0bVoterParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.VoterParams.Type\x12\x13\n\x0b\x62lank_index\x18\x02 \x01(\x05\"\\\n\x04Type\x12\x12\n\x0eSEQUENCE_VOTER\x10\x00\x12 \n\x1c\x43ONFIDENCE_VOTER_DEFAULT_CTC\x10\x01\x12\x1e\n\x1a\x43ONFIDENCE_VOTER_FUZZY_CTC\x10\x02\"G\n\x13PredictionCharacter\x12\x0c\n\x04\x63har\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\x05\x12\x13\n\x0bprobability\x18\x03 \x01(\x02\"\x8b\x01\n\x12PredictionPosition\x12#\n\x05\x63hars\x18\x01 \x03(\x0b\x32\x14.PredictionCharacter\x12\x13\n\x0blocal_start\x18\x02 \x01(\x05\x12\x11\n\tlocal_end\x18\x03 \x01(\x05\x12\x14\n\x0cglobal_start\x18\x04 \x01(\x05\x12\x12\n\nglobal_end\x18\x05 \x01(\x05\"\xc8\x01\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\t\x12\x10\n\x08sentence\x18\x02 \x01(\t\x12\x0e\n\x06labels\x18\x03 \x03(\x05\x12&\n\tpositions\x18\x04 \x03(\x0b\x32\x13.PredictionPosition\x12\x1d\n\x06logits\x18\x05 \x01(\x0b\x32\r.DoubleMatrix\x12\x19\n\x11total_probability\x18\x06 \x01(\x02\x12\x17\n\x0fis_voted_result\x18\x07 \x01(\x08\x12\x11\n\tline_path\x18\x08 \x01(\t\"B\n\x0bPredictions\x12 \n\x0bpredictions\x18\x01 \x03(\x0b\x32\x0b.Prediction\x12\x11\n\tline_path\x18\x02 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n!calamari_ocr/proto/calamari.proto\"\xa9\x05\n\x10\x43heckpointParams\x12\x0f\n\x07version\x18\x19 \x01(\x05\x12\x1b\n\x05model\x18\x01 \x01(\x0b\x32\x0c.ModelParams\x12\x11\n\tprocesses\x18\x02 \x01(\x05\x12\x11\n\tmax_iters\x18\x03 \x01(\x05\x12\x17\n\x0fskip_invalid_gt\x18\x04 \x01(\x08\x12\x0f\n\x07\x64isplay\x18\x05 \x01(\x02\x12\x12\n\nstats_size\x18\x06 \x01(\x05\x12\x12\n\nbatch_size\x18\x07 \x01(\x05\x12\x1c\n\x14\x63heckpoint_frequency\x18\x08 \x01(\x02\x12\x12\n\noutput_dir\x18\t \x01(\t\x12\x1b\n\x13output_model_prefix\x18\x16 \x01(\t\x12$\n\x1c\x64\x61ta_aug_retrain_on_original\x18\x17 \x01(\x08\x12\x15\n\rcurrent_stage\x18\x18 \x01(\x05\x12 \n\x18\x65\x61rly_stopping_frequency\x18\x0f \x01(\x02\x12\x1c\n\x14\x65\x61rly_stopping_nbest\x18\x10 \x01(\x05\x12(\n early_stopping_best_model_prefix\x18\x11 \x01(\t\x12,\n$early_stopping_best_model_output_dir\x18\x15 \x01(\t\x12\x0c\n\x04iter\x18\n \x01(\x05\x12\x12\n\nloss_stats\x18\x0b \x03(\x02\x12\x11\n\tler_stats\x18\x0c \x03(\x02\x12\x10\n\x08\x64t_stats\x18\r \x03(\x02\x12\x12\n\ntotal_time\x18\x0e \x01(\x02\x12$\n\x1c\x65\x61rly_stopping_best_accuracy\x18\x12 \x01(\x02\x12%\n\x1d\x65\x61rly_stopping_best_cur_nbest\x18\x13 \x01(\x05\x12#\n\x1b\x65\x61rly_stopping_best_at_iter\x18\x14 \x01(\x05\"<\n\x0c\x44oubleMatrix\x12\x0c\n\x04rows\x18\x01 \x01(\r\x12\x0c\n\x04\x63ols\x18\x02 \x01(\r\x12\x10\n\x04\x64\x61ta\x18\x03 \x03(\x01\x42\x02\x10\x01\" \n\x08IntVec2D\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\"\xb6\x02\n\x0bLayerParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.LayerParams.Type\x12\x0f\n\x07\x66ilters\x18\x02 \x01(\x05\x12\x1e\n\x0bkernel_size\x18\x03 \x01(\x0b\x32\t.IntVec2D\x12\x19\n\x06stride\x18\x04 \x01(\x0b\x32\t.IntVec2D\x12\x14\n\x0chidden_nodes\x18\x05 \x01(\x05\x12\x11\n\tpeepholes\x18\x06 \x01(\x08\x12\x32\n\x0elstm_direction\x18\x07 \x01(\x0e\x32\x1a.LayerParams.LSTMDirection\"4\n\x04Type\x12\x11\n\rCONVOLUTIONAL\x10\x00\x12\x0f\n\x0bMAX_POOLING\x10\x01\x12\x08\n\x04LSTM\x10\x02\"\'\n\rLSTMDirection\x12\x16\n\x12\x42IDIRECTIONAL_LSTM\x10\x00\"\x86\x04\n\rNetworkParams\x12\x1f\n\x07\x62\x61\x63kend\x18\x08 \x01(\x0b\x32\x0e.BackendParams\x12\x1c\n\x06layers\x18\x01 \x03(\x0b\x32\x0c.LayerParams\x12)\n\x06solver\x18\x02 \x01(\x0e\x32\x19.NetworkParams.SolverType\x12\x15\n\rlearning_rate\x18\x0b \x01(\x02\x12\x10\n\x08momentum\x18\x03 \x01(\x02\x12\x0f\n\x07\x64ropout\x18\x05 \x01(\x02\x12\x10\n\x08\x66\x65\x61tures\x18\x06 \x01(\x05\x12\x0f\n\x07\x63lasses\x18\x07 \x01(\x05\x12\x1a\n\x12\x63tc_merge_repeated\x18\t \x01(\x08\x12#\n\x03\x63tc\x18\n \x01(\x0e\x32\x16.NetworkParams.CTCType\x12\x32\n\rclipping_mode\x18\x0c \x01(\x0e\x32\x1b.NetworkParams.ClippingMode\x12\x19\n\x11\x63lipping_constant\x18\r \x01(\x02\"2\n\nSolverType\x12\x13\n\x0fMOMENTUM_SOLVER\x10\x00\x12\x0f\n\x0b\x41\x44\x41M_SOLVER\x10\x01\")\n\x07\x43TCType\x12\x0f\n\x0b\x43TC_DEFAULT\x10\x00\x12\r\n\tCTC_FUZZY\x10\x01\"?\n\x0c\x43lippingMode\x12\r\n\tCLIP_AUTO\x10\x00\x12\r\n\tCLIP_NONE\x10\x01\x12\x11\n\rCLIP_CONSTANT\x10\x02\"\xc4\x01\n\rBackendParams\x12!\n\x04type\x18\x01 \x01(\x0e\x32\x13.BackendParams.Type\x12\r\n\x05\x63udnn\x18\x02 \x01(\x08\x12\x13\n\x0brandom_seed\x18\x03 \x01(\x05\x12\x1e\n\x16\x66uzzy_ctc_library_path\x18\x04 \x01(\t\x12\x19\n\x11num_inter_threads\x18\x05 \x01(\x05\x12\x19\n\x11num_intra_threads\x18\x06 \x01(\x05\"\x16\n\x04Type\x12\x0e\n\nTENSORFLOW\x10\x00\"\xf7\x01\n\x0bModelParams\x12\x1f\n\x07network\x18\x02 \x01(\x0b\x32\x0e.NetworkParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\x32\n\x11\x64\x61ta_preprocessor\x18\x04 \x01(\x0b\x32\x17.DataPreprocessorParams\x12/\n\x11text_preprocessor\x18\x05 \x01(\x0b\x32\x14.TextProcessorParams\x12\x30\n\x12text_postprocessor\x18\x06 \x01(\x0b\x32\x14.TextProcessorParams\x12\x1b\n\x05\x63odec\x18\x07 \x01(\x0b\x32\x0c.CodecParams\"\xf6\x03\n\x16\x44\x61taPreprocessorParams\x12*\n\x04type\x18\x01 \x01(\x0e\x32\x1c.DataPreprocessorParams.Type\x12)\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x17.DataPreprocessorParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\r\n\x05range\x18\x04 \x01(\x05\x12\x12\n\nsmoothness\x18\x05 \x01(\x05\x12\x0b\n\x03pad\x18\x06 \x01(\x05\x12:\n\x0c\x62inarization\x18\x07 \x01(\x0e\x32$.DataPreprocessorParams.Binarization\x12\x14\n\x0cno_normalize\x18\x08 \x01(\x08\x12\x11\n\tno_invert\x18\t \x01(\x08\x12\x14\n\x0cno_transpose\x18\n \x01(\x08\x12\x11\n\tpad_value\x18\x0b \x01(\x05\"\x8d\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x14\n\x10MULTI_NORMALIZER\x10\x01\x12\x13\n\x0fNOOP_NORMALIZER\x10\x02\x12\x14\n\x10RANGE_NORMALIZER\x10\x03\x12\x15\n\x11\x43\x45NTER_NORMALIZER\x10\x04\x12\x15\n\x11\x46INAL_PREPARATION\x10\x05\"\"\n\x0c\x42inarization\x12\x08\n\x04GRAY\x10\x00\x12\x08\n\x04OTSU\x10\x01\"J\n\x1fTextNormalizerReplacementParams\x12\x0b\n\x03old\x18\x01 \x01(\t\x12\x0b\n\x03new\x18\x02 \x01(\t\x12\r\n\x05regex\x18\x03 \x01(\x08\"\x81\x05\n\x13TextProcessorParams\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.TextProcessorParams.Type\x12&\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x14.TextProcessorParams\x12:\n\x0e\x62idi_direction\x18\x03 \x01(\x0e\x32\".TextProcessorParams.BidiDirection\x12L\n\x15unicode_normalization\x18\x04 \x01(\x0e\x32-.TextProcessorParams.UnicodeNormalizationType\x12\x36\n\x0creplacements\x18\x05 \x03(\x0b\x32 .TextNormalizerReplacementParams\"\xd8\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x1a\n\x16\x44\x45\x46\x41ULT_PRE_NORMALIZER\x10\x01\x12\x1b\n\x17\x44\x45\x46\x41ULT_POST_NORMALIZER\x10\x02\x12\x14\n\x10MULTI_NORMALIZER\x10\x03\x12\x13\n\x0fNOOP_NORMALIZER\x10\x04\x12\x14\n\x10STRIP_NORMALIZER\x10\x05\x12\x13\n\x0f\x42IDI_NORMALIZER\x10\x06\x12\x13\n\x0fTEXT_NORMALIZER\x10\x07\x12\x14\n\x10TEXT_REGULARIZER\x10\x08\":\n\rBidiDirection\x12\r\n\tBIDI_AUTO\x10\x00\x12\x0c\n\x08\x42IDI_LTR\x10\x01\x12\x0c\n\x08\x42IDI_RTL\x10\x02\"@\n\x18UnicodeNormalizationType\x12\x07\n\x03NFC\x10\x00\x12\x08\n\x04NFKC\x10\x01\x12\x07\n\x03NFD\x10\x02\x12\x08\n\x04NFKD\x10\x03\"\x1e\n\x0b\x43odecParams\x12\x0f\n\x07\x63harset\x18\x01 \x03(\t\"\xa1\x01\n\x0bVoterParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.VoterParams.Type\x12\x13\n\x0b\x62lank_index\x18\x02 \x01(\x05\"\\\n\x04Type\x12\x12\n\x0eSEQUENCE_VOTER\x10\x00\x12 \n\x1c\x43ONFIDENCE_VOTER_DEFAULT_CTC\x10\x01\x12\x1e\n\x1a\x43ONFIDENCE_VOTER_FUZZY_CTC\x10\x02\"G\n\x13PredictionCharacter\x12\x0c\n\x04\x63har\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\x05\x12\x13\n\x0bprobability\x18\x03 \x01(\x02\"\x8b\x01\n\x12PredictionPosition\x12#\n\x05\x63hars\x18\x01 \x03(\x0b\x32\x14.PredictionCharacter\x12\x13\n\x0blocal_start\x18\x02 \x01(\x05\x12\x11\n\tlocal_end\x18\x03 \x01(\x05\x12\x14\n\x0cglobal_start\x18\x04 \x01(\x05\x12\x12\n\nglobal_end\x18\x05 \x01(\x05\"\xc8\x01\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\t\x12\x10\n\x08sentence\x18\x02 \x01(\t\x12\x0e\n\x06labels\x18\x03 \x03(\x05\x12&\n\tpositions\x18\x04 \x03(\x0b\x32\x13.PredictionPosition\x12\x1d\n\x06logits\x18\x05 \x01(\x0b\x32\r.DoubleMatrix\x12\x19\n\x11total_probability\x18\x06 \x01(\x02\x12\x17\n\x0fis_voted_result\x18\x07 \x01(\x08\x12\x11\n\tline_path\x18\x08 \x01(\t\"B\n\x0bPredictions\x12 \n\x0bpredictions\x18\x01 \x03(\x0b\x32\x0b.Prediction\x12\x11\n\tline_path\x18\x02 \x01(\tb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -46,8 +46,8 @@ _LAYERPARAMS_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1018,
-  serialized_end=1070,
+  serialized_start=1035,
+  serialized_end=1087,
 )
 _sym_db.RegisterEnumDescriptor(_LAYERPARAMS_TYPE)
 
@@ -64,8 +64,8 @@ _LAYERPARAMS_LSTMDIRECTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1072,
-  serialized_end=1111,
+  serialized_start=1089,
+  serialized_end=1128,
 )
 _sym_db.RegisterEnumDescriptor(_LAYERPARAMS_LSTMDIRECTION)
 
@@ -86,8 +86,8 @@ _NETWORKPARAMS_SOLVERTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1474,
-  serialized_end=1524,
+  serialized_start=1491,
+  serialized_end=1541,
 )
 _sym_db.RegisterEnumDescriptor(_NETWORKPARAMS_SOLVERTYPE)
 
@@ -108,8 +108,8 @@ _NETWORKPARAMS_CTCTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1526,
-  serialized_end=1567,
+  serialized_start=1543,
+  serialized_end=1584,
 )
 _sym_db.RegisterEnumDescriptor(_NETWORKPARAMS_CTCTYPE)
 
@@ -134,8 +134,8 @@ _NETWORKPARAMS_CLIPPINGMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1569,
-  serialized_end=1632,
+  serialized_start=1586,
+  serialized_end=1649,
 )
 _sym_db.RegisterEnumDescriptor(_NETWORKPARAMS_CLIPPINGMODE)
 
@@ -152,8 +152,8 @@ _BACKENDPARAMS_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1809,
-  serialized_end=1831,
+  serialized_start=1826,
+  serialized_end=1848,
 )
 _sym_db.RegisterEnumDescriptor(_BACKENDPARAMS_TYPE)
 
@@ -190,8 +190,8 @@ _DATAPREPROCESSORPARAMS_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2409,
-  serialized_end=2550,
+  serialized_start=2426,
+  serialized_end=2567,
 )
 _sym_db.RegisterEnumDescriptor(_DATAPREPROCESSORPARAMS_TYPE)
 
@@ -212,8 +212,8 @@ _DATAPREPROCESSORPARAMS_BINARIZATION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2552,
-  serialized_end=2586,
+  serialized_start=2569,
+  serialized_end=2603,
 )
 _sym_db.RegisterEnumDescriptor(_DATAPREPROCESSORPARAMS_BINARIZATION)
 
@@ -262,8 +262,8 @@ _TEXTPROCESSORPARAMS_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=2964,
-  serialized_end=3180,
+  serialized_start=2981,
+  serialized_end=3197,
 )
 _sym_db.RegisterEnumDescriptor(_TEXTPROCESSORPARAMS_TYPE)
 
@@ -288,8 +288,8 @@ _TEXTPROCESSORPARAMS_BIDIDIRECTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3182,
-  serialized_end=3240,
+  serialized_start=3199,
+  serialized_end=3257,
 )
 _sym_db.RegisterEnumDescriptor(_TEXTPROCESSORPARAMS_BIDIDIRECTION)
 
@@ -318,8 +318,8 @@ _TEXTPROCESSORPARAMS_UNICODENORMALIZATIONTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3242,
-  serialized_end=3306,
+  serialized_start=3259,
+  serialized_end=3323,
 )
 _sym_db.RegisterEnumDescriptor(_TEXTPROCESSORPARAMS_UNICODENORMALIZATIONTYPE)
 
@@ -344,8 +344,8 @@ _VOTERPARAMS_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=3410,
-  serialized_end=3502,
+  serialized_start=3427,
+  serialized_end=3519,
 )
 _sym_db.RegisterEnumDescriptor(_VOTERPARAMS_TYPE)
 
@@ -358,168 +358,175 @@ _CHECKPOINTPARAMS = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='model', full_name='CheckpointParams.model', index=0,
+      name='version', full_name='CheckpointParams.version', index=0,
+      number=25, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='model', full_name='CheckpointParams.model', index=1,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='processes', full_name='CheckpointParams.processes', index=1,
+      name='processes', full_name='CheckpointParams.processes', index=2,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='max_iters', full_name='CheckpointParams.max_iters', index=2,
+      name='max_iters', full_name='CheckpointParams.max_iters', index=3,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='skip_invalid_gt', full_name='CheckpointParams.skip_invalid_gt', index=3,
+      name='skip_invalid_gt', full_name='CheckpointParams.skip_invalid_gt', index=4,
       number=4, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='display', full_name='CheckpointParams.display', index=4,
+      name='display', full_name='CheckpointParams.display', index=5,
       number=5, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='stats_size', full_name='CheckpointParams.stats_size', index=5,
+      name='stats_size', full_name='CheckpointParams.stats_size', index=6,
       number=6, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='batch_size', full_name='CheckpointParams.batch_size', index=6,
+      name='batch_size', full_name='CheckpointParams.batch_size', index=7,
       number=7, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='checkpoint_frequency', full_name='CheckpointParams.checkpoint_frequency', index=7,
+      name='checkpoint_frequency', full_name='CheckpointParams.checkpoint_frequency', index=8,
       number=8, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='output_dir', full_name='CheckpointParams.output_dir', index=8,
+      name='output_dir', full_name='CheckpointParams.output_dir', index=9,
       number=9, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='output_model_prefix', full_name='CheckpointParams.output_model_prefix', index=9,
+      name='output_model_prefix', full_name='CheckpointParams.output_model_prefix', index=10,
       number=22, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='data_aug_retrain_on_original', full_name='CheckpointParams.data_aug_retrain_on_original', index=10,
+      name='data_aug_retrain_on_original', full_name='CheckpointParams.data_aug_retrain_on_original', index=11,
       number=23, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='current_stage', full_name='CheckpointParams.current_stage', index=11,
+      name='current_stage', full_name='CheckpointParams.current_stage', index=12,
       number=24, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='early_stopping_frequency', full_name='CheckpointParams.early_stopping_frequency', index=12,
+      name='early_stopping_frequency', full_name='CheckpointParams.early_stopping_frequency', index=13,
       number=15, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='early_stopping_nbest', full_name='CheckpointParams.early_stopping_nbest', index=13,
+      name='early_stopping_nbest', full_name='CheckpointParams.early_stopping_nbest', index=14,
       number=16, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='early_stopping_best_model_prefix', full_name='CheckpointParams.early_stopping_best_model_prefix', index=14,
+      name='early_stopping_best_model_prefix', full_name='CheckpointParams.early_stopping_best_model_prefix', index=15,
       number=17, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='early_stopping_best_model_output_dir', full_name='CheckpointParams.early_stopping_best_model_output_dir', index=15,
+      name='early_stopping_best_model_output_dir', full_name='CheckpointParams.early_stopping_best_model_output_dir', index=16,
       number=21, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='iter', full_name='CheckpointParams.iter', index=16,
+      name='iter', full_name='CheckpointParams.iter', index=17,
       number=10, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='loss_stats', full_name='CheckpointParams.loss_stats', index=17,
+      name='loss_stats', full_name='CheckpointParams.loss_stats', index=18,
       number=11, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='ler_stats', full_name='CheckpointParams.ler_stats', index=18,
+      name='ler_stats', full_name='CheckpointParams.ler_stats', index=19,
       number=12, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='dt_stats', full_name='CheckpointParams.dt_stats', index=19,
+      name='dt_stats', full_name='CheckpointParams.dt_stats', index=20,
       number=13, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='total_time', full_name='CheckpointParams.total_time', index=20,
+      name='total_time', full_name='CheckpointParams.total_time', index=21,
       number=14, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='early_stopping_best_accuracy', full_name='CheckpointParams.early_stopping_best_accuracy', index=21,
+      name='early_stopping_best_accuracy', full_name='CheckpointParams.early_stopping_best_accuracy', index=22,
       number=18, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='early_stopping_best_cur_nbest', full_name='CheckpointParams.early_stopping_best_cur_nbest', index=22,
+      name='early_stopping_best_cur_nbest', full_name='CheckpointParams.early_stopping_best_cur_nbest', index=23,
       number=19, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='early_stopping_best_at_iter', full_name='CheckpointParams.early_stopping_best_at_iter', index=23,
+      name='early_stopping_best_at_iter', full_name='CheckpointParams.early_stopping_best_at_iter', index=24,
       number=20, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -538,7 +545,7 @@ _CHECKPOINTPARAMS = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=38,
-  serialized_end=702,
+  serialized_end=719,
 )
 
 
@@ -582,8 +589,8 @@ _DOUBLEMATRIX = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=704,
-  serialized_end=764,
+  serialized_start=721,
+  serialized_end=781,
 )
 
 
@@ -620,8 +627,8 @@ _INTVEC2D = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=766,
-  serialized_end=798,
+  serialized_start=783,
+  serialized_end=815,
 )
 
 
@@ -695,8 +702,8 @@ _LAYERPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=801,
-  serialized_end=1111,
+  serialized_start=818,
+  serialized_end=1128,
 )
 
 
@@ -806,8 +813,8 @@ _NETWORKPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1114,
-  serialized_end=1632,
+  serialized_start=1131,
+  serialized_end=1649,
 )
 
 
@@ -873,8 +880,8 @@ _BACKENDPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1635,
-  serialized_end=1831,
+  serialized_start=1652,
+  serialized_end=1848,
 )
 
 
@@ -939,8 +946,8 @@ _MODELPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1834,
-  serialized_end=2081,
+  serialized_start=1851,
+  serialized_end=2098,
 )
 
 
@@ -1042,8 +1049,8 @@ _DATAPREPROCESSORPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2084,
-  serialized_end=2586,
+  serialized_start=2101,
+  serialized_end=2603,
 )
 
 
@@ -1087,8 +1094,8 @@ _TEXTNORMALIZERREPLACEMENTPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2588,
-  serialized_end=2662,
+  serialized_start=2605,
+  serialized_end=2679,
 )
 
 
@@ -1149,8 +1156,8 @@ _TEXTPROCESSORPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2665,
-  serialized_end=3306,
+  serialized_start=2682,
+  serialized_end=3323,
 )
 
 
@@ -1180,8 +1187,8 @@ _CODECPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3308,
-  serialized_end=3338,
+  serialized_start=3325,
+  serialized_end=3355,
 )
 
 
@@ -1219,8 +1226,8 @@ _VOTERPARAMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3341,
-  serialized_end=3502,
+  serialized_start=3358,
+  serialized_end=3519,
 )
 
 
@@ -1264,8 +1271,8 @@ _PREDICTIONCHARACTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3504,
-  serialized_end=3575,
+  serialized_start=3521,
+  serialized_end=3592,
 )
 
 
@@ -1323,8 +1330,8 @@ _PREDICTIONPOSITION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3578,
-  serialized_end=3717,
+  serialized_start=3595,
+  serialized_end=3734,
 )
 
 
@@ -1403,8 +1410,8 @@ _PREDICTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3720,
-  serialized_end=3920,
+  serialized_start=3737,
+  serialized_end=3937,
 )
 
 
@@ -1441,8 +1448,8 @@ _PREDICTIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3922,
-  serialized_end=3988,
+  serialized_start=3939,
+  serialized_end=4005,
 )
 
 _CHECKPOINTPARAMS.fields_by_name['model'].message_type = _MODELPARAMS

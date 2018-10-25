@@ -1,6 +1,5 @@
 import argparse
 
-import tensorflow as tf
 from calamari_ocr.utils import glob_all
 from tqdm import tqdm
 import os
@@ -9,7 +8,8 @@ usage_str = 'python tensorflow_rename_variables.py --checkpoints=path_to_models.
             '--replace_from=substr --replace_to=substr --add_prefix=abc --dry_run'
 
 
-def rename(checkpoint, replace_from, replace_to, add_prefix, dry_run):
+def rename(checkpoint, replace_from, replace_to, add_prefix, dry_run, force_prefix=False):
+    import tensorflow as tf
     tf.reset_default_graph()
     with tf.Session() as sess:
         for var_name, _ in tf.contrib.framework.list_variables(checkpoint):
@@ -21,20 +21,28 @@ def rename(checkpoint, replace_from, replace_to, add_prefix, dry_run):
             if None not in [replace_from, replace_to]:
                 new_name = new_name.replace(replace_from, replace_to)
             if add_prefix:
-                new_name = add_prefix + new_name
+                if force_prefix or not new_name.startswith(add_prefix):
+                    # force prefix or add prefix if it does not exist yet
+                    new_name = add_prefix + new_name
 
             if dry_run:
                 print('%s would be renamed to %s.' % (var_name, new_name))
             else:
-                print('Renaming %s to %s.' % (var_name, new_name))
+                if var_name == new_name:
+                    print('No change for {}'.format(var_name))
+                else:
+                    print('Renaming %s to %s.' % (var_name, new_name))
+
                 # Rename the variable
-                var = tf.Variable(var, name=new_name)
+                tf.Variable(var, name=new_name)
 
         if not dry_run:
             # Save the variables
             saver = tf.train.Saver()
             sess.run(tf.global_variables_initializer())
             saver.save(sess, checkpoint)
+
+    tf.reset_default_graph()
 
 
 def main():

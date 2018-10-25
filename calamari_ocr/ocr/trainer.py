@@ -1,6 +1,6 @@
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
-from calamari_ocr.ocr import Codec
+from calamari_ocr.ocr import Codec, Checkpoint
 from calamari_ocr.ocr.backends import create_backend_from_proto
 import time
 import os
@@ -26,7 +26,9 @@ class Trainer:
                  n_augmentations=0,
                  weights=None,
                  codec=None,
-                 codec_whitelist=[]):
+                 codec_whitelist=[],
+                 auto_update_checkpoints=True,
+                 ):
         """Train a DNN using given preprocessing, weights, and data
 
         The purpose of the Trainer is handle a default training mechanism.
@@ -78,6 +80,7 @@ class Trainer:
         self.weights = checkpoint_path(weights) if weights else None
         self.codec = codec
         self.codec_whitelist = codec_whitelist
+        self.auto_update_checkpoints = auto_update_checkpoints
 
     def train(self, progress_bar=False):
         """ Launch the training
@@ -133,9 +136,9 @@ class Trainer:
         network_params.classes = len(codec)
         if self.weights:
             # if we load the weights, take care of codec changes as-well
-            with open(self.weights + '.json', 'r') as f:
-                restore_checkpoint_params = json_format.Parse(f.read(), CheckpointParams())
-                restore_model_params = restore_checkpoint_params.model
+            ckpt = Checkpoint(self.weights + '.json', auto_update=self.auto_update_checkpoints)
+            restore_checkpoint_params = ckpt.checkpoint
+            restore_model_params = restore_checkpoint_params.model
 
             # checks
             if checkpoint_params.model.line_height != network_params.features:
@@ -250,6 +253,7 @@ class Trainer:
                 checkpoint_path = os.path.abspath(os.path.join(base_dir, "{}{:08d}.ckpt".format(prefix, iter + 1)))
             print("Storing checkpoint to '{}'".format(checkpoint_path))
             train_net.save_checkpoint(checkpoint_path)
+            checkpoint_params.version = Checkpoint.VERSION
             checkpoint_params.iter = iter
             checkpoint_params.loss_stats[:] = loss_stats.values
             checkpoint_params.ler_stats[:] = ler_stats.values
