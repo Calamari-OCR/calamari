@@ -39,8 +39,9 @@ def setup_train_args(parser, omit=[]):
                         help="Frequency of how often an output shall occur during training")
     parser.add_argument("--batch_size", type=int, default=1,
                         help="The batch size to use for training")
-    parser.add_argument("--checkpoint_frequency", type=int, default=1000,
-                        help="The frequency how often to write checkpoints during training")
+    parser.add_argument("--checkpoint_frequency", type=int, default=-1,
+                        help="The frequency how often to write checkpoints during training. "
+                             "If -1, the early_stopping_frequency will be used.")
     parser.add_argument("--max_iters", type=int, default=1000000,
                         help="The number of iterations for training. "
                              "If using early stopping, this is the maximum number of iterations")
@@ -89,8 +90,9 @@ def setup_train_args(parser, omit=[]):
                             help="Default extension of the gt files (expected to exist in same dir)")
         parser.add_argument("--validation_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
 
-    parser.add_argument("--early_stopping_frequency", type=int, default=-1,
-                        help="The frequency of early stopping. If -1, the checkpoint_frequency will be used")
+    parser.add_argument("--early_stopping_frequency", type=int, default=1000,
+                        help="The frequency of early stopping. By default the checkpoint frequency uses the early "
+                             "stopping frequency.")
     parser.add_argument("--early_stopping_nbest", type=int, default=10,
                         help="The number of models that must be worse than the current best model to stop")
     if "early_stopping_best_model_prefix" not in omit:
@@ -201,7 +203,7 @@ def run(args):
     params.max_iters = args.max_iters
     params.stats_size = args.stats_size
     params.batch_size = args.batch_size
-    params.checkpoint_frequency = args.checkpoint_frequency
+    params.checkpoint_frequency = args.checkpoint_frequency if args.checkpoint_frequency >= 0 else args.early_stopping_frequency
     params.output_dir = args.output_dir
     params.output_model_prefix = args.output_model_prefix
     params.display = args.display
