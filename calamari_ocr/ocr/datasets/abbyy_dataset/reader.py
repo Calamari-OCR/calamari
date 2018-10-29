@@ -1,7 +1,7 @@
 import os
 from lxml import etree as ET
-from .data import *
-from .exceptions import *
+from .data import Book, Page, Block, Format, Line, Par, Rect
+from .exceptions import XMLParseError
 from tqdm import tqdm
 
 

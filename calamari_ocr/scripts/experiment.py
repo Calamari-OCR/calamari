@@ -42,7 +42,7 @@ def run_for_single_line(args):
     files = args.train_files
     if args.n_lines > 0:
         all_files = glob_all(args.train_files)
-        file = random.sample(all_files, args.n_lines)
+        files = random.sample(all_files, args.n_lines)
 
     # run the cross-fold-training
     setattr(args, "max_parallel_models", args.max_parallel_models)

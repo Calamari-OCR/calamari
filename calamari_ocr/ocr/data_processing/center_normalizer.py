@@ -37,7 +37,6 @@ class CenterNormalizer(DataPreprocessor):
         h, w = line.shape
         smoothed = filters.gaussian_filter(line, (h * 0.5, h * self.smoothness), mode='constant')
         smoothed += 0.001 * filters.uniform_filter(smoothed, (h * 0.5, w), mode='constant')
-        shape = (h, w)
         a = np.argmax(smoothed, axis=0)
         a = filters.gaussian_filter(a, h * self.extra)
         center = np.array(a, 'i')

@@ -35,7 +35,7 @@ def main():
     mkdir(eval_dir)
 
     n_train = int(args.train_amount) if args.train_amount >= 1 else int(len(all_dirs_) * args.train_amount)
-    n_eval = len(all_dirs_) - n_train
+    # n_eval = len(all_dirs_) - n_train
 
     indices = list(range(len(all_dirs_)))
     random.shuffle(indices)

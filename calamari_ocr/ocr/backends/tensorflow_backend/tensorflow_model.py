@@ -133,7 +133,7 @@ class TensorflowModel(ModelInterface):
                     def get_lstm_cell(num_hidden):
                         return cudnn_rnn.CudnnCompatibleLSTMCell(num_hidden, reuse=reuse_variables)
 
-                    fw, bw = zip(*[(get_lstm_cell(hidden_nodes), get_lstm_cell(hidden_nodes)) for lstm in lstm_layers])
+                    fw, bw = zip(*[(get_lstm_cell(hidden_nodes), get_lstm_cell(hidden_nodes)) for _ in lstm_layers])
 
                     time_major_outputs, output_fw, output_bw \
                         = tf.contrib.rnn.stack_bidirectional_dynamic_rnn(list(fw), list(bw), time_major_inputs,

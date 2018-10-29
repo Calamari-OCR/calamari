@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
 import os
 
-from calamari_ocr.utils import glob_all, split_all_ext
-from calamari_ocr.ocr import DataSetType, create_dataset, keep_files_with_same_file_name, DataSetMode
+from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_file_name
+from calamari_ocr.ocr import DataSetType, create_dataset, DataSetMode
 from calamari_ocr.ocr.trainer import Trainer
 
 from calamari_ocr.proto import CheckpointParams
