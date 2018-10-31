@@ -144,6 +144,7 @@ message DataPreprocessorParams {
         RANGE_NORMALIZER = 3;
         CENTER_NORMALIZER = 4;
         FINAL_PREPARATION = 5;
+        SCALE_TO_HEIGHT = 6;
     }
 
     enum Binarization {

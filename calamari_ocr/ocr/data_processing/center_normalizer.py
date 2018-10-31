@@ -1,22 +1,7 @@
 import numpy as np
+from scipy.ndimage import filters
 from calamari_ocr.ocr.data_processing.data_preprocessor import DataPreprocessor
-from scipy.ndimage import interpolation, filters
-
-
-def scale_to_h(img, target_height, order=1, dtype=np.dtype('f'), cval=0):
-    h, w = img.shape
-    scale = target_height * 1.0 / h
-    target_width = np.maximum(int(scale * w), 1)
-    output = interpolation.affine_transform(
-        1.0 * img,
-        np.eye(2) / scale,
-        order=order,
-        output_shape=(target_height,target_width),
-        mode='constant',
-        cval=cval)
-
-    output = np.array(output, dtype=dtype)
-    return output
+from calamari_ocr.ocr.data_processing.scale_to_height_processor import ScaleToHeightProcessor
 
 
 class CenterNormalizer(DataPreprocessor):
@@ -72,14 +57,14 @@ class CenterNormalizer(DataPreprocessor):
         m1 = 1
         if intermediate_height < img.shape[0]:
             m1 = intermediate_height / img.shape[0]
-            img = scale_to_h(img, intermediate_height, order=order, dtype=dtype, cval=cval)
+            img = ScaleToHeightProcessor.scale_to_h(img, intermediate_height, order=order, dtype=dtype, cval=cval)
 
         # dewarp
         dewarped = self.dewarp(img, cval=cval, dtype=dtype)
 
         t = dewarped.shape[0] - img.shape[0]
         # scale to target height
-        scaled = scale_to_h(dewarped, self.target_height, order=order, dtype=dtype, cval=cval)
+        scaled = ScaleToHeightProcessor.scale_to_h(dewarped, self.target_height, order=order, dtype=dtype, cval=cval)
         m2 = scaled.shape[1] / dewarped.shape[1]
         return scaled, (m1, m2, t)
 

@@ -23,6 +23,8 @@ def data_processor_from_proto(data_preprocessor_params):
         return CenterNormalizer(data_preprocessor_params)
     elif data_preprocessor_params.type == DataPreprocessorParams.FINAL_PREPARATION:
         return FinalPreparation(data_preprocessor_params)
+    elif data_preprocessor_params.type == DataPreprocessorParams.SCALE_TO_HEIGHT:
+        return ScaleToHeightProcessor(data_preprocessor_params)
 
     raise Exception("Unknown proto type {} of an data processor".format(data_preprocessor_params.type))
 
