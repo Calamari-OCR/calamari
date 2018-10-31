@@ -8,7 +8,20 @@ class StripTextProcessor(TextProcessor):
         super().__init__()
 
     def _apply_single(self, txt):
-        return txt.strip()
+        if isinstance(txt, str):
+            return txt.strip()
+
+        elif isinstance(txt, list):
+            while txt[0].isspace():
+                del txt[0]
+
+            while txt[-1].isspace():
+                del txt[-1]
+
+            return txt
+
+        else:
+            raise TypeError()
 
 
 class BidiTextProcessor(TextProcessor):

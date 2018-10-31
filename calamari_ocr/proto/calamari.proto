@@ -184,6 +184,7 @@ message TextProcessorParams {
         BIDI_NORMALIZER = 6;
         TEXT_NORMALIZER = 7;
         TEXT_REGULARIZER = 8;
+        STR_TO_CHAR_LIST = 9;
     }
 
     Type type = 1;
@@ -206,6 +207,9 @@ message TextProcessorParams {
     }
     UnicodeNormalizationType unicode_normalization = 4;
     repeated TextNormalizerReplacementParams replacements = 5;
+
+    // str to char available characters
+    repeated string characters = 6;
 }
 
 
