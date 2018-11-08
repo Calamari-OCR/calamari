@@ -197,6 +197,9 @@ class Trainer:
             test_net.prepare()
             self._run_train(train_net, test_net, codec, validation_data_params, train_start_time, progress_bar)
 
+        train_net.prepare()  # reset the state
+        test_net.prepare()   # to prevent blocking of tensorflow on shutdown
+
     def _run_train(self, train_net, test_net, codec, validation_data_params, train_start_time, progress_bar):
         checkpoint_params = self.checkpoint_params
         validation_txts = test_net.raw_labels
