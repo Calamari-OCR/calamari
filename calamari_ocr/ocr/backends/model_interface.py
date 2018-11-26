@@ -4,10 +4,28 @@ from abc import ABC, abstractmethod
 from calamari_ocr.proto import NetworkParams
 from .ctc_decoder.default_ctc_decoder import DefaultCTCDecoder
 from .ctc_decoder.fuzzy_ctc_decoder import FuzzyCTCDecoder
+from calamari_ocr.ocr.datasets import InputDataset
+from calamari_ocr.ocr import Codec
+
+from typing import Any, Generator
+
+
+class NetworkPredictionResult:
+    def __init__(self,
+                 softmax: np.array,
+                 output_length: int,
+                 decoded: np.array,
+                 params: Any = None,
+                 ground_truth: np.array = None):
+        self.softmax = softmax
+        self.output_length = output_length
+        self.decoded = decoded
+        self.params = params
+        self.ground_truth = ground_truth
 
 
 class ModelInterface(ABC):
-    def __init__(self, network_proto, graph_type, batch_size, implementation_handles_batching=False):
+    def __init__(self, network_proto, graph_type, batch_size, input_dataset: InputDataset = None, codec: Codec = None):
         """ Interface for a neural net
 
         Interface above the actual DNN implementation to abstract training and prediction.
@@ -20,17 +38,12 @@ class ModelInterface(ABC):
             Type of the graph, depending on the type different parts must be added (e.g. the solver)
         batch_size : int
             Number of examples to train/predict in parallel
-        implementation_handles_batching : bool
-            True if the backend handles the data flow (queue, piping, ...)
         """
         self.network_proto = network_proto
         self.graph_type = graph_type
         self.batch_size = batch_size
-        self.raw_images = []
-        self.raw_labels = []
-        self.implementation_handles_batching = implementation_handles_batching
-        self.last_index = 0
-        self.indices = []
+        self.input_dataset = input_dataset
+        self.codec = codec
 
         self.ctc_decoder = {
             NetworkParams.CTC_FUZZY: FuzzyCTCDecoder(),
@@ -40,71 +53,39 @@ class ModelInterface(ABC):
     def output_to_input_position(self, x):
         return x
 
-    def set_data(self, images, labels=None):
-        """ Set the networks data (images, and labels)
-
-        Set the data to be processed by the network on train or predict.
-        Labels must be set if this model is used for training.
-        Setting the data resets the internal state of any data prefetcher.
+    def set_input_dataset(self, input_dataset: InputDataset, codec: Codec):
+        """ Set the networks data generator
 
         Parameters
         ----------
-        images : list(array_like)
-            List of all raw images to be used for training or prediction
-        labels : list(int)
+        data_generator : Generator[Tuple[np.array, np.array, Any], None, None]
             List of all raw labels to be used for training
         Returns
         -------
             None
         """
-        self.raw_images = images
-        self.raw_labels = labels if labels and len(labels) > 0 else [[] for _ in range(len(images))]
-        self.indices = list(range(len(images)))
-
-        self.reset_data()
+        self.input_dataset = input_dataset
+        self.codec = codec
 
     def train_step(self):
         """ Performs a training step of the model.
-
-        If the actual implementation does not handle batching, this function will create batches on its own.
         Returns
         -------
             None
         """
-        if self.implementation_handles_batching:
-            batch_x = None
-            batch_y = None
-        else:
-            indexes = []
-            while len(indexes) != self.batch_size:
-                i = self._next_index()
-                if len(self.raw_labels[i]) == 0:
-                    # skip empty labels
-                    continue
-                else:
-                    indexes.append(i)
 
-            batch_x = [self.raw_images[i].astype(np.float32) / 255.0 for i in indexes]
-            batch_y = [self.raw_labels[i] for i in indexes]
-
-        return self.train(batch_x, batch_y)
-
-    def _next_index(self):
-        if self.last_index >= len(self.indices):
-            self.last_index = 0
-            np.random.shuffle(self.indices)
-
-        out = self.indices[self.last_index]
-        self.last_index += 1
-        return out
+        return self.train()
 
     def iters_per_epoch(self, batch_size):
-        data = self.raw_images
-        r = len(data) % batch_size
-        n = len(data) // batch_size
+        size = len(self.input_dataset)
+        r = size % batch_size
+        n = size // batch_size
         return n if r == 0 else n + 1
 
-    def prediction_step(self):
+    def predict_raw(self, x, len_x) -> Generator[NetworkPredictionResult, None, None]:
+        pass
+
+    def prediction_step(self) -> Generator[NetworkPredictionResult, None, None]:
         return self.predict()
 
     def reset_data(self):
@@ -113,28 +94,20 @@ class ModelInterface(ABC):
         pass
 
     def prepare(self):
-        self.last_index = len(self.indices)
+        pass
 
     @abstractmethod
-    def train(self, batch_x, batch_y):
-        """ train on the given batch
-
-        Parameters
-        ----------
-        batch_x : list of images
-            the images
-        batch_y : list of int
-            the labels
-
-        Returns
-        -------
-
-        """
+    def train(self):
         return []
 
     @abstractmethod
-    def predict(self):
+    def predict(self) -> Generator[NetworkPredictionResult, None, None]:
         """ Predict the current data
+
+        Parameters
+        ----------
+        with_gt : bool
+            Also output the gt if available in the dataset
 
         Returns
         -------

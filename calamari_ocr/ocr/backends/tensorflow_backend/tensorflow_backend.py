@@ -21,8 +21,11 @@ class TensorflowBackend(BackendInterface):
         self.weights = weights
         self.first_model = True
 
-    def create_net(self, restore, weights, graph_type, batch_size=-1):
-        model = TensorflowModel(self.network_proto, self.graph, self.session, graph_type, batch_size, reuse_weights=not self.first_model)
+    def create_net(self, dataset, codec, restore, weights, graph_type, batch_size=-1):
+        model = TensorflowModel(self.network_proto, self.graph, self.session, graph_type, batch_size,
+                                reuse_weights=not self.first_model,
+                                input_dataset=dataset,
+                                codec=codec)
         self.first_model = False
         if weights:
             model.load_weights(weights, restore_only_trainable=True)

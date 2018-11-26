@@ -1,6 +1,7 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 import random
 import numpy as np
+from .model_interface import ModelInterface
 
 
 class BackendInterface(ABC):
@@ -15,3 +16,7 @@ class BackendInterface(ABC):
             np.random.seed(seed)
 
         super().__init__()
+
+    @abstractmethod
+    def create_net(self, dataset, codec, restore, weights, graph_type, batch_size=-1) -> ModelInterface:
+        pass

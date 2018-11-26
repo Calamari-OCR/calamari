@@ -69,11 +69,14 @@ class PageXMLDataset(DataSet):
         box[rr - offset[0], cc - offset[1]] = pageimg[rr, cc]
         return box
 
-    def _load_sample(self, sample):
+    def _load_sample(self, sample, text_only):
         image_path = sample["imgfile"]
         text = sample["text"]
-
         img = None
+
+        if text_only:
+            return img, text
+
         if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN:
             img = np.array(Image.open(image_path))
 

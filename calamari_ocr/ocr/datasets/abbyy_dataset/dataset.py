@@ -58,14 +58,17 @@ class AbbyyDataSet(DataSet):
                         "format": fo,
                     })
 
-    def _load_sample(self, sample):
+    def _load_sample(self, sample, text_only):
         image_path = sample["image_path"]
         line = sample["line"]
         text = None
+        img = None
         if self.mode == DataSetMode.EVAL or self.mode == DataSetMode.TRAIN:
             text = sample["format"].text
 
-        img = None
+        if text_only:
+            return img, text
+
         if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT:
             img = np.array(Image.open(image_path))
 

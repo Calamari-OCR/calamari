@@ -23,6 +23,10 @@ def setup_train_args(parser, omit=[]):
                             help="Default extension of the gt files (expected to exist in same dir)")
         parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
 
+    parser.add_argument("--train_data_on_the_fly", action='store_true', default=False,
+                        help='Instead of preloading all data during the training, load the data on the fly. '
+                             'This is slower, but might be required for limited RAM or large datasets')
+
     parser.add_argument("--seed", type=int, default="0",
                         help="Seed for random operations. If negative or zero a 'random' seed is used")
     parser.add_argument("--backend", type=str, default="tensorflow",
@@ -71,10 +75,14 @@ def setup_train_args(parser, omit=[]):
         parser.add_argument("--weights", type=str, default=None,
                             help="Load network weights from the given file.")
 
+    parser.add_argument("--no_auto_compute_codec", action='store_true', default=False,
+                        help="Do not compute the codec automatically. See also whitelist")
     parser.add_argument("--whitelist_files", type=str, nargs="+", default=[],
                         help="Whitelist of txt files that may not be removed on restoring a model")
     parser.add_argument("--whitelist", type=str, nargs="+", default=[],
-                        help="Whitelist of characters that may not be removed on restoring a model")
+                        help="Whitelist of characters that may not be removed on restoring a model. "
+                             "For large datasets you can use this to skip the automatic codec computation "
+                             "(see --no_auto_compute_codec)")
 
     # clipping
     parser.add_argument("--gradient_clipping_mode", type=str, default="AUTO",
@@ -92,6 +100,10 @@ def setup_train_args(parser, omit=[]):
                             help="Default extension of the gt files (expected to exist in same dir)")
         parser.add_argument("--validation_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
 
+    parser.add_argument("--validation_data_on_the_fly", action='store_true', default=False,
+                        help='Instead of preloading all data during the training, load the data on the fly. '
+                             'This is slower, but might be required for limited RAM or large datasets')
+
     parser.add_argument("--early_stopping_frequency", type=float, default=0.5,
                         help="The frequency of early stopping. By default the checkpoint frequency uses the early "
                              "stopping frequency. By default (value = 0.5) the early stopping frequency equates to a "
@@ -105,8 +117,9 @@ def setup_train_args(parser, omit=[]):
     if "early_stopping_best_model_output_dir" not in omit:
         parser.add_argument("--early_stopping_best_model_output_dir", type=str, default=None,
                             help="Path where to store the best model. Default is output_dir")
-    parser.add_argument("--n_augmentations", type=int, default=0,
-                        help="Number of data augmentation per line (done before training)")
+    parser.add_argument("--n_augmentations", type=float, default=0,
+                        help="Amount of data augmentation per line (done before training). If this number is < 1 "
+                             "the amount is relative.")
     parser.add_argument("--only_train_on_augmented", action="store_true", default=False,
                         help="When training with augmentations usually the model is retrained in a second run with "
                              "only the non augmented data. This will take longer. Use this flag to disable this "
@@ -141,6 +154,9 @@ def run(args):
 
     # parse whitelist
     whitelist = args.whitelist
+    if len(whitelist) == 1:
+        whitelist = list(whitelist[0])
+
     whitelist_files = glob_all(args.whitelist_files)
     for f in whitelist_files:
         with open(f) as txt:
@@ -272,8 +288,13 @@ def run(args):
                       n_augmentations=args.n_augmentations,
                       weights=args.weights,
                       codec_whitelist=whitelist,
+                      preload_training=not args.train_data_on_the_fly,
+                      preload_validation=not args.validation_data_on_the_fly,
                       )
-    trainer.train(progress_bar=not args.no_progress_bars)
+    trainer.train(
+        auto_compute_codec=not args.no_auto_compute_codec,
+        progress_bar=not args.no_progress_bars
+    )
 
 
 def main():
