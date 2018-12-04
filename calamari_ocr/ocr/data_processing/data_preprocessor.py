@@ -11,14 +11,14 @@ class DataPreprocessor(ABC):
     def apply(self, data, processes=1, progress_bar=False, max_tasks_per_child=100):
         if isinstance(data, np.ndarray):
             return self._apply_single(data)
-        elif isinstance(data, list):
+        elif isinstance(data, list) or isinstance(data, tuple):
             if len(data) == 0:
                 return []
 
             return parallel_map(self._apply_single, data, desc="Data Preprocessing",
                                 processes=processes, progress_bar=progress_bar, max_tasks_per_child=max_tasks_per_child)
         else:
-            raise Exception("Unknown instance of txts: {}. Supported list and str".format(type(data)))
+            raise Exception("Unknown instance of data: {}. Supported list and str".format(type(data)))
 
     def local_to_global_pos(self, x, params):
         return x
