@@ -60,8 +60,12 @@ def run(args):
     predictor = MultiPredictor(checkpoints=args.checkpoint, batch_size=args.batch_size, processes=args.processes)
     do_prediction = predictor.predict_dataset(dataset, progress_bar=not args.no_progress_bars)
 
+    avg_sentence_confidence = 0
+    n_predictions = 0
+
     # output the voted results to the appropriate files
     for result, sample in do_prediction:
+        n_predictions += 1
         for i, p in enumerate(result):
             p.prediction.id = "fold_{}".format(i)
 
@@ -69,6 +73,7 @@ def run(args):
         prediction = voter.vote_prediction_result(result)
         prediction.id = "voted"
         sentence = prediction.sentence
+        avg_sentence_confidence += prediction.avg_char_probability
         if args.verbose:
             lr = "\u202A\u202B"
             print("{}: '{}{}{}'".format(sample['id'], lr[get_base_level(sentence)], sentence, "\u202C" ))
@@ -99,6 +104,8 @@ def run(args):
                     f.write(MessageToJson(ps, including_default_value_fields=True))
             else:
                 raise Exception("Unknown prediction format.")
+
+    print("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
 
     dataset.store()
     print("All files written")

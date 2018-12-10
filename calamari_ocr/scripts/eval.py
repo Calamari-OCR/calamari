@@ -126,6 +126,7 @@ def main():
     parser.add_argument("--pred", nargs="+", default=None,
                         help="Prediction files if provided. Else files with .pred.txt are expected at the same "
                              "location as the gt.")
+    parser.add_argument("--pred_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
     parser.add_argument("--pred_ext", type=str, default=".pred.txt",
                         help="Extension of the predicted text files")
     parser.add_argument("--n_confusions", type=int, default=10,
@@ -158,11 +159,9 @@ def main():
 
     if args.pred:
         pred_files = sorted(glob_all(args.pred))
-        if len(pred_files) != len(gt_files):
-            raise Exception("Mismatch in the number of gt and pred files: {} vs {}".format(
-                len(gt_files), len(pred_files)))
     else:
         pred_files = [split_all_ext(gt)[0] + args.pred_ext for gt in gt_files]
+        args.pred_dataset = args.dataset
 
     if args.non_existing_file_handling_mode.lower() == "skip":
         non_existing_pred = [p for p in pred_files if not os.path.exists(p)]
@@ -186,7 +185,7 @@ def main():
         args={'text_index': args.pagexml_gt_text_index},
     )
     pred_data_set = create_dataset(
-        args.dataset,
+        args.pred_dataset,
         DataSetMode.EVAL,
         texts=pred_files,
         non_existing_as_empty=non_existing_as_empty,

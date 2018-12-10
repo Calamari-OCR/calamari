@@ -12,6 +12,7 @@ class DataSetType(Enum):
     FILE = 1
     ABBYY = 2
     PAGEXML = 3
+    EXTENDED_PREDICTION = 4
 
     def __str__(self):
         return self.name
@@ -30,6 +31,7 @@ class DataSetType(Enum):
             DataSetType.FILE: True,
             DataSetType.ABBYY: True,
             DataSetType.PAGEXML: True,
+            DataSetType.EXTENDED_PREDICTION: True,
         }
 
         return files_meta[type]
@@ -41,6 +43,7 @@ class DataSetType(Enum):
             DataSetType.FILE: ".gt.txt",
             DataSetType.ABBYY: ".abbyy.xml",
             DataSetType.PAGEXML: ".xml",
+            DataSetType.EXTENDED_PREDICTION: ".json",
         }[type]
 
 
@@ -82,5 +85,8 @@ def create_dataset(type: DataSetType,
                               remove_invalid=remove_invalid,
                               non_existing_as_empty=non_existing_as_empty,
                               args=args)
+    elif type == DataSetType.EXTENDED_PREDICTION:
+        from .extended_prediction_dataset import ExtendedPredictionDataSet
+        return ExtendedPredictionDataSet(texts=texts)
     else:
         raise Exception("Unsuppoted dataset type {}".format(type))
