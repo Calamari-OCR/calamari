@@ -39,12 +39,18 @@ class PredictionResult:
         self.out_to_in_trans = out_to_in_trans
         self.data_proc_params = data_proc_params
 
+        self.prediction.avg_char_probability = 0
+
         for p in self.prediction.positions:
             for c in p.chars:
                 c.char = codec.code2char[c.label]
 
             p.global_start = int(self.out_to_in_trans.local_to_global(p.local_start, self.data_proc_params))
             p.global_end = int(self.out_to_in_trans.local_to_global(p.local_end, self.data_proc_params))
+            if len(p.chars) > 0:
+                self.prediction.avg_char_probability += p.chars[0].probability
+
+        self.prediction.avg_char_probability /= len(self.prediction.positions) if len(self.prediction.positions) > 0 else 1
 
 
 class Predictor:
