@@ -79,9 +79,12 @@ def run(args):
 
         if args.extended_prediction_data:
             ps = Predictions()
-            ps.line_path = sample['image_path']
+            ps.line_path = sample['image_path'] if 'image_path' in sample else sample['id']
             ps.predictions.extend([prediction] + [r.prediction for r in result])
-            output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
+            output_dir = output_dir if output_dir else os.path.dirname(ps.line_path)
+            if not os.path.exists(output_dir):
+                os.mkdir(output_dir)
+
             if args.extended_prediction_data_format == "pred":
                 with open(os.path.join(output_dir, sample['id'] + ".pred"), 'wb') as f:
                     f.write(ps.SerializeToString())

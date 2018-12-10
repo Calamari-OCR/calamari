@@ -250,6 +250,7 @@ message Prediction {
     repeated PredictionPosition positions = 4;      // The individual predictions for each position
     DoubleMatrix logits = 5;                        // The full prediction matrix
     float total_probability = 6;
+    float avg_char_probability = 9;                 // Average character probability
     bool is_voted_result = 7;                       // A voted result does not have logits
 
     string line_path = 8;                           // [Optional] The original path to the corresponding image file
