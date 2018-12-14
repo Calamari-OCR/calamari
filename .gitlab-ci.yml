@@ -72,3 +72,13 @@ test-cpu-predict-and-eval-with-voting:
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
     - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
+
+test-cpu-predict-and-eval-with-voting-extended-prediction-data:
+  stage: test
+  script:
+    - set -e
+    - git clone --depth 1 https://github.com/Calamari-OCR/calamari_models.git || true
+    - calamari-predict --extended_prediction_data --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json
+    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
+    - calamari-predict --extended_prediction_data --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json
+    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt

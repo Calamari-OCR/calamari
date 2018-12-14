@@ -1,1 +1,0 @@
-The reference epsoid is a mathematical appToximtion of the real earth, and is
