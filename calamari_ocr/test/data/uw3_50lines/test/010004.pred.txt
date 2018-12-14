@@ -1,1 +1,0 @@
-(atually potential ifferences from the datum) are scaled bo the mean vaue of
