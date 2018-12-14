@@ -1,0 +1,66 @@
+before_script:
+  - set -e
+  - virtualenv -p python3 venv
+  - source venv/bin/activate
+  - pip install -r requirements.txt
+  - python setup.py install
+
+cache:
+  paths:
+    - venv
+
+stages:
+  - test
+
+test-cpu:
+  stage: test
+  script:
+    - set -e
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10
+
+test-cpu-validation:
+  stage: test
+  script:
+    - set -e
+    - calamari-train --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --early_stopping_frequency 5
+
+test-cpu-augmentation:
+  stage: test
+  script:
+    - set -e
+    - calamari-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10
+
+test-cpu-validation-augmentation:
+  stage: test
+  script:
+    - set -e
+    - calamari-train --n_augmentation 5 --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --early_stopping_frequency 5
+
+test-cpu-cross-fold-train:
+  stage: test
+  script:
+    - set -e
+    - calamari-cross-fold-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
+
+test-cpu-cross-fold-train-augmentation:
+  stage: test
+  script:
+    - set -e
+    - calamari-cross-fold-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
+
+test-cpu-cross-fold-train-preload:
+  stage: test
+  script:
+    - set -e
+    - calamari-train --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --early_stopping_frequency 5
+    - calamari-cross-fold-train --weights best.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
+
+test-cpu-predict-and-eval-with-voting:
+  stage: test
+  script:
+    - set -e
+    - git clone https://github.com/Calamari-OCR/calamari_models.git
+    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.cktp.json
+    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
+    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.cktp.json
+    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
