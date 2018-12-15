@@ -13,6 +13,9 @@ cache:
 stages:
   - test
 
+
+# General training with and without validation or data augmentation
+
 test-cpu:
   stage: test
   script:
@@ -36,6 +39,9 @@ test-cpu-validation-augmentation:
   script:
     - set -e
     - calamari-train --n_augmentation 5 --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --early_stopping_frequency 5
+
+
+# cross-fold-training
 
 test-cpu-cross-fold-train:
   stage: test
@@ -63,6 +69,9 @@ test-cpu-cross-fold-train-preload5:
     - git clone --depth 1 https://github.com/Calamari-OCR/calamari_models.git || true
     - calamari-cross-fold-train --weights calamari_models/antiqua_modern/0.ckpt.json calamari_models/antiqua_modern/1.ckpt.json calamari_models/antiqua_modern/2.ckpt.json calamari_models/antiqua_modern/3.ckpt.json calamari_models/antiqua_modern/4.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 5 --best_models_dir tmp_best_models --max_iters 10
 
+
+# prediction and evaluation including voting
+
 test-cpu-predict-and-eval-with-voting:
   stage: test
   script:
@@ -74,6 +83,7 @@ test-cpu-predict-and-eval-with-voting:
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
 
 
+# on-the-fly data loading
 
 test-cpu-data-on-the-fly:
   stage: test
@@ -92,12 +102,18 @@ test-cpu-cross-fold-train-augmentation-data-on-the-fly:
   script:
     - set -e
     - calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
-test-cpu-predict-and-eval-with-voting-extended-prediction-data:
+
+
+# extended prediction data and average prediction confidence computation
+
+test-cpu-predict-and-eval-with-voting-extended-prediction-data-avg-conf:
   stage: test
   script:
     - set -e
     - git clone --depth 1 https://github.com/Calamari-OCR/calamari_models.git || true
     - calamari-predict --extended_prediction_data --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
+    - python calamari_ocr/scripts/compute_average_prediction_confidence.py --pred calamari_ocr/test/data/uw3_50lines/test/*.json
     - calamari-predict --extended_prediction_data --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
+    - python calamari_ocr/scripts/compute_average_prediction_confidence.py --pred calamari_ocr/test/data/uw3_50lines/test/*.json

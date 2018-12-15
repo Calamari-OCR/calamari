@@ -19,7 +19,7 @@ class ExtendedPredictionDataSet(DataSet):
                 "id": text_bn,
             })
 
-    def _load_sample(self, sample):
+    def _load_sample(self, sample, text_only):
         gt_txt_path = sample['pred_path']
         if gt_txt_path is None:
             return None, None
