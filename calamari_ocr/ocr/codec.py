@@ -1,4 +1,22 @@
+from calamari_ocr.utils.multiprocessing import tqdm_wrapper
+from calamari_ocr.ocr.datasets import InputDataset
+
+from typing import List
+
+
 class Codec:
+    @staticmethod
+    def from_input_dataset(input_dataset: List[InputDataset], whitelist=set(), progress_bar=False):
+        chars = set(whitelist)
+        for ds in input_dataset:
+            if not ds:
+                continue
+            for text in tqdm_wrapper(ds.text_generator(), total=len(ds), desc="Computing codec", progress_bar=progress_bar):
+                for c in text:
+                    chars.add(c)
+
+        return Codec(sorted(list(chars)))
+
     @staticmethod
     def from_texts(texts, whitelist=set()):
         """Compute a codec from given text

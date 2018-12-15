@@ -6,6 +6,16 @@ import subprocess
 from tqdm import tqdm
 
 
+def tqdm_wrapper(iterable, _sentinel=None, total=1, desc="", progress_bar=False):
+    if _sentinel:
+        raise Exception("You must call tqdm_wrapper by using parameter names to specify additional parameters.")
+
+    if not progress_bar:
+        return iterable
+    else:
+        return tqdm(iterable, total=total, desc=desc)
+
+
 def parallel_map(f, d, _sentinel=None, desc="", processes=1, progress_bar=False, use_thread_pool=False, max_tasks_per_child=None):
     if _sentinel:
         raise Exception("You must call parallel_map by using parameter names to specify additional parameters besides the default map(func, data).")

@@ -73,6 +73,25 @@ test-cpu-predict-and-eval-with-voting:
     - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
 
+
+
+test-cpu-data-on-the-fly:
+  stage: test
+  script:
+    - set -e
+    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10
+
+test-cpu-validation-data-on-the-fly:
+  stage: test
+  script:
+    - set -e
+    - calamari-train --train_data_on_the_fly --validation_data_on_the_fly --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --early_stopping_frequency 5
+
+test-cpu-cross-fold-train-augmentation-data-on-the-fly:
+  stage: test
+  script:
+    - set -e
+    - calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
 test-cpu-predict-and-eval-with-voting-extended-prediction-data:
   stage: test
   script:

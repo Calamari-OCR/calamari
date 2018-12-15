@@ -153,23 +153,21 @@ class DataSet(ABC):
         if self.loaded:
             return self._samples
 
-        data = parallel_map(self._load_sample, self._samples, desc="Loading Dataset", processes=processes, progress_bar=progress_bar)
+        data = parallel_map(self.load_single_sample, self._samples, desc="Loading Dataset", processes=processes, progress_bar=progress_bar)
 
         invalid_samples = []
         for i, ((line, text), sample) in enumerate(zip(data, self._samples)):
             sample["image"] = line
             sample["text"] = text
-            if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN:
-                # skip invalid imanges (e. g. corrupted or empty files)
-                if line is None or (line.size == 0 or np.amax(line) == np.amin(line)):
-                    if self.skip_invalid:
-                        invalid_samples.append(i)
-                        if line is None:
-                            print("Empty data: Image at '{}' is None (possibly corrupted)".format(sample['id']))
-                        else:
-                            print("Empty data: Image at '{}' is empty".format(sample['id']))
+            if not self.is_sample_valid(sample, line, text):
+                if self.skip_invalid:
+                    invalid_samples.append(i)
+                    if line is None:
+                        print("Empty data: Image at '{}' is None (possibly corrupted)".format(sample['id']))
                     else:
-                        raise Exception("Empty data: Image at '{}' is empty".format(sample['id']))
+                        print("Empty data: Image at '{}' is empty".format(sample['id']))
+                else:
+                    raise Exception("Empty data: Image at '{}' is empty".format(sample['id']))
 
         if self.remove_invalid:
             # remove all invalid samples (reversed order!)
@@ -180,8 +178,19 @@ class DataSet(ABC):
 
         return self._samples
 
+    def is_sample_valid(self, sample, line, text):
+        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN:
+            # skip invalid imanges (e. g. corrupted or empty files)
+            if line is None or (line.size == 0 or np.amax(line) == np.amin(line)):
+                return False
+
+        return True
+
+    def load_single_sample(self, sample, text_only=False):
+        return self._load_sample(sample, text_only=text_only)
+
     @abstractmethod
-    def _load_sample(self, sample):
+    def _load_sample(self, sample, text_only):
         """ Load a single sample
 
         Parameters
@@ -195,7 +204,10 @@ class DataSet(ABC):
         text
 
         """
-        return np.zeros((0, 0)), None
+        if text_only:
+            return None, None
+        else:
+            return np.zeros((0, 0)), None
 
     def store_text(self, sentence, sample, output_dir, extension):
         output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
@@ -251,6 +263,9 @@ class RawDataSet(DataSet):
 
         self.loaded = True
 
-    def _load_sample(self, sample):
-        raise Exception("Raw dataset is always loaded")
+    def _load_sample(self, sample, text_only):
+        if text_only:
+            return None, sample['text']
+        else:
+            return sample['image'], sample['text']
 

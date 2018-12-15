@@ -68,7 +68,11 @@ class Evaluator:
         return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar)
 
     @staticmethod
-    def evaluate_single(args):
+    def evaluate_single_args(args):
+        return Evaluator.evaluate_single(gt=args[0], pred=args[1])
+
+    @staticmethod
+    def evaluate_single(_sentinel=None, gt='', pred=''):
         """ Evaluate a single pair of data
 
         Parameters
@@ -87,7 +91,9 @@ class Evaluator:
             confusions dictionary
 
         """
-        gt, pred = args
+        if _sentinel is not None:
+            raise Exception('Call this function by specifying gt and pred explicitly')
+
         confusion = {}
         total_sync_errs = 0
         errs, trues = edit_distance(gt, pred)
@@ -103,6 +109,44 @@ class Evaluator:
                     confusion[key] += 1
 
         return len(gt), errs, total_sync_errs, confusion
+
+    @staticmethod
+    def evaluate_single_list(eval_results, store_all=False):
+        # sum all errors up
+        all_eval = []
+        total_instances = 0
+        total_chars = 0
+        total_char_errs = 0
+        confusion = {}
+        total_sync_errs = 0
+        for chars, char_errs, sync_errs, conf in eval_results:
+            if store_all:
+                all_eval.append((chars, char_errs, sync_errs, conf))
+
+            total_instances += 1
+            total_chars += chars
+            total_char_errs += char_errs
+            total_sync_errs += sync_errs
+            for key, value in conf.items():
+                if key not in confusion:
+                    confusion[key] = value
+                else:
+                    confusion[key] += value
+
+        # Note the sync errs can be higher than the true edit distance because
+        # replacements are counted as 1
+        # e.g. ed(in ewych, ierg ch) = 5
+        #      sync(in ewych, ierg ch) = [{i: i}, {n: erg}, {ewy: }, {ch: ch}] = 6
+
+        return {
+            "single": all_eval,
+            "total_instances": total_instances,
+            "avg_ler": total_char_errs / total_chars,
+            "total_chars": total_chars,
+            "total_char_errs": total_char_errs,
+            "total_sync_errs": total_sync_errs,
+            "confusion": confusion,
+        }
 
     @staticmethod
     def evaluate(_sentinel=None, gt_data=None, pred_data=None, processes=1, progress_bar=False):
@@ -129,36 +173,7 @@ class Evaluator:
             raise Exception("Mismatch in gt and pred files count: {} vs {}".format(len(gt_data), len(pred_data)))
 
         # evaluate single lines
-        out = parallel_map(Evaluator.evaluate_single, list(zip(gt_data, pred_data)),
+        out = parallel_map(Evaluator.evaluate_single_args, list(zip(gt_data, pred_data)),
                            processes=processes, progress_bar=progress_bar, desc="Evaluation")
 
-        # sum all errors up
-        total_chars = 0
-        total_char_errs = 0
-        confusion = {}
-        total_sync_errs = 0
-        for chars, char_errs, sync_errs, conf in out:
-            total_chars += chars
-            total_char_errs += char_errs
-            total_sync_errs += sync_errs
-            for key, value in conf.items():
-                if key not in confusion:
-                    confusion[key] = value
-                else:
-                    confusion[key] += value
-
-        # Note the sync errs can be higher than the true edit distance because
-        # replacements are counted as 1
-        # e.g. ed(in ewych, ierg ch) = 5
-        #      sync(in ewych, ierg ch) = [{i: i}, {n: erg}, {ewy: }, {ch: ch}] = 6
-
-        return {
-            "single": out,
-            "avg_ler": total_char_errs / total_chars,
-            "total_chars": total_chars,
-            "total_char_errs": total_char_errs,
-            "total_sync_errs": total_sync_errs,
-            "confusion": confusion,
-        }
-
-
+        return Evaluator.evaluate_single_list(out, True)

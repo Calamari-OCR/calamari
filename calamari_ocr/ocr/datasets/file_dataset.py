@@ -9,7 +9,7 @@ from .dataset import DataSet, DataSetMode
 
 class FileDataSet(DataSet):
     def __init__(self, mode: DataSetMode,
-                 images=list(), texts=list(),
+                 images=None, texts=None,
                  skip_invalid=False, remove_invalid=True,
                  non_existing_as_empty=False):
         """ Create a dataset from a list of files
@@ -33,6 +33,9 @@ class FileDataSet(DataSet):
                          skip_invalid=skip_invalid,
                          remove_invalid=remove_invalid)
         self._non_existing_as_empty = non_existing_as_empty
+
+        images = [] if images is None else images
+        texts = [] if texts is None else texts
 
         if mode == DataSetMode.PREDICT:
             texts = [None] * len(images)
@@ -77,9 +80,12 @@ class FileDataSet(DataSet):
                 "id": img_bn if image else text_bn,
             })
 
-    def _load_sample(self, sample):
-        return self._load_line(sample["image_path"]), \
-               self._load_gt_txt(sample["text_path"])
+    def _load_sample(self, sample, text_only):
+        if text_only:
+            return None, self._load_gt_txt(sample["text_path"])
+        else:
+            return self._load_line(sample["image_path"]), \
+                   self._load_gt_txt(sample["text_path"])
 
     def _load_gt_txt(self, gt_txt_path):
         if gt_txt_path is None:
