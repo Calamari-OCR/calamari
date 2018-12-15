@@ -44,6 +44,12 @@ class Voter(ABC):
                 sv = SequenceVoter()
                 p.sentence = [c for c, _ in sv.process_text(sentences)]
 
+        p.avg_char_probability = 0
+        for pos in p.positions:
+            if len(pos.chars) > 0:
+                p.avg_char_probability += pos.chars[0].probability
+        p.avg_char_probability /= len(p.positions) if len(p.positions) > 0 else 1
+
         return p
 
     @abstractmethod
