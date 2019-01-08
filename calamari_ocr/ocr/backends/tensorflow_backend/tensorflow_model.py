@@ -46,6 +46,8 @@ class TensorflowModel(ModelInterface):
                 self.output_seq_len, self.time_major_logits, self.time_major_softmax, self.logits, self.softmax, self.decoded, self.sparse_decoded, self.scale_factor = \
                     self.create_network(self.inputs, self.input_seq_len, self.dropout_rate, reuse_variables=reuse_weights)
 
+            self.uninitialized_variable_initializer = None
+            self.all_variable_initializer = None
 
     def is_gpu_available(self):
         # create a dummy session and list available devices
@@ -347,12 +349,17 @@ class TensorflowModel(ModelInterface):
         super().prepare()
         self.reset_data()
         with self.graph.as_default():
+            # only create the initializers once, else the graph is growing...
+            if not self.uninitialized_variable_initializer:
+                self.uninitialized_variable_initializer = tf.variables_initializer(self.uninitialized_variables())
+            if not self.all_variable_initializer:
+                self.all_variable_initializer = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
+
+            # run the desired initializer
             if uninitialized_variables_only:
-                self.session.run(tf.variables_initializer(self.uninitialized_variables()))
+                self.session.run(self.uninitialized_variable_initializer)
             else:
-                init_op = tf.group(tf.global_variables_initializer(),
-                                   tf.local_variables_initializer())
-                self.session.run(init_op)
+                self.session.run(self.all_variable_initializer)
 
     def load_weights(self, filepath, restore_only_trainable=True):
         with self.graph.as_default() as g:
