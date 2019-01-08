@@ -163,7 +163,7 @@ class Predictor:
         """
 
         self.network.set_input_dataset(input_dataset, self.codec)
-        self.network.prepare(uninitialized_variables_only=True)
+        self.network.reset_data()
 
         if progress_bar:
             out = tqdm(self.network.prediction_step(), desc="Prediction", total=len(input_dataset))
