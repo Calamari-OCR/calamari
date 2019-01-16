@@ -1,5 +1,6 @@
 import argparse
 import os
+from pkg_resources import get_distribution
 
 from bidi.algorithm import get_base_level
 
@@ -14,6 +15,7 @@ from calamari_ocr.proto import VoterParams, Predictions
 
 
 def run(args):
+
     # check if loading a json file
     if len(args.files) == 1 and args.files[0].endswith("json"):
         import json
@@ -113,6 +115,9 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser()
+
+    _version = get_distribution('calamari_ocr').version
+    parser.add_argument('--version', action='version', version='%(prog)s v'+_version)
 
     parser.add_argument("--files", nargs="+", required=True, default=[],
                         help="List all image files that shall be processed")
