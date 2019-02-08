@@ -1,7 +1,7 @@
 import argparse
 import os
-from pkg_resources import get_distribution
 
+from calamari_ocr import __version__
 from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_file_name
 from calamari_ocr.ocr.datasets import create_dataset, DataSetType, DataSetMode
 from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
@@ -12,10 +12,9 @@ from calamari_ocr.ocr.text_processing import \
 from calamari_ocr.proto import CheckpointParams, DataPreprocessorParams, TextProcessorParams, \
     network_params_from_definition_string, NetworkParams
 
-def setup_train_args(parser, omit=[]):
 
-    _version = get_distribution('calamari_ocr').version
-    parser.add_argument('--version', action='version', version='%(prog)s v'+_version)
+def setup_train_args(parser, omit=[]):
+    parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
 
     if "files" not in omit:
         parser.add_argument("--files", nargs="+",

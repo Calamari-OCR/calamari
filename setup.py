@@ -1,8 +1,10 @@
 from setuptools import setup, find_packages
 
+from calamari_ocr import __version__
+
 setup(
     name='calamari_ocr',
-    version='0.2.3',
+    version=__version__,
     packages=find_packages(),
     license='GPL-v3.0',
     long_description=open("README.md").read(),

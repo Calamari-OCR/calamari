@@ -1,12 +1,11 @@
 import argparse
 import os
-from pkg_resources import get_distribution
 
 from bidi.algorithm import get_base_level
 
 from google.protobuf.json_format import MessageToJson
 
-
+from calamari_ocr import __version__
 from calamari_ocr.utils.glob import glob_all
 from calamari_ocr.ocr.datasets import DataSetType, create_dataset, DataSetMode
 from calamari_ocr.ocr import MultiPredictor
@@ -116,8 +115,7 @@ def run(args):
 def main():
     parser = argparse.ArgumentParser()
 
-    _version = get_distribution('calamari_ocr').version
-    parser.add_argument('--version', action='version', version='%(prog)s v'+_version)
+    parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
 
     parser.add_argument("--files", nargs="+", required=True, default=[],
                         help="List all image files that shall be processed")
