@@ -218,6 +218,7 @@ class Trainer:
             early_stopping_frequency = int(early_stopping_frequency * iters_per_epoch)  # relative to epochs
         else:
             early_stopping_frequency = int(early_stopping_frequency)
+        early_stopping_frequency = max(1, early_stopping_frequency)
 
         if checkpoint_frequency < 0:
             checkpoint_frequency = early_stopping_frequency

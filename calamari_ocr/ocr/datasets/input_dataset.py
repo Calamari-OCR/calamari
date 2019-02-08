@@ -58,7 +58,7 @@ class InputDataset:
         if self.data_augmentation_amount >= 1:
             return int(len(self) * self.data_augmentation_amount)
 
-        return 1 / (1 - self.data_augmentation_amount)
+        return int(1 / (1 - self.data_augmentation_amount) * len(self))
 
     def preload(self, processes=1, progress_bar=False):
         print("Preloading dataset type {} with size {}".format(self.dataset.mode, len(self)))
