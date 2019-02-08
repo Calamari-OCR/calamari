@@ -51,6 +51,15 @@ class InputDataset:
     def __len__(self):
         return len(self.dataset.samples())
 
+    def epoch_size(self):
+        if self.generate_only_non_augmented:
+            return len(self)
+
+        if self.data_augmentation_amount >= 1:
+            return int(len(self) * self.data_augmentation_amount)
+
+        return 1 / (1 - self.data_augmentation_amount)
+
     def preload(self, processes=1, progress_bar=False):
         print("Preloading dataset type {} with size {}".format(self.dataset.mode, len(self)))
         self.dataset.load_samples(processes=1, progress_bar=progress_bar)           # load data always with one thread
@@ -113,7 +122,7 @@ class InputDataset:
                 if self.text_processor:
                     text = self.text_processor.apply([text], 1, False)[0]
 
-                if self.data_augmenter and np.random.rand() <= data_aug_ratio:
+                if not self.generate_only_non_augmented and self.data_augmenter and np.random.rand() <= data_aug_ratio:
                     # data augmentation with given ratio
                     line, text = self.data_augmenter.augment_single(line, text)
 

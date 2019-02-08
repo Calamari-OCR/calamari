@@ -120,7 +120,7 @@ class Trainer:
         else:
             if len(self.codec_whitelist) == 0 or auto_compute_codec:
                 codec = Codec.from_input_dataset([self.dataset, self.validation_dataset],
-                                                 whitelist=self.codec_whitelist, progress_bar=True)
+                                                 whitelist=self.codec_whitelist, progress_bar=progress_bar)
             else:
                 codec = Codec.from_texts([], whitelist=self.codec_whitelist)
 
@@ -191,7 +191,7 @@ class Trainer:
     def _run_train(self, train_net, test_net, codec, train_start_time, progress_bar):
         checkpoint_params = self.checkpoint_params
         validation_dataset = test_net.input_dataset
-        iters_per_epoch = max(1, int(len(train_net.input_dataset) / checkpoint_params.batch_size))
+        iters_per_epoch = max(1, int(train_net.input_dataset.epoch_size() / checkpoint_params.batch_size))
 
         loss_stats = RunningStatistics(checkpoint_params.stats_size, checkpoint_params.loss_stats)
         ler_stats = RunningStatistics(checkpoint_params.stats_size, checkpoint_params.ler_stats)
