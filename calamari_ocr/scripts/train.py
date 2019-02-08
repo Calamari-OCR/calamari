@@ -13,7 +13,10 @@ from calamari_ocr.proto import CheckpointParams, DataPreprocessorParams, TextPro
     network_params_from_definition_string, NetworkParams
 
 
-def setup_train_args(parser, omit=[]):
+def setup_train_args(parser, omit=None):
+    if omit is None:
+        omit = []
+
     parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
 
     if "files" not in omit:

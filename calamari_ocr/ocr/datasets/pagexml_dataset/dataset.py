@@ -4,6 +4,7 @@ from PIL import Image
 from tqdm import tqdm
 from lxml import etree
 from skimage.draw import polygon
+from typing import List
 
 from calamari_ocr.ocr.datasets import DataSet, DataSetMode
 from calamari_ocr.utils import split_all_ext
@@ -14,11 +15,11 @@ class PageXMLDataset(DataSet):
     def __init__(self,
                  mode: DataSetMode,
                  files,
-                 xmlfiles=list(),
+                 xmlfiles: List[str] = None,
                  skip_invalid=False,
                  remove_invalid=True,
                  non_existing_as_empty=False,
-                 args=dict(),
+                 args: dict = None,
                  ):
 
         """ Create a dataset from a Path as String
@@ -38,13 +39,19 @@ class PageXMLDataset(DataSet):
             skip_invalid, remove_invalid,
         )
 
+        if xmlfiles is None:
+            xmlfiles = []
+
+        if args is None:
+            args = []
+
         self.text_index = args.get('text_index', 0)
 
         self._non_existing_as_empty = non_existing_as_empty
-        if not xmlfiles or len(xmlfiles) == 0:
+        if len(xmlfiles) == 0:
             xmlfiles = [split_all_ext(p)[0] + ".xml" for p in files]
 
-        if not files or len(files) == 0:
+        if len(files) == 0:
             files = [None] * len(xmlfiles)
 
         self.files = files

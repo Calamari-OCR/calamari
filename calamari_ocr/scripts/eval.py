@@ -151,7 +151,6 @@ def main():
     parser.add_argument("--pagexml_gt_text_index", default=0)
     parser.add_argument("--pagexml_pred_text_index", default=1)
 
-
     args = parser.parse_args()
 
     print("Resolving files")
@@ -217,6 +216,7 @@ def main():
                        "gts": gt_data_set.text_samples(),
                        "preds": pred_data_set.text_samples()
                    }])
+
 
 if __name__ == '__main__':
     main()

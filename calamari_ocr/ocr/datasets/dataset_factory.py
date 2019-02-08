@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 
 from .dataset import RawDataSet, DataSetMode
 from .file_dataset import FileDataSet
@@ -49,13 +50,22 @@ class DataSetType(Enum):
 
 def create_dataset(type: DataSetType,
                    mode: DataSetMode,
-                   images = list(),
-                   texts = list(),
+                   images: List[str] = None,
+                   texts: List[str] = None,
                    skip_invalid=False,
                    remove_invalid=True,
                    non_existing_as_empty=False,
-                   args = dict(),
+                   args: dict = None,
                    ):
+    if images is None:
+        images = []
+
+    if texts is None:
+        texts = []
+
+    if args is None:
+        args = dict()
+
     if DataSetType.files(type):
         if images:
             images.sort()
@@ -89,4 +99,4 @@ def create_dataset(type: DataSetType,
         from .extended_prediction_dataset import ExtendedPredictionDataSet
         return ExtendedPredictionDataSet(texts=texts)
     else:
-        raise Exception("Unsuppoted dataset type {}".format(type))
+        raise Exception("Unsupported dataset type {}".format(type))

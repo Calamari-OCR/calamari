@@ -6,8 +6,8 @@ from typing import List
 
 class Codec:
     @staticmethod
-    def from_input_dataset(input_dataset: List[InputDataset], whitelist=set(), progress_bar=False):
-        chars = set(whitelist)
+    def from_input_dataset(input_dataset: List[InputDataset], whitelist=None, progress_bar=False):
+        chars = set() if whitelist is None else set(whitelist)
         for ds in input_dataset:
             if not ds:
                 continue
@@ -18,7 +18,7 @@ class Codec:
         return Codec(sorted(list(chars)))
 
     @staticmethod
-    def from_texts(texts, whitelist=set()):
+    def from_texts(texts, whitelist=None):
         """Compute a codec from given text
 
         First computes a set of all available characters.
@@ -34,7 +34,7 @@ class Codec:
         -------
             Codec based on the set of characters + whitelist
         """
-        chars = set(whitelist)
+        chars = set() if whitelist is None else set(whitelist)
 
         for text in texts:
             for c in text:

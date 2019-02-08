@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from typing import List
 from PIL import Image
 from .reader import XMLReader
 from .writer import XMLWriter
@@ -13,8 +14,8 @@ class AbbyyDataSet(DataSet):
 
     def __init__(self,
                  mode: DataSetMode,
-                 files,
-                 xmlfiles=list(),
+                 files: List[str] = None,
+                 xmlfiles: List[str] = None,
                  skip_invalid=False,
                  remove_invalid=True,
                  binary=False,
@@ -37,11 +38,17 @@ class AbbyyDataSet(DataSet):
             mode,
             skip_invalid, remove_invalid)
 
+        if xmlfiles is None:
+            xmlfiles = []
+
+        if files is None:
+            files = []
+
         self._non_existing_as_empty = non_existing_as_empty
-        if not xmlfiles or len(xmlfiles) == 0:
+        if len(xmlfiles) == 0:
             xmlfiles = [split_all_ext(p)[0] + ".xml" for p in files]
 
-        if not files or len(files) == 0:
+        if len(files) == 0:
             files = [None] * len(xmlfiles)
 
         self.book = XMLReader(files, xmlfiles, skip_invalid, remove_invalid).read()

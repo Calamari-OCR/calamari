@@ -11,7 +11,6 @@ import bidi.algorithm as bidi
 from calamari_ocr.utils import RunningStatistics, checkpoint_path
 
 from calamari_ocr.ocr import Predictor, Evaluator
-from calamari_ocr.proto import CheckpointParams
 
 from google.protobuf import json_format
 
@@ -29,7 +28,7 @@ class Trainer:
                  n_augmentations=0,
                  weights=None,
                  codec=None,
-                 codec_whitelist=[],
+                 codec_whitelist=None,
                  auto_update_checkpoints=True,
                  preload_training=False,
                  preload_validation=False,
@@ -80,7 +79,7 @@ class Trainer:
         self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(checkpoint_params.model.data_preprocessor)
         self.weights = checkpoint_path(weights) if weights else None
         self.codec = codec
-        self.codec_whitelist = codec_whitelist
+        self.codec_whitelist = [] if codec_whitelist is None else codec_whitelist
         self.auto_update_checkpoints = auto_update_checkpoints
         self.dataset = InputDataset(dataset, self.data_preproc, self.txt_preproc, data_augmenter, n_augmentations)
         self.validation_dataset = InputDataset(validation_dataset, self.data_preproc, self.txt_preproc) if validation_dataset else None
@@ -98,6 +97,10 @@ class Trainer:
 
         Parameters
         ----------
+        auto_compute_codec : bool
+            Compute the codec automatically based on the provided ground truth.
+            Else provide a codec using a whitelist (faster).
+
         progress_bar : bool
             Show or hide any progress bar
 

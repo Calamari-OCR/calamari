@@ -5,11 +5,15 @@ from google.protobuf.json_format import Parse
 from calamari_ocr.proto import Predictions
 
 import codecs
+from typing import List
 
 
 class ExtendedPredictionDataSet(DataSet):
-    def __init__(self, texts=list()):
+    def __init__(self, texts: List[str] = None):
         super().__init__(DataSetMode.EVAL)
+
+        if texts is None:
+            texts = []
 
         for text in texts:
             text_bn, text_ext = split_all_ext(text)
