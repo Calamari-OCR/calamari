@@ -146,6 +146,8 @@ def setup_train_args(parser, omit=None):
                         help="Text regularization to apply.")
     parser.add_argument("--text_normalization", type=str, default="NFC",
                         help="Unicode text normalization to apply. Defaults to NFC")
+    parser.add_argument("--data_preprocessing", nargs="+", type=DataPreprocessorParams.Type.Value,
+                        choices=DataPreprocessorParams.Type.values(), default=[DataPreprocessorParams.DEFAULT_NORMALIZER])
 
 
 def run(args):
@@ -178,7 +180,10 @@ def run(args):
     print("Resolving input files")
     input_image_files = sorted(glob_all(args.files))
     if not args.text_files:
-        gt_txt_files = [split_all_ext(f)[0] + args.gt_extension for f in input_image_files]
+        if args.gt_extension:
+            gt_txt_files = [split_all_ext(f)[0] + args.gt_extension for f in input_image_files]
+        else:
+            gt_txt_files = [None] * len(input_image_files)
     else:
         gt_txt_files = sorted(glob_all(args.text_files))
         input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
@@ -243,9 +248,15 @@ def run(args):
     params.early_stopping_best_model_output_dir = \
         args.early_stopping_best_model_output_dir if args.early_stopping_best_model_output_dir else args.output_dir
 
-    params.model.data_preprocessor.type = DataPreprocessorParams.DEFAULT_NORMALIZER
-    params.model.data_preprocessor.line_height = args.line_height
-    params.model.data_preprocessor.pad = args.pad
+    if args.data_preprocessing is None or len(args.data_preprocessing) == 0:
+        args.data_preprocessing = [DataPreprocessorParams.DEFAULT_NORMALIZER]
+
+    params.model.data_preprocessor.type = DataPreprocessorParams.MULTI_NORMALIZER
+    for preproc in args.data_preprocessing:
+        pp = params.model.data_preprocessor.children.add()
+        pp.type = preproc
+        pp.line_height = args.line_height
+        pp.pad = args.pad
 
     # Text pre processing (reading)
     params.model.text_preprocessor.type = TextProcessorParams.MULTI_NORMALIZER
