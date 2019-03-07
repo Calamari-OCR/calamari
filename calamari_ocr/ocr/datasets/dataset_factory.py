@@ -5,6 +5,7 @@ from .dataset import RawDataSet, DataSetMode
 from .file_dataset import FileDataSet
 from .abbyy_dataset import AbbyyDataSet
 from .pagexml_dataset import PageXMLDataset
+from .hdf5_dataset import Hdf5DataSet
 from calamari_ocr.utils import keep_files_with_same_file_name
 
 
@@ -13,7 +14,8 @@ class DataSetType(Enum):
     FILE = 1
     ABBYY = 2
     PAGEXML = 3
-    EXTENDED_PREDICTION = 4
+    HDF5 = 4
+    EXTENDED_PREDICTION = 5
 
     def __str__(self):
         return self.name
@@ -33,6 +35,7 @@ class DataSetType(Enum):
             DataSetType.ABBYY: True,
             DataSetType.PAGEXML: True,
             DataSetType.EXTENDED_PREDICTION: True,
+            DataSetType.HDF5: False,
         }
 
         return files_meta[type]
@@ -45,6 +48,7 @@ class DataSetType(Enum):
             DataSetType.ABBYY: ".abbyy.xml",
             DataSetType.PAGEXML: ".xml",
             DataSetType.EXTENDED_PREDICTION: ".json",
+            DataSetType.HDF5: None,
         }[type]
 
 
@@ -95,6 +99,8 @@ def create_dataset(type: DataSetType,
                               remove_invalid=remove_invalid,
                               non_existing_as_empty=non_existing_as_empty,
                               args=args)
+    elif type == DataSetType.HDF5:
+        return Hdf5DataSet(mode, images, texts)
     elif type == DataSetType.EXTENDED_PREDICTION:
         from .extended_prediction_dataset import ExtendedPredictionDataSet
         return ExtendedPredictionDataSet(texts=texts)
