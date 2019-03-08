@@ -21,11 +21,14 @@ class Hdf5DataSet(DataSet):
         """
         super().__init__(mode)
 
+        images = images if images is not None else []
+        texts = texts if texts is not None else []
+
         self.prediction = None
         if mode == DataSetMode.PREDICT:
             self.prediction = {}
 
-        for filename in images + texts:
+        for filename in [i for i in images + texts if i is not None]:
             f = h5py.File(filename, 'r')
             codec = list(map(chr, f['codec']))
             if mode == DataSetMode.PREDICT:
