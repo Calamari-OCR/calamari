@@ -4,6 +4,38 @@ from calamari_ocr.ocr.text_processing import TextProcessor
 from calamari_ocr.ocr.augmentation import DataAugmenter
 from typing import Generator, Tuple, List, Any
 import numpy as np
+import multiprocessing
+
+
+def single_sample_processing(args):
+    d, sample = args
+    dataset = d['dataset']
+    skip_invalid_gt = d['skip_invalid_gt']
+    text_processor = d['text_processor']
+    data_processor = d['data_processor']
+    data_aug_ratio = d['data_aug_ratio']
+    data_augmenter = d['data_augmenter']
+    generate_only_non_augmented = d['generate_only_non_augmented']
+    line, text = dataset.load_single_sample(sample)
+
+    if not dataset.is_sample_valid(sample, line, text):
+        if not skip_invalid_gt:
+            print("ERROR: invalid sample {}".format(sample))
+            return None
+
+    if data_processor:
+        line, params = data_processor.apply([line], 1, False)[0]
+    else:
+        params = None
+
+    if text_processor:
+        text = text_processor.apply([text], 1, False)[0]
+
+    if not generate_only_non_augmented and data_augmenter and np.random.rand() <= data_aug_ratio:
+        # data augmentation with given ratio
+        line, text = data_augmenter.augment_single(line, text)
+
+    return line, text, params
 
 
 def RawInputDataset(
@@ -89,7 +121,7 @@ class InputDataset:
                     text = self.text_processor.apply([text], 1, False)[0]
                 yield text
 
-    def generator(self) -> Generator[Tuple[np.array, List[str], Any], None, None]:
+    def generator(self, processes=1) -> Generator[Tuple[np.array, List[str], Any], None, None]:
         if len(self.preloaded_datas) > 0:
             if self.dataset.mode == DataSetMode.TRAIN:
                 # train mode wont generate parameters
@@ -107,28 +139,18 @@ class InputDataset:
 
         else:
             data_aug_ratio = self.data_augmentation_amount if self.data_augmentation_amount < 1 else 1 - 1 / (self.data_augmentation_amount + 1)
-            for sample in self.dataset.samples():
-                line, text = self.dataset.load_single_sample(sample)
-                if not self.dataset.is_sample_valid(sample, line, text):
-                    if not self.skip_invalid_gt:
-                        print("ERROR: invalid sample {}".format(sample))
-                        continue
+            mgr = multiprocessing.Manager()
+            dict = mgr.dict()
+            dict['dataset'] = self.dataset
+            dict['skip_invalid_gt'] = self.skip_invalid_gt
+            dict['data_aug_ratio'] = data_aug_ratio
+            dict['text_processor'] = self.text_processor
+            dict['data_processor'] = self.data_processor
+            dict['data_augmenter'] = self.data_augmenter
+            dict['generate_only_non_augmented'] = self.generate_only_non_augmented
 
-                if self.data_processor:
-                    line, params = self.data_processor.apply([line], 1, False)[0]
-                else:
-                    params = None
-
-                if self.text_processor:
-                    text = self.text_processor.apply([text], 1, False)[0]
-
-                if not self.generate_only_non_augmented and self.data_augmenter and np.random.rand() <= data_aug_ratio:
-                    # data augmentation with given ratio
-                    line, text = self.data_augmenter.augment_single(line, text)
-
-                yield line, text, params
-
-
-
-
+            with multiprocessing.Pool(processes) as pool:
+                for result in pool.imap_unordered(single_sample_processing, zip([dict] * len(self.dataset), self.dataset.samples()), chunksize=128):
+                    if result is not None:
+                        yield result
 

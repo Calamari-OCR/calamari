@@ -161,6 +161,7 @@ class Trainer:
 
         backend = create_backend_from_proto(network_params,
                                             weights=self.weights,
+                                            processes=checkpoint_params.processes,
                                             )
         train_net = backend.create_net(self.dataset, codec, restore=None, weights=self.weights, graph_type="train", batch_size=checkpoint_params.batch_size)
         test_net = backend.create_net(self.validation_dataset, codec, restore=None, weights=self.weights, graph_type="test", batch_size=checkpoint_params.batch_size)

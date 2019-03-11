@@ -12,8 +12,8 @@ from calamari_ocr.proto import LayerParams, NetworkParams
 
 class TensorflowModel(ModelInterface):
     def __init__(self, network_proto, graph, session, graph_type="train", batch_size=1, reuse_weights=False,
-                 input_dataset=None, codec=None):
-        super().__init__(network_proto, graph_type, batch_size, input_dataset=input_dataset, codec=codec)
+                 input_dataset=None, codec=None, processes=1):
+        super().__init__(network_proto, graph_type, batch_size, input_dataset=input_dataset, codec=codec, processes=processes)
         self.graph = graph
         self.session = session
         self.gpu_available = any([d.device_type == "GPU" for d in self.session.list_devices()])
@@ -232,7 +232,7 @@ class TensorflowModel(ModelInterface):
         buffer_size = min(buffer_size, len(self.input_dataset) if self.input_dataset else 10)
         with tf.variable_scope("cnn_lstm", reuse=False):
             def gen():
-                for i, l, d in self.input_dataset.generator():
+                for i, l, d in self.input_dataset.generator(self.processes):
                     if self.graph_type == "train" and len(l) == 0:
                         continue
 

@@ -25,7 +25,7 @@ class NetworkPredictionResult:
 
 
 class ModelInterface(ABC):
-    def __init__(self, network_proto, graph_type, batch_size, input_dataset: InputDataset = None, codec: Codec = None):
+    def __init__(self, network_proto, graph_type, batch_size, input_dataset: InputDataset = None, codec: Codec = None, processes=1):
         """ Interface for a neural net
 
         Interface above the actual DNN implementation to abstract training and prediction.
@@ -44,6 +44,7 @@ class ModelInterface(ABC):
         self.batch_size = batch_size
         self.input_dataset = input_dataset
         self.codec = codec
+        self.processes = processes
 
         self.ctc_decoder = {
             NetworkParams.CTC_FUZZY: FuzzyCTCDecoder(),
