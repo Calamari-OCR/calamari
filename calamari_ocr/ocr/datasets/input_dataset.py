@@ -18,6 +18,7 @@ def single_sample_processing(args):
     generate_only_non_augmented = d['generate_only_non_augmented']
     line, text = dataset.load_single_sample(sample)
 
+
     if not dataset.is_sample_valid(sample, line, text):
         if not skip_invalid_gt:
             print("ERROR: invalid sample {}".format(sample))
@@ -95,10 +96,12 @@ class InputDataset:
     def preload(self, processes=1, progress_bar=False):
         print("Preloading dataset type {} with size {}".format(self.dataset.mode, len(self)))
         self.dataset.load_samples(processes=1, progress_bar=progress_bar)           # load data always with one thread
-        datas, txts = self.dataset.train_samples(skip_empty=self.skip_invalid_gt)
+        datas, texts = self.dataset.train_samples(skip_empty=self.skip_invalid_gt)
+        params = [None] * len(texts)
 
         if self.text_processor:
-            texts = self.text_processor.apply(txts, processes=processes, progress_bar=progress_bar)
+            texts = self.text_processor.apply(texts, processes=processes, progress_bar=progress_bar)
+
         if self.data_processor:
             datas, params = [list(a) for a in zip(*self.data_processor.apply(datas, processes=processes, progress_bar=progress_bar))]
 

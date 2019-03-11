@@ -70,6 +70,13 @@ class Hdf5DataSet(DataSet):
         else:
             return sample['image'], sample['text']
 
+    def __getstate__(self):
+        # pickle only relevant information to load samples, drop all irrelevant
+        return self.mode
+
+    def __setstate__(self, state):
+        self.mode = state
+
     def store_text(self, sentence, sample, output_dir, extension):
         codec = self.prediction[sample['filename']]['codec']
         self.prediction[sample['filename']]['transcripts'].append(list(map(codec.index, sentence)))

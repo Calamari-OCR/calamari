@@ -61,6 +61,7 @@ class Codec:
         charset : obj:`list` of :obj:`str`
             a list of characters
         """
+        charset = list(charset)
         if len(charset) == 0:
             raise Exception("Got empty charset")
 

@@ -260,3 +260,31 @@ message Predictions {
     repeated Prediction predictions = 1;
     string line_path = 2;
 }
+
+message LineGeneratorParameters {
+    repeated string fonts = 1;                             // which fonts to use
+    int32 font_size = 2;
+    float min_script_offset = 3;
+    float max_script_offset = 4;
+}
+
+message TextGeneratorParameters {
+    float word_length_mean = 1;
+    float word_length_sigma = 2;
+
+    repeated string charset = 3;
+    repeated string super_charset = 14;
+    repeated string sub_charset = 15;
+
+    float number_of_words_mean = 4;
+    float number_of_words_sigma = 5;
+    string word_separator = 6;
+    float sub_script_p = 7;
+    float super_script_p = 8;
+    float bold_p = 9;
+    float italic_p = 10;
+
+    float letter_spacing_p = 11;
+    float letter_spacing_mean = 12;
+    float letter_spacing_sigma = 13;
+}

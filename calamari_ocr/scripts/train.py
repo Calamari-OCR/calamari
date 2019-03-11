@@ -10,7 +10,9 @@ from calamari_ocr.ocr.text_processing import \
     default_text_normalizer_params, default_text_regularizer_params
 
 from calamari_ocr.proto import CheckpointParams, DataPreprocessorParams, TextProcessorParams, \
-    network_params_from_definition_string, NetworkParams
+    network_params_from_definition_string, NetworkParams, TextGeneratorParameters, LineGeneratorParameters
+
+from google.protobuf import json_format
 
 
 def setup_train_args(parser, omit=None):
@@ -20,7 +22,7 @@ def setup_train_args(parser, omit=None):
     parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
 
     if "files" not in omit:
-        parser.add_argument("--files", nargs="+",
+        parser.add_argument("--files", nargs="+", default=[],
                             help="List all image files that shall be processed. Ground truth fils with the same "
                                  "base name but with '.gt.txt' as extension are required at the same location")
         parser.add_argument("--text_files", nargs="+", default=None,
@@ -149,6 +151,9 @@ def setup_train_args(parser, omit=None):
     parser.add_argument("--data_preprocessing", nargs="+", type=DataPreprocessorParams.Type.Value,
                         choices=DataPreprocessorParams.Type.values(), default=[DataPreprocessorParams.DEFAULT_NORMALIZER])
 
+    # text/line generation params (loaded from json files)
+    parser.add_argument("--text_generator_params", type=str, default=None)
+    parser.add_argument("--line_generator_params", type=str, default=None)
 
 def run(args):
 
@@ -176,6 +181,23 @@ def run(args):
     if args.validation_extension is None:
         args.validation_extension = DataSetType.gt_extension(args.validation_dataset)
 
+    if args.text_generator_params is not None:
+        with open(args.text_generator_params, 'r') as f:
+            args.text_generator_params = json_format.Parse(f.read(), TextGeneratorParameters())
+    else:
+        args.text_generator_params = TextGeneratorParameters()
+
+    if args.line_generator_params is not None:
+        with open(args.line_generator_params, 'r') as f:
+            args.line_generator_params = json_format.Parse(f.read(), LineGeneratorParameters())
+    else:
+        args.line_generator_params = LineGeneratorParameters()
+
+    dataset_args = {
+        'line_generator_params': args.line_generator_params,
+        'text_generator_params': args.text_generator_params,
+    }
+
     # Training dataset
     print("Resolving input files")
     input_image_files = sorted(glob_all(args.files))
@@ -199,7 +221,8 @@ def run(args):
         DataSetMode.TRAIN,
         images=input_image_files,
         texts=gt_txt_files,
-        skip_invalid=not args.no_skip_invalid_gt
+        skip_invalid=not args.no_skip_invalid_gt,
+        args=dataset_args,
     )
     print("Found {} files in the dataset".format(len(dataset)))
 
@@ -224,7 +247,9 @@ def run(args):
             DataSetMode.TRAIN,
             images=validation_image_files,
             texts=val_txt_files,
-            skip_invalid=not args.no_skip_invalid_gt)
+            skip_invalid=not args.no_skip_invalid_gt,
+            args=dataset_args,
+        )
         print("Found {} files in the validation dataset".format(len(validation_dataset)))
     else:
         validation_dataset = None

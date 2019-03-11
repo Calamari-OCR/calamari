@@ -57,6 +57,7 @@ class SimpleDataAugmenter(DataAugmenter):
         m = data.max()
         data = data / (1 if m == 0 else m)
         data = ocrodeg.random_pad(data, (0, data.shape[1] * 2))
+        # data = ocrodeg.transform_image(data, **ocrodeg.random_transform(rotation=(-0.1, 0.1), translation=(-0.1, 0.1)))
         for sigma in [2, 5]:
             noise = ocrodeg.bounded_gaussian_noise(data.shape, sigma, 3.0)
             data = ocrodeg.distort_with_noise(data, noise)

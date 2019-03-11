@@ -16,6 +16,7 @@ class DataSetType(Enum):
     PAGEXML = 3
     HDF5 = 4
     EXTENDED_PREDICTION = 5
+    GENERATED_LINE = 6
 
     def __str__(self):
         return self.name
@@ -36,6 +37,7 @@ class DataSetType(Enum):
             DataSetType.PAGEXML: True,
             DataSetType.EXTENDED_PREDICTION: True,
             DataSetType.HDF5: False,
+            DataSetType.GENERATED_LINE: False,
         }
 
         return files_meta[type]
@@ -49,6 +51,7 @@ class DataSetType(Enum):
             DataSetType.PAGEXML: ".xml",
             DataSetType.EXTENDED_PREDICTION: ".json",
             DataSetType.HDF5: None,
+            DataSetType.GENERATED_LINE: None,
         }[type]
 
 
@@ -104,5 +107,8 @@ def create_dataset(type: DataSetType,
     elif type == DataSetType.EXTENDED_PREDICTION:
         from .extended_prediction_dataset import ExtendedPredictionDataSet
         return ExtendedPredictionDataSet(texts=texts)
+    elif type == DataSetType.GENERATED_LINE:
+        from .generated_line_dataset import GeneratedLineDataset
+        return GeneratedLineDataset(mode, args=args)
     else:
         raise Exception("Unsupported dataset type {}".format(type))

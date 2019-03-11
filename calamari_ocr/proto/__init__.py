@@ -10,6 +10,8 @@ from calamari_ocr.proto.calamari_pb2 import \
     Prediction, \
     Predictions, \
     PredictionCharacter, \
-    PredictionPosition
+    PredictionPosition, \
+    LineGeneratorParameters, \
+    TextGeneratorParameters
 
 from calamari_ocr.proto.converters import default_network_params, network_params_from_definition_string
