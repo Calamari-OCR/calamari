@@ -14,8 +14,8 @@ class TensorflowBackend(BackendInterface):
         self.graph = tf.Graph()
         self.session = tf.Session(graph=self.graph,
                                   config=tf.ConfigProto(
-                                      intra_op_parallelism_threads=processes if processes >= 0 else network_proto.backend.num_intra_threads,
-                                      inter_op_parallelism_threads=processes if processes >= 0 else network_proto.backend.num_inter_threads,
+                                      intra_op_parallelism_threads=network_proto.backend.num_intra_threads,
+                                      inter_op_parallelism_threads=network_proto.backend.num_inter_threads,
                                   ))
         self.restore = restore
         self.weights = weights
