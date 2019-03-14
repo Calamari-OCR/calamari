@@ -1,0 +1,6 @@
+{
+	"font_size": 48,
+	"min_script_offset": -0.5,
+	"max_script_offset": 0.5,
+	"fonts": ["Junicode.ttf", "DejaVuSerif.ttf"]
+}

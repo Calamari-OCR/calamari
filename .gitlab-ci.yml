@@ -117,3 +117,41 @@ test-cpu-predict-and-eval-with-voting-extended-prediction-data-avg-conf:
     - calamari-predict --extended_prediction_data --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
     - python calamari_ocr/scripts/compute_average_prediction_confidence.py --pred calamari_ocr/test/data/uw3_50lines/test/*.json
+
+
+# train on generated lines
+
+test-cpu-train-on-generated-lines:
+  stage: test
+  script:
+    - set -e
+    - >
+      calamari-train
+      --dataset GENERATED_LINE
+      --text_generator_params calamari_ocr/test/data/line_generation_config/text_gen_params.json
+      --line_generator_params calamari_ocr/test/data/line_generation_config/line_gen_params.json
+      --whitelist_files calamari_ocr/test/data/line_generation_config/whitelist.txt
+      --no_auto_compute_codec --checkpoint_frequency 5 --display 1.01 --train_data_on_the_fly
+      --num_threads 4 --batch_size 4 --max_iter 10
+
+
+# PAGE-XML
+
+test-cpu-train-on-page-xml:
+  stage: test
+  script:
+    - set -e
+    - >
+      calamari-train
+      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
+      --validation calamari_ocr/test/data/avicanon_pagexml/008.nrm.png --validation_dataset PAGEXML
+      --dataset PAGEXML --display 1.01 --num_threads 1 --early_stopping_frequency 5 --max_iter 10
+
+test-cpu-predict-and-eval-page-xml:
+  stage: test
+  script:
+    - set -e
+    - git clone --depth 1 https://github.com/Calamari-OCR/calamari_models.git || true
+    - calamari-predict --files calamari_ocr/test/data/avicanon_pagexml/009.nrm.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset PAGEXML
+    - calamari-eval --gt calamari_ocr/test/data/avicanon_pagexml/009.xml --dataset PAGEXML --pred_ext .pred.xml
+

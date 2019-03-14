@@ -25,14 +25,18 @@ class LineGeneratorProcess(Process):
         except ValueError as e:
             print(e)
         except Full as e:
+            # Full queue
             return
-            # print("Line generation {} full; {}".format(self.name, self.output_queue.qsize()))
 
     def run(self):
         random.seed()
         np.random.seed()
-        while True:
-            self._handle()
+        try:
+            while True:
+                self._handle()
+        except (EOFError, BrokenPipeError, ConnectionResetError):
+            # queue closed, stop the process
+            return
 
 
 class GeneratedLineDataset(DataSet):

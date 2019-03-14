@@ -5,6 +5,9 @@
 *ckpt*
 checkpoint
 
+# predictions
+*.pred.*
+
 
 # Operating system
 # ================
