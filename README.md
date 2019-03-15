@@ -4,6 +4,8 @@
 OCR Engine based on OCRopy and Kraken using python3.
 It is designed to both be easy to use from the command line but also be modular to be integrated and customized from other python scripts.
 
+![preview](ressources/preview.png)
+
 ## Notes
 Older versions required to update old models manually.
 The current version of Calamari automated this process.
