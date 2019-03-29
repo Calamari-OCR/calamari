@@ -50,7 +50,7 @@ def main():
     params.pad = args.pad
     params.pad_value = args.pad_value
     params.no_invert = not args.invert
-    params.no_transpos = not args.transpose
+    params.no_transpose = not args.transpose
 
     data_proc = MultiDataProcessor([
         DataRangeNormalizer(),
