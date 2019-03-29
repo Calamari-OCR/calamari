@@ -199,7 +199,8 @@ class MultiPredictor:
 
         self.processes = processes
         self.checkpoints = checkpoints
-        self.predictors = [Predictor(cp, batch_size=batch_size, processes=processes) for cp in checkpoints]
+        self.predictors = [Predictor(cp, batch_size=batch_size, text_postproc=text_postproc,
+                                     data_preproc=data_preproc, processes=processes) for cp in checkpoints]
         self.batch_size = batch_size
 
         # check if all checkpoints share the same preprocessor
