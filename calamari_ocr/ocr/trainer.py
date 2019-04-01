@@ -29,6 +29,7 @@ class Trainer:
                  weights=None,
                  codec=None,
                  codec_whitelist=None,
+                 keep_loaded_codec=False,
                  auto_update_checkpoints=True,
                  preload_training=False,
                  preload_validation=False,
@@ -72,6 +73,8 @@ class Trainer:
             If provided the Codec will not be computed automaticall based on the GT, but instead `codec` will be used
         codec_whitelist : obj:`list` of :obj:`str`
             List of characters to be kept when the loaded `weights` have a different codec than the new one.
+        keep_loaded_codec : bool
+            Include all characters of the codec of the pretrained model in the new codec
         """
         self.checkpoint_params = checkpoint_params
         self.txt_preproc = txt_preproc if txt_preproc else text_processor_from_proto(checkpoint_params.model.text_preprocessor, "pre")
@@ -80,6 +83,7 @@ class Trainer:
         self.weights = checkpoint_path(weights) if weights else None
         self.codec = codec
         self.codec_whitelist = [] if codec_whitelist is None else codec_whitelist
+        self.keep_loaded_codec = keep_loaded_codec
         self.auto_update_checkpoints = auto_update_checkpoints
         self.dataset = InputDataset(dataset, self.data_preproc, self.txt_preproc, data_augmenter, n_augmentations)
         self.validation_dataset = InputDataset(validation_dataset, self.data_preproc, self.txt_preproc) if validation_dataset else None
@@ -145,8 +149,9 @@ class Trainer:
 
             # create codec of the same type
             restore_codec = codec.__class__(restore_model_params.codec.charset)
+
             # the codec changes as tuple (deletions/insertions), and the new codec is the changed old one
-            codec_changes = restore_codec.align(codec)
+            codec_changes = restore_codec.align(codec, shrink=not self.keep_loaded_codec)
             codec = restore_codec
             print("Codec changes: {} deletions, {} appends".format(len(codec_changes[0]), len(codec_changes[1])))
             # The actual weight/bias matrix will be changed after loading the old weights

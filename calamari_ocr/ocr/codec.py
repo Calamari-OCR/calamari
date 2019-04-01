@@ -196,7 +196,7 @@ class Codec:
 
         return deleted_positions
 
-    def align(self, codec):
+    def align(self, codec, shrink=True, extend=True):
         """ Change the codec to the new `codec` but keep the positions of chars that are in both codecs.
 
         This function is used to compute a codec change: deleted labels, added characters.
@@ -205,6 +205,10 @@ class Codec:
         ----------
         codec : list of str
             Characters of the new codec
+        shrink : bool
+            Shrink the codec by unavailable chars
+        extend : bool
+            Extend new chars to the codec
         Returns
         -------
         list of int
@@ -216,8 +220,8 @@ class Codec:
             shrink
             extend
         """
-        deleted_positions = self.shrink(codec)
-        added_positions = self.extend(codec)
+        deleted_positions = self.shrink(codec) if shrink else []
+        added_positions = self.extend(codec) if extend else []
         return deleted_positions, added_positions
 
 

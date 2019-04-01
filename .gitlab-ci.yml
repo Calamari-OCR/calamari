@@ -89,6 +89,22 @@ test-cpu-predict-and-eval-with-voting:
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt --n_worst_lines 10 --xlsx_output text.xlsx
 
 
+# loading pretrained model
+
+test-cpu-pretrained:
+  stage: test
+  script:
+    - set -e
+    - git clone --depth 1 https://github.com/Calamari-OCR/calamari_models.git || true
+    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10
+
+test-cpu-pretrained-keep-loaded-codec:
+  stage: test
+  script:
+    - set -e
+    - git clone --depth 1 https://github.com/Calamari-OCR/calamari_models.git || true
+    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --keep_loaded_codec
+
 # on-the-fly data loading
 
 test-cpu-data-on-the-fly:

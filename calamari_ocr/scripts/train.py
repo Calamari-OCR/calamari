@@ -91,6 +91,8 @@ def setup_train_args(parser, omit=None):
                         help="Whitelist of characters that may not be removed on restoring a model. "
                              "For large datasets you can use this to skip the automatic codec computation "
                              "(see --no_auto_compute_codec)")
+    parser.add_argument("--keep_loaded_codec", action='store_true', default=False,
+                        help="Fully include the codec of the loaded model to the new codec")
 
     # clipping
     parser.add_argument("--gradient_clipping_mode", type=str, default="AUTO",
@@ -346,6 +348,7 @@ def run(args):
                       n_augmentations=args.n_augmentations,
                       weights=args.weights,
                       codec_whitelist=whitelist,
+                      keep_loaded_codec=args.keep_loaded_codec,
                       preload_training=not args.train_data_on_the_fly,
                       preload_validation=not args.validation_data_on_the_fly,
                       )
