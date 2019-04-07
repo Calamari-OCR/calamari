@@ -1,7 +1,25 @@
-from calamari_ocr.ocr.datasets import DataSet, DataSetMode
+from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
 import numpy as np
 import h5py
 from calamari_ocr.utils import split_all_ext
+
+
+class Hdf5DataSetGenerator(DatasetGenerator):
+    def __init__(self, output_queue, mode: DataSetMode, hdf5_files, text_only, epochs):
+        super().__init__(output_queue, mode, hdf5_files, text_only, epochs)
+
+    def _load_sample(self, filename, text_only):
+        f = h5py.File(filename, 'r')
+        codec = list(map(chr, f['codec']))
+        if text_only:
+            for i, text in enumerate(f['transcripts']):
+                text = "".join([codec[c] for c in text])
+                yield None, text
+        else:
+            for i, (image, shape, text) in enumerate(zip(f['images'], f['images_dims'], f['transcripts'])):
+                image = np.reshape(image, shape)
+                text = "".join([codec[c] for c in text])
+                yield image, text
 
 
 class Hdf5DataSet(DataSet):
@@ -23,59 +41,26 @@ class Hdf5DataSet(DataSet):
 
         images = images if images is not None else []
         texts = texts if texts is not None else []
+        self.filenames = [i for i in images + texts if i is not None]
 
         self.prediction = None
         if mode == DataSetMode.PREDICT:
             self.prediction = {}
 
-        for filename in [i for i in images + texts if i is not None]:
+        for filename in self.filenames:
             f = h5py.File(filename, 'r')
             codec = list(map(chr, f['codec']))
             if mode == DataSetMode.PREDICT:
                 self.prediction[filename] = {'transcripts': [], 'codec': codec}
 
-            if mode == DataSetMode.TRAIN:
-                for i, (image, shape, text) in enumerate(zip(f['images'], f['images_dims'], f['transcripts'])):
-                    image = np.reshape(image, shape)
-                    text = "".join([codec[c] for c in text])
-                    self.add_sample({
-                        "image": image,
-                        "text": text,
-                        "id": str(i),
-                        "filename": filename,
-                    })
-            elif mode == DataSetMode.PREDICT:
-                for i, (image, shape) in enumerate(zip(f['images'], f['images_dims'])):
-                    self.add_sample({
-                        "image": np.reshape(image, shape),
-                        "text": None,
-                        "id": str(i),
-                        "filename": filename,
-                    })
-            elif mode == DataSetMode.EVAL:
-                for i, text in enumerate(f['transcripts']):
-                    text = "".join([codec[c] for c in text])
-                    self.add_sample({
-                        "image": None,
-                        "text": text,
-                        "id": str(i),
-                        "filename": filename,
-                    })
-
-        self.loaded = True
-
-    def _load_sample(self, sample, text_only):
-        if text_only:
-            return None, sample['text']
-        else:
-            return sample['image'], sample['text']
-
-    def __getstate__(self):
-        # pickle only relevant information to load samples, drop all irrelevant
-        return self.mode
-
-    def __setstate__(self, state):
-        self.mode = state
+            # create empty samples for id and correct dataset size
+            for i, text in enumerate(f['transcripts']):
+                self.add_sample({
+                    "image": None,
+                    "text": "",
+                    "id": str(i),
+                    "filename": filename,
+                })
 
     def store_text(self, sentence, sample, output_dir, extension):
         codec = self.prediction[sample['filename']]['codec']
@@ -91,3 +76,6 @@ class Hdf5DataSet(DataSet):
                 file.create_dataset('transcripts', (len(texts),), dtype=dt)
                 file['transcripts'][...] = texts
                 file.create_dataset('codec', data=list(map(ord, codec)))
+
+    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
+        return Hdf5DataSetGenerator(output_queue, self.mode, self.filenames, text_only, epochs)

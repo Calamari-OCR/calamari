@@ -1,16 +1,17 @@
-from calamari_ocr.ocr.datasets.dataset import DataSet, DataSetMode
+from calamari_ocr.ocr.datasets.dataset import DataSet, DataSetMode, DatasetGenerator
 from calamari_ocr.proto import TextGeneratorParameters, LineGeneratorParameters
 from calamari_ocr.ocr.line_generator import LineGenerator
 from calamari_ocr.ocr.text_generation.text_generator import TextGenerator
 from multiprocessing import Process, Queue, Manager
 import numpy as np
 import random
+from typing import Generator, Tuple
 from queue import Empty, Full
 
 
 class LineGeneratorProcess(Process):
     def __init__(self, output_queue: Queue, text_generator, line_generator, text_only, name=-1):
-        super().__init__()
+        super().__init__(daemon=True)
         self.text_generator = TextGenerator(text_generator)
         self.line_generator = LineGenerator(line_generator)
         self.output_queue = output_queue
@@ -21,12 +22,9 @@ class LineGeneratorProcess(Process):
         try:
             words = self.text_generator.generate()
             image = self.line_generator.draw(words) if not self.text_only else None
-            self.output_queue.put((image, TextGenerator.words_to_unformatted_text(words)), block=True, timeout=1)
+            self.output_queue.put((image, TextGenerator.words_to_unformatted_text(words)))
         except ValueError as e:
-            print(e)
-        except Full as e:
-            # Full queue
-            return
+            print("Exception during line generation:", e)
 
     def run(self):
         random.seed()
@@ -37,6 +35,17 @@ class LineGeneratorProcess(Process):
         except (EOFError, BrokenPipeError, ConnectionResetError):
             # queue closed, stop the process
             return
+
+
+class GeneratedLineDatasetGenerator(DatasetGenerator):
+    def __init__(self, output_queue, mode: DataSetMode, samples, text_only, epochs,
+                 input_queue,
+                 ):
+        super().__init__(output_queue, mode, samples, text_only, epochs)
+        self.input_queue = input_queue
+
+    def _load_sample(self, sample, text_only) -> Generator[Tuple[np.array, str], None, None]:
+        yield self.input_queue.get()
 
 
 class GeneratedLineDataset(DataSet):
@@ -52,12 +61,12 @@ class GeneratedLineDataset(DataSet):
         super().__init__(mode)
 
         self.loaded = False
-        self.lines_per_epoch = 100000
+        self.lines_per_epoch = 10000
         self._samples = [{'id': '{}'.format(i)} for i in range(self.lines_per_epoch)]
         self.text_generator_params = args.get('text_generator_params', TextGeneratorParameters())
         self.line_generator_params = args.get('line_generator_params', LineGeneratorParameters())
         self.manager = Manager()
-        self.data_queue = self.manager.Queue(100)
+        self.data_queue = self.manager.Queue(50)
         self.data_generators = [
             LineGeneratorProcess(
                 self.data_queue,
@@ -70,15 +79,11 @@ class GeneratedLineDataset(DataSet):
         for d in self.data_generators:
             d.start()
 
-    def __getstate__(self):
-        # pickle only relevant information to load samples, drop all irrelevant
-        return self.data_queue, self.text_generator_params, self.line_generator_params, self.mode
-
-    def __setstate__(self, state):
-        self.data_queue, self.text_generator_params, self.line_generator_params, self.mode = state
-
     def _load_sample(self, sample, text_only):
         return self.data_queue.get()
+
+    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
+        return GeneratedLineDatasetGenerator(output_queue, self.mode, self.samples(), text_only, epochs, self.data_queue)
 
 
 if __name__ == "__main__":

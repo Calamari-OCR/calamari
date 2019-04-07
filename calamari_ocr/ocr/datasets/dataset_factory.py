@@ -50,7 +50,7 @@ class DataSetType(Enum):
             DataSetType.ABBYY: ".abbyy.xml",
             DataSetType.PAGEXML: ".xml",
             DataSetType.EXTENDED_PREDICTION: ".json",
-            DataSetType.HDF5: None,
+            DataSetType.HDF5: ".h5",
             DataSetType.GENERATED_LINE: None,
         }[type]
 

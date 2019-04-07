@@ -6,8 +6,124 @@ from lxml import etree
 from skimage.draw import polygon
 from typing import List
 
-from calamari_ocr.ocr.datasets import DataSet, DataSetMode
+from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
 from calamari_ocr.utils import split_all_ext
+
+
+class PageXMLDatasetGenerator(DatasetGenerator):
+    def __init__(self, output_queue, mode: DataSetMode, images, xml_files, text_only, epochs, non_existing_as_empty, text_index, skip_invalid):
+        super().__init__(output_queue, mode, zip(images, xml_files), text_only, epochs)
+        self._non_existing_as_empty = non_existing_as_empty
+        self.text_index = text_index
+        self.skip_invalid = skip_invalid
+
+    def _load_sample(self, sample, text_only):
+        loader = PageXMLDatasetLoader(self.mode, self._non_existing_as_empty, self.text_index, self.skip_invalid)
+        image_path, xml_path = sample
+
+        img = None
+        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN:
+            img = np.array(Image.open(image_path))
+
+        for sample in loader.load(image_path, xml_path):
+            text = sample["text"]
+
+            if not text_only and (self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN):
+                ly, lx = img.shape
+
+                line_img = PageXMLDataset.cutout(img, sample['coords'], lx / sample['img_width'])
+
+                # add padding as required from normal files
+                # img = np.pad(img, ((3, 3), (0, 0)), mode='constant', constant_values=img.max())
+            else:
+                line_img = None
+
+            yield line_img, text
+
+
+class PageXMLDatasetLoader:
+    def __init__(self, mode: DataSetMode, non_existing_as_empty: bool, text_index: int, skip_invalid: bool=True):
+        self.mode = mode
+        self._non_existing_as_empty = non_existing_as_empty
+        self.root = None
+        self.text_index = text_index
+        self.skip_invalid = skip_invalid
+
+    def load(self, img, xml, skip_commented=True):
+        if not os.path.exists(xml):
+            if self._non_existing_as_empty:
+                return None
+            else:
+                raise Exception("File '{}' does not exist.".format(xml))
+
+        root = etree.parse(xml).getroot()
+        self.root = root
+
+        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.EVAL:
+            return self._samples_gt_from_book(root, img, skip_commented)
+        else:
+            return self._samples_from_book(root, img)
+
+
+    def _samples_gt_from_book(self, root, img,
+                              skipcommented=True):
+        ns = {"ns": root.nsmap[None]}
+        imgfile = root.xpath('//ns:Page',
+                             namespaces=ns)[0].attrib["imageFilename"]
+        if self.mode == DataSetMode.TRAIN and not img.endswith(imgfile):
+            raise Exception("Mapping of image file to xml file invalid: {} vs {}".format(img, imgfile))
+
+        img_w = int(root.xpath('//ns:Page',
+                               namespaces=ns)[0].attrib["imageWidth"])
+        tequivs = root.xpath('//ns:TextEquiv[@index="{}"]'.format(self.text_index),
+                             namespaces=ns)
+        for l in tequivs:
+            parat = l.getparent().attrib
+            if skipcommented and "comments" in parat and parat["comments"]:
+                continue
+
+            text = l.xpath('./ns:Unicode', namespaces=ns).pop().text
+            if not text:
+                if self.skip_invalid:
+                    continue
+                elif self._non_existing_as_empty:
+                    text = ""
+                else:
+                    raise Exception("Empty text field")
+
+            yield {
+                'ns': ns,
+                "rtype": l.xpath('../../@type', namespaces=ns).pop(),
+                'xml_element': l,
+                "imgfile": img,
+                "id": l.xpath('../@id', namespaces=ns).pop(),
+                "text": text,
+                "coords": l.xpath('../ns:Coords/@points',
+                                  namespaces=ns).pop(),
+                "img_width": img_w
+            }
+
+    def _samples_from_book(self, root, img):
+        ns = {"ns": root.nsmap[None]}
+        imgfile = root.xpath('//ns:Page',
+                             namespaces=ns)[0].attrib["imageFilename"]
+        if not img.endswith(imgfile):
+            raise Exception("Mapping of image file to xml file invalid: {} vs {}".format(img, imgfile))
+
+        img_w = int(root.xpath('//ns:Page',
+                               namespaces=ns)[0].attrib["imageWidth"])
+        for l in root.xpath('//ns:TextLine', namespaces=ns):
+            yield {
+                'ns': ns,
+                "rtype": l.xpath('../@type', namespaces=ns).pop(),
+                'xml_element': l,
+                "imgfile": img,
+                "id": l.xpath('./@id', namespaces=ns).pop(),
+                "coords": l.xpath('./ns:Coords/@points',
+                                  namespaces=ns).pop(),
+                "img_width": img_w,
+                "text": None,
+            }
 
 
 class PageXMLDataset(DataSet):
@@ -56,8 +172,13 @@ class PageXMLDataset(DataSet):
 
         self.files = files
         self.xmlfiles = xmlfiles
+        self.pages = []
+        for img, xml in zip(files, xmlfiles):
+            loader = PageXMLDatasetLoader(self.mode, self._non_existing_as_empty, self.text_index, self.skip_invalid)
+            for sample in loader.load(img, xml):
+                self.add_sample(sample)
 
-        self.pages = [self.read_page_xml(img, xml) for img, xml in zip(files, xmlfiles)]
+            self.pages.append(loader.root)
 
     @staticmethod
     def cutout(pageimg, coordstring, scale=1, rect=False):
@@ -115,78 +236,5 @@ class PageXMLDataset(DataSet):
             with open(split_all_ext(xml)[0] + ".pred.xml", 'w') as f:
                 f.write(etree.tounicode(page.getroottree()))
 
-    def read_page_xml(self, img, xml, skipcommented=True):
-        if not os.path.exists(xml):
-            if self._non_existing_as_empty:
-                return None
-            else:
-                raise Exception("File '{}' does not exist.".format(xml))
-
-        root = etree.parse(xml).getroot()
-
-        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.EVAL:
-            self._samples_gt_from_book(root, img, skipcommented)
-        else:
-            self._samples_from_book(root, img)
-
-        return root
-
-    def _samples_gt_from_book(self, root, img,
-                              skipcommented=True):
-        ns = {"ns": root.nsmap[None]}
-        imgfile = root.xpath('//ns:Page',
-                             namespaces=ns)[0].attrib["imageFilename"]
-        if self.mode == DataSetMode.TRAIN and not img.endswith(imgfile):
-            raise Exception("Mapping of image file to xml file invalid: {} vs {}".format(img, imgfile))
-
-        img_w = int(root.xpath('//ns:Page',
-                               namespaces=ns)[0].attrib["imageWidth"])
-        tequivs = root.xpath('//ns:TextEquiv[@index="{}"]'.format(self.text_index),
-                             namespaces=ns)
-        for l in tequivs:
-            parat = l.getparent().attrib
-            if skipcommented and "comments" in parat and parat["comments"]:
-                continue
-
-            text = l.xpath('./ns:Unicode', namespaces=ns).pop().text
-            if not text:
-                if self.skip_invalid:
-                    continue
-                elif self._non_existing_as_empty:
-                    text = ""
-                else:
-                    raise Exception("Empty text field")
-
-            self.add_sample({
-                'ns': ns,
-                "rtype": l.xpath('../../@type', namespaces=ns).pop(),
-                'xml_element': l,
-                "imgfile": img,
-                "id": l.xpath('../@id', namespaces=ns).pop(),
-                "text": text,
-                "coords": l.xpath('../ns:Coords/@points',
-                                  namespaces=ns).pop(),
-                "img_width": img_w
-            })
-
-    def _samples_from_book(self, root, img):
-        ns = {"ns": root.nsmap[None]}
-        imgfile = root.xpath('//ns:Page',
-                             namespaces=ns)[0].attrib["imageFilename"]
-        if not img.endswith(imgfile):
-            raise Exception("Mapping of image file to xml file invalid: {} vs {}".format(img, imgfile))
-
-        img_w = int(root.xpath('//ns:Page',
-                               namespaces=ns)[0].attrib["imageWidth"])
-        for l in root.xpath('//ns:TextLine', namespaces=ns):
-            self.add_sample({
-                'ns': ns,
-                "rtype": l.xpath('../@type', namespaces=ns).pop(),
-                'xml_element': l,
-                "imgfile": img,
-                "id": l.xpath('./@id', namespaces=ns).pop(),
-                "coords": l.xpath('./ns:Coords/@points',
-                                  namespaces=ns).pop(),
-                "img_width": img_w,
-                "text": None,
-            })
+    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
+        return PageXMLDatasetGenerator(output_queue, self.mode, self.files, self.xmlfiles, text_only, epochs, self._non_existing_as_empty, self.text_index, self.skip_invalid)

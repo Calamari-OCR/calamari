@@ -6,8 +6,52 @@ from .reader import XMLReader
 from .writer import XMLWriter
 from tqdm import tqdm
 
-from calamari_ocr.ocr.datasets import DataSet, DataSetMode
+from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
 from calamari_ocr.utils import split_all_ext
+
+
+class AbbyyDatasetGenerator(DatasetGenerator):
+    def __init__(self, output_queue, mode: DataSetMode, images, xml_files, text_only, epochs, non_existing_as_empty, skip_invalid, binary, remove_invalid):
+        super().__init__(output_queue, mode, zip(images, xml_files), text_only, epochs)
+        self._non_existing_as_empty = non_existing_as_empty
+        self.skip_invalid = skip_invalid
+        self.binary = binary
+        self.remove_invalid = remove_invalid
+
+    def _load_sample(self, sample, text_only):
+        image_path, xml_path = sample
+
+        book = XMLReader([image_path], [xml_path], self.skip_invalid, self.remove_invalid).read()
+
+        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT:
+            img = np.array(Image.open(image_path))
+            if self.binary:
+                img = img > 0.9
+        else:
+            img = None
+
+        for p, page in enumerate(book.pages):
+            for l, line in enumerate(page.getLines()):
+                for f, fo in enumerate(line.formats):
+                    text = None
+                    cut_img = None
+                    if self.mode == DataSetMode.EVAL or self.mode == DataSetMode.TRAIN:
+                        text = fo.text
+
+                    if text_only:
+                        yield cut_img, text
+
+                    else:
+                        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT:
+                            ly, lx = img.shape
+
+                            # Cut the Image
+                            cut_img = img[line.rect.top: -ly + line.rect.bottom, line.rect.left: -lx + line.rect.right]
+
+                            # add padding as required from normal files
+                            cut_img = np.pad(cut_img, ((3, 3), (0, 0)), mode='constant', constant_values=cut_img.max())
+
+                        yield cut_img, text
 
 
 class AbbyyDataSet(DataSet):
@@ -38,20 +82,18 @@ class AbbyyDataSet(DataSet):
             mode,
             skip_invalid, remove_invalid)
 
-        if xmlfiles is None:
-            xmlfiles = []
-
-        if files is None:
-            files = []
+        self.xmlfiles = xmlfiles if xmlfiles else []
+        self.files = files if files else []
 
         self._non_existing_as_empty = non_existing_as_empty
-        if len(xmlfiles) == 0:
-            xmlfiles = [split_all_ext(p)[0] + ".xml" for p in files]
+        if len(self.xmlfiles) == 0:
+            from calamari_ocr.ocr.datasets import DataSetType
+            self.xmlfiles = [split_all_ext(p)[0] + DataSetType.gt_extension(DataSetType.ABBYY) for p in files]
 
-        if len(files) == 0:
-            files = [None] * len(xmlfiles)
+        if len(self.files) == 0:
+            self.files = [None] * len(self.xmlfiles)
 
-        self.book = XMLReader(files, xmlfiles, skip_invalid, remove_invalid).read()
+        self.book = XMLReader(self.files, self.xmlfiles, skip_invalid, remove_invalid).read()
         self.binary = binary
 
         for p, page in enumerate(self.book.pages):
@@ -65,34 +107,6 @@ class AbbyyDataSet(DataSet):
                         "format": fo,
                     })
 
-    def _load_sample(self, sample, text_only):
-        image_path = sample["image_path"]
-        line = sample["line"]
-        text = None
-        img = None
-        if self.mode == DataSetMode.EVAL or self.mode == DataSetMode.TRAIN:
-            text = sample["format"].text
-
-        if text_only:
-            return img, text
-
-        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT:
-            img = np.array(Image.open(image_path))
-
-            ly, lx = img.shape
-
-            # Cut the Image
-            img = img[line.rect.top: -ly + line.rect.bottom, line.rect.left: -lx + line.rect.right]
-
-            # add padding as required from normal files
-            img = np.pad(img, ((3, 3), (0, 0)), mode='constant', constant_values=img.max())
-
-            """Binarize Image"""
-            if self.binary:
-                img = img > 0.9
-
-        return img, text
-
     def store_text(self, sentence, sample, output_dir, extension):
         # an Abbyy dataset stores the prediction in one XML file
         sample["format"].text = sentence
@@ -100,4 +114,7 @@ class AbbyyDataSet(DataSet):
     def store(self):
         for page in tqdm(self.book.pages, desc="Writing Abbyy files", total=len(self.book.pages)):
             XMLWriter.write(page, split_all_ext(page.xmlFile)[0] + ".pred.abbyy.xml")
+
+    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
+        return AbbyyDatasetGenerator(output_queue, self.mode, self.files, self.xmlfiles, text_only, epochs, self._non_existing_as_empty, self.skip_invalid, self.binary, self.remove_invalid)
 

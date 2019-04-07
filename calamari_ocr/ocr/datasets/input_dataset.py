@@ -2,41 +2,89 @@ from .dataset import DataSet, DataSetMode, RawDataSet
 from calamari_ocr.ocr.data_processing import DataPreprocessor
 from calamari_ocr.ocr.text_processing import TextProcessor
 from calamari_ocr.ocr.augmentation import DataAugmenter
-from typing import Generator, Tuple, List, Any
+from typing import Generator, Tuple, List, Any, NamedTuple
 import numpy as np
 import multiprocessing
+from collections import namedtuple
 
 
-def single_sample_processing(args):
-    d, sample = args
-    dataset = d['dataset']
-    skip_invalid_gt = d['skip_invalid_gt']
-    text_processor = d['text_processor']
-    data_processor = d['data_processor']
-    data_aug_ratio = d['data_aug_ratio']
-    data_augmenter = d['data_augmenter']
-    generate_only_non_augmented = d['generate_only_non_augmented']
-    line, text = dataset.load_single_sample(sample)
+class OrderedQueueTask:
+    def __init__(self, input_queue, output_queue, total, context=multiprocessing.get_context()):
+        self.input_queue = input_queue
+        self.output_queue = output_queue
+        self.total = total
+        self.context = context
+        self.p = self.context.Process(daemon=True, target=self.run)
+
+    def start(self):
+        self.p.start()
+
+    def join(self):
+        self.p.join()
+
+    def run(self) -> None:
+        data = []
+        current_idx = 0
+        for i in range(self.total):
+            data.append(self.input_queue.get())
+            data.sort(key=lambda data: data[0])
+            while len(data) > 0 and data[0][0] <= current_idx:
+                self.output_queue.put(data[0])
+                self.output_queue.task_done()
+                del data[0]
+                current_idx += 1
 
 
-    if not dataset.is_sample_valid(sample, line, text):
-        if not skip_invalid_gt:
-            print("ERROR: invalid sample {}".format(sample))
-            return None
+DataProcessingTaskData = namedtuple("DataProcessingTaskData", [
+    "skip_invalid_gt",
+    "data_aug_ratio",
+    "text_processor",
+    "data_processor",
+    "data_augmenter",
+    "generate_only_non_augmented",
+])
 
-    if data_processor:
-        line, params = data_processor.apply([line], 1, False)[0]
-    else:
-        params = None
 
-    if text_processor:
-        text = text_processor.apply([text], 1, False)[0]
+class DataProcessingTask:
+    def __init__(self, params, input_queue: multiprocessing.JoinableQueue, output_queue: multiprocessing.JoinableQueue, context=multiprocessing.get_context()):
+        self.params = params
+        self.input_queue = input_queue
+        self.output_queue = output_queue
+        self.p = context.Process(daemon=True, target=self.run)
 
-    if not generate_only_non_augmented and data_augmenter and np.random.rand() <= data_aug_ratio:
-        # data augmentation with given ratio
-        line, text = data_augmenter.augment_single(line, text)
+    def start(self):
+        self.p.start()
 
-    return line, text, params
+    def join(self):
+        self.p.join()
+
+    def run(self) -> None:
+        while True:
+            data = self.input_queue.get()
+            out = self.apply_single(*data)
+            if out:
+                self.output_queue.put(out)
+            self.output_queue.task_done()
+
+    def apply_single(self, idx, sample_id, line, text):
+        #if not dataset.is_sample_valid(sample, line, text):
+        #    if not skip_invalid_gt:
+        #        print("ERROR: invalid sample {}".format(sample))
+        #        return None
+
+        if self.params.data_processor and line is not None:
+            line, params = self.params.data_processor.apply([line], 1, False)[0]
+        else:
+            params = None
+
+        if self.params.text_processor and text is not None:
+            text = self.params.text_processor.apply([text], 1, False)[0]
+
+        if line is not None and not self.params.generate_only_non_augmented.value and self.params.data_augmenter and np.random.rand() <= self.params.data_aug_ratio:
+            # data augmentation with given ratio
+            line, text = self.params.data_augmenter.augment_single(line, text)
+
+        return idx, sample_id, line, text, params
 
 
 def RawInputDataset(
@@ -48,7 +96,8 @@ def RawInputDataset(
     dataset = InputDataset(RawDataSet(mode=mode, images=raw_datas, texts=raw_texts),
                            data_preprocessor,
                            text_preprocessor,
-                           data_augmenter, data_augmentation_amount
+                           data_augmenter, data_augmentation_amount,
+                           processes=0,
                            )
     dataset.preloaded_datas = raw_datas
     dataset.preloaded_texts = raw_texts
@@ -63,7 +112,8 @@ class InputDataset:
                  text_preprocessor: TextProcessor,
                  data_augmenter: DataAugmenter = None,
                  data_augmentation_amount: float = 0,
-                 skip_invalid_gt=True):
+                 skip_invalid_gt=True,
+                 processes=4):
         self.dataset = dataset
         self.data_processor = data_preprocessor
         self.text_processor = text_preprocessor
@@ -73,13 +123,35 @@ class InputDataset:
         self.preloaded_texts = []
         self.preloaded_params = []
         self.data_augmentation_amount = data_augmentation_amount
-        self.generate_only_non_augmented = False
+        self.generate_only_non_augmented = multiprocessing.Value('b', False)
+        self.mp_context = multiprocessing.get_context('spawn')
 
         if data_augmenter and dataset.mode != DataSetMode.TRAIN:
             raise Exception('Data augmentation is only supported for training, but got {} dataset instead'.format(dataset.mode))
 
         if data_augmentation_amount > 0 and self.data_augmenter is None:
             raise Exception('Requested data augmentation, but no data augmented provided. Use e. g. SimpleDataAugmenter')
+
+        self.data_input_queue = self.mp_context.JoinableQueue(50)
+        self.unordered_output_queue = self.mp_context.JoinableQueue()
+
+        self.data_processing_tasks = [
+            DataProcessingTask(
+                DataProcessingTaskData(
+                    self.skip_invalid_gt,
+                    self.data_augmentation_amount if self.data_augmentation_amount < 1 else 1 - 1 / (self.data_augmentation_amount + 1),
+                    self.text_processor,
+                    self.data_processor,
+                    self.data_augmenter,
+                    self.generate_only_non_augmented,
+                ),
+                self.data_input_queue,
+                self.unordered_output_queue,
+            ) for _ in range(processes)
+        ]
+
+        for p in self.data_processing_tasks:
+            p.start()
 
     def __len__(self):
         return len(self.dataset.samples())
@@ -93,24 +165,16 @@ class InputDataset:
 
         return int(1 / (1 - self.data_augmentation_amount) * len(self))
 
-    def preload(self, processes=1, progress_bar=False):
+    def preload(self, processes=1, progress_bar=False, text_only=False):
         print("Preloading dataset type {} with size {}".format(self.dataset.mode, len(self)))
-        self.dataset.load_samples(processes=1, progress_bar=progress_bar)           # load data always with one thread
-        datas, texts = self.dataset.train_samples(skip_empty=self.skip_invalid_gt)
-        params = [None] * len(texts)
-
-        if self.text_processor:
-            texts = self.text_processor.apply(texts, processes=processes, progress_bar=progress_bar)
-
-        if self.data_processor:
-            datas, params = [list(a) for a in zip(*self.data_processor.apply(datas, processes=processes, progress_bar=progress_bar))]
-
+        self.generate_only_non_augmented.value = True
+        datas, texts, params = zip(*list(self.generator(epochs=1, text_only=text_only)))
         self.preloaded_datas, self.preloaded_texts, self.preloaded_params = datas, texts, params
 
         if self.dataset.mode == DataSetMode.TRAIN and self.data_augmentation_amount > 0:
             abs_n_augs = int(self.data_augmentation_amount) if self.data_augmentation_amount >= 1 else int(self.data_augmentation_amount * len(self))
             self.preloaded_datas, self.preloaded_texts \
-                = self.data_augmenter.augment_datas(datas, texts, n_augmentations=abs_n_augs,
+                = self.data_augmenter.augment_datas(list(datas), list(texts), n_augmentations=abs_n_augs,
                                                     processes=processes, progress_bar=progress_bar)
 
     def text_generator(self) -> Generator[str, None, None]:
@@ -118,42 +182,41 @@ class InputDataset:
             for text in self.preloaded_texts:
                 yield text
         else:
-            for sample in self.dataset.samples():
-                _, text = self.dataset.load_single_sample(sample, text_only=True)
+            for _, text, _ in self.generator(epochs=1, text_only=True):
                 if self.text_processor:
                     text = self.text_processor.apply([text], 1, False)[0]
                 yield text
 
-    def generator(self, processes=1) -> Generator[Tuple[np.array, List[str], Any], None, None]:
+    def generator(self, epochs=1, text_only=False) -> Generator[Tuple[np.array, List[str], Any], None, None]:
         if len(self.preloaded_datas) > 0:
-            if self.dataset.mode == DataSetMode.TRAIN:
-                # train mode wont generate parameters
-                if self.generate_only_non_augmented:
-                    # preloaded params store the 'length' of the non augmented data
-                    for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
-                        yield data, text, None
+            for epoch in range(epochs):
+                if self.dataset.mode == DataSetMode.TRAIN:
+                    # train mode wont generate parameters
+                    if self.generate_only_non_augmented:
+                        # preloaded params store the 'length' of the non augmented data
+                        for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
+                            yield data, text, None
+                    else:
+                        for data, text in zip(self.preloaded_datas, self.preloaded_texts):
+                            yield data, text, None
                 else:
-                    for data, text in zip(self.preloaded_datas, self.preloaded_texts):
-                        yield data, text, None
-            else:
-                # all other modes generate everything we got, but does not support data augmentation
-                for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
-                    yield data, text, params
-
+                    # all other modes generate everything we got, but does not support data augmentation
+                    for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
+                        yield data, text, params
         else:
-            data_aug_ratio = self.data_augmentation_amount if self.data_augmentation_amount < 1 else 1 - 1 / (self.data_augmentation_amount + 1)
-            mgr = multiprocessing.Manager()
-            dict = mgr.dict()
-            dict['dataset'] = self.dataset
-            dict['skip_invalid_gt'] = self.skip_invalid_gt
-            dict['data_aug_ratio'] = data_aug_ratio
-            dict['text_processor'] = self.text_processor
-            dict['data_processor'] = self.data_processor
-            dict['data_augmenter'] = self.data_augmenter
-            dict['generate_only_non_augmented'] = self.generate_only_non_augmented
+            # create a generator of the dataset that enqueues loaded samples
+            # the samples are processed by the data preprocessing and data augmenter queues and written unordered
+            # the data ordering queue and process yield a sorted output of lines
+            total = epochs * len(self.dataset)
+            data_generator = self.dataset.create_generator(self.data_input_queue, epochs, text_only=text_only)
+            data_generator.start()
+            ordered_output_queue = self.mp_context.JoinableQueue(50)
+            data_ordering = OrderedQueueTask(self.unordered_output_queue, ordered_output_queue, total, self.mp_context)
+            data_ordering.start()
+            for epoch in range(epochs):
+                for iter in range(len(self.dataset)):
+                    global_id, id, line, text, params = ordered_output_queue.get()
+                    yield line, text, params
 
-            with multiprocessing.Pool(processes) as pool:
-                for result in pool.imap_unordered(single_sample_processing, zip([dict] * len(self.dataset), self.dataset.samples()), chunksize=128):
-                    if result is not None:
-                        yield result
-
+            data_generator.join()
+            data_ordering.join()

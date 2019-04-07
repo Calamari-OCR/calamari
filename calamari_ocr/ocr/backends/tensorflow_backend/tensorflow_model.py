@@ -232,7 +232,8 @@ class TensorflowModel(ModelInterface):
         buffer_size = min(buffer_size, len(self.input_dataset) if self.input_dataset else 10)
         with tf.variable_scope("cnn_lstm", reuse=False):
             def gen():
-                for i, l, d in self.input_dataset.generator(self.processes):
+                epochs = 1
+                for i, l, d in self.input_dataset.generator(epochs):
                     if self.graph_type == "train" and len(l) == 0:
                         continue
 

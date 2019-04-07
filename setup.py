@@ -13,7 +13,7 @@ setup(
     author="Christoph Wick",
     author_email="christoph.wick@informatik.uni-wuerzburg.de",
     url="https://github.com/Calamari-OCR/calamari",
-    download_url='https://github.com/Calamari-OCR/calamari/archive/v0.2.3.tar.gz',
+    download_url='https://github.com/Calamari-OCR/calamari/archive/v0.3.0.tar.gz',
     entry_points={
         'console_scripts': [
             'calamari-eval=calamari_ocr.scripts.eval:main',
@@ -27,6 +27,10 @@ setup(
     },
     python_requires='>=3.5',
     install_requires=open("requirements.txt").read().split('\n'),
+    extras_require={
+        'tf_cpu': ['tensorflow>=1.6.0'],
+        'tf_gpu': ['tensorflow-gpu>=1.6.0'],
+    },
     keywords=['OCR', 'optical character recognition', 'ocropy', 'ocropus', 'kraken'],
     data_files=[('', ["requirements.txt"])],
 )

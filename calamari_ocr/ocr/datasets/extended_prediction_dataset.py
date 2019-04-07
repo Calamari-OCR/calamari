@@ -1,4 +1,4 @@
-from calamari_ocr.ocr.datasets import DataSet, DataSetMode
+from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
 from calamari_ocr.utils import split_all_ext
 
 from google.protobuf.json_format import Parse
@@ -17,13 +17,15 @@ class ExtendedPredictionDataSet(DataSet):
 
         for text in texts:
             text_bn, text_ext = split_all_ext(text)
-            self.add_sample({
+            sample = {
                 "image_path": None,
                 "pred_path": text,
                 "id": text_bn,
-            })
+            }
+            self._load_sample(sample)
+            self.add_sample(sample)
 
-    def _load_sample(self, sample, text_only):
+    def _load_sample(self, sample):
         gt_txt_path = sample['pred_path']
         if gt_txt_path is None:
             return None, None
@@ -43,6 +45,9 @@ class ExtendedPredictionDataSet(DataSet):
                 sample['predictions'] = p
 
                 return None, voted_p.sentence
+
+    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
+        raise NotImplemented()
 
 
 

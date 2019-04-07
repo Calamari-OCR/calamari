@@ -2,7 +2,12 @@ from edit_distance import edit_distance
 
 from calamari_ocr.ocr.text_processing import synchronize
 from calamari_ocr.ocr.text_processing import DefaultTextPreprocessor
-from calamari_ocr.utils import parallel_map
+from calamari_ocr.utils import parallel_map, tqdm_wrapper
+from calamari_ocr.ocr.datasets import InputDataset
+from collections import namedtuple
+
+
+SingleEvalData = namedtuple('SingleEvalData', ['chars', 'char_errs', 'sync_errs', 'conf', 'gt_pred'])
 
 
 class Evaluator:
@@ -59,11 +64,19 @@ class Evaluator:
         if self.preloaded_gt:
             gt_data = self.preloaded_gt
         else:
-            gt_dataset.load_samples(progress_bar=progress_bar)
-            gt_data = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
+            # gt_dataset.load_samples(progress_bar=progress_bar)
+            # gt_data = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
+            gt_input_dataset = InputDataset(gt_dataset, None, self.text_preprocessor, processes=processes)
+            gt_data = [txt for _, txt, _ in tqdm_wrapper(gt_input_dataset.generator(text_only=True),
+                                                         total=len(gt_dataset),
+                                                         progress_bar=progress_bar,
+                                                         )]
 
-        pred_dataset.load_samples(progress_bar=progress_bar)
-        pred_data = self.text_preprocessor.apply(pred_dataset.text_samples(), progress_bar=progress_bar)
+        pred_input_dataset = InputDataset(pred_dataset, None, self.text_preprocessor, processes=processes)
+        pred_data = [txt for _, txt, _ in tqdm_wrapper(pred_input_dataset.generator(text_only=True),
+                                                       total=len(pred_dataset),
+                                                       progress_bar=progress_bar,
+                                                       )]
 
         return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar)
 
@@ -108,7 +121,7 @@ class Evaluator:
                 else:
                     confusion[key] += 1
 
-        return len(gt), errs, total_sync_errs, confusion
+        return len(gt), errs, total_sync_errs, confusion, (gt, pred)
 
     @staticmethod
     def evaluate_single_list(eval_results, store_all=False):
@@ -119,9 +132,9 @@ class Evaluator:
         total_char_errs = 0
         confusion = {}
         total_sync_errs = 0
-        for chars, char_errs, sync_errs, conf in eval_results:
+        for chars, char_errs, sync_errs, conf, gt_pred in eval_results:
             if store_all:
-                all_eval.append((chars, char_errs, sync_errs, conf))
+                all_eval.append(SingleEvalData(chars, char_errs, sync_errs, conf, gt_pred))
 
             total_instances += 1
             total_chars += chars

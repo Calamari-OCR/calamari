@@ -210,32 +210,41 @@ class MultiPredictor:
 
     def predict_dataset(self, dataset, progress_bar=True):
         start_time = time.time()
-        dataset.load_samples(processes=1, progress_bar=progress_bar)
-        datas = dataset.prediction_samples()
-
         # preprocessing step (if all share the same preprocessor)
-        if self.same_preproc:
-            data_params = self.predictors[0].data_preproc.apply(datas, processes=self.processes, progress_bar=progress_bar)
-        else:
+        if not self.same_preproc:
             raise Exception('Different preprocessors are currently not allowed during prediction')
+
+        input_dataset = InputDataset(dataset, self.predictors[0].data_preproc, self.predictors[0].text_postproc, None,
+                                     processes=self.processes,
+                                     )
 
         def progress_bar_wrapper(l):
             if progress_bar:
-                l = list(l)
-                return tqdm(l, total=len(l), desc="Prediction")
+                return tqdm(l, total=int(np.ceil(len(dataset) / self.batch_size)), desc="Prediction")
             else:
                 return l
 
-        for data_idx in progress_bar_wrapper(range(0, len(datas), self.batch_size)):
-            batch_data_params = data_params[data_idx:data_idx+self.batch_size]
-            samples = dataset.samples()[data_idx:data_idx+self.batch_size]
+        def batched_data_params():
+            batch = []
+            for data_idx, (image, _, params) in enumerate(input_dataset.generator(epochs=1)):
+                batch.append((data_idx, image, params))
+                if len(batch) == self.batch_size:
+                    yield batch
+                    batch = []
+
+            if len(batch) > 0:
+                yield batch
+
+        for batch in progress_bar_wrapper(batched_data_params()):
+            sample_ids, batch_images, batch_params = zip(*batch)
+            samples = [dataset.samples()[i] for i in sample_ids]
             raw_dataset = [
                 RawInputDataset(DataSetMode.PREDICT,
-                                [img for img, _ in batch_data_params],
-                                [None] * len(batch_data_params),
-                                [p for _, p in batch_data_params],
-                                None if self.same_preproc else p.data_preproc,
-                                None if self.same_preproc else p.text_postproc,
+                                batch_images,
+                                [None] * len(batch_images),
+                                batch_params,
+                                None,
+                                None,
                                 ) for p in self.predictors]
 
             # predict_raw returns list of prediction objects

@@ -2,16 +2,52 @@ from abc import ABC, abstractmethod
 import codecs
 import os
 from enum import Enum
+from typing import Tuple, Generator
 
 import numpy as np
 
 from calamari_ocr.utils import parallel_map
+from multiprocessing import Process, JoinableQueue
+import multiprocessing as mp
 
 
 class DataSetMode(Enum):
     TRAIN = 0
     PREDICT = 1
     EVAL = 2
+
+
+class DatasetGenerator:
+    def __init__(self, output_queue, mode, samples, text_only, epochs):
+        self.output_queue = output_queue
+        self.mode = mode
+        self.epochs = epochs
+        self.samples = samples
+        self.text_only = text_only
+        self.p = None
+
+    def start(self):
+        ctx = mp.get_context('spawn')
+        self.p = ctx.Process(target=self.run, daemon=True)
+        self.p.start()
+
+    def join(self):
+        if self.p:
+            self.p.join()
+
+    def run(self):
+        global_index = 0
+        for epoch in range(self.epochs):
+            sample_idx = 0
+            for sample in self.samples:
+                for line, text in self._load_sample(sample, self.text_only):
+                    self.output_queue.put((global_index, sample_idx, line, text))
+                    global_index += 1
+                    sample_idx += 1
+
+    @abstractmethod
+    def _load_sample(self, sample, text_only) -> Generator[Tuple[np.array, str], None, None]:
+        yield None, ""
 
 
 class DataSet(ABC):
@@ -58,65 +94,6 @@ class DataSet(ABC):
         """
         return self._samples
 
-    def prediction_samples(self):
-        """ Extract all images from this set
-
-        Returns
-        -------
-        list of images
-
-        """
-        if not self.loaded:
-            raise Exception("Dataset must be loaded to access its training samples")
-
-        return [sample["image"] for sample in self._samples]
-
-    def text_samples(self):
-        """ Extract all texts from this set
-
-        Returns
-        -------
-        list of str
-
-        """
-        if not self.loaded:
-            raise Exception("Dataset must be loaded to access its text")
-
-        return [sample["text"] for sample in self._samples]
-
-    def train_samples(self, skip_empty=False):
-        """ Extract both list of images and list of texts
-
-        Parameters
-        ----------
-        skip_empty : bool
-            do not add empty files
-
-        Returns
-        -------
-        list of images
-        list of str
-
-        """
-        if not self.loaded:
-            raise Exception("Dataset must be loaded to access its training samples")
-
-        data, text = [], []
-
-        for sample in self._samples:
-            if "text" not in sample:
-                if skip_empty:
-                    print("Skipping empty sample {}".format(sample["id"]))
-                    continue
-
-                raise Exception("Sample {} is not a train sample. "
-                                "Maybe the corresponding txt file is missing".format(sample["id"]))
-
-            data.append(sample["image"])
-            text.append(sample["text"])
-
-        return data, text
-
     def add_sample(self, sample):
         """ Add a sample
 
@@ -134,50 +111,6 @@ class DataSet(ABC):
         self.loaded = False
         self._samples.append(sample)
 
-    def load_samples(self, processes=1, progress_bar=False):
-        """ Load the samples into the memory
-
-        This is usefull if a FileDataset shall load its files.
-
-        Parameters
-        ----------
-        processes : int
-            number of processes to use for loading
-        progress_bar : bool
-            show a progress bar of the progress
-
-        Returns
-        -------
-        list of samples
-        """
-        if self.loaded:
-            return self._samples
-
-        data = parallel_map(self.load_single_sample, self._samples, desc="Loading Dataset", processes=processes, progress_bar=progress_bar)
-
-        invalid_samples = []
-        for i, ((line, text), sample) in enumerate(zip(data, self._samples)):
-            sample["image"] = line
-            sample["text"] = text
-            if not self.is_sample_valid(sample, line, text):
-                if self.skip_invalid:
-                    invalid_samples.append(i)
-                    if line is None:
-                        print("Empty data: Image at '{}' is None (possibly corrupted)".format(sample['id']))
-                    else:
-                        print("Empty data: Image at '{}' is empty".format(sample['id']))
-                else:
-                    raise Exception("Empty data: Image at '{}' is empty".format(sample['id']))
-
-        if self.remove_invalid:
-            # remove all invalid samples (reversed order!)
-            for i in sorted(invalid_samples, reverse=True):
-                del self._samples[i]
-
-        self.loaded = True
-
-        return self._samples
-
     def is_sample_valid(self, sample, line, text):
         if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN:
             # skip invalid imanges (e. g. corrupted or empty files)
@@ -185,29 +118,6 @@ class DataSet(ABC):
                 return False
 
         return True
-
-    def load_single_sample(self, sample, text_only=False):
-        return self._load_sample(sample, text_only=text_only)
-
-    @abstractmethod
-    def _load_sample(self, sample, text_only):
-        """ Load a single sample
-
-        Parameters
-        ----------
-        sample : dict
-            the sample to load
-
-        Returns
-        -------
-        image
-        text
-
-        """
-        if text_only:
-            return None, None
-        else:
-            return np.zeros((0, 0)), None
 
     def store_text(self, sentence, sample, output_dir, extension):
         output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
@@ -217,6 +127,21 @@ class DataSet(ABC):
     def store(self):
         # either store text or store (e. g. if all predictions must be written at the same time
         pass
+
+    @abstractmethod
+    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
+        return None
+
+
+class RawDataSetGenerator(DatasetGenerator):
+    def __init__(self, output_queue, mode, samples, text_only, epochs):
+        super().__init__(output_queue, mode, samples, text_only, epochs)
+
+    def _load_sample(self, sample, text_only) -> Generator[Tuple[np.array, str], None, None]:
+        if text_only:
+            yield None, sample['text']
+        else:
+            yield sample['image'], sample['text']
 
 
 class RawDataSet(DataSet):
@@ -263,9 +188,7 @@ class RawDataSet(DataSet):
 
         self.loaded = True
 
-    def _load_sample(self, sample, text_only):
-        if text_only:
-            return None, sample['text']
-        else:
-            return sample['image'], sample['text']
+    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
+        print("WARNING: RawData set should always be used with a RawInputDataSet to avoid excessive thread creation")
+        return RawDataSetGenerator(output_queue, self.mode, self.samples(), text_only, epochs)
 

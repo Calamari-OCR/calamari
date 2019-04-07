@@ -1,4 +1,4 @@
-from .dataset import DataSet, DataSetMode, RawDataSet
+from .dataset import DataSet, DataSetMode, RawDataSet, DatasetGenerator
 from .file_dataset import FileDataSet
 from .abbyy_dataset import AbbyyDataSet
 from .pagexml_dataset import PageXMLDataset

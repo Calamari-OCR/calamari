@@ -1,4 +1,3 @@
-tensorflow >=1.6
 numpy
 tqdm
 scikit-image
