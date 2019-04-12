@@ -9,6 +9,7 @@ import numpy as np
 from calamari_ocr.utils import parallel_map
 from multiprocessing import Process, JoinableQueue
 import multiprocessing as mp
+import queue
 
 
 class DataSetMode(Enum):
@@ -41,7 +42,16 @@ class DatasetGenerator:
             sample_idx = 0
             for sample in self.samples:
                 for line, text in self._load_sample(sample, self.text_only):
-                    self.output_queue.put((global_index, sample_idx, line, text))
+                    while True:
+                        try:
+                            self.output_queue.put((global_index, sample_idx, line, text), timeout=0.1)
+                        except queue.Full:
+                            continue
+                        except KeyboardInterrupt:
+                            return
+
+                        break
+
                     global_index += 1
                     sample_idx += 1
 

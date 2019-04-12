@@ -13,7 +13,7 @@ setup(
     author="Christoph Wick",
     author_email="christoph.wick@informatik.uni-wuerzburg.de",
     url="https://github.com/Calamari-OCR/calamari",
-    download_url='https://github.com/Calamari-OCR/calamari/archive/v0.3.0.tar.gz',
+    download_url='https://github.com/Calamari-OCR/calamari/archive/v{}.tar.gz'.format(__version__),
     entry_points={
         'console_scripts': [
             'calamari-eval=calamari_ocr.scripts.eval:main',

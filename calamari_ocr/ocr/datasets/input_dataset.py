@@ -6,6 +6,7 @@ from typing import Generator, Tuple, List, Any, NamedTuple
 import numpy as np
 import multiprocessing
 from collections import namedtuple
+import queue
 
 
 class OrderedQueueTask:
@@ -26,13 +27,27 @@ class OrderedQueueTask:
         data = []
         current_idx = 0
         for i in range(self.total):
-            data.append(self.input_queue.get())
+            while True:
+                try:
+                    data.append(self.input_queue.get(timeout=0.1))
+                except queue.Empty:
+                    continue
+                except KeyboardInterrupt:
+                    return
+
+                break
+
             data.sort(key=lambda data: data[0])
             while len(data) > 0 and data[0][0] <= current_idx:
-                self.output_queue.put(data[0])
-                self.output_queue.task_done()
-                del data[0]
-                current_idx += 1
+                try:
+                    self.output_queue.put(data[0], timeout=0.1)
+                    self.output_queue.task_done()
+                    del data[0]
+                    current_idx += 1
+                except queue.Full:
+                    continue
+                except KeyboardInterrupt:
+                    return
 
 
 DataProcessingTaskData = namedtuple("DataProcessingTaskData", [
@@ -60,10 +75,25 @@ class DataProcessingTask:
 
     def run(self) -> None:
         while True:
-            data = self.input_queue.get()
+            try:
+                data = self.input_queue.get(timeout=0.1)
+            except queue.Empty:
+                continue
+            except KeyboardInterrupt:
+                # allow keyboard interrupt
+                return
+
             out = self.apply_single(*data)
             if out:
-                self.output_queue.put(out)
+                while True:
+                    try:
+                        self.output_queue.put(out, timeout=0.1)
+                        break
+                    except queue.Full:
+                        continue
+                    except KeyboardInterrupt:
+                        return
+
             self.output_queue.task_done()
 
     def apply_single(self, idx, sample_id, line, text):
@@ -125,6 +155,7 @@ class InputDataset:
         self.data_augmentation_amount = data_augmentation_amount
         self.generate_only_non_augmented = multiprocessing.Value('b', False)
         self.mp_context = multiprocessing.get_context('spawn')
+        self.processes = processes
 
         if data_augmenter and dataset.mode != DataSetMode.TRAIN:
             raise Exception('Data augmentation is only supported for training, but got {} dataset instead'.format(dataset.mode))
@@ -132,7 +163,7 @@ class InputDataset:
         if data_augmentation_amount > 0 and self.data_augmenter is None:
             raise Exception('Requested data augmentation, but no data augmented provided. Use e. g. SimpleDataAugmenter')
 
-        self.data_input_queue = self.mp_context.JoinableQueue(50)
+        self.data_input_queue = self.mp_context.JoinableQueue(self.processes * 4)
         self.unordered_output_queue = self.mp_context.JoinableQueue()
 
         self.data_processing_tasks = [
@@ -210,13 +241,21 @@ class InputDataset:
             total = epochs * len(self.dataset)
             data_generator = self.dataset.create_generator(self.data_input_queue, epochs, text_only=text_only)
             data_generator.start()
-            ordered_output_queue = self.mp_context.JoinableQueue(50)
+            ordered_output_queue = self.mp_context.JoinableQueue(self.processes * 4)
             data_ordering = OrderedQueueTask(self.unordered_output_queue, ordered_output_queue, total, self.mp_context)
             data_ordering.start()
             for epoch in range(epochs):
                 for iter in range(len(self.dataset)):
-                    global_id, id, line, text, params = ordered_output_queue.get()
-                    yield line, text, params
+                    while data_ordering.p.is_alive():
+                        try:
+                            global_id, id, line, text, params = ordered_output_queue.get(timeout=0.1)
+                            yield line, text, params
+                        except queue.Empty:
+                            continue
+                        except KeyboardInterrupt:
+                            return
+
+                        break
 
             data_generator.join()
             data_ordering.join()
