@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 import os
+import json
 import numpy as np
 
 from google.protobuf import json_format
@@ -154,7 +155,6 @@ def main():
 
     # check if loading a json file
     if len(args.gt) == 1 and args.gt[0].endswith("json"):
-        import json
         with open(args.gt[0], 'r') as f:
             json_args = json.load(f)
             for key, value in json_args.items():

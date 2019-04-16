@@ -79,7 +79,6 @@ def main(args=None):
 
     # check if loading a json file
     if len(args.files) == 1 and args.files[0].endswith("json"):
-        import json
         with open(args.files[0], 'r') as f:
             json_args = json.load(f)
             for key, value in json_args.items():
