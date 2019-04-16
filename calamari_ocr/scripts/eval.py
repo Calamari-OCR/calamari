@@ -120,7 +120,8 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
     parser.add_argument("--gt", nargs="+", required=True,
-                        help="Ground truth files (.gt.txt extension)")
+                        help="Ground truth files (.gt.txt extension). "
+                             "Optionally, you can pass a single json file defining all parameters.")
     parser.add_argument("--pred", nargs="+", default=None,
                         help="Prediction files if provided. Else files with .pred.txt are expected at the same "
                              "location as the gt.")
@@ -150,6 +151,14 @@ def main():
     parser.add_argument("--pagexml_pred_text_index", default=1)
 
     args = parser.parse_args()
+
+    # check if loading a json file
+    if len(args.gt) == 1 and args.gt[0].endswith("json"):
+        import json
+        with open(args.gt[0], 'r') as f:
+            json_args = json.load(f)
+            for key, value in json_args.items():
+                setattr(args, key, value)
 
     print("Resolving files")
     gt_files = sorted(glob_all(args.gt))

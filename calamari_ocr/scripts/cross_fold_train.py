@@ -41,7 +41,8 @@ def main(args=None):
         # fold parameters
         parser.add_argument("--files", nargs="+",
                             help="List all image files that shall be processed. Ground truth fils with the same "
-                                 "base name but with '.gt.txt' as extension are required at the same location")
+                                 "base name but with '.gt.txt' as extension are required at the same location. "
+                                 "Optionally you can pass a single json file defining all arguments")
         parser.add_argument("--n_folds", type=int, default=5,
                             help="The number of fold, that is the number of models to train")
         parser.add_argument("--keep_temporary_files", action="store_true",
@@ -75,6 +76,14 @@ def main(args=None):
                                        "output_dir"])
 
         args = parser.parse_args()
+
+    # check if loading a json file
+    if len(args.files) == 1 and args.files[0].endswith("json"):
+        import json
+        with open(args.files[0], 'r') as f:
+            json_args = json.load(f)
+            for key, value in json_args.items():
+                setattr(args, key, value)
 
     # argument checks
     if len(args.weights) > 1 and len(args.weights) != args.n_folds:
