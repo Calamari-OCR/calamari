@@ -142,6 +142,8 @@ def main():
                              "'Skip' will simply skip the evaluation of that file (not counting it to errors). "
                              "'Empty' will handle this file as would it be empty (fully checking for errors)."
                              "'Error' will throw an exception if a file is not existing. This is the default behaviour.")
+    parser.add_argument("--skip_empty_gt", action="store_true", default=False,
+                        help="Ignore lines of the gt that are empty.")
     parser.add_argument("--no_progress_bars", action="store_true",
                         help="Do not show any progress bars")
     parser.add_argument("--checkpoint", type=str, default=None,
@@ -198,7 +200,7 @@ def main():
         args={'text_index': args.pagexml_pred_text_index},
     )
 
-    evaluator = Evaluator(text_preprocessor=text_preproc)
+    evaluator = Evaluator(text_preprocessor=text_preproc, skip_empty_gt=args.skip_empty_gt)
     r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, processes=args.num_threads,
                       progress_bar=not args.no_progress_bars)
 

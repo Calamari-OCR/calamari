@@ -326,7 +326,7 @@ class Trainer:
                                                                              progress_bar=progress_bar)
                     result = Evaluator.evaluate_single_list(map(
                         Evaluator.evaluate_single_args,
-                        map(lambda d: tuple([''.join(d.ground_truth), ''.join(d.chars)]), out_gen)))
+                        map(lambda d: {'gt': ''.join(d.ground_truth), 'pred': ''.join(d.chars)}, out_gen)))
                     accuracy = 1 - result["avg_ler"]
 
                     if accuracy > early_stopping_best_accuracy:

@@ -11,15 +11,18 @@ SingleEvalData = namedtuple('SingleEvalData', ['chars', 'char_errs', 'sync_errs'
 
 
 class Evaluator:
-    def __init__(self, text_preprocessor=None):
+    def __init__(self, text_preprocessor=None, skip_empty_gt=False):
         """ Class to evaluation the CER and errors of two datasets
 
         Parameters
         ----------
         text_preprocessor : TextProcessor
             a text preprocessor to apply before computing the errors
+        skip_empty_gt : bool
+            skip gt text lines that are empty
         """
         self.text_preprocessor = text_preprocessor if text_preprocessor is not None else DefaultTextPreprocessor()
+        self.skip_empty_gt = skip_empty_gt
         self.preloaded_gt = None
 
     def preload_gt(self, gt_dataset, progress_bar=False):
@@ -78,19 +81,27 @@ class Evaluator:
                                                        progress_bar=progress_bar,
                                                        )]
 
-        return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar)
+        return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar,
+                             skip_empty_gt=self.skip_empty_gt)
 
     @staticmethod
     def evaluate_single_args(args):
-        return Evaluator.evaluate_single(gt=args[0], pred=args[1])
+        return Evaluator.evaluate_single(**args)
 
     @staticmethod
-    def evaluate_single(_sentinel=None, gt='', pred=''):
+    def evaluate_single(_sentinel=None, gt='', pred='', skip_empty_gt=False):
         """ Evaluate a single pair of data
 
         Parameters
         ----------
-        args : ground truth, prediction
+        _sentinel : None
+            Sentinel to force to specify gt and pred manually
+        gt : str
+            ground truth
+        pred : str
+            prediction
+        skip_empty_gt : bool
+            skip gt text lines that are empty
 
         Returns
         -------
@@ -102,13 +113,20 @@ class Evaluator:
             number of synchronisation errors
         dict
             confusions dictionary
+        tuple(str, str)
+            ground_truth, prediction (same as input)
 
         """
         if _sentinel is not None:
             raise Exception('Call this function by specifying gt and pred explicitly')
 
+
         confusion = {}
         total_sync_errs = 0
+
+        if len(gt) == 0 and skip_empty_gt:
+            return 0, 0, 0, confusion, (gt, pred)
+
         errs, trues = edit_distance(gt, pred)
         synclist = synchronize([gt, pred])
         for sync in synclist:
@@ -162,7 +180,7 @@ class Evaluator:
         }
 
     @staticmethod
-    def evaluate(_sentinel=None, gt_data=None, pred_data=None, processes=1, progress_bar=False):
+    def evaluate(_sentinel=None, gt_data=None, pred_data=None, processes=1, progress_bar=False, skip_empty_gt=False):
         """ evaluate on the given raw data
 
         Parameters
@@ -177,6 +195,8 @@ class Evaluator:
             the processes to use for preprocesing and evaluation
         progress_bar : bool, optional
             show a progress bar
+        skip_empty_gt : bool
+            skip gt text lines that are empty
 
         Returns
         -------
@@ -186,7 +206,7 @@ class Evaluator:
             raise Exception("Mismatch in gt and pred files count: {} vs {}".format(len(gt_data), len(pred_data)))
 
         # evaluate single lines
-        out = parallel_map(Evaluator.evaluate_single_args, list(zip(gt_data, pred_data)),
+        out = parallel_map(Evaluator.evaluate_single_args, [{'gt': gt, 'pred': pred, 'skip_empty_gt': skip_empty_gt} for gt, pred in zip(gt_data, pred_data)],
                            processes=processes, progress_bar=progress_bar, desc="Evaluation")
 
         return Evaluator.evaluate_single_list(out, True)
