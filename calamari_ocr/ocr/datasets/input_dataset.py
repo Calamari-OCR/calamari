@@ -244,13 +244,17 @@ class InputDataset:
             ordered_output_queue = self.mp_context.JoinableQueue(self.processes * 4)
             data_ordering = OrderedQueueTask(self.unordered_output_queue, ordered_output_queue, total, self.mp_context)
             data_ordering.start()
+
             for epoch in range(epochs):
                 for iter in range(len(self.dataset)):
-                    while data_ordering.p.is_alive():
+                    while True:
                         try:
                             global_id, id, line, text, params = ordered_output_queue.get(timeout=0.1)
                             yield line, text, params
                         except queue.Empty:
+                            # test data ordering thread was canceled
+                            if not data_ordering.p.is_alive() and ordered_output_queue.empty():
+                                return
                             continue
                         except KeyboardInterrupt:
                             return
