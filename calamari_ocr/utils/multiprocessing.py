@@ -63,7 +63,7 @@ def run(command, verbose=False):
         raise Exception("The command must be a list or tuple of commands and arguments")
 
     if verbose:
-        print("Excecuting: {}".format(" ".join(command)))
+        print("Executing: {}".format(" ".join(command)))
 
     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=False)
     while True:
