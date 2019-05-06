@@ -7,7 +7,7 @@ from skimage.draw import polygon
 from typing import List
 
 from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
-from calamari_ocr.utils import split_all_ext
+from calamari_ocr.utils import split_all_ext, filename
 
 
 class PageXMLDatasetGenerator(DatasetGenerator):
@@ -95,7 +95,7 @@ class PageXMLDatasetLoader:
                 'ns': ns,
                 "rtype": l.xpath('../../@type', namespaces=ns).pop(),
                 'xml_element': l,
-                "imgfile": img,
+                "image_path": img,
                 "id": l.xpath('../@id', namespaces=ns).pop(),
                 "text": text,
                 "coords": l.xpath('../ns:Coords/@points',
@@ -117,7 +117,7 @@ class PageXMLDatasetLoader:
                 'ns': ns,
                 "rtype": l.xpath('../@type', namespaces=ns).pop(),
                 'xml_element': l,
-                "imgfile": img,
+                "image_path": img,
                 "id": l.xpath('./@id', namespaces=ns).pop(),
                 "coords": l.xpath('./ns:Coords/@points',
                                   namespaces=ns).pop(),
@@ -198,7 +198,7 @@ class PageXMLDataset(DataSet):
         return box
 
     def _load_sample(self, sample, text_only):
-        image_path = sample["imgfile"]
+        image_path = sample["image_path"]
         text = sample["text"]
         img = None
 
@@ -230,6 +230,13 @@ class PageXMLDataset(DataSet):
             u_xml = etree.SubElement(textequivxml, "Unicode")
 
         u_xml.text = sentence
+
+    def store_extended_prediction(self, data, sample, output_dir, extension):
+        output_dir = os.path.join(output_dir, filename(sample['image_path']))
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+
+        super().store_extended_prediction(data, sample, output_dir, extension)
 
     def store(self):
         for xml, page in tqdm(zip(self.xmlfiles, self.pages), desc="Writing PageXML files", total=len(self.xmlfiles)):

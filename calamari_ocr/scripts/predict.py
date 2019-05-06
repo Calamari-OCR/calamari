@@ -91,20 +91,22 @@ def run(args):
             if not os.path.exists(output_dir):
                 os.mkdir(output_dir)
 
-            if args.extended_prediction_data_format == "pred":
-                with open(os.path.join(output_dir, sample['id'] + ".pred"), 'wb') as f:
-                    f.write(ps.SerializeToString())
-            elif args.extended_prediction_data_format == "json":
-                with open(os.path.join(output_dir, sample['id'] + ".json"), 'w') as f:
-                    # remove logits
-                    for prediction in ps.predictions:
-                        prediction.logits.rows = 0
-                        prediction.logits.cols = 0
-                        prediction.logits.data[:] = []
 
-                    f.write(MessageToJson(ps, including_default_value_fields=True))
+            if args.extended_prediction_data_format == "pred":
+                data = ps.SerializeToString()
+            elif args.extended_prediction_data_format == "json":
+                # remove logits
+                for prediction in ps.predictions:
+                    prediction.logits.rows = 0
+                    prediction.logits.cols = 0
+                    prediction.logits.data[:] = []
+
+                data = MessageToJson(ps, including_default_value_fields=True)
             else:
                 raise Exception("Unknown prediction format.")
+
+
+            dataset.store_extended_prediction(data, sample, output_dir=output_dir, extension=args.extended_prediction_data_format)
 
     print("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
 

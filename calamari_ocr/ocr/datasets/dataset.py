@@ -134,6 +134,16 @@ class DataSet(ABC):
         with codecs.open(os.path.join(output_dir, sample['id'] + extension), 'w', 'utf-8') as f:
             f.write(sentence)
 
+    def store_extended_prediction(self, data, sample, output_dir, extension):
+        if extension == "pred":
+            with open(os.path.join(output_dir, sample['id'] + ".pred"), 'wb') as f:
+                f.write(data)
+        elif extension == "json":
+            with open(os.path.join(output_dir, sample['id'] + ".json"), 'w') as f:
+                f.write(data)
+        else:
+            raise Exception("Unknown prediction format.")
+
     def store(self):
         # either store text or store (e. g. if all predictions must be written at the same time
         pass
