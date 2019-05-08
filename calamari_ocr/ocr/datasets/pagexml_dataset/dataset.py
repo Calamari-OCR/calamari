@@ -12,7 +12,7 @@ from calamari_ocr.utils import split_all_ext, filename
 
 class PageXMLDatasetGenerator(DatasetGenerator):
     def __init__(self, output_queue, mode: DataSetMode, images, xml_files, text_only, epochs, non_existing_as_empty, text_index, skip_invalid):
-        super().__init__(output_queue, mode, zip(images, xml_files), text_only, epochs)
+        super().__init__(output_queue, mode, list(zip(images, xml_files)), text_only, epochs)
         self._non_existing_as_empty = non_existing_as_empty
         self.text_index = text_index
         self.skip_invalid = skip_invalid
