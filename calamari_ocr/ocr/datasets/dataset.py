@@ -10,6 +10,7 @@ from calamari_ocr.utils import parallel_map
 from multiprocessing import Process, JoinableQueue
 import multiprocessing as mp
 import queue
+from random import shuffle
 
 
 class DataSetMode(Enum):
@@ -40,6 +41,9 @@ class DatasetGenerator:
         global_index = 0
         for epoch in range(self.epochs):
             sample_idx = 0
+            if self.mode == DataSetMode.TRAIN:
+                shuffle(self.samples)
+
             for sample in self.samples:
                 for line, text in self._load_sample(sample, self.text_only):
                     while True:
