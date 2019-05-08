@@ -158,6 +158,11 @@ test-cpu-train-on-page-xml:
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
       --validation calamari_ocr/test/data/avicanon_pagexml/008.nrm.png --validation_dataset PAGEXML
       --dataset PAGEXML --display 1.01 --num_threads 1 --early_stopping_frequency 5 --max_iter 10
+    - >
+      calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5
+      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
+      --dataset PAGEXML --display 1.01
+      --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
 
 test-cpu-train-on-page-xml-validation-on-files:
   stage: test

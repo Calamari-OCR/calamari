@@ -158,6 +158,40 @@ def setup_train_args(parser, omit=None):
     parser.add_argument("--text_generator_params", type=str, default=None)
     parser.add_argument("--line_generator_params", type=str, default=None)
 
+
+def create_train_dataset(args, dataset_args=None):
+    gt_extension = args.gt_extension if args.gt_extension is not None else DataSetType.gt_extension(args.dataset)
+
+    # Training dataset
+    print("Resolving input files")
+    input_image_files = sorted(glob_all(args.files))
+    if not args.text_files:
+        if gt_extension:
+            gt_txt_files = [split_all_ext(f)[0] + gt_extension for f in input_image_files]
+        else:
+            gt_txt_files = [None] * len(input_image_files)
+    else:
+        gt_txt_files = sorted(glob_all(args.text_files))
+        input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
+        for img, gt in zip(input_image_files, gt_txt_files):
+            if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:
+                raise Exception("Expected identical basenames of file: {} and {}".format(img, gt))
+
+    if len(set(gt_txt_files)) != len(gt_txt_files):
+        raise Exception("Some image are occurring more than once in the data set.")
+
+    dataset = create_dataset(
+        args.dataset,
+        DataSetMode.TRAIN,
+        images=input_image_files,
+        texts=gt_txt_files,
+        skip_invalid=not args.no_skip_invalid_gt,
+        args=dataset_args if dataset_args else {},
+    )
+    print("Found {} files in the dataset".format(len(dataset)))
+    return dataset
+
+
 def run(args):
 
     # check if loading a json file
@@ -166,7 +200,10 @@ def run(args):
         with open(args.files[0], 'r') as f:
             json_args = json.load(f)
             for key, value in json_args.items():
-                setattr(args, key, value)
+                if key == 'dataset' or key == 'validation_dataset':
+                    setattr(args, key, DataSetType.from_string(value))
+                else:
+                    setattr(args, key, value)
 
     # parse whitelist
     whitelist = args.whitelist
@@ -202,32 +239,7 @@ def run(args):
     }
 
     # Training dataset
-    print("Resolving input files")
-    input_image_files = sorted(glob_all(args.files))
-    if not args.text_files:
-        if args.gt_extension:
-            gt_txt_files = [split_all_ext(f)[0] + args.gt_extension for f in input_image_files]
-        else:
-            gt_txt_files = [None] * len(input_image_files)
-    else:
-        gt_txt_files = sorted(glob_all(args.text_files))
-        input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
-        for img, gt in zip(input_image_files, gt_txt_files):
-            if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:
-                raise Exception("Expected identical basenames of file: {} and {}".format(img, gt))
-
-    if len(set(gt_txt_files)) != len(gt_txt_files):
-        raise Exception("Some image are occurring more than once in the data set.")
-
-    dataset = create_dataset(
-        args.dataset,
-        DataSetMode.TRAIN,
-        images=input_image_files,
-        texts=gt_txt_files,
-        skip_invalid=not args.no_skip_invalid_gt,
-        args=dataset_args,
-    )
-    print("Found {} files in the dataset".format(len(dataset)))
+    dataset = create_train_dataset(args, dataset_args)
 
     # Validation dataset
     if args.validation:

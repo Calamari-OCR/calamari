@@ -41,7 +41,7 @@ class Hdf5DataSet(DataSet):
 
         images = images if images is not None else []
         texts = texts if texts is not None else []
-        self.filenames = [i for i in images + texts if i is not None]
+        self.filenames = [i for i in set(images + texts) if i is not None]
 
         self.prediction = None
         if mode == DataSetMode.PREDICT:
