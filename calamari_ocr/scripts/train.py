@@ -142,6 +142,9 @@ def setup_train_args(parser, omit=None):
                         help="Tensorflow's session inter threads param")
     parser.add_argument("--num_intra_threads", type=int, default=0,
                         help="Tensorflow's session intra threads param")
+    parser.add_argument("--shuffle_buffer_size", type=int, default=1000,
+                        help="Number of examples in the shuffle buffer for training (default 1000). A higher number "
+                             "required more memory. If set to 0, the buffer size equates an epoch i.e. the full dataset")
 
     # text normalization/regularization
     parser.add_argument("--text_regularization", type=str, nargs="+", default=["extended"],
@@ -321,6 +324,7 @@ def run(args):
     params.model.network.backend.fuzzy_ctc_library_path = args.fuzzy_ctc_library_path
     params.model.network.backend.num_inter_threads = args.num_inter_threads
     params.model.network.backend.num_intra_threads = args.num_intra_threads
+    params.model.network.backend.shuffle_buffer_size = args.shuffle_buffer_size
 
     # create the actual trainer
     trainer = Trainer(params,

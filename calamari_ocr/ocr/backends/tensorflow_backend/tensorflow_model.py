@@ -31,7 +31,7 @@ class TensorflowModel(ModelInterface):
 
             # inputs as data set (faster)
             self.inputs, self.input_seq_len, self.targets, self.dropout_rate, self.data_iterator, self.serialized_params = \
-                self.create_dataset_inputs(batch_size, network_proto.features)
+                self.create_dataset_inputs(batch_size, network_proto.features, network_proto.backend.shuffle_buffer_size)
 
             # create network and solver (if train)
             if graph_type == "train":
@@ -228,8 +228,10 @@ class TensorflowModel(ModelInterface):
 
         return inputs, seq_len, targets, dropout_rate, serialized_params
 
-    def create_dataset_inputs(self, batch_size, line_height, buffer_size=1000):
-        buffer_size = min(buffer_size, len(self.input_dataset) if self.input_dataset else 10)
+    def create_dataset_inputs(self, batch_size, line_height, max_buffer_size=1000):
+        buffer_size = len(self.input_dataset) if self.input_dataset else 10
+        buffer_size = min(max_buffer_size, buffer_size) if max_buffer_size > 0 else buffer_size
+
         with tf.variable_scope("cnn_lstm", reuse=False):
             def gen():
                 epochs = 1

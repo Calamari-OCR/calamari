@@ -117,6 +117,7 @@ message BackendParams {
     Type type = 1;
     bool cudnn = 2;
     int32 random_seed = 3;
+    int32 shuffle_buffer_size = 7;      // upper limit for the shuffle buffer used during training, 0 means no limit
 
 
     // additional backend params for

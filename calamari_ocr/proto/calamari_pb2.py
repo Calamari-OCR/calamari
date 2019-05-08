@@ -7,7 +7,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -19,9 +18,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='calamari_ocr/proto/calamari.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n!calamari_ocr/proto/calamari.proto\"\xa9\x05\n\x10\x43heckpointParams\x12\x0f\n\x07version\x18\x19 \x01(\x05\x12\x1b\n\x05model\x18\x01 \x01(\x0b\x32\x0c.ModelParams\x12\x11\n\tprocesses\x18\x02 \x01(\x05\x12\x11\n\tmax_iters\x18\x03 \x01(\x05\x12\x17\n\x0fskip_invalid_gt\x18\x04 \x01(\x08\x12\x0f\n\x07\x64isplay\x18\x05 \x01(\x02\x12\x12\n\nstats_size\x18\x06 \x01(\x05\x12\x12\n\nbatch_size\x18\x07 \x01(\x05\x12\x1c\n\x14\x63heckpoint_frequency\x18\x08 \x01(\x02\x12\x12\n\noutput_dir\x18\t \x01(\t\x12\x1b\n\x13output_model_prefix\x18\x16 \x01(\t\x12$\n\x1c\x64\x61ta_aug_retrain_on_original\x18\x17 \x01(\x08\x12\x15\n\rcurrent_stage\x18\x18 \x01(\x05\x12 \n\x18\x65\x61rly_stopping_frequency\x18\x0f \x01(\x02\x12\x1c\n\x14\x65\x61rly_stopping_nbest\x18\x10 \x01(\x05\x12(\n early_stopping_best_model_prefix\x18\x11 \x01(\t\x12,\n$early_stopping_best_model_output_dir\x18\x15 \x01(\t\x12\x0c\n\x04iter\x18\n \x01(\x05\x12\x12\n\nloss_stats\x18\x0b \x03(\x02\x12\x11\n\tler_stats\x18\x0c \x03(\x02\x12\x10\n\x08\x64t_stats\x18\r \x03(\x02\x12\x12\n\ntotal_time\x18\x0e \x01(\x02\x12$\n\x1c\x65\x61rly_stopping_best_accuracy\x18\x12 \x01(\x02\x12%\n\x1d\x65\x61rly_stopping_best_cur_nbest\x18\x13 \x01(\x05\x12#\n\x1b\x65\x61rly_stopping_best_at_iter\x18\x14 \x01(\x05\"<\n\x0c\x44oubleMatrix\x12\x0c\n\x04rows\x18\x01 \x01(\r\x12\x0c\n\x04\x63ols\x18\x02 \x01(\r\x12\x10\n\x04\x64\x61ta\x18\x03 \x03(\x01\x42\x02\x10\x01\" \n\x08IntVec2D\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\"\xb6\x02\n\x0bLayerParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.LayerParams.Type\x12\x0f\n\x07\x66ilters\x18\x02 \x01(\x05\x12\x1e\n\x0bkernel_size\x18\x03 \x01(\x0b\x32\t.IntVec2D\x12\x19\n\x06stride\x18\x04 \x01(\x0b\x32\t.IntVec2D\x12\x14\n\x0chidden_nodes\x18\x05 \x01(\x05\x12\x11\n\tpeepholes\x18\x06 \x01(\x08\x12\x32\n\x0elstm_direction\x18\x07 \x01(\x0e\x32\x1a.LayerParams.LSTMDirection\"4\n\x04Type\x12\x11\n\rCONVOLUTIONAL\x10\x00\x12\x0f\n\x0bMAX_POOLING\x10\x01\x12\x08\n\x04LSTM\x10\x02\"\'\n\rLSTMDirection\x12\x16\n\x12\x42IDIRECTIONAL_LSTM\x10\x00\"\x86\x04\n\rNetworkParams\x12\x1f\n\x07\x62\x61\x63kend\x18\x08 \x01(\x0b\x32\x0e.BackendParams\x12\x1c\n\x06layers\x18\x01 \x03(\x0b\x32\x0c.LayerParams\x12)\n\x06solver\x18\x02 \x01(\x0e\x32\x19.NetworkParams.SolverType\x12\x15\n\rlearning_rate\x18\x0b \x01(\x02\x12\x10\n\x08momentum\x18\x03 \x01(\x02\x12\x0f\n\x07\x64ropout\x18\x05 \x01(\x02\x12\x10\n\x08\x66\x65\x61tures\x18\x06 \x01(\x05\x12\x0f\n\x07\x63lasses\x18\x07 \x01(\x05\x12\x1a\n\x12\x63tc_merge_repeated\x18\t \x01(\x08\x12#\n\x03\x63tc\x18\n \x01(\x0e\x32\x16.NetworkParams.CTCType\x12\x32\n\rclipping_mode\x18\x0c \x01(\x0e\x32\x1b.NetworkParams.ClippingMode\x12\x19\n\x11\x63lipping_constant\x18\r \x01(\x02\"2\n\nSolverType\x12\x13\n\x0fMOMENTUM_SOLVER\x10\x00\x12\x0f\n\x0b\x41\x44\x41M_SOLVER\x10\x01\")\n\x07\x43TCType\x12\x0f\n\x0b\x43TC_DEFAULT\x10\x00\x12\r\n\tCTC_FUZZY\x10\x01\"?\n\x0c\x43lippingMode\x12\r\n\tCLIP_AUTO\x10\x00\x12\r\n\tCLIP_NONE\x10\x01\x12\x11\n\rCLIP_CONSTANT\x10\x02\"\xc4\x01\n\rBackendParams\x12!\n\x04type\x18\x01 \x01(\x0e\x32\x13.BackendParams.Type\x12\r\n\x05\x63udnn\x18\x02 \x01(\x08\x12\x13\n\x0brandom_seed\x18\x03 \x01(\x05\x12\x1e\n\x16\x66uzzy_ctc_library_path\x18\x04 \x01(\t\x12\x19\n\x11num_inter_threads\x18\x05 \x01(\x05\x12\x19\n\x11num_intra_threads\x18\x06 \x01(\x05\"\x16\n\x04Type\x12\x0e\n\nTENSORFLOW\x10\x00\"\xf7\x01\n\x0bModelParams\x12\x1f\n\x07network\x18\x02 \x01(\x0b\x32\x0e.NetworkParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\x32\n\x11\x64\x61ta_preprocessor\x18\x04 \x01(\x0b\x32\x17.DataPreprocessorParams\x12/\n\x11text_preprocessor\x18\x05 \x01(\x0b\x32\x14.TextProcessorParams\x12\x30\n\x12text_postprocessor\x18\x06 \x01(\x0b\x32\x14.TextProcessorParams\x12\x1b\n\x05\x63odec\x18\x07 \x01(\x0b\x32\x0c.CodecParams\"\x8b\x04\n\x16\x44\x61taPreprocessorParams\x12*\n\x04type\x18\x01 \x01(\x0e\x32\x1c.DataPreprocessorParams.Type\x12)\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x17.DataPreprocessorParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\r\n\x05range\x18\x04 \x01(\x05\x12\x12\n\nsmoothness\x18\x05 \x01(\x05\x12\x0b\n\x03pad\x18\x06 \x01(\x05\x12:\n\x0c\x62inarization\x18\x07 \x01(\x0e\x32$.DataPreprocessorParams.Binarization\x12\x14\n\x0cno_normalize\x18\x08 \x01(\x08\x12\x11\n\tno_invert\x18\t \x01(\x08\x12\x14\n\x0cno_transpose\x18\n \x01(\x08\x12\x11\n\tpad_value\x18\x0b \x01(\x05\"\xa2\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x14\n\x10MULTI_NORMALIZER\x10\x01\x12\x13\n\x0fNOOP_NORMALIZER\x10\x02\x12\x14\n\x10RANGE_NORMALIZER\x10\x03\x12\x15\n\x11\x43\x45NTER_NORMALIZER\x10\x04\x12\x15\n\x11\x46INAL_PREPARATION\x10\x05\x12\x13\n\x0fSCALE_TO_HEIGHT\x10\x06\"\"\n\x0c\x42inarization\x12\x08\n\x04GRAY\x10\x00\x12\x08\n\x04OTSU\x10\x01\"J\n\x1fTextNormalizerReplacementParams\x12\x0b\n\x03old\x18\x01 \x01(\t\x12\x0b\n\x03new\x18\x02 \x01(\t\x12\r\n\x05regex\x18\x03 \x01(\x08\"\xab\x05\n\x13TextProcessorParams\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.TextProcessorParams.Type\x12&\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x14.TextProcessorParams\x12:\n\x0e\x62idi_direction\x18\x03 \x01(\x0e\x32\".TextProcessorParams.BidiDirection\x12L\n\x15unicode_normalization\x18\x04 \x01(\x0e\x32-.TextProcessorParams.UnicodeNormalizationType\x12\x36\n\x0creplacements\x18\x05 \x03(\x0b\x32 .TextNormalizerReplacementParams\x12\x12\n\ncharacters\x18\x06 \x03(\t\"\xee\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x1a\n\x16\x44\x45\x46\x41ULT_PRE_NORMALIZER\x10\x01\x12\x1b\n\x17\x44\x45\x46\x41ULT_POST_NORMALIZER\x10\x02\x12\x14\n\x10MULTI_NORMALIZER\x10\x03\x12\x13\n\x0fNOOP_NORMALIZER\x10\x04\x12\x14\n\x10STRIP_NORMALIZER\x10\x05\x12\x13\n\x0f\x42IDI_NORMALIZER\x10\x06\x12\x13\n\x0fTEXT_NORMALIZER\x10\x07\x12\x14\n\x10TEXT_REGULARIZER\x10\x08\x12\x14\n\x10STR_TO_CHAR_LIST\x10\t\":\n\rBidiDirection\x12\r\n\tBIDI_AUTO\x10\x00\x12\x0c\n\x08\x42IDI_LTR\x10\x01\x12\x0c\n\x08\x42IDI_RTL\x10\x02\"@\n\x18UnicodeNormalizationType\x12\x07\n\x03NFC\x10\x00\x12\x08\n\x04NFKC\x10\x01\x12\x07\n\x03NFD\x10\x02\x12\x08\n\x04NFKD\x10\x03\"\x1e\n\x0b\x43odecParams\x12\x0f\n\x07\x63harset\x18\x01 \x03(\t\"\xa1\x01\n\x0bVoterParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.VoterParams.Type\x12\x13\n\x0b\x62lank_index\x18\x02 \x01(\x05\"\\\n\x04Type\x12\x12\n\x0eSEQUENCE_VOTER\x10\x00\x12 \n\x1c\x43ONFIDENCE_VOTER_DEFAULT_CTC\x10\x01\x12\x1e\n\x1a\x43ONFIDENCE_VOTER_FUZZY_CTC\x10\x02\"G\n\x13PredictionCharacter\x12\x0c\n\x04\x63har\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\x05\x12\x13\n\x0bprobability\x18\x03 \x01(\x02\"\x8b\x01\n\x12PredictionPosition\x12#\n\x05\x63hars\x18\x01 \x03(\x0b\x32\x14.PredictionCharacter\x12\x13\n\x0blocal_start\x18\x02 \x01(\x05\x12\x11\n\tlocal_end\x18\x03 \x01(\x05\x12\x14\n\x0cglobal_start\x18\x04 \x01(\x05\x12\x12\n\nglobal_end\x18\x05 \x01(\x05\"\xe6\x01\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\t\x12\x10\n\x08sentence\x18\x02 \x01(\t\x12\x0e\n\x06labels\x18\x03 \x03(\x05\x12&\n\tpositions\x18\x04 \x03(\x0b\x32\x13.PredictionPosition\x12\x1d\n\x06logits\x18\x05 \x01(\x0b\x32\r.DoubleMatrix\x12\x19\n\x11total_probability\x18\x06 \x01(\x02\x12\x1c\n\x14\x61vg_char_probability\x18\t \x01(\x02\x12\x17\n\x0fis_voted_result\x18\x07 \x01(\x08\x12\x11\n\tline_path\x18\x08 \x01(\t\"B\n\x0bPredictions\x12 \n\x0bpredictions\x18\x01 \x03(\x0b\x32\x0b.Prediction\x12\x11\n\tline_path\x18\x02 \x01(\t\"q\n\x17LineGeneratorParameters\x12\r\n\x05\x66onts\x18\x01 \x03(\t\x12\x11\n\tfont_size\x18\x02 \x01(\x05\x12\x19\n\x11min_script_offset\x18\x03 \x01(\x02\x12\x19\n\x11max_script_offset\x18\x04 \x01(\x02\"\x85\x03\n\x17TextGeneratorParameters\x12\x18\n\x10word_length_mean\x18\x01 \x01(\x02\x12\x19\n\x11word_length_sigma\x18\x02 \x01(\x02\x12\x0f\n\x07\x63harset\x18\x03 \x03(\t\x12\x15\n\rsuper_charset\x18\x0e \x03(\t\x12\x13\n\x0bsub_charset\x18\x0f \x03(\t\x12\x1c\n\x14number_of_words_mean\x18\x04 \x01(\x02\x12\x1d\n\x15number_of_words_sigma\x18\x05 \x01(\x02\x12\x16\n\x0eword_separator\x18\x06 \x01(\t\x12\x14\n\x0csub_script_p\x18\x07 \x01(\x02\x12\x16\n\x0esuper_script_p\x18\x08 \x01(\x02\x12\x0e\n\x06\x62old_p\x18\t \x01(\x02\x12\x10\n\x08italic_p\x18\n \x01(\x02\x12\x18\n\x10letter_spacing_p\x18\x0b \x01(\x02\x12\x1b\n\x13letter_spacing_mean\x18\x0c \x01(\x02\x12\x1c\n\x14letter_spacing_sigma\x18\r \x01(\x02\x62\x06proto3')
+  serialized_options=None,
+  serialized_pb=_b('\n!calamari_ocr/proto/calamari.proto\"\xa9\x05\n\x10\x43heckpointParams\x12\x0f\n\x07version\x18\x19 \x01(\x05\x12\x1b\n\x05model\x18\x01 \x01(\x0b\x32\x0c.ModelParams\x12\x11\n\tprocesses\x18\x02 \x01(\x05\x12\x11\n\tmax_iters\x18\x03 \x01(\x05\x12\x17\n\x0fskip_invalid_gt\x18\x04 \x01(\x08\x12\x0f\n\x07\x64isplay\x18\x05 \x01(\x02\x12\x12\n\nstats_size\x18\x06 \x01(\x05\x12\x12\n\nbatch_size\x18\x07 \x01(\x05\x12\x1c\n\x14\x63heckpoint_frequency\x18\x08 \x01(\x02\x12\x12\n\noutput_dir\x18\t \x01(\t\x12\x1b\n\x13output_model_prefix\x18\x16 \x01(\t\x12$\n\x1c\x64\x61ta_aug_retrain_on_original\x18\x17 \x01(\x08\x12\x15\n\rcurrent_stage\x18\x18 \x01(\x05\x12 \n\x18\x65\x61rly_stopping_frequency\x18\x0f \x01(\x02\x12\x1c\n\x14\x65\x61rly_stopping_nbest\x18\x10 \x01(\x05\x12(\n early_stopping_best_model_prefix\x18\x11 \x01(\t\x12,\n$early_stopping_best_model_output_dir\x18\x15 \x01(\t\x12\x0c\n\x04iter\x18\n \x01(\x05\x12\x12\n\nloss_stats\x18\x0b \x03(\x02\x12\x11\n\tler_stats\x18\x0c \x03(\x02\x12\x10\n\x08\x64t_stats\x18\r \x03(\x02\x12\x12\n\ntotal_time\x18\x0e \x01(\x02\x12$\n\x1c\x65\x61rly_stopping_best_accuracy\x18\x12 \x01(\x02\x12%\n\x1d\x65\x61rly_stopping_best_cur_nbest\x18\x13 \x01(\x05\x12#\n\x1b\x65\x61rly_stopping_best_at_iter\x18\x14 \x01(\x05\"<\n\x0c\x44oubleMatrix\x12\x0c\n\x04rows\x18\x01 \x01(\r\x12\x0c\n\x04\x63ols\x18\x02 \x01(\r\x12\x10\n\x04\x64\x61ta\x18\x03 \x03(\x01\x42\x02\x10\x01\" \n\x08IntVec2D\x12\t\n\x01x\x18\x01 \x01(\x05\x12\t\n\x01y\x18\x02 \x01(\x05\"\xb6\x02\n\x0bLayerParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.LayerParams.Type\x12\x0f\n\x07\x66ilters\x18\x02 \x01(\x05\x12\x1e\n\x0bkernel_size\x18\x03 \x01(\x0b\x32\t.IntVec2D\x12\x19\n\x06stride\x18\x04 \x01(\x0b\x32\t.IntVec2D\x12\x14\n\x0chidden_nodes\x18\x05 \x01(\x05\x12\x11\n\tpeepholes\x18\x06 \x01(\x08\x12\x32\n\x0elstm_direction\x18\x07 \x01(\x0e\x32\x1a.LayerParams.LSTMDirection\"4\n\x04Type\x12\x11\n\rCONVOLUTIONAL\x10\x00\x12\x0f\n\x0bMAX_POOLING\x10\x01\x12\x08\n\x04LSTM\x10\x02\"\'\n\rLSTMDirection\x12\x16\n\x12\x42IDIRECTIONAL_LSTM\x10\x00\"\x86\x04\n\rNetworkParams\x12\x1f\n\x07\x62\x61\x63kend\x18\x08 \x01(\x0b\x32\x0e.BackendParams\x12\x1c\n\x06layers\x18\x01 \x03(\x0b\x32\x0c.LayerParams\x12)\n\x06solver\x18\x02 \x01(\x0e\x32\x19.NetworkParams.SolverType\x12\x15\n\rlearning_rate\x18\x0b \x01(\x02\x12\x10\n\x08momentum\x18\x03 \x01(\x02\x12\x0f\n\x07\x64ropout\x18\x05 \x01(\x02\x12\x10\n\x08\x66\x65\x61tures\x18\x06 \x01(\x05\x12\x0f\n\x07\x63lasses\x18\x07 \x01(\x05\x12\x1a\n\x12\x63tc_merge_repeated\x18\t \x01(\x08\x12#\n\x03\x63tc\x18\n \x01(\x0e\x32\x16.NetworkParams.CTCType\x12\x32\n\rclipping_mode\x18\x0c \x01(\x0e\x32\x1b.NetworkParams.ClippingMode\x12\x19\n\x11\x63lipping_constant\x18\r \x01(\x02\"2\n\nSolverType\x12\x13\n\x0fMOMENTUM_SOLVER\x10\x00\x12\x0f\n\x0b\x41\x44\x41M_SOLVER\x10\x01\")\n\x07\x43TCType\x12\x0f\n\x0b\x43TC_DEFAULT\x10\x00\x12\r\n\tCTC_FUZZY\x10\x01\"?\n\x0c\x43lippingMode\x12\r\n\tCLIP_AUTO\x10\x00\x12\r\n\tCLIP_NONE\x10\x01\x12\x11\n\rCLIP_CONSTANT\x10\x02\"\xe1\x01\n\rBackendParams\x12!\n\x04type\x18\x01 \x01(\x0e\x32\x13.BackendParams.Type\x12\r\n\x05\x63udnn\x18\x02 \x01(\x08\x12\x13\n\x0brandom_seed\x18\x03 \x01(\x05\x12\x1b\n\x13shuffle_buffer_size\x18\x07 \x01(\x05\x12\x1e\n\x16\x66uzzy_ctc_library_path\x18\x04 \x01(\t\x12\x19\n\x11num_inter_threads\x18\x05 \x01(\x05\x12\x19\n\x11num_intra_threads\x18\x06 \x01(\x05\"\x16\n\x04Type\x12\x0e\n\nTENSORFLOW\x10\x00\"\xf7\x01\n\x0bModelParams\x12\x1f\n\x07network\x18\x02 \x01(\x0b\x32\x0e.NetworkParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\x32\n\x11\x64\x61ta_preprocessor\x18\x04 \x01(\x0b\x32\x17.DataPreprocessorParams\x12/\n\x11text_preprocessor\x18\x05 \x01(\x0b\x32\x14.TextProcessorParams\x12\x30\n\x12text_postprocessor\x18\x06 \x01(\x0b\x32\x14.TextProcessorParams\x12\x1b\n\x05\x63odec\x18\x07 \x01(\x0b\x32\x0c.CodecParams\"\x8b\x04\n\x16\x44\x61taPreprocessorParams\x12*\n\x04type\x18\x01 \x01(\x0e\x32\x1c.DataPreprocessorParams.Type\x12)\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x17.DataPreprocessorParams\x12\x13\n\x0bline_height\x18\x03 \x01(\x05\x12\r\n\x05range\x18\x04 \x01(\x05\x12\x12\n\nsmoothness\x18\x05 \x01(\x05\x12\x0b\n\x03pad\x18\x06 \x01(\x05\x12:\n\x0c\x62inarization\x18\x07 \x01(\x0e\x32$.DataPreprocessorParams.Binarization\x12\x14\n\x0cno_normalize\x18\x08 \x01(\x08\x12\x11\n\tno_invert\x18\t \x01(\x08\x12\x14\n\x0cno_transpose\x18\n \x01(\x08\x12\x11\n\tpad_value\x18\x0b \x01(\x05\"\xa2\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x14\n\x10MULTI_NORMALIZER\x10\x01\x12\x13\n\x0fNOOP_NORMALIZER\x10\x02\x12\x14\n\x10RANGE_NORMALIZER\x10\x03\x12\x15\n\x11\x43\x45NTER_NORMALIZER\x10\x04\x12\x15\n\x11\x46INAL_PREPARATION\x10\x05\x12\x13\n\x0fSCALE_TO_HEIGHT\x10\x06\"\"\n\x0c\x42inarization\x12\x08\n\x04GRAY\x10\x00\x12\x08\n\x04OTSU\x10\x01\"J\n\x1fTextNormalizerReplacementParams\x12\x0b\n\x03old\x18\x01 \x01(\t\x12\x0b\n\x03new\x18\x02 \x01(\t\x12\r\n\x05regex\x18\x03 \x01(\x08\"\xab\x05\n\x13TextProcessorParams\x12\'\n\x04type\x18\x01 \x01(\x0e\x32\x19.TextProcessorParams.Type\x12&\n\x08\x63hildren\x18\x02 \x03(\x0b\x32\x14.TextProcessorParams\x12:\n\x0e\x62idi_direction\x18\x03 \x01(\x0e\x32\".TextProcessorParams.BidiDirection\x12L\n\x15unicode_normalization\x18\x04 \x01(\x0e\x32-.TextProcessorParams.UnicodeNormalizationType\x12\x36\n\x0creplacements\x18\x05 \x03(\x0b\x32 .TextNormalizerReplacementParams\x12\x12\n\ncharacters\x18\x06 \x03(\t\"\xee\x01\n\x04Type\x12\x16\n\x12\x44\x45\x46\x41ULT_NORMALIZER\x10\x00\x12\x1a\n\x16\x44\x45\x46\x41ULT_PRE_NORMALIZER\x10\x01\x12\x1b\n\x17\x44\x45\x46\x41ULT_POST_NORMALIZER\x10\x02\x12\x14\n\x10MULTI_NORMALIZER\x10\x03\x12\x13\n\x0fNOOP_NORMALIZER\x10\x04\x12\x14\n\x10STRIP_NORMALIZER\x10\x05\x12\x13\n\x0f\x42IDI_NORMALIZER\x10\x06\x12\x13\n\x0fTEXT_NORMALIZER\x10\x07\x12\x14\n\x10TEXT_REGULARIZER\x10\x08\x12\x14\n\x10STR_TO_CHAR_LIST\x10\t\":\n\rBidiDirection\x12\r\n\tBIDI_AUTO\x10\x00\x12\x0c\n\x08\x42IDI_LTR\x10\x01\x12\x0c\n\x08\x42IDI_RTL\x10\x02\"@\n\x18UnicodeNormalizationType\x12\x07\n\x03NFC\x10\x00\x12\x08\n\x04NFKC\x10\x01\x12\x07\n\x03NFD\x10\x02\x12\x08\n\x04NFKD\x10\x03\"\x1e\n\x0b\x43odecParams\x12\x0f\n\x07\x63harset\x18\x01 \x03(\t\"\xa1\x01\n\x0bVoterParams\x12\x1f\n\x04type\x18\x01 \x01(\x0e\x32\x11.VoterParams.Type\x12\x13\n\x0b\x62lank_index\x18\x02 \x01(\x05\"\\\n\x04Type\x12\x12\n\x0eSEQUENCE_VOTER\x10\x00\x12 \n\x1c\x43ONFIDENCE_VOTER_DEFAULT_CTC\x10\x01\x12\x1e\n\x1a\x43ONFIDENCE_VOTER_FUZZY_CTC\x10\x02\"G\n\x13PredictionCharacter\x12\x0c\n\x04\x63har\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\x05\x12\x13\n\x0bprobability\x18\x03 \x01(\x02\"\x8b\x01\n\x12PredictionPosition\x12#\n\x05\x63hars\x18\x01 \x03(\x0b\x32\x14.PredictionCharacter\x12\x13\n\x0blocal_start\x18\x02 \x01(\x05\x12\x11\n\tlocal_end\x18\x03 \x01(\x05\x12\x14\n\x0cglobal_start\x18\x04 \x01(\x05\x12\x12\n\nglobal_end\x18\x05 \x01(\x05\"\xe6\x01\n\nPrediction\x12\n\n\x02id\x18\x01 \x01(\t\x12\x10\n\x08sentence\x18\x02 \x01(\t\x12\x0e\n\x06labels\x18\x03 \x03(\x05\x12&\n\tpositions\x18\x04 \x03(\x0b\x32\x13.PredictionPosition\x12\x1d\n\x06logits\x18\x05 \x01(\x0b\x32\r.DoubleMatrix\x12\x19\n\x11total_probability\x18\x06 \x01(\x02\x12\x1c\n\x14\x61vg_char_probability\x18\t \x01(\x02\x12\x17\n\x0fis_voted_result\x18\x07 \x01(\x08\x12\x11\n\tline_path\x18\x08 \x01(\t\"B\n\x0bPredictions\x12 \n\x0bpredictions\x18\x01 \x03(\x0b\x32\x0b.Prediction\x12\x11\n\tline_path\x18\x02 \x01(\t\"q\n\x17LineGeneratorParameters\x12\r\n\x05\x66onts\x18\x01 \x03(\t\x12\x11\n\tfont_size\x18\x02 \x01(\x05\x12\x19\n\x11min_script_offset\x18\x03 \x01(\x02\x12\x19\n\x11max_script_offset\x18\x04 \x01(\x02\"\x85\x03\n\x17TextGeneratorParameters\x12\x18\n\x10word_length_mean\x18\x01 \x01(\x02\x12\x19\n\x11word_length_sigma\x18\x02 \x01(\x02\x12\x0f\n\x07\x63harset\x18\x03 \x03(\t\x12\x15\n\rsuper_charset\x18\x0e \x03(\t\x12\x13\n\x0bsub_charset\x18\x0f \x03(\t\x12\x1c\n\x14number_of_words_mean\x18\x04 \x01(\x02\x12\x1d\n\x15number_of_words_sigma\x18\x05 \x01(\x02\x12\x16\n\x0eword_separator\x18\x06 \x01(\t\x12\x14\n\x0csub_script_p\x18\x07 \x01(\x02\x12\x16\n\x0esuper_script_p\x18\x08 \x01(\x02\x12\x0e\n\x06\x62old_p\x18\t \x01(\x02\x12\x10\n\x08italic_p\x18\n \x01(\x02\x12\x18\n\x10letter_spacing_p\x18\x0b \x01(\x02\x12\x1b\n\x13letter_spacing_mean\x18\x0c \x01(\x02\x12\x1c\n\x14letter_spacing_sigma\x18\r \x01(\x02\x62\x06proto3')
 )
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
 
@@ -33,19 +32,19 @@ _LAYERPARAMS_TYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='CONVOLUTIONAL', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MAX_POOLING', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='LSTM', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
+  serialized_options=None,
   serialized_start=1035,
   serialized_end=1087,
 )
@@ -59,11 +58,11 @@ _LAYERPARAMS_LSTMDIRECTION = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='BIDIRECTIONAL_LSTM', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
+  serialized_options=None,
   serialized_start=1089,
   serialized_end=1128,
 )
@@ -77,15 +76,15 @@ _NETWORKPARAMS_SOLVERTYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='MOMENTUM_SOLVER', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='ADAM_SOLVER', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
+  serialized_options=None,
   serialized_start=1491,
   serialized_end=1541,
 )
@@ -99,15 +98,15 @@ _NETWORKPARAMS_CTCTYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='CTC_DEFAULT', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CTC_FUZZY', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
+  serialized_options=None,
   serialized_start=1543,
   serialized_end=1584,
 )
@@ -121,19 +120,19 @@ _NETWORKPARAMS_CLIPPINGMODE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='CLIP_AUTO', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CLIP_NONE', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CLIP_CONSTANT', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
+  serialized_options=None,
   serialized_start=1586,
   serialized_end=1649,
 )
@@ -147,13 +146,13 @@ _BACKENDPARAMS_TYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='TENSORFLOW', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=1826,
-  serialized_end=1848,
+  serialized_options=None,
+  serialized_start=1855,
+  serialized_end=1877,
 )
 _sym_db.RegisterEnumDescriptor(_BACKENDPARAMS_TYPE)
 
@@ -165,37 +164,37 @@ _DATAPREPROCESSORPARAMS_TYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='DEFAULT_NORMALIZER', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MULTI_NORMALIZER', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='NOOP_NORMALIZER', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='RANGE_NORMALIZER', index=3, number=3,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CENTER_NORMALIZER', index=4, number=4,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='FINAL_PREPARATION', index=5, number=5,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='SCALE_TO_HEIGHT', index=6, number=6,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=2426,
-  serialized_end=2588,
+  serialized_options=None,
+  serialized_start=2455,
+  serialized_end=2617,
 )
 _sym_db.RegisterEnumDescriptor(_DATAPREPROCESSORPARAMS_TYPE)
 
@@ -207,17 +206,17 @@ _DATAPREPROCESSORPARAMS_BINARIZATION = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='GRAY', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='OTSU', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=2590,
-  serialized_end=2624,
+  serialized_options=None,
+  serialized_start=2619,
+  serialized_end=2653,
 )
 _sym_db.RegisterEnumDescriptor(_DATAPREPROCESSORPARAMS_BINARIZATION)
 
@@ -229,49 +228,49 @@ _TEXTPROCESSORPARAMS_TYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='DEFAULT_NORMALIZER', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='DEFAULT_PRE_NORMALIZER', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='DEFAULT_POST_NORMALIZER', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='MULTI_NORMALIZER', index=3, number=3,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='NOOP_NORMALIZER', index=4, number=4,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='STRIP_NORMALIZER', index=5, number=5,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='BIDI_NORMALIZER', index=6, number=6,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='TEXT_NORMALIZER', index=7, number=7,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='TEXT_REGULARIZER', index=8, number=8,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='STR_TO_CHAR_LIST', index=9, number=9,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=3022,
-  serialized_end=3260,
+  serialized_options=None,
+  serialized_start=3051,
+  serialized_end=3289,
 )
 _sym_db.RegisterEnumDescriptor(_TEXTPROCESSORPARAMS_TYPE)
 
@@ -283,21 +282,21 @@ _TEXTPROCESSORPARAMS_BIDIDIRECTION = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='BIDI_AUTO', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='BIDI_LTR', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='BIDI_RTL', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=3262,
-  serialized_end=3320,
+  serialized_options=None,
+  serialized_start=3291,
+  serialized_end=3349,
 )
 _sym_db.RegisterEnumDescriptor(_TEXTPROCESSORPARAMS_BIDIDIRECTION)
 
@@ -309,25 +308,25 @@ _TEXTPROCESSORPARAMS_UNICODENORMALIZATIONTYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='NFC', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='NFKC', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='NFD', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='NFKD', index=3, number=3,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=3322,
-  serialized_end=3386,
+  serialized_options=None,
+  serialized_start=3351,
+  serialized_end=3415,
 )
 _sym_db.RegisterEnumDescriptor(_TEXTPROCESSORPARAMS_UNICODENORMALIZATIONTYPE)
 
@@ -339,21 +338,21 @@ _VOTERPARAMS_TYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='SEQUENCE_VOTER', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CONFIDENCE_VOTER_DEFAULT_CTC', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='CONFIDENCE_VOTER_FUZZY_CTC', index=2, number=2,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=3490,
-  serialized_end=3582,
+  serialized_options=None,
+  serialized_start=3519,
+  serialized_end=3611,
 )
 _sym_db.RegisterEnumDescriptor(_VOTERPARAMS_TYPE)
 
@@ -371,182 +370,182 @@ _CHECKPOINTPARAMS = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='model', full_name='CheckpointParams.model', index=1,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='processes', full_name='CheckpointParams.processes', index=2,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='max_iters', full_name='CheckpointParams.max_iters', index=3,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='skip_invalid_gt', full_name='CheckpointParams.skip_invalid_gt', index=4,
       number=4, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='display', full_name='CheckpointParams.display', index=5,
       number=5, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='stats_size', full_name='CheckpointParams.stats_size', index=6,
       number=6, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='batch_size', full_name='CheckpointParams.batch_size', index=7,
       number=7, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='checkpoint_frequency', full_name='CheckpointParams.checkpoint_frequency', index=8,
       number=8, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='output_dir', full_name='CheckpointParams.output_dir', index=9,
       number=9, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='output_model_prefix', full_name='CheckpointParams.output_model_prefix', index=10,
       number=22, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data_aug_retrain_on_original', full_name='CheckpointParams.data_aug_retrain_on_original', index=11,
       number=23, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='current_stage', full_name='CheckpointParams.current_stage', index=12,
       number=24, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='early_stopping_frequency', full_name='CheckpointParams.early_stopping_frequency', index=13,
       number=15, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='early_stopping_nbest', full_name='CheckpointParams.early_stopping_nbest', index=14,
       number=16, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='early_stopping_best_model_prefix', full_name='CheckpointParams.early_stopping_best_model_prefix', index=15,
       number=17, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='early_stopping_best_model_output_dir', full_name='CheckpointParams.early_stopping_best_model_output_dir', index=16,
       number=21, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='iter', full_name='CheckpointParams.iter', index=17,
       number=10, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='loss_stats', full_name='CheckpointParams.loss_stats', index=18,
       number=11, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ler_stats', full_name='CheckpointParams.ler_stats', index=19,
       number=12, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='dt_stats', full_name='CheckpointParams.dt_stats', index=20,
       number=13, type=2, cpp_type=6, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='total_time', full_name='CheckpointParams.total_time', index=21,
       number=14, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='early_stopping_best_accuracy', full_name='CheckpointParams.early_stopping_best_accuracy', index=22,
       number=18, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='early_stopping_best_cur_nbest', full_name='CheckpointParams.early_stopping_best_cur_nbest', index=23,
       number=19, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='early_stopping_best_at_iter', full_name='CheckpointParams.early_stopping_best_at_iter', index=24,
       number=20, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -570,28 +569,28 @@ _DOUBLEMATRIX = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='cols', full_name='DoubleMatrix.cols', index=1,
       number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data', full_name='DoubleMatrix.data', index=2,
       number=3, type=1, cpp_type=5, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\020\001'))),
+      serialized_options=_b('\020\001'), file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -615,21 +614,21 @@ _INTVEC2D = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='y', full_name='IntVec2D.y', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -653,49 +652,49 @@ _LAYERPARAMS = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='filters', full_name='LayerParams.filters', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='kernel_size', full_name='LayerParams.kernel_size', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='stride', full_name='LayerParams.stride', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='hidden_nodes', full_name='LayerParams.hidden_nodes', index=4,
       number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='peepholes', full_name='LayerParams.peepholes', index=5,
       number=6, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='lstm_direction', full_name='LayerParams.lstm_direction', index=6,
       number=7, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -704,7 +703,7 @@ _LAYERPARAMS = _descriptor.Descriptor(
     _LAYERPARAMS_TYPE,
     _LAYERPARAMS_LSTMDIRECTION,
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -728,84 +727,84 @@ _NETWORKPARAMS = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='layers', full_name='NetworkParams.layers', index=1,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='solver', full_name='NetworkParams.solver', index=2,
       number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='learning_rate', full_name='NetworkParams.learning_rate', index=3,
       number=11, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='momentum', full_name='NetworkParams.momentum', index=4,
       number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='dropout', full_name='NetworkParams.dropout', index=5,
       number=5, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='features', full_name='NetworkParams.features', index=6,
       number=6, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='classes', full_name='NetworkParams.classes', index=7,
       number=7, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ctc_merge_repeated', full_name='NetworkParams.ctc_merge_repeated', index=8,
       number=9, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ctc', full_name='NetworkParams.ctc', index=9,
       number=10, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='clipping_mode', full_name='NetworkParams.clipping_mode', index=10,
       number=12, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='clipping_constant', full_name='NetworkParams.clipping_constant', index=11,
       number=13, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -815,7 +814,7 @@ _NETWORKPARAMS = _descriptor.Descriptor(
     _NETWORKPARAMS_CTCTYPE,
     _NETWORKPARAMS_CLIPPINGMODE,
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -839,42 +838,49 @@ _BACKENDPARAMS = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='cudnn', full_name='BackendParams.cudnn', index=1,
       number=2, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='random_seed', full_name='BackendParams.random_seed', index=2,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='fuzzy_ctc_library_path', full_name='BackendParams.fuzzy_ctc_library_path', index=3,
+      name='shuffle_buffer_size', full_name='BackendParams.shuffle_buffer_size', index=3,
+      number=7, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='fuzzy_ctc_library_path', full_name='BackendParams.fuzzy_ctc_library_path', index=4,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='num_inter_threads', full_name='BackendParams.num_inter_threads', index=4,
+      name='num_inter_threads', full_name='BackendParams.num_inter_threads', index=5,
       number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='num_intra_threads', full_name='BackendParams.num_intra_threads', index=5,
+      name='num_intra_threads', full_name='BackendParams.num_intra_threads', index=6,
       number=6, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -882,14 +888,14 @@ _BACKENDPARAMS = _descriptor.Descriptor(
   enum_types=[
     _BACKENDPARAMS_TYPE,
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
   serialized_start=1652,
-  serialized_end=1848,
+  serialized_end=1877,
 )
 
 
@@ -906,56 +912,56 @@ _MODELPARAMS = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='line_height', full_name='ModelParams.line_height', index=1,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data_preprocessor', full_name='ModelParams.data_preprocessor', index=2,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='text_preprocessor', full_name='ModelParams.text_preprocessor', index=3,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='text_postprocessor', full_name='ModelParams.text_postprocessor', index=4,
       number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='codec', full_name='ModelParams.codec', index=5,
       number=7, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1851,
-  serialized_end=2098,
+  serialized_start=1880,
+  serialized_end=2127,
 )
 
 
@@ -972,77 +978,77 @@ _DATAPREPROCESSORPARAMS = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='children', full_name='DataPreprocessorParams.children', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='line_height', full_name='DataPreprocessorParams.line_height', index=2,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='range', full_name='DataPreprocessorParams.range', index=3,
       number=4, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='smoothness', full_name='DataPreprocessorParams.smoothness', index=4,
       number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pad', full_name='DataPreprocessorParams.pad', index=5,
       number=6, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='binarization', full_name='DataPreprocessorParams.binarization', index=6,
       number=7, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='no_normalize', full_name='DataPreprocessorParams.no_normalize', index=7,
       number=8, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='no_invert', full_name='DataPreprocessorParams.no_invert', index=8,
       number=9, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='no_transpose', full_name='DataPreprocessorParams.no_transpose', index=9,
       number=10, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pad_value', full_name='DataPreprocessorParams.pad_value', index=10,
       number=11, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -1051,14 +1057,14 @@ _DATAPREPROCESSORPARAMS = _descriptor.Descriptor(
     _DATAPREPROCESSORPARAMS_TYPE,
     _DATAPREPROCESSORPARAMS_BINARIZATION,
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2101,
-  serialized_end=2624,
+  serialized_start=2130,
+  serialized_end=2653,
 )
 
 
@@ -1075,35 +1081,35 @@ _TEXTNORMALIZERREPLACEMENTPARAMS = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='new', full_name='TextNormalizerReplacementParams.new', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='regex', full_name='TextNormalizerReplacementParams.regex', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2626,
-  serialized_end=2700,
+  serialized_start=2655,
+  serialized_end=2729,
 )
 
 
@@ -1120,42 +1126,42 @@ _TEXTPROCESSORPARAMS = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='children', full_name='TextProcessorParams.children', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='bidi_direction', full_name='TextProcessorParams.bidi_direction', index=2,
       number=3, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='unicode_normalization', full_name='TextProcessorParams.unicode_normalization', index=3,
       number=4, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='replacements', full_name='TextProcessorParams.replacements', index=4,
       number=5, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='characters', full_name='TextProcessorParams.characters', index=5,
       number=6, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -1165,14 +1171,14 @@ _TEXTPROCESSORPARAMS = _descriptor.Descriptor(
     _TEXTPROCESSORPARAMS_BIDIDIRECTION,
     _TEXTPROCESSORPARAMS_UNICODENORMALIZATIONTYPE,
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2703,
-  serialized_end=3386,
+  serialized_start=2732,
+  serialized_end=3415,
 )
 
 
@@ -1189,21 +1195,21 @@ _CODECPARAMS = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3388,
-  serialized_end=3418,
+  serialized_start=3417,
+  serialized_end=3447,
 )
 
 
@@ -1220,14 +1226,14 @@ _VOTERPARAMS = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='blank_index', full_name='VoterParams.blank_index', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -1235,14 +1241,14 @@ _VOTERPARAMS = _descriptor.Descriptor(
   enum_types=[
     _VOTERPARAMS_TYPE,
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3421,
-  serialized_end=3582,
+  serialized_start=3450,
+  serialized_end=3611,
 )
 
 
@@ -1259,35 +1265,35 @@ _PREDICTIONCHARACTER = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='label', full_name='PredictionCharacter.label', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='probability', full_name='PredictionCharacter.probability', index=2,
       number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3584,
-  serialized_end=3655,
+  serialized_start=3613,
+  serialized_end=3684,
 )
 
 
@@ -1304,49 +1310,49 @@ _PREDICTIONPOSITION = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='local_start', full_name='PredictionPosition.local_start', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='local_end', full_name='PredictionPosition.local_end', index=2,
       number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='global_start', full_name='PredictionPosition.global_start', index=3,
       number=4, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='global_end', full_name='PredictionPosition.global_end', index=4,
       number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3658,
-  serialized_end=3797,
+  serialized_start=3687,
+  serialized_end=3826,
 )
 
 
@@ -1363,77 +1369,77 @@ _PREDICTION = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sentence', full_name='Prediction.sentence', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='labels', full_name='Prediction.labels', index=2,
       number=3, type=5, cpp_type=1, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='positions', full_name='Prediction.positions', index=3,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='logits', full_name='Prediction.logits', index=4,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='total_probability', full_name='Prediction.total_probability', index=5,
       number=6, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='avg_char_probability', full_name='Prediction.avg_char_probability', index=6,
       number=9, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='is_voted_result', full_name='Prediction.is_voted_result', index=7,
       number=7, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='line_path', full_name='Prediction.line_path', index=8,
       number=8, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3800,
-  serialized_end=4030,
+  serialized_start=3829,
+  serialized_end=4059,
 )
 
 
@@ -1450,28 +1456,28 @@ _PREDICTIONS = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='line_path', full_name='Predictions.line_path', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4032,
-  serialized_end=4098,
+  serialized_start=4061,
+  serialized_end=4127,
 )
 
 
@@ -1488,42 +1494,42 @@ _LINEGENERATORPARAMETERS = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='font_size', full_name='LineGeneratorParameters.font_size', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='min_script_offset', full_name='LineGeneratorParameters.min_script_offset', index=2,
       number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='max_script_offset', full_name='LineGeneratorParameters.max_script_offset', index=3,
       number=4, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4100,
-  serialized_end=4213,
+  serialized_start=4129,
+  serialized_end=4242,
 )
 
 
@@ -1540,119 +1546,119 @@ _TEXTGENERATORPARAMETERS = _descriptor.Descriptor(
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='word_length_sigma', full_name='TextGeneratorParameters.word_length_sigma', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='charset', full_name='TextGeneratorParameters.charset', index=2,
       number=3, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='super_charset', full_name='TextGeneratorParameters.super_charset', index=3,
       number=14, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sub_charset', full_name='TextGeneratorParameters.sub_charset', index=4,
       number=15, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='number_of_words_mean', full_name='TextGeneratorParameters.number_of_words_mean', index=5,
       number=4, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='number_of_words_sigma', full_name='TextGeneratorParameters.number_of_words_sigma', index=6,
       number=5, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='word_separator', full_name='TextGeneratorParameters.word_separator', index=7,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sub_script_p', full_name='TextGeneratorParameters.sub_script_p', index=8,
       number=7, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='super_script_p', full_name='TextGeneratorParameters.super_script_p', index=9,
       number=8, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='bold_p', full_name='TextGeneratorParameters.bold_p', index=10,
       number=9, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='italic_p', full_name='TextGeneratorParameters.italic_p', index=11,
       number=10, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='letter_spacing_p', full_name='TextGeneratorParameters.letter_spacing_p', index=12,
       number=11, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='letter_spacing_mean', full_name='TextGeneratorParameters.letter_spacing_mean', index=13,
       number=12, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='letter_spacing_sigma', full_name='TextGeneratorParameters.letter_spacing_sigma', index=14,
       number=13, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4216,
-  serialized_end=4605,
+  serialized_start=4245,
+  serialized_end=4634,
 )
 
 _CHECKPOINTPARAMS.fields_by_name['model'].message_type = _MODELPARAMS
@@ -1714,6 +1720,7 @@ DESCRIPTOR.message_types_by_name['Prediction'] = _PREDICTION
 DESCRIPTOR.message_types_by_name['Predictions'] = _PREDICTIONS
 DESCRIPTOR.message_types_by_name['LineGeneratorParameters'] = _LINEGENERATORPARAMETERS
 DESCRIPTOR.message_types_by_name['TextGeneratorParameters'] = _TEXTGENERATORPARAMETERS
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 CheckpointParams = _reflection.GeneratedProtocolMessageType('CheckpointParams', (_message.Message,), dict(
   DESCRIPTOR = _CHECKPOINTPARAMS,
@@ -1842,6 +1849,5 @@ TextGeneratorParameters = _reflection.GeneratedProtocolMessageType('TextGenerato
 _sym_db.RegisterMessage(TextGeneratorParameters)
 
 
-_DOUBLEMATRIX.fields_by_name['data'].has_options = True
-_DOUBLEMATRIX.fields_by_name['data']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\020\001'))
+_DOUBLEMATRIX.fields_by_name['data']._options = None
 # @@protoc_insertion_point(module_scope)
