@@ -1,12 +1,17 @@
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
 before_script:
   - set -e
   - virtualenv -p python3 venv
   - source venv/bin/activate
   - pip install -r requirements.txt
+  - pip install tensorflow
   - python setup.py install
 
 cache:
   paths:
+    - .cache/pip
     - venv
     - calamari_models
 

@@ -6,3 +6,4 @@ edit_distance
 xlsxwriter
 lxml
 h5py
+protobuf

@@ -98,6 +98,7 @@ class Predictor:
                 raise Exception("Either a checkpoint or a network can be provided")
 
             ckpt = Checkpoint(checkpoint, auto_update=self.auto_update_checkpoints)
+            self.checkpoint = ckpt.ckpt_path
             checkpoint_params = ckpt.checkpoint
             self.model_params = checkpoint_params.model
             self.codec = codec if codec else Codec(self.model_params.codec.charset)
