@@ -294,7 +294,7 @@ def run(args):
     params.model.data_preprocessor.type = DataPreprocessorParams.MULTI_NORMALIZER
     for preproc in args.data_preprocessing:
         pp = params.model.data_preprocessor.children.add()
-        pp.type = preproc
+        pp.type = DataPreprocessorParams.Type.Value(preproc) if isinstance(preproc, str) else preproc
         pp.line_height = args.line_height
         pp.pad = args.pad
 
