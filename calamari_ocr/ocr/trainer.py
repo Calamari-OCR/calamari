@@ -285,13 +285,11 @@ class Trainer:
                         print("Error: Loss is not finite! Trying to restart from last checkpoint.")
                         if not last_checkpoint:
                             print("Warning: No checkpoint written yet. Reinitializing neural net.")
-                            train_net.prepare(uninitialized_variables_only=False)
+                            train_net.prepare(uninitialized_variables_only=False, reset_queues=False)
                         else:
                             # reload also non trainable weights, such as solver-specific variables
                             train_net.load_weights(last_checkpoint, restore_only_trainable=False)
-                            continue
-                    else:
-                        continue
+                    continue
 
                 n_infinite_losses = 0
 

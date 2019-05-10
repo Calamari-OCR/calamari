@@ -94,7 +94,7 @@ class ModelInterface(ABC):
         """
         pass
 
-    def prepare(self, uninitialized_variables_only=True):
+    def prepare(self, uninitialized_variables_only=True, reset_queues=True):
         pass
 
     @abstractmethod

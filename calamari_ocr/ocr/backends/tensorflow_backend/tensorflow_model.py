@@ -348,9 +348,10 @@ class TensorflowModel(ModelInterface):
             if self.data_iterator:
                 self.session.run([self.data_iterator.initializer])
 
-    def prepare(self, uninitialized_variables_only=True):
+    def prepare(self, uninitialized_variables_only=True, reset_queues=True):
         super().prepare()
-        self.reset_data()
+        if reset_queues:
+            self.reset_data()
         with self.graph.as_default():
             # only create the initializers once, else the graph is growing...
             if not self.uninitialized_variable_initializer:
