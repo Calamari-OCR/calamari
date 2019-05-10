@@ -12,6 +12,10 @@ from calamari_ocr.ocr.text_processing.text_synchronizer import synchronize
 
 
 def text_processor_from_proto(text_processor_params, pre_or_post=None):
+    if len(text_processor_params.children) > 0 and text_processor_params.type != TextProcessorParams.MULTI_NORMALIZER:
+        raise ValueError("Only a MULTI_NORMALIZER may have children, however got {}".format(
+            TextProcessorParams.Type.Name(text_processor_params.type)))
+
     if text_processor_params.type == TextProcessorParams.MULTI_NORMALIZER:
         return MultiTextProcessor(
             [text_processor_from_proto(c) for c in text_processor_params.children]
