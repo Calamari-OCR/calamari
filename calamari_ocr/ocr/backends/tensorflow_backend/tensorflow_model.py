@@ -75,7 +75,7 @@ class TensorflowModel(ModelInterface):
 
             factor = 1
             if has_conv_or_pool:
-                cnn_inputs = tf.reshape(inputs, [batch_size, -1, network_proto.features, 1])
+                cnn_inputs = tf.reshape(inputs, [batch_size, -1, network_proto.features, self.input_channels])
                 shape = seq_len, network_proto.features
 
                 layers = [cnn_inputs]
@@ -231,6 +231,7 @@ class TensorflowModel(ModelInterface):
     def create_dataset_inputs(self, batch_size, line_height, max_buffer_size=1000):
         buffer_size = len(self.input_dataset) if self.input_dataset else 10
         buffer_size = min(max_buffer_size, buffer_size) if max_buffer_size > 0 else buffer_size
+        input_channels = self.input_channels
 
         with tf.variable_scope("cnn_lstm", reuse=False):
             def gen():
@@ -240,8 +241,16 @@ class TensorflowModel(ModelInterface):
                         continue
 
                     l = self.codec.encode(l) if l else []
-                    yield i, l, [len(i)], [len(l)], [json.dumps(d)]
 
+                    # gray or binary input, add missing axis
+                    if len(i.shape) == 2:
+                        i = np.expand_dims(i, axis=-1)
+
+                    if i.shape[-1] != input_channels:
+                        raise ValueError("Expected {} channels but got {}. Shape of input {}".format(
+                            input_channels, i.shape[-1], i.shape))
+
+                    yield i, l, [len(i)], [len(l)], [json.dumps(d)]
 
             def convert_to_sparse(data, labels, len_data, len_labels, ser_data):
                 indices = tf.where(tf.not_equal(labels, -1))
@@ -255,7 +264,7 @@ class TensorflowModel(ModelInterface):
             else:
                 pass
 
-            dataset = dataset.padded_batch(batch_size, ([None, line_height], [None], [1], [1], [1]),
+            dataset = dataset.padded_batch(batch_size, ([None, line_height, input_channels], [None], [1], [1], [1]),
                                            padding_values=(np.float32(0), np.int32(-1), np.int32(0), np.int32(0), ''))
             dataset = dataset.map(convert_to_sparse)
 

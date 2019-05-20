@@ -40,6 +40,7 @@ class ModelInterface(ABC):
             Number of examples to train/predict in parallel
         """
         self.network_proto = network_proto
+        self.input_channels = network_proto.channels if network_proto.channels > 0 else 1
         self.graph_type = graph_type
         self.batch_size = batch_size
         self.input_dataset = input_dataset

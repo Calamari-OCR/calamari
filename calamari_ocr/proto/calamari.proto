@@ -98,6 +98,7 @@ message NetworkParams {
     float momentum = 3;
     float dropout = 5;
 
+    int32 channels = 14;                    // e.g. 1: binary/gray, 3: color, or any other number (default 0 equiv 1)
     int32 features = 6;
     int32 classes = 7;
 
