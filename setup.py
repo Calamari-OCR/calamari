@@ -6,7 +6,7 @@ setup(
     name='calamari_ocr',
     version=__version__,
     packages=find_packages(),
-    license='GPL-v3.0',
+    license='Apache License 2.0',
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     include_package_data=True,
