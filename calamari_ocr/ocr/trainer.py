@@ -70,7 +70,7 @@ class Trainer:
         weights : str, optional
             Path to a trained model for loading its weights
         codec : Codec, optional
-            If provided the Codec will not be computed automaticall based on the GT, but instead `codec` will be used
+            If provided the Codec will not be computed automatically based on the GT, but instead `codec` will be used
         codec_whitelist : obj:`list` of :obj:`str`
             List of characters to be kept when the loaded `weights` have a different codec than the new one.
         keep_loaded_codec : bool

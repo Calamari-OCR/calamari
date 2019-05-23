@@ -205,7 +205,7 @@ class MultiPredictor:
         self.batch_size = batch_size
 
         # check if all checkpoints share the same preprocessor
-        # then we only need to apply the preprocessing once and share the data accross the models
+        # then we only need to apply the preprocessing once and share the data across the models
         preproc_params = self.predictors[0].model_params.data_preprocessor
         self.same_preproc = all([preproc_params == p.model_params.data_preprocessor for p in self.predictors])
 

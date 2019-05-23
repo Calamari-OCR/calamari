@@ -46,7 +46,7 @@ def main():
                 output_file = os.path.join(fold_out_dir, "{}{}".format(output_basename, ".gt.txt"))
                 shutil.copyfile(txt_file, output_file)
             else:
-                print("Waring: Does not exist {} or {}".format(img_file, txt_file))
+                print("Warning: Does not exist {} or {}".format(img_file, txt_file))
 
 
 if __name__ == "__main__":

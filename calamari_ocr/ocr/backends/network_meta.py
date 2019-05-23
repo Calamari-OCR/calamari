@@ -11,5 +11,5 @@ def default_network_meta():
         "momentum": 0.9,
         "layers": [],
         "cudnn": True,
-        "features": 40,                     # i. e. the line heigth
+        "features": 40,                     # i. e. the line height
     }

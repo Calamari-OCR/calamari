@@ -37,7 +37,7 @@ class Book:
 
     def __str__(self):
         """
-        Writes all information of the book element and all sub elments into the python console.
+        Writes all information of the book element and all sub elements into the python console.
         :return: None
         """
 
