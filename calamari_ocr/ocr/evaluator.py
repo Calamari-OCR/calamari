@@ -53,7 +53,7 @@ class Evaluator:
         pred_dataset : Dataset
             the prediction dataset
         processes : int, optional
-            the processes to use for preprocesing and evaluation
+            the processes to use for preprocessing and evaluation
         progress_bar : bool, optional
             show a progress bar
 
@@ -192,7 +192,7 @@ class Evaluator:
         pred_data : Dataset
             the prediction dataset
         processes : int, optional
-            the processes to use for preprocesing and evaluation
+            the processes to use for preprocessing and evaluation
         progress_bar : bool, optional
             show a progress bar
         skip_empty_gt : bool

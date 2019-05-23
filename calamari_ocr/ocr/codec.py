@@ -138,7 +138,7 @@ class Codec:
         """ extend the codec by the given characeters
 
         If a character is already present it will be skipped.
-        The new characters will be added at the end of the codec (hightest label numbers)
+        The new characters will be added at the end of the codec (highest label numbers)
 
         Parameters
         ----------
