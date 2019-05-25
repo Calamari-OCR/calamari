@@ -111,6 +111,7 @@ class CrossFoldTrainer:
                 fold_args = self.train_args.copy()
                 fold_args["dataset"] = cross_fold.dataset_type.name
                 fold_args["validation_dataset"] = cross_fold.dataset_type.name
+                fold_args["validation_extension"] = self.train_args['gt_extension']
                 fold_args["id"] = fold
                 fold_args["files"] = train_files
                 fold_args["validation"] = test_files
