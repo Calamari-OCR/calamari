@@ -236,7 +236,7 @@ class Trainer:
             checkpoint_frequency = int(checkpoint_frequency)
 
         early_stopping_enabled = self.validation_dataset is not None \
-                                 and checkpoint_params.early_stopping_frequency > 0 \
+                                 and checkpoint_params.early_stopping_frequency != 0 \
                                  and checkpoint_params.early_stopping_nbest > 1
         early_stopping_best_accuracy = checkpoint_params.early_stopping_best_accuracy
         early_stopping_best_cur_nbest = checkpoint_params.early_stopping_best_cur_nbest
