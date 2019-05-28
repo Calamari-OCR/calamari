@@ -162,6 +162,11 @@ def setup_train_args(parser, omit=None):
     parser.add_argument("--line_generator_params", type=str, default=None)
 
 
+    # additional dataset args
+    parser.add_argument("--pagexml_text_index", default=0)
+
+
+
 def create_train_dataset(args, dataset_args=None):
     gt_extension = args.gt_extension if args.gt_extension is not None else DataSetType.gt_extension(args.dataset)
 
@@ -239,6 +244,7 @@ def run(args):
     dataset_args = {
         'line_generator_params': args.line_generator_params,
         'text_generator_params': args.text_generator_params,
+        'text_index': args.pagexml_text_index,
     }
 
     # Training dataset

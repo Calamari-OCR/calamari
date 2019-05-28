@@ -12,6 +12,8 @@ import multiprocessing as mp
 import queue
 from random import shuffle
 
+from .datasetype import DataSetType
+
 
 class DataSetMode(Enum):
     TRAIN = 0
@@ -148,7 +150,7 @@ class DataSet(ABC):
         else:
             raise Exception("Unknown prediction format.")
 
-    def store(self):
+    def store(self, extension):
         # either store text or store (e. g. if all predictions must be written at the same time
         pass
 

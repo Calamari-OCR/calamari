@@ -32,6 +32,8 @@ def run(args):
     args.checkpoint = glob_all(args.checkpoint)
     args.checkpoint = [cp[:-5] for cp in args.checkpoint]
 
+    args.extension = args.extension if args.extension else DataSetType.pred_extension(args.dataset)
+
     # create voter
     voter_params = VoterParams()
     voter_params.type = VoterParams.Type.Value(args.voter.upper())
@@ -81,7 +83,7 @@ def run(args):
 
         output_dir = args.output_dir
 
-        dataset.store_text(sentence, sample, output_dir=output_dir, extension=".pred.txt")
+        dataset.store_text(sentence, sample, output_dir=output_dir, extension=args.extension)
 
         if args.extended_prediction_data:
             ps = Predictions()
@@ -110,7 +112,7 @@ def run(args):
 
     print("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
 
-    dataset.store()
+    dataset.store(args.extension)
     print("All files written")
 
 
@@ -124,6 +126,8 @@ def main():
     parser.add_argument("--text_files", nargs="+", default=None,
                         help="Optional list of additional text files. E.g. when updating Abbyy prediction, this parameter must be used for the xml files.")
     parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
+    parser.add_argument("--extension", type=str, default=None,
+                        help="Define the prediction extension. This parameter can be used to override ground truth files.")
     parser.add_argument("--checkpoint", type=str, nargs="+", default=[],
                         help="Path to the checkpoint without file extension")
     parser.add_argument("-j", "--processes", type=int, default=1,

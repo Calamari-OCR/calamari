@@ -66,12 +66,12 @@ class Hdf5DataSet(DataSet):
         codec = self.prediction[sample['filename']]['codec']
         self.prediction[sample['filename']]['transcripts'].append(list(map(codec.index, sentence)))
 
-    def store(self):
+    def store(self, extension):
         for filename, data in self.prediction.items():
             texts = data['transcripts']
             codec = data['codec']
             basename, ext = split_all_ext(filename)
-            with h5py.File(basename + '.pred' + ext, 'w') as file:
+            with h5py.File(basename + extension, 'w') as file:
                 dt = h5py.special_dtype(vlen=np.dtype('int32'))
                 file.create_dataset('transcripts', (len(texts),), dtype=dt)
                 file['transcripts'][...] = texts

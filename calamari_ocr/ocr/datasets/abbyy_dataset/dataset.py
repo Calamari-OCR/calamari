@@ -111,9 +111,9 @@ class AbbyyDataSet(DataSet):
         # an Abbyy dataset stores the prediction in one XML file
         sample["format"].text = sentence
 
-    def store(self):
+    def store(self, extension):
         for page in tqdm(self.book.pages, desc="Writing Abbyy files", total=len(self.book.pages)):
-            XMLWriter.write(page, split_all_ext(page.xmlFile)[0] + ".pred.abbyy.xml")
+            XMLWriter.write(page, split_all_ext(page.xmlFile)[0] + extension)
 
     def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
         return AbbyyDatasetGenerator(output_queue, self.mode, self.files, self.xmlfiles, text_only, epochs, self._non_existing_as_empty, self.skip_invalid, self.binary, self.remove_invalid)

@@ -107,8 +107,9 @@ class PageXMLDatasetLoader:
         ns = {"ns": root.nsmap[None]}
         imgfile = root.xpath('//ns:Page',
                              namespaces=ns)[0].attrib["imageFilename"]
-        if not img.endswith(imgfile):
-            raise Exception("Mapping of image file to xml file invalid: {} vs {}".format(img, imgfile))
+        if not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
+            raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
+                img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
 
         img_w = int(root.xpath('//ns:Page',
                                namespaces=ns)[0].attrib["imageWidth"])
@@ -238,9 +239,9 @@ class PageXMLDataset(DataSet):
 
         super().store_extended_prediction(data, sample, output_dir, extension)
 
-    def store(self):
+    def store(self, extension):
         for xml, page in tqdm(zip(self.xmlfiles, self.pages), desc="Writing PageXML files", total=len(self.xmlfiles)):
-            with open(split_all_ext(xml)[0] + ".pred.xml", 'w') as f:
+            with open(split_all_ext(xml)[0] + extension, 'w') as f:
                 f.write(etree.tounicode(page.getroottree()))
 
     def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
