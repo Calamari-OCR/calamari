@@ -153,7 +153,7 @@ class InputDataset:
         self.preloaded_texts = []
         self.preloaded_params = []
         self.data_augmentation_amount = data_augmentation_amount
-        self.generate_only_non_augmented = multiprocessing.Value('b', False)
+        self._generate_only_non_augmented = multiprocessing.Value('b', False)
         self.mp_context = multiprocessing.get_context('spawn')
         self.processes = processes
 
@@ -174,7 +174,7 @@ class InputDataset:
                     self.text_processor,
                     self.data_processor,
                     self.data_augmenter,
-                    self.generate_only_non_augmented,
+                    self._generate_only_non_augmented,
                 ),
                 self.data_input_queue,
                 self.unordered_output_queue,
@@ -184,23 +184,33 @@ class InputDataset:
         for p in self.data_processing_tasks:
             p.start()
 
+    @property
+    def generate_only_non_augmented(self):
+        return self._generate_only_non_augmented.value
+
+    @generate_only_non_augmented.setter
+    def generate_only_non_augmented(self, value):
+        self._generate_only_non_augmented.value = value
+
     def __len__(self):
         return len(self.dataset.samples())
 
     def epoch_size(self):
-        if self.generate_only_non_augmented:
+        if self._generate_only_non_augmented.value:
             return len(self)
 
         if self.data_augmentation_amount >= 1:
-            return int(len(self) * self.data_augmentation_amount)
+            return int(len(self) * (1 + self.data_augmentation_amount))
 
         return int(1 / (1 - self.data_augmentation_amount) * len(self))
 
     def preload(self, processes=1, progress_bar=False, text_only=False):
         print("Preloading dataset type {} with size {}".format(self.dataset.mode, len(self)))
-        self.generate_only_non_augmented.value = True
+        prev = self._generate_only_non_augmented.value
+        self._generate_only_non_augmented.value = True
         datas, texts, params = zip(*list(self.generator(epochs=1, text_only=text_only)))
         self.preloaded_datas, self.preloaded_texts, self.preloaded_params = datas, texts, params
+        self._generate_only_non_augmented.value = prev
 
         if self.dataset.mode == DataSetMode.TRAIN and self.data_augmentation_amount > 0:
             abs_n_augs = int(self.data_augmentation_amount) if self.data_augmentation_amount >= 1 else int(self.data_augmentation_amount * len(self))
@@ -223,11 +233,14 @@ class InputDataset:
             for epoch in range(epochs):
                 if self.dataset.mode == DataSetMode.TRAIN:
                     # train mode wont generate parameters
-                    if self.generate_only_non_augmented:
+                    if self._generate_only_non_augmented.value:
+                        # preloaded datas are ordered: first original data, then data augmented, however,
                         # preloaded params store the 'length' of the non augmented data
+                        # thus, only orignal data is yielded
                         for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
                             yield data, text, None
                     else:
+                        # yield all data, however no params
                         for data, text in zip(self.preloaded_datas, self.preloaded_texts):
                             yield data, text, None
                 else:

@@ -114,10 +114,11 @@ def setup_train_args(parser, omit=None):
                         help='Instead of preloading all data during the training, load the data on the fly. '
                              'This is slower, but might be required for limited RAM or large datasets')
 
-    parser.add_argument("--early_stopping_frequency", type=float, default=0.5,
+    parser.add_argument("--early_stopping_frequency", type=float, default=-1,
                         help="The frequency of early stopping. By default the checkpoint frequency uses the early "
-                             "stopping frequency. By default (value = 0.5) the early stopping frequency equates to a "
-                             "half epoch. If 0 < value <= 1 the frequency has the unit of an epoch (relative to "
+                             "stopping frequency. By default (negative value) the early stopping frequency is "
+                             "approximated as a half epoch time (if the batch size is 1). "
+                             "If 0 < value <= 1 the frequency has the unit of an epoch (relative to the "
                              "number of training data).")
     parser.add_argument("--early_stopping_nbest", type=int, default=5,
                         help="The number of models that must be worse than the current best model to stop")

@@ -219,7 +219,9 @@ class Trainer:
         early_stopping_frequency = checkpoint_params.early_stopping_frequency
         if early_stopping_frequency < 0:
             # set early stopping frequency to half epoch
-            early_stopping_frequency = int(0.5 * iters_per_epoch)
+            # batch size only with square root:
+            # esf = 0.5 * epoch_size / sqrt(batch_size) = 0.5 * iters_per_epoch * sqrt(batch_size)
+            early_stopping_frequency = int(0.5 * iters_per_epoch * checkpoint_params.batch_size ** 0.5)
         elif 0 < early_stopping_frequency <= 1:
             early_stopping_frequency = int(early_stopping_frequency * iters_per_epoch)  # relative to epochs
         else:
