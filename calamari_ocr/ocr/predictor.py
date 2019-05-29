@@ -3,15 +3,13 @@ import time
 from tqdm import tqdm
 
 import numpy as np
-
-from google.protobuf import json_format
+from typing import Generator, List
 
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
-from calamari_ocr.ocr.datasets import InputDataset, StreamingInputDataset, RawInputDataset, DataSetMode
+from calamari_ocr.ocr.datasets import InputDataset, StreamingInputDataset, RawInputDataset, DataSetMode, RawDataSet
 from calamari_ocr.ocr import Codec, Checkpoint
 from calamari_ocr.ocr.backends import create_backend_from_proto
-from calamari_ocr.proto import CheckpointParams
 from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransformer
 
 
@@ -141,11 +139,28 @@ class Predictor:
         dict
             Dataset entry of the prediction result
         """
-        input_dataset = StreamingInputDataset(dataset, self.data_preproc if apply_preproc else None, self.text_postproc if apply_preproc else None)
+        if isinstance(dataset, RawDataSet):
+            input_dataset = StreamingInputDataset(dataset, self.data_preproc if apply_preproc else None, self.text_postproc if apply_preproc else None)
+        else:
+            input_dataset = RawInputDataset(dataset, self.data_preproc if apply_preproc else None, self.text_postproc if apply_preproc else None)
+
         prediction_results = self.predict_input_dataset(input_dataset, progress_bar)
 
         for prediction, sample in zip(prediction_results, dataset.samples()):
             yield prediction, sample
+
+    def predict_raw(self, images, progress_bar=True, batch_size=-1, apply_preproc=True, params=None):
+        batch_size = len(images) if batch_size < 0 else self.network.batch_size if batch_size == 0 else batch_size
+        if apply_preproc:
+            images, params = zip(*self.data_preproc.apply(images, progress_bar=progress_bar))
+
+        for i in range(0, len(images), batch_size):
+            input_images = images[i:i + batch_size]
+            input_params = params[i:i + batch_size]
+            for p, ip in zip(self.network.predict_raw(input_images), input_params):
+                yield PredictionResult(p.decoded, codec=self.codec, text_postproc=self.text_postproc,
+                                       out_to_in_trans=self.out_to_in_trans, data_proc_params=ip,
+                                       ground_truth=p.ground_truth)
 
     def predict_input_dataset(self, input_dataset: InputDataset, progress_bar=True):
         """ Predict raw data
@@ -207,14 +222,22 @@ class MultiPredictor:
         # check if all checkpoints share the same preprocessor
         # then we only need to apply the preprocessing once and share the data across the models
         preproc_params = self.predictors[0].model_params.data_preprocessor
+        self.data_preproc = self.predictors[0].data_preproc
         self.same_preproc = all([preproc_params == p.model_params.data_preprocessor for p in self.predictors])
 
-    def predict_dataset(self, dataset, progress_bar=True):
-        start_time = time.time()
         # preprocessing step (if all share the same preprocessor)
         if not self.same_preproc:
             raise Exception('Different preprocessors are currently not allowed during prediction')
 
+    def predict_raw(self, images, progress_bar=True) -> Generator[List[PredictionResult], None, None]:
+        images, params = zip(*self.data_preproc.apply(images, progress_bar=progress_bar))
+        prediction = [predictor.predict_raw(images, progress_bar=progress_bar, apply_preproc=False, params=params) for predictor in self.predictors]
+
+        for result in zip(*prediction):
+            yield result
+
+    def predict_dataset(self, dataset, progress_bar=True):
+        start_time = time.time()
         input_dataset = StreamingInputDataset(dataset, self.predictors[0].data_preproc, self.predictors[0].text_postproc, None,
                                               processes=self.processes,
                                               )

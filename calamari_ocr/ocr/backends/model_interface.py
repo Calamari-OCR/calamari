@@ -7,7 +7,7 @@ from .ctc_decoder.fuzzy_ctc_decoder import FuzzyCTCDecoder
 from calamari_ocr.ocr.datasets import InputDataset
 from calamari_ocr.ocr import Codec
 
-from typing import Any, Generator
+from typing import Any, Generator, List
 
 
 class NetworkPredictionResult:
@@ -25,7 +25,8 @@ class NetworkPredictionResult:
 
 
 class ModelInterface(ABC):
-    def __init__(self, network_proto, graph_type, batch_size, input_dataset: InputDataset = None, codec: Codec = None, processes=1):
+    def __init__(self, network_proto, graph_type, batch_size, input_dataset: InputDataset = None, codec: Codec = None,
+                 processes=1):
         """ Interface for a neural net
 
         Interface above the actual DNN implementation to abstract training and prediction.
@@ -84,8 +85,9 @@ class ModelInterface(ABC):
         n = size // batch_size
         return n if r == 0 else n + 1
 
-    def predict_raw(self, x, len_x) -> Generator[NetworkPredictionResult, None, None]:
-        pass
+    def predict_raw(self, x: List[np.array]) -> Generator[NetworkPredictionResult, None, None]:
+        for r in self.predict_raw_batch(*self.zero_padding(x)):
+            yield r
 
     def prediction_step(self) -> Generator[NetworkPredictionResult, None, None]:
         return self.predict()
@@ -96,6 +98,10 @@ class ModelInterface(ABC):
         pass
 
     def prepare(self, uninitialized_variables_only=True, reset_queues=True):
+        pass
+
+    @abstractmethod
+    def predict_raw_batch(self, x: np.array, len_x: np.array) -> Generator[NetworkPredictionResult, None, None]:
         pass
 
     @abstractmethod
@@ -161,4 +167,12 @@ class ModelInterface(ABC):
 
         """
         pass
+
+    def zero_padding(self, data):
+        len_x = [len(x) for x in data]
+        out = np.zeros((len(data), max(len_x), self.network_proto.features), dtype=np.uint8)
+        for i, x in enumerate(data):
+            out[i, 0:len(x)] = x
+
+        return np.expand_dims(out, axis=-1), np.array(len_x, dtype=np.int32)
 

@@ -22,12 +22,13 @@ class TensorflowBackend(BackendInterface):
         self.first_model = True
         self.processes = processes if processes > 0 else 1
 
-    def create_net(self, dataset, codec, restore, weights, graph_type, batch_size=-1):
+    def create_net(self, dataset, codec, restore, weights, graph_type, batch_size=-1, stream_input=True):
         model = TensorflowModel(self.network_proto, self.graph, self.session, graph_type, batch_size,
                                 reuse_weights=not self.first_model,
                                 input_dataset=dataset,
                                 codec=codec,
-                                processes=self.processes)
+                                processes=self.processes,
+                                )
         self.first_model = False
         if weights:
             model.load_weights(weights, restore_only_trainable=True)

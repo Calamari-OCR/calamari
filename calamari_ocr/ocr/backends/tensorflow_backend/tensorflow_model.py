@@ -13,7 +13,8 @@ from calamari_ocr.proto import LayerParams, NetworkParams
 class TensorflowModel(ModelInterface):
     def __init__(self, network_proto, graph, session, graph_type="train", batch_size=1, reuse_weights=False,
                  input_dataset=None, codec=None, processes=1):
-        super().__init__(network_proto, graph_type, batch_size, input_dataset=input_dataset, codec=codec, processes=processes)
+        super().__init__(network_proto, graph_type, batch_size,
+                         input_dataset=input_dataset, codec=codec, processes=processes)
         self.graph = graph
         self.session = session
         self.gpu_available = any([d.device_type == "GPU" for d in self.session.list_devices()])
@@ -29,7 +30,7 @@ class TensorflowModel(ModelInterface):
         with self.graph.as_default():
             tf.set_random_seed(self.network_proto.backend.random_seed)
 
-            # inputs as data set (faster)
+            # variables can also be used as placeholder directly
             self.inputs, self.input_seq_len, self.targets, self.dropout_rate, self.data_iterator, self.serialized_params = \
                 self.create_dataset_inputs(batch_size, network_proto.features, network_proto.backend.shuffle_buffer_size)
 
@@ -226,7 +227,7 @@ class TensorflowModel(ModelInterface):
             dropout_rate = tf.placeholder(tf.float32, shape=(), name="dropout_rate")
             serialized_params = tf.placeholder(tf.string, shape=(None,), name='serialized_params')
 
-        return inputs, seq_len, targets, dropout_rate, serialized_params
+        return inputs, seq_len, targets, dropout_rate, None, serialized_params
 
     def create_dataset_inputs(self, batch_size, line_height, max_buffer_size=1000):
         buffer_size = len(self.input_dataset) if self.input_dataset else 10
@@ -462,20 +463,24 @@ class TensorflowModel(ModelInterface):
 
         return out
 
-    def predict_raw(self, x, len_x) -> Generator[NetworkPredictionResult, None, None]:
+    def predict_raw_batch(self, x: np.array, len_x: np.array) -> Generator[NetworkPredictionResult, None, None]:
         out = self.session.run(
             [self.softmax, self.output_seq_len, self.decoded],
             feed_dict={
-                self.inputs: x,
+                self.inputs: x / 255,
                 self.input_seq_len: len_x,
                 self.dropout_rate: 0,
             })
         out = out[0:2] + [TensorflowModel.__sparse_to_lists(out[2])]
         for sm, sl, dec in zip(*out):
-            yield NetworkPredictionResult(softmax=sm,
-                                          output_length=sl,
-                                          decoded=dec,
-                                          )
+            pred = NetworkPredictionResult(softmax=sm,
+                                           output_length=sl,
+                                           decoded=dec,
+                                           )
+            pred.softmax = np.roll(pred.softmax, 1, axis=1)
+            l, s = pred.softmax, pred.output_length
+            pred.decoded = self.ctc_decoder.decode(l[:s])
+            yield pred
 
     def predict_dataset(self) -> Generator[NetworkPredictionResult, None, None]:
         out = self.session.run(
