@@ -70,8 +70,9 @@ class PageXMLDatasetLoader:
         ns = {"ns": root.nsmap[None]}
         imgfile = root.xpath('//ns:Page',
                              namespaces=ns)[0].attrib["imageFilename"]
-        if self.mode == DataSetMode.TRAIN and not img.endswith(imgfile):
-            raise Exception("Mapping of image file to xml file invalid: {} vs {}".format(img, imgfile))
+        if self.mode == DataSetMode.TRAIN and not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
+            raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
+                img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
 
         img_w = int(root.xpath('//ns:Page',
                                namespaces=ns)[0].attrib["imageWidth"])
