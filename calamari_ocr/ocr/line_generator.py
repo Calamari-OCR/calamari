@@ -2,10 +2,11 @@ from calamari_ocr.proto import LineGeneratorParameters
 from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 import random
-from scipy.misc import imresize
+from skimage.transform import rescale
 from enum import Enum, IntEnum
 from collections import namedtuple
 from typing import List
+
 
 class Script(IntEnum):
     NORMAL = 0
@@ -134,7 +135,7 @@ class Font:
                 image = image[:, :end]
 
             if scale != 1:
-                image = imresize(image, float(scale))
+                image = rescale(image, float(scale), preserve_range=True)
 
             return image
         except Exception as e:
