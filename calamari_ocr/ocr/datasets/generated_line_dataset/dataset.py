@@ -6,16 +6,15 @@ from multiprocessing import Process, Queue, Manager
 import numpy as np
 import random
 from typing import Generator, Tuple
-from queue import Empty, Full
 
 
 class LineGeneratorProcess(Process):
-    def __init__(self, output_queue: Queue, text_generator, line_generator, text_only, name=-1):
+    def __init__(self, output_queue: Queue, text_generator, line_generator, name=-1):
         super().__init__(daemon=True)
         self.text_generator = TextGenerator(text_generator)
         self.line_generator = LineGenerator(line_generator)
         self.output_queue = output_queue
-        self.text_only = text_only
+        self.text_only = False
         self.name = "{}".format(name)
 
     def _handle(self):
@@ -38,10 +37,10 @@ class LineGeneratorProcess(Process):
 
 
 class GeneratedLineDatasetGenerator(DatasetGenerator):
-    def __init__(self, output_queue, mode: DataSetMode, samples, text_only, epochs,
+    def __init__(self, mp_context, output_queue, mode: DataSetMode, samples,
                  input_queue,
                  ):
-        super().__init__(output_queue, mode, samples, text_only, epochs)
+        super().__init__(mp_context, output_queue, mode, samples)
         self.input_queue = input_queue
 
     def _load_sample(self, sample, text_only) -> Generator[Tuple[np.array, str], None, None]:
@@ -72,7 +71,6 @@ class GeneratedLineDataset(DataSet):
                 self.data_queue,
                 self.text_generator_params,
                 self.line_generator_params,
-                False,
                 "{}".format(i),
             ) for i in range(8)
         ]
@@ -82,8 +80,8 @@ class GeneratedLineDataset(DataSet):
     def _load_sample(self, sample, text_only):
         return self.data_queue.get()
 
-    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
-        return GeneratedLineDatasetGenerator(output_queue, self.mode, self.samples(), text_only, epochs, self.data_queue)
+    def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
+        return GeneratedLineDatasetGenerator(mp_context, output_queue, self.mode, self.samples(), self.data_queue)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ from contextlib import ExitStack
 from calamari_ocr.utils import tqdm_wrapper
 from calamari_ocr.ocr.datasets import DataSetType
 from calamari_ocr.ocr.datasets.file_dataset import FileDataSet
-from calamari_ocr.ocr.datasets.input_dataset import InputDataset
+from calamari_ocr.ocr.datasets.input_dataset import StreamingInputDataset
 from calamari_ocr.ocr.data_processing import NoopDataPreprocessor
 from calamari_ocr.ocr.text_processing import NoopTextProcessor
 from calamari_ocr.ocr.datasets.hdf5_dataset.hdf5_dataset_writer import Hdf5DatasetWriter
@@ -54,7 +54,7 @@ class CrossFold:
         else:
             self.dataset_type = DataSetType.HDF5
             # else load the data of each fold and write it to hd5 data files
-            input_dataset = InputDataset(self.dataset, NoopDataPreprocessor(), NoopTextProcessor(), processes=1)
+            input_dataset = StreamingInputDataset(self.dataset, NoopDataPreprocessor(), NoopTextProcessor(), processes=1)
             with ExitStack() as stack:
                 folds = [stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, 'fold{}'.format(i)))) for i in range(self.n_folds)]
 

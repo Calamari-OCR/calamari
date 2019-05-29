@@ -2,18 +2,19 @@ from .dataset import DataSet, DataSetMode, RawDataSet
 from calamari_ocr.ocr.data_processing import DataPreprocessor
 from calamari_ocr.ocr.text_processing import TextProcessor
 from calamari_ocr.ocr.augmentation import DataAugmenter
-from typing import Generator, Tuple, List, Any, NamedTuple
+from typing import Generator, Tuple, List, Any
 import numpy as np
 import multiprocessing
 from collections import namedtuple
 import queue
+from calamari_ocr.utils.multiprocessing import tqdm_wrapper
+from abc import ABC, abstractmethod
 
 
 class OrderedQueueTask:
-    def __init__(self, input_queue, output_queue, total, context=multiprocessing.get_context()):
+    def __init__(self, input_queue, output_queue, context=multiprocessing.get_context()):
         self.input_queue = input_queue
         self.output_queue = output_queue
-        self.total = total
         self.context = context
         self.p = self.context.Process(daemon=True, target=self.run)
 
@@ -26,7 +27,7 @@ class OrderedQueueTask:
     def run(self) -> None:
         data = []
         current_idx = 0
-        for i in range(self.total):
+        while True:
             while True:
                 try:
                     data.append(self.input_queue.get(timeout=0.1))
@@ -117,25 +118,80 @@ class DataProcessingTask:
         return idx, sample_id, line, text, params
 
 
-def RawInputDataset(
-        mode: DataSetMode,
-        raw_datas, raw_texts, raw_params,
-        data_preprocessor, text_preprocessor,
-        data_augmenter=None, data_augmentation_amount=0
-):
-    dataset = InputDataset(RawDataSet(mode=mode, images=raw_datas, texts=raw_texts),
-                           data_preprocessor,
-                           text_preprocessor,
-                           data_augmenter, data_augmentation_amount,
-                           processes=0,
-                           )
-    dataset.preloaded_datas = raw_datas
-    dataset.preloaded_texts = raw_texts
-    dataset.preloaded_params = raw_params
-    return dataset
+class InputDataset(ABC):
+    def __init__(self,
+                 mode: DataSetMode,
+                 ):
+        self.mode = mode
+        self._generate_only_non_augmented = multiprocessing.Value('b', False)
+
+    @abstractmethod
+    def __len__(self):
+        return 0
+
+    @abstractmethod
+    def epoch_size(self):
+        return len(self)
+
+    @property
+    def generate_only_non_augmented(self):
+        return self._generate_only_non_augmented.value
+
+    @generate_only_non_augmented.setter
+    def generate_only_non_augmented(self, value):
+        self._generate_only_non_augmented.value = value
+
+    @abstractmethod
+    def text_generator(self) -> Generator[str, None, None]:
+        pass
+
+    @abstractmethod
+    def generator(self, epochs=1, text_only=False) -> Generator[Tuple[np.array, List[str], Any], None, None]:
+        pass
 
 
-class InputDataset:
+class RawInputDataset(InputDataset):
+    def __init__(self,
+                 mode: DataSetMode,
+                 raw_datas, raw_texts, raw_params,
+                 ):
+        super().__init__(mode)
+        self.preloaded_datas, self.preloaded_texts, self.preloaded_params = raw_datas, raw_texts, raw_params
+
+    def __len__(self):
+        if self._generate_only_non_augmented.value:
+            return len(self.preloaded_params)
+
+        return len(self.preloaded_datas)
+
+    def epoch_size(self):
+        return len(self)
+
+    def text_generator(self) -> Generator[str, None, None]:
+        for text in self.preloaded_texts:
+            yield text
+
+    def generator(self, epochs=1, text_only=False) -> Generator[Tuple[np.array, List[str], Any], None, None]:
+        for epoch in range(epochs):
+            if self.mode == DataSetMode.TRAIN:
+                # train mode wont generate parameters
+                if self._generate_only_non_augmented.value:
+                    # preloaded datas are ordered: first original data, then data augmented, however,
+                    # preloaded params store the 'length' of the non augmented data
+                    # thus, only orignal data is yielded
+                    for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
+                        yield data, text, None
+                else:
+                    # yield all data, however no params
+                    for data, text in zip(self.preloaded_datas, self.preloaded_texts):
+                        yield data, text, None
+            else:
+                # all other modes generate everything we got, but does not support data augmentation
+                for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
+                    yield data, text, params
+
+
+class StreamingInputDataset(InputDataset):
     def __init__(self,
                  dataset: DataSet,
                  data_preprocessor: DataPreprocessor,
@@ -144,16 +200,13 @@ class InputDataset:
                  data_augmentation_amount: float = 0,
                  skip_invalid_gt=True,
                  processes=4):
+        super().__init__(dataset.mode)
         self.dataset = dataset
         self.data_processor = data_preprocessor
         self.text_processor = text_preprocessor
         self.skip_invalid_gt = skip_invalid_gt
         self.data_augmenter = data_augmenter
-        self.preloaded_datas = []
-        self.preloaded_texts = []
-        self.preloaded_params = []
         self.data_augmentation_amount = data_augmentation_amount
-        self._generate_only_non_augmented = multiprocessing.Value('b', False)
         self.mp_context = multiprocessing.get_context('spawn')
         self.processes = processes
 
@@ -181,16 +234,14 @@ class InputDataset:
             ) for _ in range(processes)
         ]
 
+        self.data_generator = self.dataset.create_generator(self.mp_context, self.data_input_queue)
+        self.data_generator.start()
+        self.ordered_output_queue = self.mp_context.JoinableQueue(self.processes * 4)
+        self.data_ordering = OrderedQueueTask(self.unordered_output_queue, self.ordered_output_queue, self.mp_context)
+        self.data_ordering.start()
+
         for p in self.data_processing_tasks:
             p.start()
-
-    @property
-    def generate_only_non_augmented(self):
-        return self._generate_only_non_augmented.value
-
-    @generate_only_non_augmented.setter
-    def generate_only_non_augmented(self, value):
-        self._generate_only_non_augmented.value = value
 
     def __len__(self):
         return len(self.dataset.samples())
@@ -204,75 +255,44 @@ class InputDataset:
 
         return int(1 / (1 - self.data_augmentation_amount) * len(self))
 
-    def preload(self, processes=1, progress_bar=False, text_only=False):
+    def to_raw_input_dataset(self, processes=1, progress_bar=False, text_only=False) -> RawInputDataset:
         print("Preloading dataset type {} with size {}".format(self.dataset.mode, len(self)))
         prev = self._generate_only_non_augmented.value
         self._generate_only_non_augmented.value = True
-        datas, texts, params = zip(*list(self.generator(epochs=1, text_only=text_only)))
-        self.preloaded_datas, self.preloaded_texts, self.preloaded_params = datas, texts, params
+        datas, texts, params = zip(*list(tqdm_wrapper(self.generator(epochs=1, text_only=text_only),
+                                                      desc="Preloading data", total=len(self.dataset),
+                                                      progress_bar=progress_bar)))
+        preloaded_datas, preloaded_texts, preloaded_params = datas, texts, params
         self._generate_only_non_augmented.value = prev
 
         if self.dataset.mode == DataSetMode.TRAIN and self.data_augmentation_amount > 0:
             abs_n_augs = int(self.data_augmentation_amount) if self.data_augmentation_amount >= 1 else int(self.data_augmentation_amount * len(self))
-            self.preloaded_datas, self.preloaded_texts \
+            preloaded_datas, preloaded_texts \
                 = self.data_augmenter.augment_datas(list(datas), list(texts), n_augmentations=abs_n_augs,
                                                     processes=processes, progress_bar=progress_bar)
 
+        return RawInputDataset(self.mode, preloaded_datas, preloaded_texts, preloaded_params)
+
     def text_generator(self) -> Generator[str, None, None]:
-        if len(self.preloaded_texts) > 0:
-            for text in self.preloaded_texts:
-                yield text
-        else:
-            for _, text, _ in self.generator(epochs=1, text_only=True):
-                if self.text_processor:
-                    text = self.text_processor.apply([text], 1, False)[0]
-                yield text
+        for _, text, _ in self.generator(epochs=1, text_only=True):
+            if self.text_processor:
+                text = self.text_processor.apply([text], 1, False)[0]
+            yield text
 
     def generator(self, epochs=1, text_only=False) -> Generator[Tuple[np.array, List[str], Any], None, None]:
-        if len(self.preloaded_datas) > 0:
-            for epoch in range(epochs):
-                if self.dataset.mode == DataSetMode.TRAIN:
-                    # train mode wont generate parameters
-                    if self._generate_only_non_augmented.value:
-                        # preloaded datas are ordered: first original data, then data augmented, however,
-                        # preloaded params store the 'length' of the non augmented data
-                        # thus, only orignal data is yielded
-                        for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
-                            yield data, text, None
-                    else:
-                        # yield all data, however no params
-                        for data, text in zip(self.preloaded_datas, self.preloaded_texts):
-                            yield data, text, None
-                else:
-                    # all other modes generate everything we got, but does not support data augmentation
-                    for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
-                        yield data, text, params
-        else:
-            # create a generator of the dataset that enqueues loaded samples
-            # the samples are processed by the data preprocessing and data augmenter queues and written unordered
-            # the data ordering queue and process yield a sorted output of lines
-            total = epochs * len(self.dataset)
-            data_generator = self.dataset.create_generator(self.data_input_queue, epochs, text_only=text_only)
-            data_generator.start()
-            ordered_output_queue = self.mp_context.JoinableQueue(self.processes * 4)
-            data_ordering = OrderedQueueTask(self.unordered_output_queue, ordered_output_queue, total, self.mp_context)
-            data_ordering.start()
-
-            for epoch in range(epochs):
-                for iter in range(len(self.dataset)):
-                    while True:
-                        try:
-                            global_id, id, line, text, params = ordered_output_queue.get(timeout=0.1)
-                            yield line, text, params
-                        except queue.Empty:
-                            # test data ordering thread was canceled
-                            if not data_ordering.p.is_alive() and ordered_output_queue.empty():
-                                return
-                            continue
-                        except KeyboardInterrupt:
+        self.data_generator.request(epochs, text_only)
+        for epoch in range(epochs):
+            for iter in range(len(self.dataset)):
+                while True:
+                    try:
+                        global_id, id, line, text, params = self.ordered_output_queue.get(timeout=0.1)
+                        yield line, text, params
+                    except queue.Empty:
+                        # test data ordering thread was canceled
+                        if not self.data_ordering.p.is_alive() and self.ordered_output_queue.empty():
                             return
+                        continue
+                    except KeyboardInterrupt:
+                        return
 
-                        break
-
-            data_generator.join()
-            data_ordering.join()
+                    break

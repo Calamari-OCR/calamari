@@ -8,7 +8,7 @@ from google.protobuf import json_format
 
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
-from calamari_ocr.ocr.datasets import InputDataset, RawInputDataset, DataSetMode
+from calamari_ocr.ocr.datasets import InputDataset, StreamingInputDataset, RawInputDataset, DataSetMode
 from calamari_ocr.ocr import Codec, Checkpoint
 from calamari_ocr.ocr.backends import create_backend_from_proto
 from calamari_ocr.proto import CheckpointParams
@@ -141,7 +141,7 @@ class Predictor:
         dict
             Dataset entry of the prediction result
         """
-        input_dataset = InputDataset(dataset, self.data_preproc if apply_preproc else None, self.text_postproc if apply_preproc else None)
+        input_dataset = StreamingInputDataset(dataset, self.data_preproc if apply_preproc else None, self.text_postproc if apply_preproc else None)
         prediction_results = self.predict_input_dataset(input_dataset, progress_bar)
 
         for prediction, sample in zip(prediction_results, dataset.samples()):
@@ -215,9 +215,9 @@ class MultiPredictor:
         if not self.same_preproc:
             raise Exception('Different preprocessors are currently not allowed during prediction')
 
-        input_dataset = InputDataset(dataset, self.predictors[0].data_preproc, self.predictors[0].text_postproc, None,
-                                     processes=self.processes,
-                                     )
+        input_dataset = StreamingInputDataset(dataset, self.predictors[0].data_preproc, self.predictors[0].text_postproc, None,
+                                              processes=self.processes,
+                                              )
 
         def progress_bar_wrapper(l):
             if progress_bar:
@@ -244,8 +244,6 @@ class MultiPredictor:
                                 batch_images,
                                 [None] * len(batch_images),
                                 batch_params,
-                                None,
-                                None,
                                 ) for p in self.predictors]
 
             # predict_raw returns list of prediction objects

@@ -11,8 +11,8 @@ from calamari_ocr.utils import split_all_ext
 
 
 class AbbyyDatasetGenerator(DatasetGenerator):
-    def __init__(self, output_queue, mode: DataSetMode, images, xml_files, text_only, epochs, non_existing_as_empty, skip_invalid, binary, remove_invalid):
-        super().__init__(output_queue, mode, list(zip(images, xml_files)), text_only, epochs)
+    def __init__(self, mp_context, output_queue, mode: DataSetMode, images, xml_files, non_existing_as_empty, skip_invalid, binary, remove_invalid):
+        super().__init__(mp_context, output_queue, mode, list(zip(images, xml_files)))
         self._non_existing_as_empty = non_existing_as_empty
         self.skip_invalid = skip_invalid
         self.binary = binary
@@ -115,6 +115,6 @@ class AbbyyDataSet(DataSet):
         for page in tqdm(self.book.pages, desc="Writing Abbyy files", total=len(self.book.pages)):
             XMLWriter.write(page, split_all_ext(page.xmlFile)[0] + extension)
 
-    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
-        return AbbyyDatasetGenerator(output_queue, self.mode, self.files, self.xmlfiles, text_only, epochs, self._non_existing_as_empty, self.skip_invalid, self.binary, self.remove_invalid)
+    def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
+        return AbbyyDatasetGenerator(mp_context, output_queue, self.mode, self.files, self.xmlfiles, self._non_existing_as_empty, self.skip_invalid, self.binary, self.remove_invalid)
 

@@ -11,8 +11,8 @@ from calamari_ocr.utils import split_all_ext, filename
 
 
 class PageXMLDatasetGenerator(DatasetGenerator):
-    def __init__(self, output_queue, mode: DataSetMode, images, xml_files, text_only, epochs, non_existing_as_empty, text_index, skip_invalid):
-        super().__init__(output_queue, mode, list(zip(images, xml_files)), text_only, epochs)
+    def __init__(self, mp_context, output_queue, mode: DataSetMode, images, xml_files, non_existing_as_empty, text_index, skip_invalid):
+        super().__init__(mp_context, output_queue, mode, list(zip(images, xml_files)))
         self._non_existing_as_empty = non_existing_as_empty
         self.text_index = text_index
         self.skip_invalid = skip_invalid
@@ -245,5 +245,5 @@ class PageXMLDataset(DataSet):
             with open(split_all_ext(xml)[0] + extension, 'w') as f:
                 f.write(etree.tounicode(page.getroottree()))
 
-    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
-        return PageXMLDatasetGenerator(output_queue, self.mode, self.files, self.xmlfiles, text_only, epochs, self._non_existing_as_empty, self.text_index, self.skip_invalid)
+    def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
+        return PageXMLDatasetGenerator(mp_context, output_queue, self.mode, self.files, self.xmlfiles, self._non_existing_as_empty, self.text_index, self.skip_invalid)

@@ -1,10 +1,9 @@
 import matplotlib.pyplot as plt
 import argparse
 from calamari_ocr.ocr.datasets import create_dataset, DataSetType, DataSetMode
-from calamari_ocr.ocr.datasets.input_dataset import InputDataset
+from calamari_ocr.ocr.datasets.input_dataset import StreamingInputDataset
 from calamari_ocr import __version__
 from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_file_name
-import numpy as np
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
 from calamari_ocr.proto import DataPreprocessorParams, TextProcessorParams
@@ -12,6 +11,7 @@ from calamari_ocr.ocr.text_processing import \
     default_text_normalizer_params, default_text_regularizer_params
 import os
 from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -106,12 +106,12 @@ def main():
 
     print("Found {} files in the dataset".format(len(dataset)))
 
-    input_dataset = InputDataset(dataset,
-                                 data_preprocessor,
-                                 text_preprocessor,
-                                 SimpleDataAugmenter(),
-                                 args.n_augmentations,
-                                 )
+    input_dataset = StreamingInputDataset(dataset,
+                                          data_preprocessor,
+                                          text_preprocessor,
+                                          SimpleDataAugmenter(),
+                                          args.n_augmentations,
+                                          )
 
     f, ax = plt.subplots(args.n_rows, args.n_cols, sharey='all')
     row, col = 0, 0

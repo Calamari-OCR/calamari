@@ -5,8 +5,8 @@ from calamari_ocr.utils import split_all_ext
 
 
 class Hdf5DataSetGenerator(DatasetGenerator):
-    def __init__(self, output_queue, mode: DataSetMode, hdf5_files, text_only, epochs):
-        super().__init__(output_queue, mode, hdf5_files, text_only, epochs)
+    def __init__(self, mp_context, output_queue, mode: DataSetMode, hdf5_files):
+        super().__init__(mp_context, output_queue, mode, hdf5_files)
 
     def _load_sample(self, filename, text_only):
         f = h5py.File(filename, 'r')
@@ -77,5 +77,5 @@ class Hdf5DataSet(DataSet):
                 file['transcripts'][...] = texts
                 file.create_dataset('codec', data=list(map(ord, codec)))
 
-    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
-        return Hdf5DataSetGenerator(output_queue, self.mode, self.filenames, text_only, epochs)
+    def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
+        return Hdf5DataSetGenerator(mp_context, output_queue, self.mode, self.filenames)

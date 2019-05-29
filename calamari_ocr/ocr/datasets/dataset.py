@@ -3,16 +3,17 @@ import codecs
 import os
 from enum import Enum
 from typing import Tuple, Generator
+from collections import namedtuple
 
 import numpy as np
 
-from calamari_ocr.utils import parallel_map
-from multiprocessing import Process, JoinableQueue
 import multiprocessing as mp
 import queue
 from random import shuffle
 
 from .datasetype import DataSetType
+import logging
+logger = logging.getLogger(__name__)
 
 
 class DataSetMode(Enum):
@@ -21,14 +22,16 @@ class DataSetMode(Enum):
     EVAL = 2
 
 
+RequestParams = namedtuple('RequestParams', ('epochs', 'text_only'))
+
+
 class DatasetGenerator:
-    def __init__(self, output_queue, mode, samples, text_only, epochs):
+    def __init__(self, mp_context, output_queue, mode, samples):
         self.output_queue = output_queue
         self.mode = mode
-        self.epochs = epochs
         self.samples = samples
-        self.text_only = text_only
         self.p = None
+        self.request_queue = mp_context.Queue()
 
     def start(self):
         ctx = mp.get_context('spawn')
@@ -36,30 +39,50 @@ class DatasetGenerator:
         self.p.start()
 
     def join(self):
+        if self.request_queue:
+            self.request_queue.join()
+            self.request_queue = None
+
         if self.p:
             self.p.join()
 
+    def request(self, epochs, text_only=False):
+        if not self.request_queue:
+            raise Exception("Start not called yet.")
+        self.request_queue.put(RequestParams(epochs, text_only))
+
     def run(self):
         global_index = 0
-        for epoch in range(self.epochs):
-            sample_idx = 0
-            if self.mode == DataSetMode.TRAIN:
-                shuffle(self.samples)
+        while True:
+            try:
+                rq_params = self.request_queue.get(timeout=1)
+            except queue.Empty:
+                continue
+            except KeyboardInterrupt:
+                return
+            except Exception as e:
+                logger.exception(e)
+                return
 
-            for sample in self.samples:
-                for line, text in self._load_sample(sample, self.text_only):
-                    while True:
-                        try:
-                            self.output_queue.put((global_index, sample_idx, line, text), timeout=0.1)
-                        except queue.Full:
-                            continue
-                        except KeyboardInterrupt:
-                            return
+            for epoch in range(rq_params.epochs):
+                sample_idx = 0
+                if self.mode == DataSetMode.TRAIN:
+                    shuffle(self.samples)
 
-                        break
+                for sample in self.samples:
+                    for line, text in self._load_sample(sample, rq_params.text_only):
+                        while True:
+                            try:
+                                self.output_queue.put((global_index, sample_idx, line, text), timeout=0.1)
+                            except queue.Full:
+                                continue
+                            except KeyboardInterrupt:
+                                return
 
-                    global_index += 1
-                    sample_idx += 1
+                            break
+
+                        global_index += 1
+                        sample_idx += 1
 
     @abstractmethod
     def _load_sample(self, sample, text_only) -> Generator[Tuple[np.array, str], None, None]:
@@ -155,13 +178,13 @@ class DataSet(ABC):
         pass
 
     @abstractmethod
-    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
+    def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
         return None
 
 
 class RawDataSetGenerator(DatasetGenerator):
-    def __init__(self, output_queue, mode, samples, text_only, epochs):
-        super().__init__(output_queue, mode, samples, text_only, epochs)
+    def __init__(self, mp_context, output_queue, mode, samples):
+        super().__init__(mp_context, output_queue, mode, samples)
 
     def _load_sample(self, sample, text_only) -> Generator[Tuple[np.array, str], None, None]:
         if text_only:
@@ -214,7 +237,6 @@ class RawDataSet(DataSet):
 
         self.loaded = True
 
-    def create_generator(self, output_queue, epochs, text_only) -> DatasetGenerator:
-        print("WARNING: RawData set should always be used with a RawInputDataSet to avoid excessive thread creation")
-        return RawDataSetGenerator(output_queue, self.mode, self.samples(), text_only, epochs)
+    def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
+        return RawDataSetGenerator(mp_context, output_queue, self.mode, self.samples())
 

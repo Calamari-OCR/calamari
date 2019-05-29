@@ -8,8 +8,8 @@ from .dataset import DataSet, DataSetMode, DatasetGenerator
 
 
 class FileDataSetGenerator(DatasetGenerator):
-    def __init__(self, output_queue, mode: DataSetMode, samples, text_only, epochs, non_existing_as_empty):
-        super().__init__(output_queue, mode, samples, text_only, epochs)
+    def __init__(self, mp_context, output_queue, mode: DataSetMode, samples, non_existing_as_empty):
+        super().__init__(mp_context, output_queue, mode, samples)
         self._non_existing_as_empty = non_existing_as_empty
 
     def _load_sample(self, sample, text_only):
@@ -123,8 +123,8 @@ class FileDataSet(DataSet):
                 "id": img_bn if image else text_bn,
             })
 
-    def create_generator(self, output_queue, epochs, text_only):
-        return FileDataSetGenerator(output_queue, self.mode, self.samples(), text_only, epochs, self._non_existing_as_empty)
+    def create_generator(self, mp_context, output_queue):
+        return FileDataSetGenerator(mp_context, output_queue, self.mode, self.samples(), self._non_existing_as_empty)
 
     def _load_sample(self, sample, text_only):
         if text_only:

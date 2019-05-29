@@ -3,7 +3,7 @@ from .file_dataset import FileDataSet
 from .abbyy_dataset import AbbyyDataSet
 from .pagexml_dataset import PageXMLDataset
 from .dataset_factory import DataSetType, create_dataset
-from .input_dataset import InputDataset, RawInputDataset
+from .input_dataset import InputDataset, RawInputDataset, StreamingInputDataset
 
 __all__ = [
     'DataSet',
@@ -16,4 +16,5 @@ __all__ = [
     'create_dataset',
     'InputDataset',
     'RawInputDataset',
+    'StreamingInputDataset',
 ]

@@ -14,7 +14,7 @@ from calamari_ocr.ocr import Predictor, Evaluator
 
 from google.protobuf import json_format
 
-from .datasets import InputDataset
+from .datasets import InputDataset, StreamingInputDataset
 
 
 class Trainer:
@@ -85,8 +85,10 @@ class Trainer:
         self.codec_whitelist = [] if codec_whitelist is None else codec_whitelist
         self.keep_loaded_codec = keep_loaded_codec
         self.auto_update_checkpoints = auto_update_checkpoints
-        self.dataset = InputDataset(dataset, self.data_preproc, self.txt_preproc, data_augmenter, n_augmentations)
-        self.validation_dataset = InputDataset(validation_dataset, self.data_preproc, self.txt_preproc) if validation_dataset else None
+        self.data_augmenter = data_augmenter
+        self.n_augmentations = n_augmentations
+        self.dataset = StreamingInputDataset(dataset, self.data_preproc, self.txt_preproc, data_augmenter, n_augmentations)
+        self.validation_dataset = StreamingInputDataset(validation_dataset, self.data_preproc, self.txt_preproc) if validation_dataset else None
         self.preload_training = preload_training
         self.preload_validation = preload_validation
 
@@ -115,11 +117,11 @@ class Trainer:
 
         # load training dataset
         if self.preload_training:
-            self.dataset.preload(processes=checkpoint_params.processes, progress_bar=progress_bar)
+            self.dataset = self.dataset.to_raw_input_dataset(processes=checkpoint_params.processes, progress_bar=progress_bar)
 
         # load validation dataset
         if self.validation_dataset and self.preload_validation:
-            self.validation_dataset.preload(processes=checkpoint_params.processes, progress_bar=progress_bar)
+            self.validation_dataset = self.validation_dataset.to_raw_input_dataset(processes=checkpoint_params.processes, progress_bar=progress_bar)
 
         # compute the codec
         if self.codec:
@@ -180,7 +182,7 @@ class Trainer:
         if checkpoint_params.current_stage == 0:
             self._run_train(train_net, test_net, codec, train_start_time, progress_bar)
 
-        if checkpoint_params.data_aug_retrain_on_original and self.dataset.data_augmenter and self.dataset.data_augmentation_amount > 0:
+        if checkpoint_params.data_aug_retrain_on_original and self.data_augmenter and self.n_augmentations != 0:
             print("Starting training on original data only")
             if checkpoint_params.current_stage == 0:
                 checkpoint_params.current_stage = 1
