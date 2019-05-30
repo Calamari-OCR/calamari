@@ -23,6 +23,8 @@ def parallel_map(f, d, _sentinel=None, desc="", processes=1, progress_bar=False,
     if processes <= 0:
         processes = os.cpu_count()
 
+    processes = min(processes, len(d))
+
     if processes == 1:
         if progress_bar:
             out = list(tqdm(map(f, d), desc=desc, total=len(d)))
