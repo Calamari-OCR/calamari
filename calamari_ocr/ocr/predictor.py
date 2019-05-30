@@ -152,7 +152,7 @@ class Predictor:
     def predict_raw(self, images, progress_bar=True, batch_size=-1, apply_preproc=True, params=None):
         batch_size = len(images) if batch_size < 0 else self.network.batch_size if batch_size == 0 else batch_size
         if apply_preproc:
-            images, params = zip(*self.data_preproc.apply(images, progress_bar=progress_bar))
+            images, params = zip(*self.data_preproc.apply(images, progress_bar=progress_bar, processes=self.processes))
 
         for i in range(0, len(images), batch_size):
             input_images = images[i:i + batch_size]
