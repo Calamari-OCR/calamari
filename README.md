@@ -13,16 +13,18 @@ The current version of Calamari automated this process.
 ## Installing
 ### Installation using Pip
 The suggested method is to install calamari into a virtual environment using pip:
-```
+```bash
 virtualenv -p python3 PATH_TO_VENV_DIR (e. g. virtualenv calamari_venv)
 source PATH_TO_VENV_DIR/bin/activate
 pip install calamari_ocr
+pip install tensorflow   # or pip install tensorflow_gpu for GPU support
 ```
-which will install calamari and all of its dependencies including Tensorflow as default backend.
+which will install calamari and all of its dependencies.
 
 To install the package without a virtual environment simply run
 ```
 pip install calamari_ocr
+pip install tensorflow   # or pip install tensorflow_gpu for GPU support
 ```
 
 To install the package from its source, download the source code and run
