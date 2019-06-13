@@ -106,33 +106,32 @@ def main():
 
     print("Found {} files in the dataset".format(len(dataset)))
 
-    input_dataset = StreamingInputDataset(dataset,
-                                          data_preprocessor,
-                                          text_preprocessor,
-                                          SimpleDataAugmenter(),
-                                          args.n_augmentations,
-                                          )
+    with StreamingInputDataset(dataset,
+                               data_preprocessor,
+                               text_preprocessor,
+                               SimpleDataAugmenter(),
+                               args.n_augmentations,
+                               ) as input_dataset:
+        f, ax = plt.subplots(args.n_rows, args.n_cols, sharey='all')
+        row, col = 0, 0
+        for i, (id, sample) in enumerate(zip(args.select, input_dataset.generator(args.processes))):
+            line, text, params = sample
+            if args.n_cols == 1:
+                ax[row].imshow(line.transpose())
+                ax[row].set_title("ID: {}\n{}".format(id, text))
+            else:
+                ax[row, col].imshow(line.transpose())
+                ax[row, col].set_title("ID: {}\n{}".format(id, text))
 
-    f, ax = plt.subplots(args.n_rows, args.n_cols, sharey='all')
-    row, col = 0, 0
-    for i, (id, sample) in enumerate(zip(args.select, input_dataset.generator(args.processes))):
-        line, text, params = sample
-        if args.n_cols == 1:
-            ax[row].imshow(line.transpose())
-            ax[row].set_title("ID: {}\n{}".format(id, text))
-        else:
-            ax[row, col].imshow(line.transpose())
-            ax[row, col].set_title("ID: {}\n{}".format(id, text))
+            row += 1
+            if row == args.n_rows:
+                row = 0
+                col += 1
 
-        row += 1
-        if row == args.n_rows:
-            row = 0
-            col += 1
-
-        if col == args.n_cols or i == len(samples) - 1:
-            plt.show()
-            f, ax = plt.subplots(args.n_rows, args.n_cols, sharey='all')
-            row, col = 0, 0
+            if col == args.n_cols or i == len(samples) - 1:
+                plt.show()
+                f, ax = plt.subplots(args.n_rows, args.n_cols, sharey='all')
+                row, col = 0, 0
 
 
 if __name__ == "__main__":

@@ -54,15 +54,15 @@ class CrossFold:
         else:
             self.dataset_type = DataSetType.HDF5
             # else load the data of each fold and write it to hd5 data files
-            input_dataset = StreamingInputDataset(self.dataset, NoopDataPreprocessor(), NoopTextProcessor(), processes=1)
-            with ExitStack() as stack:
-                folds = [stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, 'fold{}'.format(i)))) for i in range(self.n_folds)]
+            with StreamingInputDataset(self.dataset, NoopDataPreprocessor(), NoopTextProcessor(), processes=1) as input_dataset:
+                with ExitStack() as stack:
+                    folds = [stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, 'fold{}'.format(i)))) for i in range(self.n_folds)]
 
-                for i, (data, text, _) in tqdm_wrapper(enumerate(input_dataset.generator(epochs=1)), progress_bar=progress_bar,
-                                                       total=len(dataset), desc="Creating hdf5 files"):
-                    folds[i % self.n_folds].write(data, text)
+                    for i, (data, text, _) in tqdm_wrapper(enumerate(input_dataset.generator(epochs=1)), progress_bar=progress_bar,
+                                                           total=len(dataset), desc="Creating hdf5 files"):
+                        folds[i % self.n_folds].write(data, text)
 
-                self.folds = [f.files for f in folds]
+                    self.folds = [f.files for f in folds]
 
     def train_files(self, fold):
         """ List the train files of the `fold`

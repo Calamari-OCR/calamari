@@ -11,6 +11,7 @@ from calamari_ocr.ocr.datasets import InputDataset, StreamingInputDataset, RawIn
 from calamari_ocr.ocr import Codec, Checkpoint
 from calamari_ocr.ocr.backends import create_backend_from_proto
 from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransformer
+from contextlib import ExitStack
 
 
 class PredictionResult:
@@ -238,42 +239,42 @@ class MultiPredictor:
 
     def predict_dataset(self, dataset, progress_bar=True):
         start_time = time.time()
-        input_dataset = StreamingInputDataset(dataset, self.predictors[0].data_preproc, self.predictors[0].text_postproc, None,
-                                              processes=self.processes,
-                                              )
+        with StreamingInputDataset(dataset, self.predictors[0].data_preproc, self.predictors[0].text_postproc, None,
+                                   processes=self.processes,
+                                   ) as input_dataset:
+            def progress_bar_wrapper(l):
+                if progress_bar:
+                    return tqdm(l, total=int(np.ceil(len(dataset) / self.batch_size)), desc="Prediction")
+                else:
+                    return l
 
-        def progress_bar_wrapper(l):
-            if progress_bar:
-                return tqdm(l, total=int(np.ceil(len(dataset) / self.batch_size)), desc="Prediction")
-            else:
-                return l
+            def batched_data_params():
+                batch = []
+                for data_idx, (image, _, params) in enumerate(input_dataset.generator(epochs=1)):
+                    batch.append((data_idx, image, params))
+                    if len(batch) == self.batch_size:
+                        yield batch
+                        batch = []
 
-        def batched_data_params():
-            batch = []
-            for data_idx, (image, _, params) in enumerate(input_dataset.generator(epochs=1)):
-                batch.append((data_idx, image, params))
-                if len(batch) == self.batch_size:
+                if len(batch) > 0:
                     yield batch
-                    batch = []
 
-            if len(batch) > 0:
-                yield batch
+            for batch in progress_bar_wrapper(batched_data_params()):
+                sample_ids, batch_images, batch_params = zip(*batch)
+                samples = [dataset.samples()[i] for i in sample_ids]
+                with ExitStack() as stack:
+                    raw_dataset = [
+                        stack.enter_context(RawInputDataset(DataSetMode.PREDICT,
+                                                            batch_images,
+                                                            [None] * len(batch_images),
+                                                            batch_params,
+                                                            )) for _ in self.predictors]
 
-        for batch in progress_bar_wrapper(batched_data_params()):
-            sample_ids, batch_images, batch_params = zip(*batch)
-            samples = [dataset.samples()[i] for i in sample_ids]
-            raw_dataset = [
-                RawInputDataset(DataSetMode.PREDICT,
-                                batch_images,
-                                [None] * len(batch_images),
-                                batch_params,
-                                ) for p in self.predictors]
+                    # predict_raw returns list of prediction objects
+                    prediction = [predictor.predict_input_dataset(ds, progress_bar=False)
+                                  for ds, predictor in zip(raw_dataset, self.predictors)]
 
-            # predict_raw returns list of prediction objects
-            prediction = [predictor.predict_input_dataset(ds, progress_bar=False)
-                          for ds, predictor in zip(raw_dataset, self.predictors)]
-
-            for result, sample in zip(zip(*prediction), samples):
-                yield result, sample
+                    for result, sample in zip(zip(*prediction), samples):
+                        yield result, sample
 
         print("Prediction of {} models took {}s".format(len(self.predictors), time.time() - start_time))

@@ -38,6 +38,11 @@ class DatasetGenerator:
         self.p = ctx.Process(target=self.run, daemon=True)
         self.p.start()
 
+    def stop(self):
+        if self.p:
+            self.p.terminate()
+            self.p = None
+
     def join(self):
         if self.request_queue:
             self.request_queue.join()

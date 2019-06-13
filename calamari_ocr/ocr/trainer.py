@@ -3,6 +3,7 @@ from calamari_ocr.ocr.data_processing import data_processor_from_proto
 from calamari_ocr.ocr import Codec, Checkpoint
 from calamari_ocr.ocr.augmentation import DataAugmenter
 from calamari_ocr.ocr.backends import create_backend_from_proto
+from calamari_ocr.utils.contextmanager import ExitStackWithPop
 import time
 import os
 import numpy as np
@@ -111,93 +112,104 @@ class Trainer:
             Show or hide any progress bar
 
         """
-        checkpoint_params = self.checkpoint_params
+        with ExitStackWithPop() as exit_stack:
+            checkpoint_params = self.checkpoint_params
 
-        train_start_time = time.time() + self.checkpoint_params.total_time
+            train_start_time = time.time() + self.checkpoint_params.total_time
 
-        # load training dataset
-        if self.preload_training:
-            self.dataset = self.dataset.to_raw_input_dataset(processes=checkpoint_params.processes, progress_bar=progress_bar)
+            exit_stack.enter_context(self.dataset)
+            if self.validation_dataset:
+                exit_stack.enter_context(self.validation_dataset)
 
-        # load validation dataset
-        if self.validation_dataset and self.preload_validation:
-            self.validation_dataset = self.validation_dataset.to_raw_input_dataset(processes=checkpoint_params.processes, progress_bar=progress_bar)
+            # load training dataset
+            if self.preload_training:
+                new_dataset = self.dataset.to_raw_input_dataset(processes=checkpoint_params.processes, progress_bar=progress_bar)
+                exit_stack.pop(self.dataset)
+                self.dataset = new_dataset
+                exit_stack.enter_context(self.dataset)
 
-        # compute the codec
-        if self.codec:
-            codec = self.codec
-        else:
-            if len(self.codec_whitelist) == 0 or auto_compute_codec:
-                codec = Codec.from_input_dataset([self.dataset, self.validation_dataset],
-                                                 whitelist=self.codec_whitelist, progress_bar=progress_bar)
+            # load validation dataset
+            if self.validation_dataset and self.preload_validation:
+                new_dataset = self.validation_dataset.to_raw_input_dataset(processes=checkpoint_params.processes, progress_bar=progress_bar)
+                exit_stack.pop(self.validation_dataset)
+                self.validation_dataset = new_dataset
+                exit_stack.enter_context(self.validation_dataset)
+
+            # compute the codec
+            if self.codec:
+                codec = self.codec
             else:
-                codec = Codec.from_texts([], whitelist=self.codec_whitelist)
+                if len(self.codec_whitelist) == 0 or auto_compute_codec:
+                    codec = Codec.from_input_dataset([self.dataset, self.validation_dataset],
+                                                     whitelist=self.codec_whitelist, progress_bar=progress_bar)
+                else:
+                    codec = Codec.from_texts([], whitelist=self.codec_whitelist)
 
-        # create backend
-        network_params = checkpoint_params.model.network
-        network_params.features = checkpoint_params.model.line_height
-        network_params.classes = len(codec)
-        if self.weights:
-            # if we load the weights, take care of codec changes as-well
-            ckpt = Checkpoint(self.weights + '.json', auto_update=self.auto_update_checkpoints)
-            restore_checkpoint_params = ckpt.checkpoint
-            restore_model_params = restore_checkpoint_params.model
+            # create backend
+            network_params = checkpoint_params.model.network
+            network_params.features = checkpoint_params.model.line_height
+            network_params.classes = len(codec)
+            if self.weights:
+                # if we load the weights, take care of codec changes as-well
+                ckpt = Checkpoint(self.weights + '.json', auto_update=self.auto_update_checkpoints)
+                restore_checkpoint_params = ckpt.checkpoint
+                restore_model_params = restore_checkpoint_params.model
 
-            # checks
-            if checkpoint_params.model.line_height != network_params.features:
-                raise Exception("The model to restore has a line height of {} but a line height of {} is requested".format(
-                    network_params.features, checkpoint_params.model.line_height
-                ))
+                # checks
+                if checkpoint_params.model.line_height != network_params.features:
+                    raise Exception("The model to restore has a line height of {} but a line height of {} is requested".format(
+                        network_params.features, checkpoint_params.model.line_height
+                    ))
 
-            # create codec of the same type
-            restore_codec = codec.__class__(restore_model_params.codec.charset)
+                # create codec of the same type
+                restore_codec = codec.__class__(restore_model_params.codec.charset)
 
-            # the codec changes as tuple (deletions/insertions), and the new codec is the changed old one
-            codec_changes = restore_codec.align(codec, shrink=not self.keep_loaded_codec)
-            codec = restore_codec
-            print("Codec changes: {} deletions, {} appends".format(len(codec_changes[0]), len(codec_changes[1])))
-            # The actual weight/bias matrix will be changed after loading the old weights
-            if all([c == 0 for c in codec_changes]):
-                codec_changes = None  # No codec changes
-        else:
-            codec_changes = None
+                # the codec changes as tuple (deletions/insertions), and the new codec is the changed old one
+                codec_changes = restore_codec.align(codec, shrink=not self.keep_loaded_codec)
+                codec = restore_codec
+                print("Codec changes: {} deletions, {} appends".format(len(codec_changes[0]), len(codec_changes[1])))
+                # The actual weight/bias matrix will be changed after loading the old weights
+                if all([c == 0 for c in codec_changes]):
+                    codec_changes = None  # No codec changes
+            else:
+                codec_changes = None
 
-        # store the new codec
-        checkpoint_params.model.codec.charset[:] = codec.charset
-        print("CODEC: {}".format(codec.charset))
+            # store the new codec
+            checkpoint_params.model.codec.charset[:] = codec.charset
+            print("CODEC: {}".format(codec.charset))
 
-        backend = create_backend_from_proto(network_params,
-                                            weights=self.weights,
-                                            processes=checkpoint_params.processes,
-                                            )
-        train_net = backend.create_net(self.dataset, codec, restore=None, weights=self.weights, graph_type="train", batch_size=checkpoint_params.batch_size)
-        test_net = backend.create_net(self.validation_dataset, codec, restore=None, weights=self.weights, graph_type="test", batch_size=checkpoint_params.batch_size)
-        if codec_changes:
-            # only required on one net, since the other shares the same variables
-            train_net.realign_model_labels(*codec_changes)
+            backend = create_backend_from_proto(network_params,
+                                                weights=self.weights,
+                                                processes=checkpoint_params.processes,
+                                                )
+            train_net = backend.create_net(self.dataset, codec, restore=None, weights=self.weights, graph_type="train", batch_size=checkpoint_params.batch_size)
+            test_net = backend.create_net(self.validation_dataset, codec, restore=None, weights=self.weights, graph_type="test", batch_size=checkpoint_params.batch_size)
+            if codec_changes:
+                # only required on one net, since the other shares the same variables
+                train_net.realign_model_labels(*codec_changes)
 
-        train_net.prepare()
-        test_net.prepare()
-
-        if checkpoint_params.current_stage == 0:
-            self._run_train(train_net, test_net, codec, train_start_time, progress_bar)
-
-        if checkpoint_params.data_aug_retrain_on_original and self.data_augmenter and self.n_augmentations != 0:
-            print("Starting training on original data only")
-            if checkpoint_params.current_stage == 0:
-                checkpoint_params.current_stage = 1
-                checkpoint_params.iter = 0
-                checkpoint_params.early_stopping_best_at_iter = 0
-                checkpoint_params.early_stopping_best_cur_nbest = 0
-                checkpoint_params.early_stopping_best_accuracy = 0
-
-            self.dataset.generate_only_non_augmented = True  # this is the important line!
             train_net.prepare()
             test_net.prepare()
-            self._run_train(train_net, test_net, codec, train_start_time, progress_bar)
 
-        train_net.prepare()  # reset the state
-        test_net.prepare()   # to prevent blocking of tensorflow on shutdown
+            if checkpoint_params.current_stage == 0:
+                self._run_train(train_net, test_net, codec, train_start_time, progress_bar)
+
+            if checkpoint_params.data_aug_retrain_on_original and self.data_augmenter and self.n_augmentations != 0:
+                print("Starting training on original data only")
+                if checkpoint_params.current_stage == 0:
+                    checkpoint_params.current_stage = 1
+                    checkpoint_params.iter = 0
+                    checkpoint_params.early_stopping_best_at_iter = 0
+                    checkpoint_params.early_stopping_best_cur_nbest = 0
+                    checkpoint_params.early_stopping_best_accuracy = 0
+
+                self.dataset.generate_only_non_augmented = True  # this is the important line!
+                train_net.prepare()
+                test_net.prepare()
+                self._run_train(train_net, test_net, codec, train_start_time, progress_bar)
+
+            train_net.prepare()  # reset the state
+            test_net.prepare()   # to prevent blocking of tensorflow on shutdown
 
     def _run_train(self, train_net, test_net, codec, train_start_time, progress_bar):
         checkpoint_params = self.checkpoint_params

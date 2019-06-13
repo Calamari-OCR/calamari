@@ -9,6 +9,9 @@ from collections import namedtuple
 import queue
 from calamari_ocr.utils.multiprocessing import tqdm_wrapper
 from abc import ABC, abstractmethod
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class OrderedQueueTask:
@@ -20,6 +23,9 @@ class OrderedQueueTask:
 
     def start(self):
         self.p.start()
+
+    def stop(self):
+        self.p.terminate()
 
     def join(self):
         self.p.join()
@@ -70,6 +76,9 @@ class DataProcessingTask:
 
     def start(self):
         self.p.start()
+
+    def stop(self):
+        self.p.terminate()
 
     def join(self):
         self.p.join()
@@ -124,6 +133,24 @@ class InputDataset(ABC):
                  ):
         self.mode = mode
         self._generate_only_non_augmented = multiprocessing.Value('b', False)
+        self.initialized = False
+
+    def __enter__(self):
+        if self.initialized:
+            raise AssertionError("Input dataset already initialized.")
+
+        logger.debug("InputDataset {} entered".format(self))
+        self.initialized = True
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.initialized = False
+        logger.debug("InputDataset {} exited".format(self))
+
+    def check_initialized(self):
+        if not self.initialized:
+            raise AssertionError("InputDataset is not initialised. Call 'with InputDataset() as input_dataset:'. "
+                                 "After the scope is closed the threads will be closed, too, for cleaning up.")
 
     @abstractmethod
     def __len__(self):
@@ -143,11 +170,11 @@ class InputDataset(ABC):
 
     @abstractmethod
     def text_generator(self) -> Generator[str, None, None]:
-        pass
+        self.check_initialized()
 
     @abstractmethod
     def generator(self, epochs=1, text_only=False) -> Generator[Tuple[np.array, List[str], Any], None, None]:
-        pass
+        self.check_initialized()
 
 
 class RawInputDataset(InputDataset):
@@ -168,10 +195,12 @@ class RawInputDataset(InputDataset):
         return len(self)
 
     def text_generator(self) -> Generator[str, None, None]:
+        self.check_initialized()
         for text in self.preloaded_texts:
             yield text
 
     def generator(self, epochs=1, text_only=False) -> Generator[Tuple[np.array, List[str], Any], None, None]:
+        self.check_initialized()
         for epoch in range(epochs):
             if self.mode == DataSetMode.TRAIN:
                 # train mode wont generate parameters
@@ -216,6 +245,16 @@ class StreamingInputDataset(InputDataset):
         if data_augmentation_amount > 0 and self.data_augmenter is None:
             raise Exception('Requested data augmentation, but no data augmented provided. Use e. g. SimpleDataAugmenter')
 
+        self.data_input_queue = None
+        self.unordered_output_queue = None
+        self.data_processing_tasks = []
+        self.data_generator = None
+        self.ordered_output_queue = None
+        self.data_ordering = None
+
+    def __enter__(self):
+        super().__enter__()
+        # create all tasks and queues
         self.data_input_queue = self.mp_context.JoinableQueue(self.processes * 4)
         self.unordered_output_queue = self.mp_context.JoinableQueue()
 
@@ -231,7 +270,7 @@ class StreamingInputDataset(InputDataset):
                 ),
                 self.data_input_queue,
                 self.unordered_output_queue,
-            ) for _ in range(processes)
+            ) for _ in range(self.processes)
         ]
 
         self.data_generator = self.dataset.create_generator(self.mp_context, self.data_input_queue)
@@ -242,6 +281,24 @@ class StreamingInputDataset(InputDataset):
 
         for p in self.data_processing_tasks:
             p.start()
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # stop all tasks
+        self.data_generator.stop()
+        for p in self.data_processing_tasks:
+            p.stop()
+        self.data_ordering.stop()
+
+        self.data_input_queue = None
+        self.unordered_output_queue = None
+        self.data_processing_tasks = []
+        self.data_generator = None
+        self.ordered_output_queue = None
+        self.data_ordering = None
+
+        super().__exit__(exc_type, exc_val, exc_tb)
 
     def __len__(self):
         return len(self.dataset.samples())
@@ -274,12 +331,14 @@ class StreamingInputDataset(InputDataset):
         return RawInputDataset(self.mode, preloaded_datas, preloaded_texts, preloaded_params)
 
     def text_generator(self) -> Generator[str, None, None]:
+        self.check_initialized()
         for _, text, _ in self.generator(epochs=1, text_only=True):
             if self.text_processor:
                 text = self.text_processor.apply([text], 1, False)[0]
             yield text
 
     def generator(self, epochs=1, text_only=False) -> Generator[Tuple[np.array, List[str], Any], None, None]:
+        self.check_initialized()
         self.data_generator.request(epochs, text_only)
         for epoch in range(epochs):
             for iter in range(len(self.dataset)):
