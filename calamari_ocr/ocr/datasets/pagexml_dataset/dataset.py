@@ -9,6 +9,8 @@ from typing import List
 from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
 from calamari_ocr.utils import split_all_ext, filename
 
+import logging
+logger = logging.getLogger(__name__)
 
 class PageXMLDatasetGenerator(DatasetGenerator):
     def __init__(self, mp_context, output_queue, mode: DataSetMode, images, xml_files, non_existing_as_empty, text_index, skip_invalid):
@@ -82,7 +84,7 @@ class PageXMLDatasetLoader:
             tequivs = textline.xpath('./ns:TextEquiv[@index="{}"]'.format(self.text_index),
                                 namespaces=ns)
             if len(tequivs) > 1:
-                raise IOError('TextLine includese TextEquivs with non unique ids')
+                logger.warning("PageXML is invalid: TextLine includes TextEquivs with non unique ids")
 
             parat = textline.attrib
             if skipcommented and "comments" in parat and parat["comments"]:
@@ -108,10 +110,9 @@ class PageXMLDatasetLoader:
                 "id": l.xpath('../@id', namespaces=ns).pop(),
                 "text": text,
                 "coords": l.xpath('../ns:Coords/@points',
-                                namespaces=ns).pop(),
+                                  namespaces=ns).pop(),
                 "img_width": img_w
             }
-
 
     def _samples_from_book(self, root, img):
         ns = {"ns": root.nsmap[None]}
