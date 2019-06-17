@@ -76,14 +76,22 @@ class PageXMLDatasetLoader:
 
         img_w = int(root.xpath('//ns:Page',
                                namespaces=ns)[0].attrib["imageWidth"])
-        tequivs = root.xpath('//ns:TextEquiv[@index="{}"]'.format(self.text_index),
-                             namespaces=ns)
-        for l in tequivs:
-            parat = l.getparent().attrib
+        textlines = root.xpath('//ns:TextLine', namespaces=ns)
+
+        for textline in textlines:
+            tequivs = textline.xpath('./ns:TextEquiv[@index="{}"]'.format(self.text_index),
+                                namespaces=ns)
+            if len(tequivs) > 1:
+                raise IOError('TextLine includese TextEquivs with non unique ids')
+
+            parat = textline.attrib
             if skipcommented and "comments" in parat and parat["comments"]:
                 continue
 
-            text = l.xpath('./ns:Unicode', namespaces=ns).pop().text
+            text = None
+            if tequivs is not None and len(tequivs) > 0:
+                l = tequivs[0]
+                text = l.xpath('./ns:Unicode', namespaces=ns).pop().text
             if not text:
                 if self.skip_invalid:
                     continue
@@ -100,9 +108,10 @@ class PageXMLDatasetLoader:
                 "id": l.xpath('../@id', namespaces=ns).pop(),
                 "text": text,
                 "coords": l.xpath('../ns:Coords/@points',
-                                  namespaces=ns).pop(),
+                                namespaces=ns).pop(),
                 "img_width": img_w
             }
+
 
     def _samples_from_book(self, root, img):
         ns = {"ns": root.nsmap[None]}
