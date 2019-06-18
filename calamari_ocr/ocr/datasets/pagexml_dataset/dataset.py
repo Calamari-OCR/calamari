@@ -90,10 +90,13 @@ class PageXMLDatasetLoader:
             if skipcommented and "comments" in parat and parat["comments"]:
                 continue
 
-            text = None
             if tequivs is not None and len(tequivs) > 0:
                 l = tequivs[0]
                 text = l.xpath('./ns:Unicode', namespaces=ns).pop().text
+            else:
+                l = None
+                text = None
+
             if not text:
                 if self.skip_invalid:
                     continue
@@ -104,12 +107,12 @@ class PageXMLDatasetLoader:
 
             yield {
                 'ns': ns,
-                "rtype": l.xpath('../../@type', namespaces=ns).pop(),
+                "rtype": textline.xpath('../@type', namespaces=ns).pop(),
                 'xml_element': l,
                 "image_path": img,
-                "id": l.xpath('../@id', namespaces=ns).pop(),
+                "id": textline.xpath('./@id', namespaces=ns).pop(),
                 "text": text,
-                "coords": l.xpath('../ns:Coords/@points',
+                "coords": textline.xpath('./ns:Coords/@points',
                                   namespaces=ns).pop(),
                 "img_width": img_w
             }
