@@ -9,6 +9,8 @@ from typing import List
 from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
 from calamari_ocr.utils import split_all_ext, filename
 
+import logging
+logger = logging.getLogger(__name__)
 
 class PageXMLDatasetGenerator(DatasetGenerator):
     def __init__(self, mp_context, output_queue, mode: DataSetMode, images, xml_files, non_existing_as_empty, text_index, skip_invalid):
@@ -76,14 +78,25 @@ class PageXMLDatasetLoader:
 
         img_w = int(root.xpath('//ns:Page',
                                namespaces=ns)[0].attrib["imageWidth"])
-        tequivs = root.xpath('//ns:TextEquiv[@index="{}"]'.format(self.text_index),
-                             namespaces=ns)
-        for l in tequivs:
-            parat = l.getparent().attrib
+        textlines = root.xpath('//ns:TextLine', namespaces=ns)
+
+        for textline in textlines:
+            tequivs = textline.xpath('./ns:TextEquiv[@index="{}"]'.format(self.text_index),
+                                namespaces=ns)
+            if len(tequivs) > 1:
+                logger.warning("PageXML is invalid: TextLine includes TextEquivs with non unique ids")
+
+            parat = textline.attrib
             if skipcommented and "comments" in parat and parat["comments"]:
                 continue
 
-            text = l.xpath('./ns:Unicode', namespaces=ns).pop().text
+            if tequivs is not None and len(tequivs) > 0:
+                l = tequivs[0]
+                text = l.xpath('./ns:Unicode', namespaces=ns).pop().text
+            else:
+                l = None
+                text = None
+
             if not text:
                 if self.skip_invalid:
                     continue
@@ -94,12 +107,12 @@ class PageXMLDatasetLoader:
 
             yield {
                 'ns': ns,
-                "rtype": l.xpath('../../@type', namespaces=ns).pop(),
+                "rtype": textline.xpath('../@type', namespaces=ns).pop(),
                 'xml_element': l,
                 "image_path": img,
-                "id": l.xpath('../@id', namespaces=ns).pop(),
+                "id": textline.xpath('./@id', namespaces=ns).pop(),
                 "text": text,
-                "coords": l.xpath('../ns:Coords/@points',
+                "coords": textline.xpath('./ns:Coords/@points',
                                   namespaces=ns).pop(),
                 "img_width": img_w
             }
