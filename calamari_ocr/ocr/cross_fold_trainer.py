@@ -3,6 +3,7 @@ import os
 import inspect
 import json
 import tempfile
+import sys
 
 from calamari_ocr.ocr import CrossFold
 from calamari_ocr.utils.multiprocessing import prefix_run_command, run
@@ -19,7 +20,7 @@ def train_individual_model(run_args):
     args = run_args["args"]
     train_args_json = run_args["json"]
     for line in run(prefix_run_command([
-        "python3", "-u",
+        sys.executable, "-u",
         args["train_script"],
         "--files", train_args_json,
 
@@ -147,7 +148,7 @@ class CrossFoldTrainer:
         # Launch the individual processes for each training
         with multiprocessing.Pool(processes=max_parallel_models) as pool:
             # workaround to forward keyboard interrupt
-            pool.map_async(train_individual_model, run_args).get(999999999)
+            pool.map_async(train_individual_model, run_args).get()
 
         if not keep_temporary_files:
             import shutil
