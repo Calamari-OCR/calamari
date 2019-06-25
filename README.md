@@ -1,4 +1,4 @@
--test
+
 ![logo](resources/logo/calamari_200.png)
 
 OCR Engine based on OCRopy and Kraken using python3.
