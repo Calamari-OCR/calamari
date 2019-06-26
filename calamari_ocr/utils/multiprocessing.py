@@ -67,9 +67,11 @@ def run(command, verbose=False):
     if verbose:
         print("Executing: {}".format(" ".join(command)))
 
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=False)
+    env = os.environ.copy()
+    env['PYTHONIOENCODING'] = 'utf-8'
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=False, encoding="utf-8", universal_newlines=True, env=env)
     while True:
-        line = process.stdout.readline().decode("utf-8")
+        line = process.stdout.readline()
 
         # check if process has finished
         if process.poll() is not None:
