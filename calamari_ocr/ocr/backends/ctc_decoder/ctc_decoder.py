@@ -49,9 +49,11 @@ class CTCDecoder(ABC):
             a Prediction object
 
         """
+
         # find alternatives
         pred = Prediction()
-        pred.labels[:] = [c for c, _, _ in sentence]
+
+        pred.labels[:] = [c for c, _, _ in sentence]                #get the formerly predicted characters as "labels"
         pred.is_voted_result = False
         pred.logits.rows, pred.logits.cols = probabilities.shape
         pred.logits.data[:] = probabilities.reshape([-1])

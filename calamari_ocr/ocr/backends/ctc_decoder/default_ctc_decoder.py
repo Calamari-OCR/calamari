@@ -22,9 +22,8 @@ class DefaultCTCDecoder(CTCDecoder):
                     _, start, end = sentence[-1]
                     del sentence[-1]
                     sentence.append((c, start, idx + 1))
-
             last_char = c
-
+        print("test")
         return self.find_alternatives(probabilities, sentence, self.threshold)
 
     def prob_of_sentence(self, probabilities):
