@@ -69,9 +69,9 @@ def run(command, verbose=False):
 
     env = os.environ.copy()
     env['PYTHONIOENCODING'] = 'utf-8'
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=False, encoding="utf-8", universal_newlines=True, env=env)
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=False, env=env)
     while True:
-        line = process.stdout.readline()
+        line = process.stdout.readline().decode('utf-8')
 
         # check if process has finished
         if process.poll() is not None:
