@@ -7,23 +7,20 @@ class ExitStackWithPop(ExitStack):
         callbacks = self._exit_callbacks
         self._exit_callbacks = deque()
         found = None
+
+        def unpack_cb(cb):
+            if isinstance(cb, tuple):
+                return cb[1]
+            else:
+                return cb
+
         while callbacks:
             cb = callbacks.popleft()
-            # Newer versions return a (bool, cb) tuple
-            if isinstance(cb, tuple):
-                # search for the cb (should be the last element)
-                for c in cb:
-                    try:
-                        if c.__self__ == cm:
-                            found = c
-                            break
-                    except AttributeError:
-                        continue
-            # Older version return the cb directly
-            elif cb.__self__ == cm:
+            if unpack_cb(cb).__self__ == cm:
                 found = cb
             else:
                 self._exit_callbacks.append(cb)
         if not found:
             raise KeyError("context manager not found")
+        found = unpack_cb(found)
         found(None, None, None)
