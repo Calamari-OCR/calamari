@@ -20,6 +20,7 @@ class DataSetMode(Enum):
     TRAIN = 0
     PREDICT = 1
     EVAL = 2
+    PRED_AND_EVAL = 3
 
 
 RequestParams = namedtuple('RequestParams', ('epochs', 'text_only'))
