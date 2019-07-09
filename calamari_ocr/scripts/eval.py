@@ -195,8 +195,8 @@ def main():
     )
     pred_data_set = create_dataset(
         args.pred_dataset,
-        #DataSetMode.EVAL,
-        DataSetMode.PRED_AND_EVAL,
+        DataSetMode.EVAL,
+        #DataSetMode.PRED_AND_EVAL,
         texts=pred_files,
         non_existing_as_empty=non_existing_as_empty,
         args={'text_index': args.pagexml_pred_text_index},
