@@ -44,13 +44,13 @@ class Hdf5DataSet(DataSet):
         self.filenames = [i for i in set(images + texts) if i is not None]
 
         self.prediction = None
-        if mode == DataSetMode.PREDICT:
+        if mode == DataSetMode.PREDICT or mode == DataSetMode.PRED_AND_EVAL:
             self.prediction = {}
 
         for filename in self.filenames:
             f = h5py.File(filename, 'r')
             codec = list(map(chr, f['codec']))
-            if mode == DataSetMode.PREDICT:
+            if mode == DataSetMode.PREDICT or mode == DataSetMode.PRED_AND_EVAL:
                 self.prediction[filename] = {'transcripts': [], 'codec': codec}
 
             # create empty samples for id and correct dataset size
