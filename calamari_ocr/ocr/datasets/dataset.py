@@ -72,7 +72,7 @@ class DatasetGenerator:
 
             for epoch in range(rq_params.epochs):
                 sample_idx = 0
-                if self.mode == DataSetMode.TRAIN:
+                if self.mode == DataSetMode.TRAIN:  #no pred_and_eval bc it's shuffle 
                     shuffle(self.samples)
 
                 for sample in self.samples:
@@ -157,7 +157,7 @@ class DataSet(ABC):
         self._samples.append(sample)
 
     def is_sample_valid(self, sample, line, text):
-        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN:
+        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
             # skip invalid imanges (e. g. corrupted or empty files)
             if line is None or (line.size == 0 or np.amax(line) == np.amin(line)):
                 return False

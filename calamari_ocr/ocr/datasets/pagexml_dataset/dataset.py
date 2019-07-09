@@ -24,13 +24,13 @@ class PageXMLDatasetGenerator(DatasetGenerator):
         image_path, xml_path = sample
 
         img = None
-        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN:
+        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
             img = np.array(Image.open(image_path))
 
         for sample in loader.load(image_path, xml_path):
             text = sample["text"]
 
-            if not text_only and (self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN):
+            if not text_only and (self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL):
                 ly, lx = img.shape
 
                 line_img = PageXMLDataset.cutout(img, sample['coords'], lx / sample['img_width'])
@@ -61,7 +61,7 @@ class PageXMLDatasetLoader:
         root = etree.parse(xml).getroot()
         self.root = root
 
-        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.EVAL:
+        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.EVAL or self.mode == DataSetMode.PRED_AND_EVAL:
             return self._samples_gt_from_book(root, img, skip_commented)
         else:
             return self._samples_from_book(root, img)
@@ -72,7 +72,7 @@ class PageXMLDatasetLoader:
         ns = {"ns": root.nsmap[None]}
         imgfile = root.xpath('//ns:Page',
                              namespaces=ns)[0].attrib["imageFilename"]
-        if self.mode == DataSetMode.TRAIN and not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
+        if (self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL) and not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
             raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
                 img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
 
@@ -220,7 +220,7 @@ class PageXMLDataset(DataSet):
         if text_only:
             return img, text
 
-        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN:
+        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
             img = np.array(Image.open(image_path))
 
             ly, lx = img.shape
