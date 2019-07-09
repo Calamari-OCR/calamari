@@ -202,7 +202,7 @@ class RawInputDataset(InputDataset):
     def generator(self, epochs=1, text_only=False) -> Generator[Tuple[np.array, List[str], Any], None, None]:
         self.check_initialized()
         for epoch in range(epochs):
-            if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
+            if self.mode == DataSetMode.TRAIN:          #only train here, pred and eval are covered by else block 
                 # train mode wont generate parameters
                 if self._generate_only_non_augmented.value:
                     # preloaded datas are ordered: first original data, then data augmented, however,

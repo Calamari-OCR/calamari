@@ -184,11 +184,16 @@ def main():
             checkpoint_params = json_format.Parse(f.read(), CheckpointParams())
             text_preproc = text_processor_from_proto(checkpoint_params.model.text_preprocessor)
 
+    print("LENGTH OF LISTS BEFORE DATASET CREATION ",len(gt_files),len(pred_files))
+    
+    print(gt_files[0])
+    print(pred_files[0])
+    
     non_existing_as_empty = args.non_existing_file_handling_mode.lower() != "error "
     gt_data_set = create_dataset(
         args.dataset,
-        DataSetMode.EVAL,
-        #DataSetMode.PRED_AND_EVAL,
+        #DataSetMode.EVAL,
+        DataSetMode.PRED_AND_EVAL,
         texts=gt_files,
         non_existing_as_empty=non_existing_as_empty,
         args={'text_index': args.pagexml_gt_text_index},
