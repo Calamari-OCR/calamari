@@ -16,6 +16,7 @@ def main():
     print("Resolving files")
     pred_files = sorted(glob_all(args.pred))
 
+    print("-------------------------__TEST ----------------------- computed avg pred conf -------------")
     data_set = create_dataset(
         DataSetType.EXTENDED_PREDICTION,
         DataSetMode.EVAL,

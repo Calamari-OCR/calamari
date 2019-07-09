@@ -83,6 +83,7 @@ def main():
             raise Exception("Mismatch in number of gt and pred files: {} != {}. Probably, the prediction did "
                             "not succeed".format(len(dataset), len(predicted_sentences)))
 
+        print("---------------------------------- TEST ----------- exp eval ----------------- ")
         pred_data_set = create_dataset(
             DataSetType.RAW,
             DataSetMode.EVAL,
