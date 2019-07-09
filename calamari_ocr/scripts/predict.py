@@ -47,7 +47,8 @@ def run(args):
     # skip invalid files and remove them, there wont be predictions of invalid files
     dataset = create_dataset(
         args.dataset,
-        DataSetMode.PREDICT,
+        #DataSetMode.PREDICT, --changed 
+        DataSetMode.PRED_AND_EVAL,
         input_image_files,
         args.text_files,
         skip_invalid=True,
