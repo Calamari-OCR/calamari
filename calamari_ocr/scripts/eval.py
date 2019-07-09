@@ -187,16 +187,16 @@ def main():
     non_existing_as_empty = args.non_existing_file_handling_mode.lower() != "error "
     gt_data_set = create_dataset(
         args.dataset,
-        #DataSetMode.EVAL,
-        DataSetMode.PRED_AND_EVAL,
+        DataSetMode.EVAL,
+        #DataSetMode.PRED_AND_EVAL,
         texts=gt_files,
         non_existing_as_empty=non_existing_as_empty,
         args={'text_index': args.pagexml_gt_text_index},
     )
     pred_data_set = create_dataset(
         args.pred_dataset,
-        DataSetMode.EVAL,
-        #DataSetMode.PRED_AND_EVAL,
+        #DataSetMode.EVAL,
+        DataSetMode.PRED_AND_EVAL,
         texts=pred_files,
         non_existing_as_empty=non_existing_as_empty,
         args={'text_index': args.pagexml_pred_text_index},
