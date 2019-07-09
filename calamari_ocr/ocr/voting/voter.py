@@ -42,7 +42,7 @@ class Voter(ABC):
                 # we need to vote again
                 from calamari_ocr.ocr.voting import SequenceVoter
                 sv = SequenceVoter()
-                p.sentence = [c for c, _ in sv.process_text(sentences)]
+                p.sentence = "".join([c for c, _ in sv.process_text(sentences)])
 
         p.avg_char_probability = 0
         for pos in p.positions:
