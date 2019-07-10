@@ -80,11 +80,11 @@ class FileDataSet(DataSet):
         images = [] if images is None else images
         texts = [] if texts is None else texts
 
-        #when predicting with pred_and_eval mode, texts and imgs have to be set via the --files and --text_files args 
-        #when evaluating with pred_and_eval mode, only texts are set via --gt argument --> need dummy [None] imgs 
-        #therefore, the second if block checks if images is empty, which indicates that the evalution script was called. 
+        #when evaluating, only texts are set via --gt argument      --> need dummy [None] imgs 
+        #when predicting, only imags are set via --files  argument  --> need dummy [None] texts
+        #therefore, the and checks if images or texts is empty 
         
-        if mode == DataSetMode.PREDICT:
+        if (mode == DataSetMode.PREDICT or mode == DataSetMode.PRED_AND_EVAL) and not texts:
             texts = [None] * len(images)
 
         if (mode == DataSetMode.EVAL or mode == DataSetMode.PRED_AND_EVAL) and not images: 
