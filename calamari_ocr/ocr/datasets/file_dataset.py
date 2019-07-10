@@ -80,19 +80,16 @@ class FileDataSet(DataSet):
         images = [] if images is None else images
         texts = [] if texts is None else texts
 
+        #when predicting with pred_and_eval mode, texts and imgs have to be set via the --files and --text_files args 
+        #when evaluating with pred_and_eval mode, only texts are set via --gt argument --> need dummy [None] imgs 
+        #therefore, the second if block checks if images is empty, which indicates that the evalution script was called. 
         
         if mode == DataSetMode.PREDICT:
             texts = [None] * len(images)
 
-        if mode == DataSetMode.EVAL:
+        if (mode == DataSetMode.EVAL or mode == DataSetMode.PRED_AND_EVAL) and not images: 
             images = [None] * len(texts)
 
-# =============================================================================
-          # with this, predict doesn't work anymore 
-#         if mode == DataSetMode.PRED_AND_EVAL: 
-#             texts = [None] * len(images)
-#             images = [None] * len(texts)
-# =============================================================================
 
         for image, text in zip(images, texts):
             try:

@@ -328,7 +328,7 @@ class StreamingInputDataset(InputDataset):
             preloaded_datas, preloaded_texts \
                 = self.data_augmenter.augment_datas(list(datas), list(texts), n_augmentations=abs_n_augs,
                                                     processes=processes, progress_bar=progress_bar)
-
+        
         return RawInputDataset(self.mode, preloaded_datas, preloaded_texts, preloaded_params)
 
     def text_generator(self) -> Generator[str, None, None]:

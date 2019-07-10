@@ -10,7 +10,6 @@ from typing import List
 
 class ExtendedPredictionDataSet(DataSet):
     def __init__(self, texts: List[str] = None):
-        print("------------TEST --- called Extended Prediction DataSet ---------------------------")
         super().__init__(DataSetMode.EVAL)
 
         if texts is None:
