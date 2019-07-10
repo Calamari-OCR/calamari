@@ -190,8 +190,7 @@ def create_train_dataset(args, dataset_args=None):
 
     dataset = create_dataset(
         args.dataset,
-        #DataSetMode.TRAIN, --changed 
-        DataSetMode.PRED_AND_EVAL,
+        DataSetMode.TRAIN, 
         images=input_image_files,
         texts=gt_txt_files,
         skip_invalid=not args.no_skip_invalid_gt,
@@ -269,8 +268,7 @@ def run(args):
 
         validation_dataset = create_dataset(
             args.validation_dataset,
-            #DataSetMode.TRAIN, --changed 
-            DataSetMode.PRED_AND_EVAL,
+            DataSetMode.TRAIN,
             images=validation_image_files,
             texts=val_txt_files,
             skip_invalid=not args.no_skip_invalid_gt,
