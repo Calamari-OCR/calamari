@@ -199,7 +199,7 @@ def main():
         non_existing_as_empty=non_existing_as_empty,
         args={'text_index': args.pagexml_pred_text_index},
     )
-    
+
     evaluator = Evaluator(text_preprocessor=text_preproc, skip_empty_gt=args.skip_empty_gt)
     r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, processes=args.num_threads,
                       progress_bar=not args.no_progress_bars)

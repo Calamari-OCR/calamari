@@ -80,7 +80,7 @@ class Evaluator:
                                                            total=len(pred_dataset),
                                                            progress_bar=progress_bar,
                                                            )]
-    
+
         return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar,
                              skip_empty_gt=self.skip_empty_gt)
 
