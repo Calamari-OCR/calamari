@@ -80,10 +80,13 @@ class FileDataSet(DataSet):
         images = [] if images is None else images
         texts = [] if texts is None else texts
 
-        if mode == DataSetMode.PREDICT:
+        # when evaluating, only texts are set via --gt argument      --> need dummy [None] imgs
+        # when predicting, only imags are set via --files  argument  --> need dummy [None] texts
+        
+        if (mode == DataSetMode.PREDICT or mode == DataSetMode.PRED_AND_EVAL) and not texts:
             texts = [None] * len(images)
 
-        if mode == DataSetMode.EVAL:
+        if (mode == DataSetMode.EVAL or mode == DataSetMode.PRED_AND_EVAL) and not images: 
             images = [None] * len(texts)
 
         for image, text in zip(images, texts):

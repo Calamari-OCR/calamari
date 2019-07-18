@@ -262,9 +262,10 @@ class MultiPredictor:
             for batch in progress_bar_wrapper(batched_data_params()):
                 sample_ids, batch_images, batch_params = zip(*batch)
                 samples = [dataset.samples()[i] for i in sample_ids]
+                current_mode = dataset.mode 
                 with ExitStack() as stack:
                     raw_dataset = [
-                        stack.enter_context(RawInputDataset(DataSetMode.PREDICT,
+                        stack.enter_context(RawInputDataset(current_mode,
                                                             batch_images,
                                                             [None] * len(batch_images),
                                                             batch_params,

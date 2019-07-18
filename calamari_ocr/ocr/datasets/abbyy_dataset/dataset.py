@@ -23,7 +23,7 @@ class AbbyyDatasetGenerator(DatasetGenerator):
 
         book = XMLReader([image_path], [xml_path], self.skip_invalid, self.remove_invalid).read()
 
-        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT:
+        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.PRED_AND_EVAL:
             img = np.array(Image.open(image_path))
             if self.binary:
                 img = img > 0.9
@@ -35,14 +35,14 @@ class AbbyyDatasetGenerator(DatasetGenerator):
                 for f, fo in enumerate(line.formats):
                     text = None
                     cut_img = None
-                    if self.mode == DataSetMode.EVAL or self.mode == DataSetMode.TRAIN:
+                    if self.mode == DataSetMode.EVAL or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
                         text = fo.text
 
                     if text_only:
                         yield cut_img, text
 
                     else:
-                        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT:
+                        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.PRED_AND_EVAL:
                             ly, lx = img.shape
 
                             # Cut the Image
