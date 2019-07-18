@@ -73,7 +73,7 @@ class DatasetGenerator:
             for epoch in range(rq_params.epochs):
                 sample_idx = 0
                 if self.mode == DataSetMode.TRAIN:
-                    #no pred_and_eval bc it's shuffle 
+                    # no pred_and_eval bc it's shuffle
                     shuffle(self.samples)
 
                 for sample in self.samples:

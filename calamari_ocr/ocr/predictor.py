@@ -265,7 +265,7 @@ class MultiPredictor:
                 current_mode = dataset.mode 
                 with ExitStack() as stack:
                     raw_dataset = [
-                        stack.enter_context(RawInputDataset(current_mode, #DataSetMode.PREDICT,
+                        stack.enter_context(RawInputDataset(current_mode,
                                                             batch_images,
                                                             [None] * len(batch_images),
                                                             batch_params,

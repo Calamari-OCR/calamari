@@ -20,7 +20,6 @@ def create_dataset(type: DataSetType,
                    non_existing_as_empty=False,
                    args: dict = None,
                    ):
-    
     if images is None:
         images = []
 

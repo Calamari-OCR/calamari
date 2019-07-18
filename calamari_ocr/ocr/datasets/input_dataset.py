@@ -202,7 +202,8 @@ class RawInputDataset(InputDataset):
     def generator(self, epochs=1, text_only=False) -> Generator[Tuple[np.array, List[str], Any], None, None]:
         self.check_initialized()
         for epoch in range(epochs):
-            if self.mode == DataSetMode.TRAIN:          #only train here, pred and eval are covered by else block 
+            if self.mode == DataSetMode.TRAIN:
+                # only train here, pred and eval are covered by else block
                 # train mode wont generate parameters
                 if self._generate_only_non_augmented.value:
                     # preloaded datas are ordered: first original data, then data augmented, however,
@@ -240,7 +241,7 @@ class StreamingInputDataset(InputDataset):
         self.processes = processes
 
         if data_augmenter and dataset.mode != DataSetMode.TRAIN and dataset.mode != DataSetMode.PRED_AND_EVAL:
-            #no pred_and_eval bc it's augmentation 
+            # no pred_and_eval bc it's augmentation
             raise Exception('Data augmentation is only supported for training, but got {} dataset instead'.format(dataset.mode))
 
         if data_augmentation_amount > 0 and self.data_augmenter is None:
@@ -328,7 +329,7 @@ class StreamingInputDataset(InputDataset):
             preloaded_datas, preloaded_texts \
                 = self.data_augmenter.augment_datas(list(datas), list(texts), n_augmentations=abs_n_augs,
                                                     processes=processes, progress_bar=progress_bar)
-        
+                
         return RawInputDataset(self.mode, preloaded_datas, preloaded_texts, preloaded_params)
 
     def text_generator(self) -> Generator[str, None, None]:

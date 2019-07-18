@@ -66,7 +66,6 @@ class Evaluator:
 
         if self.preloaded_gt:
             gt_data = self.preloaded_gt
-            print("GT PRELOADED")
         else:
             # gt_dataset.load_samples(progress_bar=progress_bar)
             # gt_data = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
@@ -81,6 +80,7 @@ class Evaluator:
                                                            total=len(pred_dataset),
                                                            progress_bar=progress_bar,
                                                            )]
+    
         return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar,
                              skip_empty_gt=self.skip_empty_gt)
 
@@ -207,6 +207,6 @@ class Evaluator:
 
         # evaluate single lines
         out = parallel_map(Evaluator.evaluate_single_args, [{'gt': gt, 'pred': pred, 'skip_empty_gt': skip_empty_gt} for gt, pred in zip(gt_data, pred_data)],
-                           processes=1, progress_bar=progress_bar, desc="Evaluation")
+                           processes=processes, progress_bar=progress_bar, desc="Evaluation")
 
         return Evaluator.evaluate_single_list(out, True)

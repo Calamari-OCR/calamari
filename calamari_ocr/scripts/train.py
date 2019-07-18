@@ -190,7 +190,7 @@ def create_train_dataset(args, dataset_args=None):
 
     dataset = create_dataset(
         args.dataset,
-        DataSetMode.TRAIN, 
+        DataSetMode.TRAIN,
         images=input_image_files,
         texts=gt_txt_files,
         skip_invalid=not args.no_skip_invalid_gt,

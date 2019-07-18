@@ -42,7 +42,6 @@ def run(args):
     # load files
     input_image_files = glob_all(args.files)
     
-    
     if args.text_files:
         args.text_files = glob_all(args.text_files)
     
@@ -50,7 +49,7 @@ def run(args):
     # skip invalid files and remove them, there wont be predictions of invalid files
     dataset = create_dataset(
         args.dataset,
-        DataSetMode.PREDICT, 
+        DataSetMode.PREDICT,
         input_image_files,
         args.text_files,
         skip_invalid=True,
