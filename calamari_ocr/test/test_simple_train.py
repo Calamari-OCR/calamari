@@ -1,6 +1,8 @@
 import unittest
 import os
 
+from calamari_ocr.ocr import DataSetType
+from calamari_ocr.proto import DataPreprocessorParams
 from calamari_ocr.scripts.train import run
 from calamari_ocr.utils import glob_all
 
@@ -8,6 +10,8 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 class Attrs():
     def __init__(self):
+        self.dataset = DataSetType.FILE
+        self.gt_extension = DataSetType.gt_extension(self.dataset)
         self.files = glob_all([os.path.join(this_dir, "data", "uw3_50lines", "train", "*.png")])
         self.seed = 24
         self.backend = "tensorflow"
@@ -31,6 +35,8 @@ class Attrs():
         self.gradient_clipping_mode = "AUTO"
         self.gradient_clipping_const = 0
         self.validation = None
+        self.validation_dataset = DataSetType.FILE
+        self.validation_extension = None
         self.early_stopping_frequency = -1
         self.early_stopping_nbest = 10
         self.early_stopping_best_model_prefix = "uw3_50lines_best"
@@ -41,6 +47,17 @@ class Attrs():
         self.num_intra_threads = 0
         self.text_regularization = ["extended"]
         self.text_normalization = "NFC"
+        self.text_generator_params = None
+        self.line_generator_params = None
+        self.pagexml_text_index = 0
+        self.text_files = None
+        self.only_train_on_augmented = False
+        self.data_preprocessing = [DataPreprocessorParams.DEFAULT_NORMALIZER]
+        self.shuffle_buffer_size = 1000
+        self.keep_loaded_codec = False
+        self.train_data_on_the_fly = False
+        self.validation_data_on_the_fly = False
+        self.no_auto_compute_codec = False
 
 
 class TestSimpleTrain(unittest.TestCase):
