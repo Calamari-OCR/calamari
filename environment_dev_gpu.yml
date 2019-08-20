@@ -5,7 +5,7 @@ channels:
 dependencies:
   - python=3.7
   - lxml
-  - scikit-image
+  - scikit-image>=0.15.0
   - tqdm
   - python-bidi
   - edit_distance
