@@ -179,6 +179,11 @@ test-cpu-train-on-page-xml:
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
       --dataset PAGEXML --display 1.01
       --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
+    - >
+      calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5
+      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
+      --dataset PAGEXML --display 1.01
+      --n_folds 3 --best_models_dir tmp_best_models --max_iters 10 --dataset_pad 3 0
 
 test-cpu-train-on-page-xml-validation-on-files:
   stage: test
@@ -197,6 +202,7 @@ test-cpu-predict-and-eval-page-xml:
     - git clone --depth 1 https://github.com/Calamari-OCR/calamari_models.git || true
     - calamari-predict --files calamari_ocr/test/data/avicanon_pagexml/009.nrm.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset PAGEXML
     - calamari-eval --gt calamari_ocr/test/data/avicanon_pagexml/009.xml --dataset PAGEXML --pred_ext .pred.xml
+    - calamari-predict --files calamari_ocr/test/data/avicanon_pagexml/009.nrm.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset PAGEXML --dataset_pad 3 3
 
 
 # HDF5

@@ -52,7 +52,10 @@ def run(args):
         args.text_files,
         skip_invalid=True,
         remove_invalid=True,
-        args={'text_index': args.pagexml_text_index},
+        args={
+            'text_index': args.pagexml_text_index,
+            'pad': args.dataset_pad,
+        },
     )
 
     print("Found {} files in the dataset".format(len(dataset)))
@@ -149,7 +152,8 @@ def main():
     parser.add_argument("--no_progress_bars", action="store_true",
                         help="Do not show any progress bars")
 
-    # PageXML extra args
+    # dataset extra args
+    parser.add_argument("--dataset_pad", default=None, nargs='+', type=int)
     parser.add_argument("--pagexml_text_index", default=1)
 
     args = parser.parse_args()

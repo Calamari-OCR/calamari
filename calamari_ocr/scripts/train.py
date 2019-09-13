@@ -163,6 +163,7 @@ def setup_train_args(parser, omit=None):
 
 
     # additional dataset args
+    parser.add_argument("--dataset_pad", default=None, nargs='+', type=int)
     parser.add_argument("--pagexml_text_index", default=0)
 
 
@@ -244,6 +245,7 @@ def run(args):
     dataset_args = {
         'line_generator_params': args.line_generator_params,
         'text_generator_params': args.text_generator_params,
+        'pad': args.dataset_pad,
         'text_index': args.pagexml_text_index,
     }
 

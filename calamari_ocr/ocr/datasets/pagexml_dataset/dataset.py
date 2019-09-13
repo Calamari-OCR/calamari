@@ -12,12 +12,14 @@ from calamari_ocr.utils import split_all_ext, filename
 import logging
 logger = logging.getLogger(__name__)
 
+
 class PageXMLDatasetGenerator(DatasetGenerator):
-    def __init__(self, mp_context, output_queue, mode: DataSetMode, images, xml_files, non_existing_as_empty, text_index, skip_invalid):
+    def __init__(self, mp_context, output_queue, mode: DataSetMode, images, xml_files, non_existing_as_empty, text_index, skip_invalid, args):
         super().__init__(mp_context, output_queue, mode, list(zip(images, xml_files)))
         self._non_existing_as_empty = non_existing_as_empty
         self.text_index = text_index
         self.skip_invalid = skip_invalid
+        self.args = args
 
     def _load_sample(self, sample, text_only):
         loader = PageXMLDatasetLoader(self.mode, self._non_existing_as_empty, self.text_index, self.skip_invalid)
@@ -36,7 +38,9 @@ class PageXMLDatasetGenerator(DatasetGenerator):
                 line_img = PageXMLDataset.cutout(img, sample['coords'], lx / sample['img_width'])
 
                 # add padding as required from normal files
-                # img = np.pad(img, ((3, 3), (0, 0)), mode='constant', constant_values=img.max())
+                if self.args.get('pad', None):
+                    pad = self.args['pad']
+                    img = np.pad(img, pad, mode='constant', constant_values=img.max())
             else:
                 line_img = None
 
@@ -65,7 +69,6 @@ class PageXMLDatasetLoader:
             return self._samples_gt_from_book(root, img, skip_commented)
         else:
             return self._samples_from_book(root, img)
-
 
     def _samples_gt_from_book(self, root, img,
                               skipcommented=True):
@@ -174,7 +177,9 @@ class PageXMLDataset(DataSet):
             xmlfiles = []
 
         if args is None:
-            args = []
+            args = {}
+
+        self.args = args
 
         self.text_index = args.get('text_index', 0)
 
@@ -212,26 +217,6 @@ class PageXMLDataset(DataSet):
         box[rr - offset[0], cc - offset[1]] = pageimg[rr, cc]
         return box
 
-    def _load_sample(self, sample, text_only):
-        image_path = sample["image_path"]
-        text = sample["text"]
-        img = None
-
-        if text_only:
-            return img, text
-
-        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
-            img = np.array(Image.open(image_path))
-
-            ly, lx = img.shape
-            
-            img = PageXMLDataset.cutout(img, sample['coords'], lx / sample['img_width'])
-
-            # add padding as required from normal files
-            # img = np.pad(img, ((3, 3), (0, 0)), mode='constant', constant_values=img.max())
-
-        return img, text
-
     def store_text(self, sentence, sample, output_dir, extension):
         ns = sample['ns']
         line = sample['xml_element']
@@ -259,4 +244,4 @@ class PageXMLDataset(DataSet):
                 f.write(etree.tounicode(page.getroottree()))
 
     def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
-        return PageXMLDatasetGenerator(mp_context, output_queue, self.mode, self.files, self.xmlfiles, self._non_existing_as_empty, self.text_index, self.skip_invalid)
+        return PageXMLDatasetGenerator(mp_context, output_queue, self.mode, self.files, self.xmlfiles, self._non_existing_as_empty, self.text_index, self.skip_invalid, self.args)
