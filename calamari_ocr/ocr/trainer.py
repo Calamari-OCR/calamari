@@ -88,8 +88,11 @@ class Trainer:
         self.auto_update_checkpoints = auto_update_checkpoints
         self.data_augmenter = data_augmenter
         self.n_augmentations = n_augmentations
-        self.dataset = StreamingInputDataset(dataset, self.data_preproc, self.txt_preproc, data_augmenter, n_augmentations)
-        self.validation_dataset = StreamingInputDataset(validation_dataset, self.data_preproc, self.txt_preproc) if validation_dataset else None
+        self.dataset = StreamingInputDataset(dataset, self.data_preproc, self.txt_preproc, data_augmenter, n_augmentations,
+                                             processes=self.checkpoint_params.processes)
+        self.validation_dataset = StreamingInputDataset(validation_dataset, self.data_preproc, self.txt_preproc,
+                                                        processes=self.checkpoint_params.processes
+                                                        ) if validation_dataset else None
         self.preload_training = preload_training
         self.preload_validation = preload_validation
 
