@@ -33,7 +33,6 @@ install_dependencies:
     - set -e
     - rm -rf venv
     - rm -rf calamari_models
-    - rm -rf 0.3.tar.gz
   script:
     - set -e
     - virtualenv -p python3 venv
@@ -41,7 +40,7 @@ install_dependencies:
     - pip install -r requirements.txt
     - pip install .[tf_cpu]
     - python setup.py install
-    - wget https://github.com/Calamari-OCR/calamari_models/archive/0.3.tar.gz && tar xf 0.3.tar.gz && mv calamari_models-0.3 calamari_models
+    - wget -q -O - https://github.com/Calamari-OCR/calamari_models/archive/1.0.tar.gz | tar xz && mv calamari_models-1.0 calamari_models
 
 
 # General training with and without validation or data augmentation

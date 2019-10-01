@@ -4,7 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.6.6
-  - tensorflow-gpu
+  - tensorflow-gpu>=2.0
   - lxml
   - scikit-image
   - tqdm

@@ -73,12 +73,14 @@ class Evaluator:
                 gt_data = [txt for _, txt, _ in tqdm_wrapper(gt_input_dataset.generator(text_only=True),
                                                              total=len(gt_dataset),
                                                              progress_bar=progress_bar,
+                                                             desc="Loading GT",
                                                              )]
 
         with StreamingInputDataset(pred_dataset, None, self.text_preprocessor, processes=processes) as pred_input_dataset:
             pred_data = [txt for _, txt, _ in tqdm_wrapper(pred_input_dataset.generator(text_only=True),
                                                            total=len(pred_dataset),
                                                            progress_bar=progress_bar,
+                                                           desc="Loading Prediction"
                                                            )]
 
         return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar,

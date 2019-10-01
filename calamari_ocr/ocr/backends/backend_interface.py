@@ -6,11 +6,11 @@ from .model_interface import ModelInterface
 
 class BackendInterface(ABC):
     def __init__(self,
-                 network_proto,
+                 checkpoint_params,
                  ):
-        self.network_proto = network_proto
-        self.implementation_handles_batching = False
-        seed = network_proto.backend.random_seed
+        self.checkpoint_proto = checkpoint_params
+        self.network_proto = self.checkpoint_proto.model.network
+        seed = self.network_proto.backend.random_seed
         if seed >= 0:
             random.seed(seed)
             np.random.seed(seed)
@@ -18,5 +18,5 @@ class BackendInterface(ABC):
         super().__init__()
 
     @abstractmethod
-    def create_net(self, dataset, codec, restore, weights, graph_type, batch_size=-1) -> ModelInterface:
+    def create_net(self, dataset, codec, graph_type, checkpoint_to_load=None, batch_size=-1, stream_input=True, codec_changes=None):
         pass

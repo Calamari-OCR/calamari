@@ -10,11 +10,11 @@ usage_str = 'python tensorflow_rename_variables.py --checkpoints=path_to_models.
 
 def rename(checkpoint, replace_from, replace_to, add_prefix, dry_run, force_prefix=False):
     import tensorflow as tf
-    tf.reset_default_graph()
-    with tf.Session() as sess:
-        for var_name, _ in tf.contrib.framework.list_variables(checkpoint):
+    tf.compat.v1.reset_default_graph()
+    with tf.compat.v1.Session() as sess:
+        for var_name, _ in tf.compat.v1.train.list_variables(checkpoint):
             # Load the variable
-            var = tf.contrib.framework.load_variable(checkpoint, var_name)
+            var = tf.compat.v1.train.load_variable(checkpoint, var_name)
 
             # Set the new name
             new_name = var_name
@@ -38,11 +38,11 @@ def rename(checkpoint, replace_from, replace_to, add_prefix, dry_run, force_pref
 
         if not dry_run:
             # Save the variables
-            saver = tf.train.Saver()
-            sess.run(tf.global_variables_initializer())
+            saver = tf.compat.v1.train.Saver()
+            sess.run(tf.compat.v1.global_variables_initializer())
             saver.save(sess, checkpoint)
 
-    tf.reset_default_graph()
+    tf.compat.v1.reset_default_graph()
 
 
 def main():

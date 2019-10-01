@@ -25,7 +25,7 @@ class NetworkPredictionResult:
 
 
 class ModelInterface(ABC):
-    def __init__(self, network_proto, graph_type, batch_size, input_dataset: InputDataset = None, codec: Codec = None,
+    def __init__(self, network_proto, graph_type, batch_size, codec: Codec = None,
                  processes=1):
         """ Interface for a neural net
 
@@ -44,40 +44,17 @@ class ModelInterface(ABC):
         self.input_channels = network_proto.channels if network_proto.channels > 0 else 1
         self.graph_type = graph_type
         self.batch_size = batch_size
-        self.input_dataset = input_dataset
         self.codec = codec
         self.processes = processes
 
-        self.ctc_decoder = {
-            NetworkParams.CTC_FUZZY: FuzzyCTCDecoder(),
-            NetworkParams.CTC_DEFAULT: DefaultCTCDecoder(),
-        }[network_proto.ctc]
+        self.ctc_decoder = DefaultCTCDecoder()
 
     def output_to_input_position(self, x):
         return x
 
-    def set_input_dataset(self, input_dataset: InputDataset, codec: Codec):
-        """ Set the networks data generator
-
-        Parameters
-        ----------
-        data_generator : Generator[Tuple[np.array, np.array, Any], None, None]
-            List of all raw labels to be used for training
-        Returns
-        -------
-            None
-        """
-        self.input_dataset = input_dataset
-        self.codec = codec
-
-    def train_step(self):
-        """ Performs a training step of the model.
-        Returns
-        -------
-            None
-        """
-
-        return self.train()
+    @abstractmethod
+    def train(self, dataset, validation_dataset, checkpoint_params, text_post_proc, progress_bar):
+        pass
 
     def iters_per_epoch(self, batch_size):
         size = len(self.input_dataset)
@@ -89,33 +66,18 @@ class ModelInterface(ABC):
         for r in self.predict_raw_batch(*self.zero_padding(x)):
             yield r
 
-    def prediction_step(self) -> Generator[NetworkPredictionResult, None, None]:
-        return self.predict()
-
-    def reset_data(self):
-        """ Called if the data changed
-        """
-        pass
-
-    def prepare(self, uninitialized_variables_only=True, reset_queues=True):
-        pass
-
     @abstractmethod
     def predict_raw_batch(self, x: np.array, len_x: np.array) -> Generator[NetworkPredictionResult, None, None]:
         pass
 
     @abstractmethod
-    def train(self):
-        return []
-
-    @abstractmethod
-    def predict(self) -> Generator[NetworkPredictionResult, None, None]:
+    def predict_dataset(self, dataset) -> Generator[NetworkPredictionResult, None, None]:
         """ Predict the current data
 
         Parameters
         ----------
-        with_gt : bool
-            Also output the gt if available in the dataset
+        dataset : InputDataset
+            the input dataset
 
         Returns
         -------
@@ -125,46 +87,16 @@ class ModelInterface(ABC):
         --------
             set_data
         """
-        return []
-
-    @abstractmethod
-    def save_checkpoint(self, filepath):
-        """ Save the current network state to `filepath`
-
-        Parameters
-        ----------
-        filepath : str
-            Where to store the checkpoint
-        """
         pass
 
     @abstractmethod
-    def load_weights(self, filepath, restore_only_trainable=True):
+    def load_weights(self, filepath):
         """ Load the weights stored a the given `filepath`
 
         Parameters
         ----------
         filepath : str
             File to load
-        restore_only_trainable : bool
-            If False e.g. the solver state is loaded, which might not be desired.
-        """
-        pass
-
-    @abstractmethod
-    def realign_model_labels(self, indices_to_delete, indices_to_add):
-        """ Realign the output matrix to the given labels
-
-        On a codec resize some output labels can be added or deleted.
-        Thus, the corresponding vectors in the output matrix of the DNN must be adapted accordingly.
-
-        Parameters
-        ----------
-        indices_to_delete : list of int
-            labels to be deleted
-        indices_to_add : list of int
-            labels to be added (usually at the end)
-
         """
         pass
 

@@ -28,8 +28,8 @@ setup(
     python_requires='>=3.5',
     install_requires=open("requirements.txt").read().split('\n'),
     extras_require={
-        'tf_cpu': ['tensorflow>=1.6.0,<2.0'],
-        'tf_gpu': ['tensorflow-gpu>=1.6.0,<2.0'],
+        'tf_cpu': ['tensorflow>=2.0.0'],
+        'tf_gpu': ['tensorflow-gpu>=2.0.0'],
     },
     keywords=['OCR', 'optical character recognition', 'ocropy', 'ocropus', 'kraken'],
     data_files=[('', ["requirements.txt"])],

@@ -37,8 +37,6 @@ def setup_train_args(parser, omit=None):
 
     parser.add_argument("--seed", type=int, default="0",
                         help="Seed for random operations. If negative or zero a 'random' seed is used")
-    parser.add_argument("--backend", type=str, default="tensorflow",
-                        help="The backend to use for the neural net computation. Currently supported only tensorflow")
     parser.add_argument("--network", type=str, default="cnn=40:3x3,pool=2x2,cnn=60:3x3,pool=2x2,lstm=200,dropout=0.5",
                         help="The network structure")
     parser.add_argument("--line_height", type=int, default=48,
@@ -95,10 +93,8 @@ def setup_train_args(parser, omit=None):
                         help="Fully include the codec of the loaded model to the new codec")
 
     # clipping
-    parser.add_argument("--gradient_clipping_mode", type=str, default="AUTO",
-                        help="Clipping mode of gradients. Defaults to AUTO, possible values are AUTO, NONE, CONSTANT")
-    parser.add_argument("--gradient_clipping_const", type=float, default=0,
-                        help="Clipping constant of gradients in CONSTANT mode.")
+    parser.add_argument("--gradient_clipping_norm", type=float, default=5,
+                        help="Clipping constant of the norm of the gradients.")
 
     # early stopping
     if "validation" not in omit:
@@ -137,10 +133,6 @@ def setup_train_args(parser, omit=None):
                              "behavior.")
 
     # backend specific params
-    parser.add_argument("--fuzzy_ctc_library_path", type=str, default="",
-                        help="The fuzzy ctc module is not included in the official tensorflow, you need to compile it "
-                             "yourself. The resulting library (.so) must be loaded explicitly to make the functions available "
-                             "to calamari")
     parser.add_argument("--num_inter_threads", type=int, default=0,
                         help="Tensorflow's session inter threads param")
     parser.add_argument("--num_intra_threads", type=int, default=0,
@@ -342,9 +334,7 @@ def run(args):
     params.model.line_height = args.line_height
 
     network_params_from_definition_string(args.network, params.model.network)
-    params.model.network.clipping_mode = NetworkParams.ClippingMode.Value("CLIP_" + args.gradient_clipping_mode.upper())
-    params.model.network.clipping_constant = args.gradient_clipping_const
-    params.model.network.backend.fuzzy_ctc_library_path = args.fuzzy_ctc_library_path
+    params.model.network.clipping_norm = args.gradient_clipping_norm
     params.model.network.backend.num_inter_threads = args.num_inter_threads
     params.model.network.backend.num_intra_threads = args.num_intra_threads
     params.model.network.backend.shuffle_buffer_size = args.shuffle_buffer_size

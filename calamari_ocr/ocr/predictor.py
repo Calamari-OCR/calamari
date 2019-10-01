@@ -7,9 +7,9 @@ from typing import Generator, List
 
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
-from calamari_ocr.ocr.datasets import InputDataset, StreamingInputDataset, RawInputDataset, DataSetMode, RawDataSet
+from calamari_ocr.ocr.datasets import InputDataset, StreamingInputDataset, RawInputDataset, RawDataSet
 from calamari_ocr.ocr import Codec, Checkpoint
-from calamari_ocr.ocr.backends import create_backend_from_proto
+from calamari_ocr.ocr.backends import create_backend_from_checkpoint
 from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransformer
 from contextlib import ExitStack
 
@@ -103,13 +103,13 @@ class Predictor:
             self.codec = codec if codec else Codec(self.model_params.codec.charset)
 
             self.network_params = self.model_params.network
-            backend = create_backend_from_proto(self.network_params, restore=self.checkpoint, processes=processes)
+            backend = create_backend_from_checkpoint(checkpoint_params=checkpoint_params, processes=processes)
             self.text_postproc = text_postproc if text_postproc else text_processor_from_proto(self.model_params.text_postprocessor, "post")
             self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(self.model_params.data_preprocessor)
             self.network = backend.create_net(
-                dataset=None,
                 codec=self.codec,
-                restore=self.checkpoint, weights=None, graph_type="predict", batch_size=batch_size)
+                checkpoint_to_load=ckpt,
+                graph_type="predict", batch_size=batch_size)
         elif network:
             self.codec = codec
             self.model_params = None
@@ -179,13 +179,10 @@ class Predictor:
             A single PredictionResult
         """
 
-        self.network.set_input_dataset(input_dataset, self.codec)
-        self.network.reset_data()
-
         if progress_bar:
-            out = tqdm(self.network.prediction_step(), desc="Prediction", total=len(input_dataset))
+            out = tqdm(self.network.predict_dataset(input_dataset), desc="Prediction", total=len(input_dataset))
         else:
-            out = self.network.prediction_step()
+            out = self.network.predict_dataset(input_dataset)
 
         for p in out:
             yield PredictionResult(p.decoded, codec=self.codec, text_postproc=self.text_postproc,
@@ -230,8 +227,13 @@ class MultiPredictor:
         if not self.same_preproc:
             raise Exception('Different preprocessors are currently not allowed during prediction')
 
-    def predict_raw(self, images, progress_bar=True) -> Generator[List[PredictionResult], None, None]:
-        images, params = zip(*self.data_preproc.apply(images, progress_bar=progress_bar))
+    def predict_raw(self, images, params=None, progress_bar=True, apply_preproc=True) -> Generator[List[PredictionResult], None, None]:
+        if apply_preproc:
+            images, params = zip(*self.data_preproc.apply(images, progress_bar=progress_bar))
+        else:
+            if not params:
+                params = [None] * len(images)
+
         prediction = [predictor.predict_raw(images, progress_bar=progress_bar, apply_preproc=False, params=params) for predictor in self.predictors]
 
         for result in zip(*prediction):
@@ -262,20 +264,8 @@ class MultiPredictor:
             for batch in progress_bar_wrapper(batched_data_params()):
                 sample_ids, batch_images, batch_params = zip(*batch)
                 samples = [dataset.samples()[i] for i in sample_ids]
-                current_mode = dataset.mode 
-                with ExitStack() as stack:
-                    raw_dataset = [
-                        stack.enter_context(RawInputDataset(current_mode,
-                                                            batch_images,
-                                                            [None] * len(batch_images),
-                                                            batch_params,
-                                                            )) for _ in self.predictors]
-
-                    # predict_raw returns list of prediction objects
-                    prediction = [predictor.predict_input_dataset(ds, progress_bar=False)
-                                  for ds, predictor in zip(raw_dataset, self.predictors)]
-
-                    for result, sample in zip(zip(*prediction), samples):
-                        yield result, sample
+                prediction = self.predict_raw(batch_images, params=batch_params, progress_bar=False, apply_preproc=False)
+                for result, sample in zip(prediction, samples):
+                    yield result, sample
 
         print("Prediction of {} models took {}s".format(len(self.predictors), time.time() - start_time))
