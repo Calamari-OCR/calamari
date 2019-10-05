@@ -65,3 +65,17 @@ class SimpleDataAugmenter(DataAugmenter):
         data = ocrodeg.printlike_multiscale(data, blur=1, inverted=True)
         data = (data * 255 / data.max()).astype(original_dtype)
         return data, gt_txt
+
+
+if __name__ == '__main__':
+    aug = SimpleDataAugmenter()
+    from PIL import Image
+    import numpy as np
+    img = 255 - np.mean(np.array(Image.open("../../test/data/uw3_50lines/train/010001.bin.png"))[:, :, 0:2], axis=-1)
+    aug_img = [aug.augment_single(img.T, '')[0].T for _ in range(4)]
+    import matplotlib.pyplot as plt
+    f, ax = plt.subplots(5, 1)
+    ax[0].imshow(255 - img, cmap='gray')
+    for i, x in enumerate(aug_img):
+        ax[i + 1].imshow(255 - x, cmap='gray')
+    plt.show()
