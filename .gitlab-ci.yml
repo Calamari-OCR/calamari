@@ -6,7 +6,7 @@ before_script:
   - virtualenv -p python3 venv
   - source venv/bin/activate
   - pip install -r requirements.txt
-  - pip install tensorflow
+  - pip install .[tf_cpu]
   - python setup.py install
 
 cache:
