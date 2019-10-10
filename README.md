@@ -6,9 +6,9 @@ It is designed to both be easy to use from the command line but also be modular 
 
 ![preview](resources/preview.png)
 
-## Notes
-Older versions required to update old models manually.
-The current version of Calamari automated this process.
+##  Pretrained model repository
+Pretrained models are available at (https://github.com/Calamari-OCR/calamari_models).
+The current release can be accessed [here](https://github.com/Calamari-OCR/calamari_models/archive/0.3.zip).
 
 ## Installing
 ### Installation using Pip
