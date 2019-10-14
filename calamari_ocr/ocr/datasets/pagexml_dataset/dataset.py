@@ -4,6 +4,7 @@ from PIL import Image
 from tqdm import tqdm
 from lxml import etree
 from skimage.draw import polygon
+from skimage.transform import rotate
 from typing import List
 
 from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
@@ -31,11 +32,17 @@ class PageXMLDatasetGenerator(DatasetGenerator):
 
         for sample in loader.load(image_path, xml_path):
             text = sample["text"]
+            orientation = sample["orientation"]
 
             if not text_only and (self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL):
                 ly, lx = img.shape
 
                 line_img = PageXMLDataset.cutout(img, sample['coords'], lx / sample['img_width'])
+
+                # rotate by orientation angle in clockwise direction to correct present skew
+                # (skimage rotates in counter-clockwise direction)
+                if orientation and orientation % 360 != 0:
+                    line_img = rotate(line_img, orientation*-1, resize=True, mode='constant', cval=1)
 
                 # add padding as required from normal files
                 if self.args.get('pad', None):
@@ -108,6 +115,11 @@ class PageXMLDatasetLoader:
                 else:
                     raise Exception("Empty text field")
 
+            try:
+                orientation = float(textline.xpath('../@orientation', namespaces=ns).pop())
+            except (ValueError, IndexError):
+                orientation = 0
+
             yield {
                 'ns': ns,
                 "rtype": textline.xpath('../@type', namespaces=ns).pop(),
@@ -117,6 +129,7 @@ class PageXMLDatasetLoader:
                 "text": text,
                 "coords": textline.xpath('./ns:Coords/@points',
                                   namespaces=ns).pop(),
+                "orientation": orientation,
                 "img_width": img_w
             }
 
@@ -131,6 +144,11 @@ class PageXMLDatasetLoader:
         img_w = int(root.xpath('//ns:Page',
                                namespaces=ns)[0].attrib["imageWidth"])
         for l in root.xpath('//ns:TextLine', namespaces=ns):
+            try:
+                orientation = float(l.xpath('../@orientation', namespaces=ns).pop())
+            except (ValueError, IndexError):
+                orientation = 0
+
             yield {
                 'ns': ns,
                 "rtype": l.xpath('../@type', namespaces=ns).pop(),
@@ -139,6 +157,7 @@ class PageXMLDatasetLoader:
                 "id": l.xpath('./@id', namespaces=ns).pop(),
                 "coords": l.xpath('./ns:Coords/@points',
                                   namespaces=ns).pop(),
+                "orientation": orientation,
                 "img_width": img_w,
                 "text": None,
             }
