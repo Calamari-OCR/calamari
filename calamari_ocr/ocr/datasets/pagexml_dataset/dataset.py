@@ -144,7 +144,11 @@ class PageXMLDatasetLoader:
         img_w = int(root.xpath('//ns:Page',
                                namespaces=ns)[0].attrib["imageWidth"])
         for l in root.xpath('//ns:TextLine', namespaces=ns):
-            orientation = l.xpath('../@orientation', namespaces=ns)
+            try:
+                orientation = float(l.xpath('../@orientation', namespaces=ns).pop())
+            except (ValueError, IndexError):
+                orientation = 0
+
             yield {
                 'ns': ns,
                 "rtype": l.xpath('../@type', namespaces=ns).pop(),
@@ -153,7 +157,7 @@ class PageXMLDatasetLoader:
                 "id": l.xpath('./@id', namespaces=ns).pop(),
                 "coords": l.xpath('./ns:Coords/@points',
                                   namespaces=ns).pop(),
-                "orientation": orientation.pop() if len(orientation) > 0 else 0,
+                "orientation": orientation,
                 "img_width": img_w,
                 "text": None,
             }
