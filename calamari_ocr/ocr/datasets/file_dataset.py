@@ -42,10 +42,14 @@ class FileDataSetGenerator(DatasetGenerator):
             else:
                 raise Exception("Image file at '{}' does not exist".format(image_path))
 
+        i = Image.open(image_path)
         try:
-            img = np.asarray(Image.open(image_path))
+            i.load()
+            img = np.array(i)
         except:
             return None
+        finally:
+            i.close()
 
         return img
 
