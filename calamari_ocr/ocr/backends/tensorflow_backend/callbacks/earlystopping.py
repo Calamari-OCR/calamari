@@ -57,6 +57,13 @@ class EarlyStoppingCallback(keras.callbacks.Callback):
 
     def on_train_begin(self, logs):
         self.train_start_time = time.time()
+        # write initial checkpoint (current best)
+        print("Creating initial network configuration as current best.")
+        self.last_checkpoint = self.make_checkpoint(
+            self.checkpoint_params.early_stopping_best_model_output_dir,
+            prefix="",
+            version=self.checkpoint_params.early_stopping_best_model_prefix,
+        )
 
     def on_train_end(self, logs):
         # output last model always
