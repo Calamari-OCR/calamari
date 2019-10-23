@@ -132,7 +132,7 @@ class TensorflowModel(ModelInterface):
                 if i is None:
                     continue
 
-                if self.graph_type == "train" and len(l) == 0:
+                if mode == "train" and len(l) == 0:
                     continue
 
                 l = np.array(self.codec.encode(l) if l else np.zeros((0, ), dtype='int32'))
@@ -164,9 +164,10 @@ class TensorflowModel(ModelInterface):
                                        padding_values=(np.float32(0), np.int32(-1), np.int32(0), np.int32(0), ''))
 
         def group(data, targets, len_data, len_labels, user_data):
-            return \
-                {"input_data": data, "input_sequence_length": len_data, "input_data_params": user_data, "targets": targets, "targets_length": len_labels}, \
+            return (
+                {"input_data": data, "input_sequence_length": len_data, "input_data_params": user_data, "targets": targets, "targets_length": len_labels},
                 {'ctc': np.zeros([batch_size]), 'cer_acc': np.zeros([batch_size])}
+            )
 
         return dataset.prefetch(5).map(group)
 
