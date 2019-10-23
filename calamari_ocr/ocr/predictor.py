@@ -145,10 +145,11 @@ class Predictor:
         else:
             input_dataset = RawInputDataset(dataset, self.data_preproc if apply_preproc else None, self.text_postproc if apply_preproc else None)
 
-        prediction_results = self.predict_input_dataset(input_dataset, progress_bar)
+        with input_dataset:
+            prediction_results = self.predict_input_dataset(input_dataset, progress_bar)
 
-        for prediction, sample in zip(prediction_results, dataset.samples()):
-            yield prediction, sample
+            for prediction, sample in zip(prediction_results, dataset.samples()):
+                yield prediction, sample
 
     def predict_raw(self, images, progress_bar=True, batch_size=-1, apply_preproc=True, params=None):
         batch_size = len(images) if batch_size < 0 else self.network.batch_size if batch_size == 0 else batch_size
