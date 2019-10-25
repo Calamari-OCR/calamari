@@ -1,6 +1,7 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
+from calamari_ocr.ocr.callbacks import TrainingCallback
 from calamari_ocr.proto import NetworkParams
 from .ctc_decoder.default_ctc_decoder import DefaultCTCDecoder
 from .ctc_decoder.fuzzy_ctc_decoder import FuzzyCTCDecoder
@@ -53,7 +54,8 @@ class ModelInterface(ABC):
         return x
 
     @abstractmethod
-    def train(self, dataset, validation_dataset, checkpoint_params, text_post_proc, progress_bar):
+    def train(self, dataset, validation_dataset, checkpoint_params, text_post_proc, progress_bar,
+              training_callback=TrainingCallback()):
         pass
 
     def iters_per_epoch(self, batch_size):

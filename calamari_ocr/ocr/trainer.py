@@ -1,3 +1,4 @@
+from calamari_ocr.ocr.callbacks import ConsoleTrainingCallback
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
 from calamari_ocr.ocr import Codec, Checkpoint
@@ -102,7 +103,7 @@ class Trainer:
         if self.validation_dataset and len(self.validation_dataset) == 0:
             raise Exception("Validation dataset is empty. Provide valid validation data for early stopping.")
 
-    def train(self, auto_compute_codec=False, progress_bar=False):
+    def train(self, auto_compute_codec=False, progress_bar=False, training_callback=ConsoleTrainingCallback()):
         """ Launch the training
 
         Parameters
@@ -113,6 +114,9 @@ class Trainer:
 
         progress_bar : bool
             Show or hide any progress bar
+
+        training_callback : TrainingCallback
+            Callback for the training process (e.g., for displaying the current cer, loss in the console)
 
         """
         with ExitStackWithPop() as exit_stack:
@@ -190,7 +194,7 @@ class Trainer:
                                            batch_size=checkpoint_params.batch_size, codec_changes=codec_changes)
 
             if checkpoint_params.current_stage == 0:
-                self._run_train(train_net, train_start_time, progress_bar, self.dataset, self.validation_dataset)
+                self._run_train(train_net, train_start_time, progress_bar, self.dataset, self.validation_dataset, training_callback)
 
             if checkpoint_params.data_aug_retrain_on_original and self.data_augmenter and self.n_augmentations != 0:
                 print("Starting training on original data only")
@@ -202,9 +206,9 @@ class Trainer:
                     checkpoint_params.early_stopping_best_accuracy = 0
 
                 self.dataset.generate_only_non_augmented = True  # this is the important line!
-                self._run_train(train_net, train_start_time, progress_bar, self.dataset, self.validation_dataset)
+                self._run_train(train_net, train_start_time, progress_bar, self.dataset, self.validation_dataset, training_callback)
 
-    def _run_train(self, train_net, train_start_time, progress_bar, train_dataset, val_dataset):
+    def _run_train(self, train_net, train_start_time, progress_bar, train_dataset, val_dataset, training_callback):
         checkpoint_params = self.checkpoint_params
-        train_net.train(train_dataset, val_dataset, checkpoint_params, self.txt_postproc, progress_bar)
+        train_net.train(train_dataset, val_dataset, checkpoint_params, self.txt_postproc, progress_bar, training_callback)
         print("Total training time {}s for {} iterations.".format(time.time() - train_start_time, self.checkpoint_params.iter))

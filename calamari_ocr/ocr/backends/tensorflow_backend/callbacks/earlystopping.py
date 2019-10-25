@@ -10,7 +10,8 @@ keras = tf.keras
 
 
 class EarlyStoppingCallback(keras.callbacks.Callback):
-    def __init__(self, codec, data_gen, predict_func, checkpoint_params, steps_per_epoch, vis_cb, progress_bar):
+    def __init__(self, training_callback,  codec, data_gen, predict_func, checkpoint_params, steps_per_epoch, vis_cb, progress_bar):
+        self.training_callback = training_callback
         self.codec = codec
         self.data_gen = data_gen
         self.predict_func = predict_func
@@ -97,6 +98,7 @@ class EarlyStoppingCallback(keras.callbacks.Callback):
 
     def on_batch_end(self, batch, logs):
         iter = self.checkpoint_params.iter
+
         if iter >= self.checkpoint_params.max_iters:
             print("Reached maximum numbers of iterations")
             self.model.stop_training = True
@@ -125,6 +127,10 @@ class EarlyStoppingCallback(keras.callbacks.Callback):
                 print("No better model found. Currently accuracy of {:%} at iter {} (remaining nbest = {})".
                       format(self.early_stopping_best_accuracy, self.early_stopping_best_at_iter,
                              self.checkpoint_params.early_stopping_nbest - self.early_stopping_best_cur_nbest))
+
+            self.training_callback.early_stopping(self.early_stopping_best_accuracy,
+                                                  self.checkpoint_params.early_stopping_nbest,
+                                                  self.early_stopping_best_cur_nbest, iter)
 
             if accuracy > 0 and self.early_stopping_best_cur_nbest >= self.checkpoint_params.early_stopping_nbest:
                 self.model.stop_training = True

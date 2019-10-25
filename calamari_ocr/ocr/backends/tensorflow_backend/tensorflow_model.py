@@ -5,6 +5,7 @@ from typing import Generator
 
 
 from calamari_ocr.ocr.backends.model_interface import ModelInterface, NetworkPredictionResult
+from calamari_ocr.ocr.callbacks import TrainingCallback
 from calamari_ocr.proto import LayerParams, NetworkParams
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import math_ops
@@ -239,7 +240,8 @@ class TensorflowModel(ModelInterface):
                 for tw, sw in zip(target_weights, source_weights):
                     tw.assign(sw)
 
-    def train(self, dataset, validation_dataset, checkpoint_params, text_post_proc, progress_bar):
+    def train(self, dataset, validation_dataset, checkpoint_params, text_post_proc, progress_bar,
+              training_callback=TrainingCallback()):
         dataset_gen = self.create_dataset_inputs(dataset, self.batch_size, self.network_proto.features, self.network_proto.backend.shuffle_buffer_size)
         if validation_dataset:
             val_dataset_gen = self.create_dataset_inputs(validation_dataset, self.batch_size, self.network_proto.features, self.network_proto.backend.shuffle_buffer_size, mode='test')
@@ -248,8 +250,8 @@ class TensorflowModel(ModelInterface):
 
         predict_func = K.function({t.op.name: t for t in [self.input_data, self.input_length, self.input_params, self.targets, self.targets_length]}, [self.cer, self.sparse_targets, self.sparse_decoded])
         steps_per_epoch = max(1, int(dataset.epoch_size() / checkpoint_params.batch_size))
-        v_cb = VisCallback(self.codec, dataset_gen, predict_func, checkpoint_params, steps_per_epoch, text_post_proc)
-        es_cb = EarlyStoppingCallback(self.codec, val_dataset_gen, predict_func, checkpoint_params, 0 if not validation_dataset else max(1, int(np.ceil(validation_dataset.epoch_size() / checkpoint_params.batch_size))), v_cb, progress_bar)
+        v_cb = VisCallback(training_callback, self.codec, dataset_gen, predict_func, checkpoint_params, steps_per_epoch, text_post_proc)
+        es_cb = EarlyStoppingCallback(training_callback, self.codec, val_dataset_gen, predict_func, checkpoint_params, 0 if not validation_dataset else max(1, int(np.ceil(validation_dataset.epoch_size() / checkpoint_params.batch_size))), v_cb, progress_bar)
 
         self.model.fit(
             dataset_gen,
