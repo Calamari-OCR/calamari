@@ -12,6 +12,7 @@ from calamari_ocr.proto.calamari_pb2 import \
     PredictionCharacter, \
     PredictionPosition, \
     LineGeneratorParameters, \
-    TextGeneratorParameters
+    TextGeneratorParameters, \
+    CTCDecoderParams
 
 from calamari_ocr.proto.converters import default_network_params, network_params_from_definition_string

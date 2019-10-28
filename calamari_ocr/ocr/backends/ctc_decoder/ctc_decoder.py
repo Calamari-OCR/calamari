@@ -2,12 +2,28 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from calamari_ocr.proto import Prediction
+from calamari_ocr.proto import Prediction, CTCDecoderParams
+
+
+def create_ctc_decoder(codec, params=CTCDecoderParams()):
+    if params.type == CTCDecoderParams.CTC_DEFAULT:
+        from .default_ctc_decoder import DefaultCTCDecoder
+        return DefaultCTCDecoder(params, codec)
+    elif params.type == CTCDecoderParams.CTC_TOKEN_PASSING:
+        from .token_passing_ctc_decoder import TokenPassingCTCDecoder
+        return TokenPassingCTCDecoder(params, codec)
+    elif params.type == CTCDecoderParams.CTC_WORD_BEAM_SEARCH:
+        from .ctcwordbeamsearchdecoder import WordBeamSearchCTCDecoder
+        return WordBeamSearchCTCDecoder(params, codec)
+
+    raise NotImplemented
 
 
 class CTCDecoder(ABC):
-    def __init__(self):
+    def __init__(self, params, codec):
         super().__init__()
+        self.params = params
+        self.codec = codec
 
     @abstractmethod
     def decode(self, probabilities):
@@ -26,6 +42,14 @@ class CTCDecoder(ABC):
             a Prediction object
         """
         return Prediction()
+
+    def _prediction_from_string(self, probabilities, sentence):
+        pred = Prediction()
+        pred.labels[:] = self.codec.encode(sentence)
+        pred.is_voted_result = False
+        pred.logits.rows, pred.logits.cols = probabilities.shape
+        pred.logits.data[:] = probabilities.reshape([-1])
+        return pred
 
     def find_alternatives(self, probabilities, sentence, threshold):
         """

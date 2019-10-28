@@ -72,15 +72,27 @@ message LayerParams {
     LSTMDirection lstm_direction = 7;
 }
 
+message CTCDecoderParams {
+    enum CTCDecoderType {
+        CTC_DEFAULT = 0;
+        CTC_TOKEN_PASSING = 1;
+        CTC_WORD_BEAM_SEARCH = 2;
+    }
+
+    CTCDecoderType type = 1;
+
+    int32 blank_index = 2;
+    float min_p_threshold = 3;
+
+    int32 beam_width = 4;
+
+    repeated string dictionary = 6;
+}
+
 message NetworkParams {
     enum SolverType {
         MOMENTUM_SOLVER = 0;
         ADAM_SOLVER = 1;
-    }
-
-    enum CTCType {
-        CTC_DEFAULT = 0;
-        CTC_FUZZY = 1;
     }
 
     BackendParams backend = 8;
@@ -96,7 +108,6 @@ message NetworkParams {
     int32 classes = 7;
 
     bool ctc_merge_repeated = 9;
-    CTCType ctc = 10;
 
     float clipping_norm = 13;
 }

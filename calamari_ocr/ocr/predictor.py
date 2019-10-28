@@ -59,6 +59,7 @@ class Predictor:
                  batch_size=1, processes=1,
                  auto_update_checkpoints=True,
                  with_gt=False,
+                 ctc_decoder_params=None,
                  ):
         """ Predicting a dataset based on a trained model
 
@@ -85,6 +86,8 @@ class Predictor:
             Update old models automatically (this will change the checkpoint files)
         with_gt : bool, optional
             The prediction will also output the ground truth if available else None
+        ctc_decoder_params : optional
+            Parameters of the ctc decoder
         """
         self.network = network
         self.checkpoint = checkpoint
@@ -108,6 +111,7 @@ class Predictor:
             self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(self.model_params.data_preprocessor)
             self.network = backend.create_net(
                 codec=self.codec,
+                ctc_decoder_params=ctc_decoder_params,
                 checkpoint_to_load=ckpt,
                 graph_type="predict", batch_size=batch_size)
         elif network:
@@ -192,7 +196,9 @@ class Predictor:
 
 
 class MultiPredictor:
-    def __init__(self, checkpoints=None, text_postproc=None, data_preproc=None, batch_size=1, processes=1):
+    def __init__(self, checkpoints=None, text_postproc=None, data_preproc=None, batch_size=1, processes=1,
+                 ctc_decoder_params=None,
+                 ):
         """Predict multiple models to use voting
 
         Parameters
@@ -207,6 +213,8 @@ class MultiPredictor:
             The number of files to process simultaneously by the DNN
         processes : int, optional
             The number of processes to use
+        ctc_decoder_params : optional
+            Parameters of the ctc decoder
         """
         checkpoints = checkpoints if checkpoints else []
         if len(checkpoints) == 0:
@@ -214,7 +222,9 @@ class MultiPredictor:
 
         self.processes = processes
         self.checkpoints = checkpoints
-        self.predictors = [Predictor(cp, batch_size=batch_size, text_postproc=text_postproc,
+        self.predictors = [Predictor(cp,
+                                     ctc_decoder_params=ctc_decoder_params,
+                                     batch_size=batch_size, text_postproc=text_postproc,
                                      data_preproc=data_preproc, processes=processes) for cp in checkpoints]
         self.batch_size = batch_size
 

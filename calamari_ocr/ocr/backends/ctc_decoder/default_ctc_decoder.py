@@ -4,11 +4,10 @@ from calamari_ocr.ocr.backends.ctc_decoder.ctc_decoder import CTCDecoder
 
 
 class DefaultCTCDecoder(CTCDecoder):
-    def __init__(self, blank=0, min_p=0.0001):
-        self.blank = blank
-        self.threshold = min_p
-
-        super().__init__()
+    def __init__(self, params, codec):
+        super().__init__(params, codec)
+        self.blank = params.blank_index
+        self.threshold = params.min_p_threshold if params.min_p_threshold > 0 else 0.0001
 
     def decode(self, probabilities):
         last_char = self.blank

@@ -18,5 +18,5 @@ class BackendInterface(ABC):
         super().__init__()
 
     @abstractmethod
-    def create_net(self, dataset, codec, graph_type, checkpoint_to_load=None, batch_size=-1, stream_input=True, codec_changes=None):
+    def create_net(self, codec, graph_type, ctc_decoder_params=None, checkpoint_to_load=None, batch_size=-1, stream_input=True, codec_changes=None):
         pass

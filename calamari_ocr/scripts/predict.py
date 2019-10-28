@@ -10,11 +10,33 @@ from calamari_ocr.utils.glob import glob_all
 from calamari_ocr.ocr.datasets import DataSetType, create_dataset, DataSetMode
 from calamari_ocr.ocr import MultiPredictor
 from calamari_ocr.ocr.voting import voter_from_proto
-from calamari_ocr.proto import VoterParams, Predictions
+from calamari_ocr.proto import VoterParams, Predictions, CTCDecoderParams
+
+
+def create_ctc_decoder_params(args):
+    params = CTCDecoderParams()
+    params.beam_width = args.beam_width
+
+    if args.dictionary and len(args.dictionary) > 0:
+        dictionary = set()
+        print("Creating dictionary")
+        for path in glob_all(args.dictionary):
+            with open(path, 'r') as f:
+                dictionary = dictionary.union({word for word in f.read().split()})
+
+        params.dictionary[:] = dictionary
+        print("Dictionary with {} unique words successfully created.".format(len(dictionary)))
+    else:
+        args.dictionary = None
+
+    if args.dictionary:
+        print("USING A LANGUAGE MODEL IS CURRENTLY EXPERIMENTAL ONLY. NOTE: THE PREDICTION IS VERY SLOW!")
+        params.type = CTCDecoderParams.CTC_WORD_BEAM_SEARCH
+
+    return params
 
 
 def run(args):
-
     # check if loading a json file
     if len(args.files) == 1 and args.files[0].endswith("json"):
         import json
@@ -33,6 +55,9 @@ def run(args):
     args.checkpoint = [cp[:-5] for cp in args.checkpoint]
 
     args.extension = args.extension if args.extension else DataSetType.pred_extension(args.dataset)
+
+    # create ctc decoder
+    ctc_decoder_params = create_ctc_decoder_params(args)
 
     # create voter
     voter_params = VoterParams()
@@ -63,7 +88,8 @@ def run(args):
         raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
 
     # predict for all models
-    predictor = MultiPredictor(checkpoints=args.checkpoint, batch_size=args.batch_size, processes=args.processes)
+    predictor = MultiPredictor(checkpoints=args.checkpoint, batch_size=args.batch_size, processes=args.processes,
+                               ctc_decoder_params=ctc_decoder_params)
     do_prediction = predictor.predict_dataset(dataset, progress_bar=not args.no_progress_bars)
 
     avg_sentence_confidence = 0
@@ -95,7 +121,6 @@ def run(args):
             output_dir = output_dir if output_dir else os.path.dirname(ps.line_path)
             if not os.path.exists(output_dir):
                 os.mkdir(output_dir)
-
 
             if args.extended_prediction_data_format == "pred":
                 data = ps.SerializeToString()
@@ -151,6 +176,10 @@ def main():
                         help="Extension format: Either pred or json. Note that json will not print logits.")
     parser.add_argument("--no_progress_bars", action="store_true",
                         help="Do not show any progress bars")
+    parser.add_argument("--dictionary", nargs="+", default=[],
+                        help="List of text files that will be used to create a dictionary")
+    parser.add_argument("--beam_width", type=int, default=25,
+                        help='Number of beams when using the CTCWordBeamSearch decoder')
 
     # dataset extra args
     parser.add_argument("--dataset_pad", default=None, nargs='+', type=int)

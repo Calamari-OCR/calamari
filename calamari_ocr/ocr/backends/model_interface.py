@@ -2,9 +2,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 from calamari_ocr.ocr.callbacks import TrainingCallback
-from calamari_ocr.proto import NetworkParams
-from .ctc_decoder.default_ctc_decoder import DefaultCTCDecoder
-from .ctc_decoder.fuzzy_ctc_decoder import FuzzyCTCDecoder
+from .ctc_decoder.ctc_decoder import create_ctc_decoder, CTCDecoderParams
 from calamari_ocr.ocr.datasets import InputDataset
 from calamari_ocr.ocr import Codec
 
@@ -26,7 +24,7 @@ class NetworkPredictionResult:
 
 
 class ModelInterface(ABC):
-    def __init__(self, network_proto, graph_type, batch_size, codec: Codec = None,
+    def __init__(self, network_proto, graph_type, ctc_decoder_params, batch_size, codec: Codec = None,
                  processes=1):
         """ Interface for a neural net
 
@@ -38,6 +36,8 @@ class ModelInterface(ABC):
             Parameters that define the network
         graph_type : {"train", "test", "deploy"}
             Type of the graph, depending on the type different parts must be added (e.g. the solver)
+        ctc_decoder_params :
+            Parameters that define the CTC decoder to use
         batch_size : int
             Number of examples to train/predict in parallel
         """
@@ -48,7 +48,7 @@ class ModelInterface(ABC):
         self.codec = codec
         self.processes = processes
 
-        self.ctc_decoder = DefaultCTCDecoder()
+        self.ctc_decoder = create_ctc_decoder(codec, ctc_decoder_params if ctc_decoder_params else CTCDecoderParams())
 
     def output_to_input_position(self, x):
         return x
@@ -57,12 +57,6 @@ class ModelInterface(ABC):
     def train(self, dataset, validation_dataset, checkpoint_params, text_post_proc, progress_bar,
               training_callback=TrainingCallback()):
         pass
-
-    def iters_per_epoch(self, batch_size):
-        size = len(self.input_dataset)
-        r = size % batch_size
-        n = size // batch_size
-        return n if r == 0 else n + 1
 
     def predict_raw(self, x: List[np.array]) -> Generator[NetworkPredictionResult, None, None]:
         for r in self.predict_raw_batch(*self.zero_padding(x)):

@@ -20,9 +20,9 @@ Model = keras.Model
 
 
 class TensorflowModel(ModelInterface):
-    def __init__(self, network_proto, graph_type="train", batch_size=1,
+    def __init__(self, network_proto, graph_type="train", ctc_decoder_params=None, batch_size=1,
                  codec=None, processes=1):
-        super().__init__(network_proto, graph_type, batch_size,
+        super().__init__(network_proto, graph_type, ctc_decoder_params, batch_size,
                          codec=codec, processes=processes)
         self.downscale_factor = 1  # downscaling factor of the inputs due to pooling layers
         self.input_data = KL.Input(name='input_data', shape=(None, network_proto.features, self.input_channels))
