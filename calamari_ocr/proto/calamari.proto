@@ -20,6 +20,7 @@ message CheckpointParams {
     int32 current_stage = 24;                      // Current training progress: 0 standard, 1 retraining on non aug.
 
     // params for early stopping
+    float early_stopping_at_acc = 26;                   // Stop training if validation reaches this accuracy threshold
     float early_stopping_frequency = 15;                // How often to check on validation data
     int32 early_stopping_nbest = 16;                    // How many models must be worse to stop
     string early_stopping_best_model_prefix = 17;       // Prefix for the best model

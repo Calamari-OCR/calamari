@@ -57,6 +57,8 @@ def setup_train_args(parser, omit=None):
     parser.add_argument("--max_iters", type=int, default=1000000,
                         help="The number of iterations for training. "
                              "If using early stopping, this is the maximum number of iterations")
+    parser.add_argument("--early_stopping_at_accuracy", type=float, default=0,
+                        help="Stop training if the early stopping accuracy reaches this value")
     parser.add_argument("--stats_size", type=int, default=100,
                         help="Average this many iterations for computing an average loss, label error rate and "
                              "training time")
@@ -285,6 +287,7 @@ def run(args):
     params.processes = args.num_threads
     params.data_aug_retrain_on_original = not args.only_train_on_augmented
 
+    params.early_stopping_at_acc = args.early_stopping_at_accuracy
     params.early_stopping_frequency = args.early_stopping_frequency
     params.early_stopping_nbest = args.early_stopping_nbest
     params.early_stopping_best_model_prefix = args.early_stopping_best_model_prefix

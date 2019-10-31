@@ -46,6 +46,7 @@ class EarlyStoppingCallback(keras.callbacks.Callback):
         self.early_stopping_best_accuracy = checkpoint_params.early_stopping_best_accuracy
         self.early_stopping_best_cur_nbest = checkpoint_params.early_stopping_best_cur_nbest
         self.early_stopping_best_at_iter = checkpoint_params.early_stopping_best_at_iter
+        self.early_stopping_at_accuracy = checkpoint_params.early_stopping_at_acc
 
         self.checkpoint_frequency = checkpoint_frequency
         self.early_stopping_frequency = early_stopping_frequency
@@ -131,6 +132,10 @@ class EarlyStoppingCallback(keras.callbacks.Callback):
             self.training_callback.early_stopping(self.early_stopping_best_accuracy,
                                                   self.checkpoint_params.early_stopping_nbest,
                                                   self.early_stopping_best_cur_nbest, iter)
+
+            if accuracy > self.early_stopping_at_accuracy > 0:
+                self.model.stop_training = True
+                print("Early stopping reached accuracy threshold ({}>{})".format(accuracy, self.early_stopping_at_accuracy))
 
             if accuracy > 0 and self.early_stopping_best_cur_nbest >= self.checkpoint_params.early_stopping_nbest:
                 self.model.stop_training = True
