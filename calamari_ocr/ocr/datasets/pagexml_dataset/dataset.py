@@ -42,7 +42,7 @@ class PageXMLDatasetGenerator(DatasetGenerator):
                 # rotate by orientation angle in clockwise direction to correct present skew
                 # (skimage rotates in counter-clockwise direction)
                 if orientation and orientation % 360 != 0:
-                    line_img = rotate(line_img, orientation*-1, resize=True, mode='constant', cval=1, preserve_range=True).astype(np.uint8)
+                    line_img = rotate(line_img, orientation*-1, resize=True, mode='constant', cval=line_img.max(), preserve_range=True).astype(np.uint8)
 
                 # add padding as required from normal files
                 if self.args.get('pad', None):

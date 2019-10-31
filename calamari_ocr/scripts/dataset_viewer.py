@@ -94,6 +94,7 @@ def main():
         DataSetMode.TRAIN,
         images=input_image_files,
         texts=gt_txt_files,
+        non_existing_as_empty=True,
     )
 
     if len(args.select) == 0:
