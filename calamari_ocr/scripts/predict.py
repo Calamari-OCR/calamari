@@ -95,6 +95,8 @@ def run(args):
     avg_sentence_confidence = 0
     n_predictions = 0
 
+    dataset.prepare_store()
+
     # output the voted results to the appropriate files
     for result, sample in do_prediction:
         n_predictions += 1

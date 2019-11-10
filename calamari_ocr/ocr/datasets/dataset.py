@@ -180,6 +180,9 @@ class DataSet(ABC):
         else:
             raise Exception("Unknown prediction format.")
 
+    def prepare_store(self):
+        pass
+
     def store(self, extension):
         # either store text or store (e. g. if all predictions must be written at the same time
         pass

@@ -73,11 +73,11 @@ class PageXMLDatasetLoader:
         self.root = root
 
         if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.EVAL or self.mode == DataSetMode.PRED_AND_EVAL:
-            return self._samples_gt_from_book(root, img, skip_commented)
+            return self._samples_gt_from_book(root, img, skip_commented, xml)
         else:
-            return self._samples_from_book(root, img)
+            return self._samples_from_book(root, img, xml)
 
-    def _samples_gt_from_book(self, root, img,
+    def _samples_gt_from_book(self, root, img, page_id,
                               skipcommented=True):
         ns = {"ns": root.nsmap[None]}
         imgfile = root.xpath('//ns:Page',
@@ -121,6 +121,7 @@ class PageXMLDatasetLoader:
                 orientation = 0
 
             yield {
+                'page_id': page_id,
                 'ns': ns,
                 "rtype": textline.xpath('../@type', namespaces=ns).pop(),
                 'xml_element': l,
@@ -133,7 +134,7 @@ class PageXMLDatasetLoader:
                 "img_width": img_w
             }
 
-    def _samples_from_book(self, root, img):
+    def _samples_from_book(self, root, img, page_id):
         ns = {"ns": root.nsmap[None]}
         imgfile = root.xpath('//ns:Page',
                              namespaces=ns)[0].attrib["imageFilename"]
@@ -150,6 +151,7 @@ class PageXMLDatasetLoader:
                 orientation = 0
 
             yield {
+                'page_id': page_id,
                 'ns': ns,
                 "rtype": l.xpath('../@type', namespaces=ns).pop(),
                 'xml_element': l,
@@ -219,6 +221,9 @@ class PageXMLDataset(DataSet):
 
             self.pages.append(loader.root)
 
+        # store which pagexml was stored last, to check when a file is ready to be written during sequential prediction
+        self._last_page_id = None
+
     @staticmethod
     def cutout(pageimg, coordstring, scale=1, rect=False):
         coords = [p.split(",") for p in coordstring.split()]
@@ -236,6 +241,9 @@ class PageXMLDataset(DataSet):
         box[rr - offset[0], cc - offset[1]] = pageimg[rr, cc]
         return box
 
+    def prepare_store(self):
+        self._last_page_id = None
+
     def store_text(self, sentence, sample, output_dir, extension):
         ns = sample['ns']
         line = sample['xml_element']
@@ -250,6 +258,12 @@ class PageXMLDataset(DataSet):
 
         u_xml.text = sentence
 
+        # check if page can be stored, this requires that (standard in prediction) the pages are passed sequentially
+        if self._last_page_id != sample['page_id']:
+            if self._last_page_id:
+                self._store_page(extension, self._last_page_id)
+            self._last_page_id = sample['page_id']
+
     def store_extended_prediction(self, data, sample, output_dir, extension):
         output_dir = os.path.join(output_dir, filename(sample['image_path']))
         if not os.path.exists(output_dir):
@@ -258,9 +272,18 @@ class PageXMLDataset(DataSet):
         super().store_extended_prediction(data, sample, output_dir, extension)
 
     def store(self, extension):
-        for xml, page in tqdm(zip(self.xmlfiles, self.pages), desc="Writing PageXML files", total=len(self.xmlfiles)):
-            with open(split_all_ext(xml)[0] + extension, 'w') as f:
-                f.write(etree.tounicode(page.getroottree()))
+        if self._last_page_id:
+            self._store_page(extension, self._last_page_id)
+            self._last_page_id = None
+        else:
+            for xml, page in tqdm(zip(self.xmlfiles, self.pages), desc="Writing PageXML files", total=len(self.xmlfiles)):
+                with open(split_all_ext(xml)[0] + extension, 'w') as f:
+                    f.write(etree.tounicode(page.getroottree()))
+
+    def _store_page(self, extension, page_id):
+        page = self.pages[self.xmlfiles.index(page_id)]
+        with open(split_all_ext(page_id)[0] + extension, 'w') as f:
+            f.write(etree.tounicode(page.getroottree()))
 
     def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
         return PageXMLDatasetGenerator(mp_context, output_queue, self.mode, self.files, self.xmlfiles, self._non_existing_as_empty, self.text_index, self.skip_invalid, self.args)
