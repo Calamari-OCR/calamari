@@ -272,7 +272,7 @@ class StreamingInputDataset(InputDataset):
                 ),
                 self.data_input_queue,
                 self.unordered_output_queue,
-            ) for _ in range(self.processes)
+            ) for _ in range(max(1, self.processes))
         ]
 
         self.data_generator = self.dataset.create_generator(self.mp_context, self.data_input_queue)
