@@ -16,6 +16,7 @@ from calamari_ocr.proto import VoterParams, Predictions, CTCDecoderParams
 def create_ctc_decoder_params(args):
     params = CTCDecoderParams()
     params.beam_width = args.beam_width
+    params.word_separator = ' '
 
     if args.dictionary and len(args.dictionary) > 0:
         dictionary = set()

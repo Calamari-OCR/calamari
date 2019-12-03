@@ -1,5 +1,6 @@
 # Based on: https://github.com/githubharald/CTCDecoder
 # Using the algorithm of Graves
+# Fixes of decoding for "Start of path"
 
 import math
 import numpy as np
@@ -11,9 +12,7 @@ class TokenPassingCTCDecoder(CTCDecoder):
         super().__init__(params, codec)
 
     def decode(self, probabilities):
-        if self.params.blank_index == 0:
-            probabilities = np.roll(probabilities, -1, axis=1)
-        r = ctcTokenPassing(probabilities, self.codec.charset, self.params.dictionary)
+        r = ctcTokenPassing(probabilities, self.codec.charset, self.params.dictionary, blankIdx=self.params.blank_index, word_separator=self.params.word_separator)
         return self._prediction_from_string(probabilities, r)
 
 
@@ -44,7 +43,7 @@ class Token:
     def __str__(self):
         res = 'class Token: '+str(self.score)+'; '
         for w in self.history:
-            res += w+'; '
+            res += str(w) + '; '
         return res
 
 
@@ -82,9 +81,10 @@ def log(val):
     return float('-inf')
 
 
-def ctcTokenPassing(mat, classes, charWords):
+def ctcTokenPassing(mat, classes, charWords, blankIdx=-1, word_separator=' '):
     """implements CTC Token Passing Algorithm as shown by Graves (Dissertation, p67-69)"""
-    blankIdx = len(classes)
+    if blankIdx < 0:
+        blankIdx = len(classes)
     maxT, _ = mat.shape
 
     # special s index for beginning and end of word
@@ -93,7 +93,6 @@ def ctcTokenPassing(mat, classes, charWords):
 
     # map characters to labels for each word
     words = [wordToLabelSeq(w, classes) for w in charWords]
-    words = [w for w in words if w]
 
     # w' in paper: word with blanks in front, back and between labels: for -> _f_o_r_
     primeWords = [extendByBlanks(w, blankIdx) for w in words]
@@ -138,12 +137,18 @@ def ctcTokenPassing(mat, classes, charWords):
             # 18-24
             s = 1
             while s <= len(wPrime):
-                P = [toks.get(wIdx, s, t-1), toks.get(wIdx, s - 1, t - 1)]
+                if s == 1:
+                    P = [toks.get(wIdx, s, t-1), toks.get(wIdx, s - 1, t)]
+                elif s == 2:
+                    P = [toks.get(wIdx, s, t - 1), toks.get(wIdx, s - 1, t - 1), toks.get(wIdx, s - 2, t)]
+                else:
+                    P = [toks.get(wIdx, s, t-1), toks.get(wIdx, s - 1, t - 1)]
+
                 if wPrime[s-1] != blankIdx and s > 2 and wPrime[s - 2 - 1] != wPrime[s - 1]:
                     tok = toks.get(wIdx, s - 2, t - 1)
                     P.append(Token(tok.score, tok.history))
 
-                maxTok = sorted(P, key=lambda x: x.score)[-1]
+                maxTok = max(P, key=lambda x: x.score)
                 cIdx = wPrime[s-1]
 
                 score = maxTok.score+log(mat[t-1, cIdx])
@@ -152,14 +157,14 @@ def ctcTokenPassing(mat, classes, charWords):
                 toks.set(wIdx, s, t, Token(score, history))
                 s += 1
 
-            maxTok = sorted([toks.get(wIdx, len(wPrime), t), toks.get(wIdx, len(wPrime)-1, t)], key=lambda x: x.score, reverse=True)[0]
+            maxTok = max([toks.get(wIdx, len(wPrime), t), toks.get(wIdx, len(wPrime)-1, t)], key=lambda x: x.score)
             toks.set(wIdx, end, t, maxTok)
 
         t += 1
 
     # Termination: 26-28
     bestWIdx = outputIndices(toks, words, end, maxT)[-1]
-    return str(' ').join([charWords[i] for i in toks.get(bestWIdx, end, maxT).history])
+    return word_separator.join([charWords[i] for i in toks.get(bestWIdx, end, maxT).history])
 
 
 if __name__ == '__main__':
@@ -168,7 +173,7 @@ if __name__ == '__main__':
     mat = np.array([[0.4, 0, 0.6], [0.4, 0, 0.6]])
     print('Test token passing')
     expected = 'a'
-    actual = ctcTokenPassing(mat, classes, ['a', 'b', 'ab', 'ba'])
+    actual = ctcTokenPassing(mat, classes, ['a', 'b', 'ab', 'ba'], -1)
     print('Expected: "'+expected+'"')
     print('Actual: "'+actual+'"')
     print('OK' if expected == actual else 'ERROR')

@@ -5,7 +5,13 @@ import numpy as np
 from calamari_ocr.proto import Prediction, CTCDecoderParams
 
 
-def create_ctc_decoder(codec, params=CTCDecoderParams()):
+def default_ctc_decoder_params():
+    params = CTCDecoderParams()
+    params.word_separator = ' '
+    return params
+
+
+def create_ctc_decoder(codec, params=default_ctc_decoder_params()):
     if params.type == CTCDecoderParams.CTC_DEFAULT:
         from .default_ctc_decoder import DefaultCTCDecoder
         return DefaultCTCDecoder(params, codec)
@@ -49,6 +55,12 @@ class CTCDecoder(ABC):
         pred.is_voted_result = False
         pred.logits.rows, pred.logits.cols = probabilities.shape
         pred.logits.data[:] = probabilities.reshape([-1])
+        for c, l in zip(sentence, pred.labels):
+            pos = pred.positions.add()
+            char = pos.chars.add()
+            char.label = l
+            char.char = c
+            char.probability = 1.0
         return pred
 
     def find_alternatives(self, probabilities, sentence, threshold):

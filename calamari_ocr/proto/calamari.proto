@@ -88,6 +88,8 @@ message CTCDecoderParams {
     int32 beam_width = 4;
 
     repeated string dictionary = 6;
+
+    string word_separator = 7;
 }
 
 message NetworkParams {
