@@ -19,6 +19,25 @@ KL = keras.layers
 Model = keras.Model
 
 
+def calculate_padding(input, scaling_factor):
+    def scale(i, f):
+        return (f - i % f) % f
+
+    shape = tf.shape(input=input)
+    px = scale(tf.gather(shape, 1), scaling_factor[0])
+    py = scale(tf.gather(shape, 2), scaling_factor[1])
+    return px, py
+
+
+def pad(input_tensors):
+    input, padding = input_tensors[0], input_tensors[1]
+    px, py = padding
+    shape = tf.keras.backend.shape(input)
+    output = tf.image.pad_to_bounding_box(input, 0, 0, tf.keras.backend.gather(shape, 1) + px,
+                                          tf.keras.backend.gather(shape, 2) + py)
+    return output
+
+
 class TensorflowModel(ModelInterface):
     def __init__(self, network_proto, graph_type="train", ctc_decoder_params=None, batch_size=1,
                  codec=None, processes=1):
@@ -37,6 +56,8 @@ class TensorflowModel(ModelInterface):
         else:
             self.model = self.create_predictor()
 
+        print(self.model.summary())
+
     def create_predictor(self):
         return Model(inputs=[
             self.input_data, self.input_length, self.input_params
@@ -50,7 +71,20 @@ class TensorflowModel(ModelInterface):
 
         last_num_filters = 1
 
-        last_layer = input_data
+        # if concat or conv_T layers are present, we need to pad the input to ensure that possible upsampling layers work properly
+        has_concat = any([l.type == LayerParams.CONCAT or l.type == LayerParams.TRANSPOSED_CONVOLUTIONAL for l in network_proto.layers])
+        if has_concat:
+            sx, sy = 1, 1
+            for layer_index, layer in enumerate([l for l in network_proto.layers if l.type == LayerParams.MAX_POOLING]):
+                sx *= layer.stride.x
+                sy *= layer.stride.y
+
+            padding = KL.Lambda(lambda x: calculate_padding(x, (sx, sy)), name='compute_padding')(input_data)
+            padded = KL.Lambda(pad, name='padded_input')([input_data, padding])
+            last_layer = padded
+        else:
+            last_layer = input_data
+
         cnn_idx = 0
         layers_by_index = []
         for layer_index, layer in enumerate([l for l in network_proto.layers if l.type != LayerParams.LSTM]):

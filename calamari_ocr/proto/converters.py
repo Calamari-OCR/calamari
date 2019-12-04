@@ -22,7 +22,7 @@ def set_default_network_params(params):
 def network_params_from_definition_string(str, params):
     cnn_matcher = re.compile(r"^([\d]+)(:([\d]+)(x([\d]+))?)?$")
     db_matcher = re.compile(r"^([\d]+):([\d]+)(:([\d]+)(x([\d]+))?)?$")
-    concat_matcher = re.compile(r"^([\d]+):([\d]+)$")
+    concat_matcher = re.compile(r"^([\-\d]+):([\-\d]+)$")
     pool_matcher = re.compile(r"^([\d]+)(x([\d]+))?(:([\d]+)x([\d]+))?$")
     str_params = str.split(",")
     lstm_appeared = False
@@ -54,7 +54,7 @@ def network_params_from_definition_string(str, params):
 
             match = concat_matcher.match(value)
             if match is None:
-                raise Exception("Concat structure needs: concat=[index0]:[index1]")
+                raise Exception("Concat structure needs: concat=[index0]:[index1] but got concat={}".format(value))
 
             match = match.groups()
             layer = params.layers.add()
@@ -76,9 +76,9 @@ def network_params_from_definition_string(str, params):
                 kernel_size = [int(match[3]), int(match[5])]
 
             layer = params.layers.add()
-            layer.type = LayerParams.DELATED_BLOCK
+            layer.type = LayerParams.DILATED_BLOCK
             layer.filters = int(match[0])
-            layer.delated_depth = int(match[1])
+            layer.dilated_depth = int(match[1])
             layer.kernel_size.x = kernel_size[0]
             layer.kernel_size.y = kernel_size[1]
             layer.stride.x = 1
@@ -89,7 +89,7 @@ def network_params_from_definition_string(str, params):
 
             match = cnn_matcher.match(value)
             if match is None:
-                raise Exception("CNN structure needs: cnn=[filters]:[h]x[w]")
+                raise Exception("CNN structure needs: cnn=[filters]:[h]x[w] but got {}".format(value))
 
             match = match.groups()
             kernel_size = [2, 2]
