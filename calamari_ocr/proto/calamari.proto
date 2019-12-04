@@ -54,6 +54,9 @@ message LayerParams {
         CONVOLUTIONAL = 0;
         MAX_POOLING = 1;
         LSTM = 2;
+        TRANSPOSED_CONVOLUTIONAL = 3;
+        DILATED_BLOCK = 4;
+        CONCAT = 5;
     }
 
     enum LSTMDirection {
@@ -66,6 +69,12 @@ message LayerParams {
     int32 filters = 2;
     IntVec2D kernel_size = 3;
     IntVec2D stride = 4;
+
+    // dilated block
+    int32 dilated_depth = 8;
+
+    // concat
+    repeated int32 concat_indices = 9;
 
     // LSTM
     int32 hidden_nodes = 5;

@@ -52,7 +52,9 @@ class TensorflowModel(ModelInterface):
 
         last_layer = input_data
         cnn_idx = 0
+        layers_by_index = []
         for layer_index, layer in enumerate([l for l in network_proto.layers if l.type != LayerParams.LSTM]):
+            layers_by_index.append(last_layer)
             if layer.type == LayerParams.CONVOLUTIONAL:
                 last_layer = KL.Conv2D(
                     name="conv2d_{}".format(cnn_idx),
@@ -63,6 +65,36 @@ class TensorflowModel(ModelInterface):
                 )(last_layer)
                 last_num_filters = layer.filters
                 cnn_idx += 1
+            elif layer.type == LayerParams.CONCAT:
+                last_layer = KL.Concatenate(axis=-1)([layers_by_index[i] for i in layer.concat_indices])
+            elif layer.type == LayerParams.DILATED_BLOCK:
+                depth = max(1, layer.dilated_depth)
+                dilated_layers = [
+                    KL.Conv2D(
+                        name='conv2d_dilated{}_{}'.format(i, cnn_idx),
+                        filters=layer.filters // depth,
+                        kernel_size=(layer.kernel_size.x, layer.kernel_size.y),
+                        padding="same",
+                        activation="relu",
+                        dilation_rate=2 ** (i + 1),
+                    )(last_layer)
+                    for i in range(depth)
+                ]
+                last_layer = KL.Concatenate(axis=-1)(dilated_layers)
+                last_num_filters = (layer.filters // depth) * depth
+                cnn_idx += 1
+            elif layer.type == LayerParams.TRANSPOSED_CONVOLUTIONAL:
+                last_layer = KL.Conv2DTranspose(
+                    name="tconv2d_{}".format(cnn_idx),
+                    filters=layer.filters,
+                    kernel_size=(layer.kernel_size.x, layer.kernel_size.y),
+                    strides=(layer.stride.x, layer.stride.y),
+                    padding="same",
+                    activation="relu",
+                )(last_layer)
+                last_num_filters = layer.filters
+                cnn_idx += 1
+                factor //= layer.stride.x
             elif layer.type == LayerParams.MAX_POOLING:
                 last_layer = KL.MaxPool2D(
                     name="pool2d_{}".format(layer_index),
