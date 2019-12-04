@@ -10,13 +10,13 @@ keras = tf.keras
 
 
 class EarlyStoppingCallback(keras.callbacks.Callback):
-    def __init__(self, training_callback,  codec, data_gen, predict_func, checkpoint_params, steps_per_epoch, vis_cb, progress_bar):
+    def __init__(self, training_callback,  codec, data_gen, predict_func, checkpoint_params, steps_per_epoch_valid, steps_per_epoch_train, vis_cb, progress_bar):
         self.training_callback = training_callback
         self.codec = codec
         self.data_gen = data_gen
         self.predict_func = predict_func
         self.checkpoint_params = checkpoint_params
-        self.steps_per_epoch = steps_per_epoch
+        self.steps_per_epoch_valid = steps_per_epoch_valid
         self.vis_cb = vis_cb
         self.progress_bar = progress_bar
 
@@ -26,9 +26,9 @@ class EarlyStoppingCallback(keras.callbacks.Callback):
             # set early stopping frequency to half epoch
             # batch size only with square root:
             # esf = 0.5 * epoch_size / sqrt(batch_size) = 0.5 * iters_per_epoch * sqrt(batch_size)
-            early_stopping_frequency = int(0.5 * steps_per_epoch * checkpoint_params.batch_size ** 0.5)
+            early_stopping_frequency = int(0.5 * steps_per_epoch_train * checkpoint_params.batch_size ** 0.5)
         elif 0 < early_stopping_frequency <= 1:
-            early_stopping_frequency = int(early_stopping_frequency * steps_per_epoch)  # relative to epochs
+            early_stopping_frequency = int(early_stopping_frequency * steps_per_epoch_train)  # relative to epochs
         else:
             early_stopping_frequency = int(early_stopping_frequency)
         early_stopping_frequency = max(1, early_stopping_frequency)
@@ -36,7 +36,7 @@ class EarlyStoppingCallback(keras.callbacks.Callback):
         if checkpoint_frequency < 0:
             checkpoint_frequency = early_stopping_frequency
         elif 0 < checkpoint_frequency <= 1:
-            checkpoint_frequency = int(checkpoint_frequency * steps_per_epoch)  # relative to epochs
+            checkpoint_frequency = int(checkpoint_frequency * steps_per_epoch_train)  # relative to epochs
         else:
             checkpoint_frequency = int(checkpoint_frequency)
 
@@ -109,7 +109,7 @@ class EarlyStoppingCallback(keras.callbacks.Callback):
 
         if self.early_stopping_enabled and (iter + 1) % self.early_stopping_frequency == 0:
             print("Checking early stopping model")
-            cer = self._compute_current_cer_on_validation_set(self.steps_per_epoch)
+            cer = self._compute_current_cer_on_validation_set(self.steps_per_epoch_valid)
             accuracy = 1 - cer
 
             if accuracy > self.early_stopping_best_accuracy:
