@@ -238,7 +238,7 @@ class StreamingInputDataset(InputDataset):
         self.data_augmenter = data_augmenter
         self.data_augmentation_amount = data_augmentation_amount
         self.mp_context = multiprocessing.get_context('spawn')
-        self.processes = processes
+        self.processes = max(1, processes)
 
         if data_augmenter and dataset.mode != DataSetMode.TRAIN and dataset.mode != DataSetMode.PRED_AND_EVAL:
             # no pred_and_eval bc it's augmentation
@@ -272,7 +272,7 @@ class StreamingInputDataset(InputDataset):
                 ),
                 self.data_input_queue,
                 self.unordered_output_queue,
-            ) for _ in range(max(1, self.processes))
+            ) for _ in range(self.processes)
         ]
 
         self.data_generator = self.dataset.create_generator(self.mp_context, self.data_input_queue)
