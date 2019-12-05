@@ -132,6 +132,7 @@ def ctcTokenPassing(mat, classes, charWords, blankIdx=-1, word_separator=' '):
             # 15-17
             # if bigrams should be used, these lines have to be adapted
             bestOutputTok = toks.get(sortedWordIdx[-1], end, t-1)
+            wBestPrime = primeWords[sortedWordIdx[-1]]
             toks.set(wIdx, beg, t, Token(bestOutputTok.score, bestOutputTok.history+[wIdx]))
 
             # 18-24
@@ -139,10 +140,11 @@ def ctcTokenPassing(mat, classes, charWords, blankIdx=-1, word_separator=' '):
             while s <= len(wPrime):
                 if s == 1:
                     P = [toks.get(wIdx, s, t-1), toks.get(wIdx, s - 1, t)]
-                elif s == 2:
-                    P = [toks.get(wIdx, s, t - 1), toks.get(wIdx, s - 1, t - 1), toks.get(wIdx, s - 2, t)]
                 else:
                     P = [toks.get(wIdx, s, t-1), toks.get(wIdx, s - 1, t - 1)]
+                    # allow direct transition in state 2 (first char) if the last word ended with another char
+                    if s == 2 and (wBestPrime[-2] != wPrime[1]):
+                        P.append(toks.get(wIdx, s - 2, t - 1))
 
                 if wPrime[s-1] != blankIdx and s > 2 and wPrime[s - 2 - 1] != wPrime[s - 1]:
                     tok = toks.get(wIdx, s - 2, t - 1)

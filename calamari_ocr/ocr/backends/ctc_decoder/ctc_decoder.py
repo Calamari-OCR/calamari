@@ -8,6 +8,8 @@ from calamari_ocr.proto import Prediction, CTCDecoderParams
 def default_ctc_decoder_params():
     params = CTCDecoderParams()
     params.word_separator = ' '
+    params.non_word_chars[:] = list("0123456789[]()_.:;!?{}-'\"")
+    params.beam_width =25
     return params
 
 

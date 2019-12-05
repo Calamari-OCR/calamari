@@ -4,7 +4,7 @@ from .Beam import Beam, BeamList
 from .LanguageModel import LanguageModel
 
 
-def wordBeamSearch(mat, beamWidth, lm, useNGrams):
+def wordBeamSearch(mat, beamWidth, lm, useNGrams, allowWordToWordTransition=False):
     "decode matrix, use given beam width and language model"
     chars = lm.getAllChars()
     blankIdx = len(chars)
@@ -13,6 +13,8 @@ def wordBeamSearch(mat, beamWidth, lm, useNGrams):
     genesisBeam = Beam(lm, useNGrams)  # empty string
     last = BeamList()  # list of beams at time-step before beginning of RNN output
     last.addBeam(genesisBeam)  # start with genesis beam
+
+    startChars = set(lm.tree.getNextChars(''))
 
     # go over all time-steps
     for t in range(maxT):
@@ -34,18 +36,23 @@ def wordBeamSearch(mat, beamWidth, lm, useNGrams):
             # save result
             curr.addBeam(beam.createChildBeam('', prBlank, prNonBlank))
 
-            # extend current beam with characters according to language model
-            nextChars = beam.getNextChars()
-            for c in nextChars:
-                # extend current beam with new character
+            def getNonBlank(c):
                 labelIdx = chars.index(c)
                 if beam.getText() != '' and beam.getText()[-1] == c:
-                    prNonBlank = mat[t, labelIdx] * beam.getPrBlank()  # same chars must be separated by blank
+                    return mat[t, labelIdx] * beam.getPrBlank()  # same chars must be separated by blank
                 else:
-                    prNonBlank = mat[t, labelIdx] * beam.getPrTotal()  # different chars can be neighbours
+                    return mat[t, labelIdx] * beam.getPrTotal()  # different chars can be neighbours
 
-                # save result
-                curr.addBeam(beam.createChildBeam(c, 0, prNonBlank))
+            # extend current beam with characters according to language model
+            for c in beam.getNextChars():
+                curr.addBeam(beam.createChildBeam(c, 0, getNonBlank(c)))
+
+            # allow words to directly follow words without a space (or any other sign)
+            if lm.isWord(beam.textual.wordDev) and allowWordToWordTransition:
+                for c in startChars:
+                    b = beam.createChildBeam(c, 0, getNonBlank(c))
+                    b.textual.wordDev = c
+                    curr.addBeam(b)
 
         # move current beams to next time-step
         last = curr

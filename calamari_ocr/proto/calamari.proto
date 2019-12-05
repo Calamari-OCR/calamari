@@ -95,6 +95,7 @@ message CTCDecoderParams {
     float min_p_threshold = 3;
 
     int32 beam_width = 4;
+    repeated string non_word_chars = 8;
 
     repeated string dictionary = 6;
 
