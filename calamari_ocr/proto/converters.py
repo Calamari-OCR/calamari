@@ -151,5 +151,7 @@ def network_params_from_definition_string(str, params):
             layer.kernel_size.y = kernel_size[1]
             layer.stride.x = stride[0]
             layer.stride.y = stride[1]
+        else:
+            raise Exception("Unknown layer with name: {}".format(label))
 
     return params
