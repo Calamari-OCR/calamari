@@ -1,10 +1,10 @@
 from calamari_ocr.proto import CheckpointParams
 import calamari_ocr.scripts.tensorflow_rename_variables as tensorflow_rename_variables
+from calamari_ocr import __version__
 
 import json
 from google.protobuf import json_format
 import os
-import shutil
 
 
 class Checkpoint:
@@ -37,6 +37,10 @@ class Checkpoint:
 
     def update_checkpoint(self):
         while self.version != Checkpoint.VERSION:
+            if Checkpoint.VERSION < self.version:
+                raise Exception("Downgrading of models is not supported ({} to {}). Please upgrade your Calamari "
+                                "instance (currently installed: {})"
+                                .format(self.version, Checkpoint.VERSION, __version__))
             self._single_upgrade()
 
         print("Successfully upgraded checkpoint version to {}".format(Checkpoint.VERSION))
