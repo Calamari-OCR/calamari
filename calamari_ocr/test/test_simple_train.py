@@ -32,13 +32,13 @@ class Attrs():
         self.weights = None
         self.whitelist_files = []
         self.whitelist = []
-        self.gradient_clipping_mode = "AUTO"
-        self.gradient_clipping_const = 0
+        self.gradient_clipping_norm = 5
         self.validation = None
         self.validation_dataset = DataSetType.FILE
         self.validation_extension = None
         self.early_stopping_frequency = -1
         self.early_stopping_nbest = 10
+        self.early_stopping_at_accuracy = 0.99
         self.early_stopping_best_model_prefix = "uw3_50lines_best"
         self.early_stopping_best_model_output_dir = self.output_dir
         self.n_augmentations = 0
@@ -58,6 +58,7 @@ class Attrs():
         self.train_data_on_the_fly = False
         self.validation_data_on_the_fly = False
         self.no_auto_compute_codec = False
+        self.dataset_pad = 0
 
 
 class TestSimpleTrain(unittest.TestCase):

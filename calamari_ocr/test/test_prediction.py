@@ -6,7 +6,7 @@ from PIL import Image
 from calamari_ocr.utils import glob_all
 
 from calamari_ocr.scripts.predict import run
-from calamari_ocr.ocr import DataSetType, Predictor, MultiPredictor
+from calamari_ocr.ocr import DataSetType, Predictor, MultiPredictor, create_dataset, DataSetMode
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -47,6 +47,17 @@ class TestValidationTrain(unittest.TestCase):
         for file, image in zip(args.files, images):
             r = list(predictor.predict_raw([image], progress_bar=False))[0]
             print(file, r.sentence)
+
+    def test_raw_dataset_prediction(self):
+        args = PredictionAttrs()
+        predictor = Predictor(checkpoint=args.checkpoint[0])
+        data = create_dataset(
+            DataSetType.FILE,
+            DataSetMode.PREDICT,
+            images=args.files,
+        )
+        for prediction, sample in predictor.predict_dataset(data):
+            pass
 
     def test_raw_prediction_voted(self):
         args = PredictionAttrs()

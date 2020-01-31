@@ -144,10 +144,10 @@ class Predictor:
         dict
             Dataset entry of the prediction result
         """
-        if isinstance(dataset, RawDataSet):
-            input_dataset = StreamingInputDataset(dataset, self.data_preproc if apply_preproc else None, self.text_postproc if apply_preproc else None)
-        else:
-            input_dataset = RawInputDataset(dataset, self.data_preproc if apply_preproc else None, self.text_postproc if apply_preproc else None)
+        # if isinstance(dataset, RawDataSet):
+        #     input_dataset = dataset.to_raw_input_dataset()
+        #else:
+        input_dataset = StreamingInputDataset(dataset, self.data_preproc if apply_preproc else None, self.text_postproc if apply_preproc else None)
 
         with input_dataset:
             prediction_results = self.predict_input_dataset(input_dataset, progress_bar)

@@ -350,22 +350,11 @@ class TensorflowModel(ModelInterface):
     def predict_dataset(self, dataset) -> Generator[NetworkPredictionResult, None, None]:
         dataset_gen = self.create_dataset_inputs(dataset, self.batch_size, self.network_proto.features, self.network_proto.backend.shuffle_buffer_size,
                                                  mode='test')
-        out = self.model.predict(
-            dataset_gen,
-        )
-        for softmax, params, output_seq_len in zip(*out):
-            softmax = np.roll(softmax, 1, axis=1)  # fix bla
-            # decode encoded params from json. On python<=3.5 this are bytes, else it already is a str
-            enc_param = params[0]
-            enc_param = json.loads(enc_param.decode("utf-8") if isinstance(enc_param, bytes) else enc_param)
-            decoded = self.ctc_decoder.decode(softmax[:output_seq_len[0]])
-            # return prediction result
-            yield NetworkPredictionResult(softmax=softmax,
-                                          output_length=output_seq_len,
-                                          decoded=decoded,
-                                          params=enc_param,
-                                          ground_truth=None,
-                                          )
+        out = sum([list(zip(self.predict_raw_batch(d[0]['input_data'], d[0]['input_sequence_length']), d[0]['input_data_params'])) for d in dataset_gen], [])
+        for pred, params in out:
+            enc_param = params[0].numpy()
+            pred.params = json.loads(enc_param.decode("utf-8") if isinstance(enc_param, bytes) else enc_param)
+            yield pred
 
     def output_to_input_position(self, x):
         return x * self.scale_factor

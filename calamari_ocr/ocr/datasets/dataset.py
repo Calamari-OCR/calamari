@@ -247,6 +247,11 @@ class RawDataSet(DataSet):
 
         self.loaded = True
 
+    def to_raw_input_dataset(self):
+        from calamari_ocr.ocr import RawInputDataset
+        images, texts = zip((d['image'], d['text']) for d in self.samples())
+        return RawInputDataset(self.mode, images, texts, [None] * len(images))
+
     def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
         return RawDataSetGenerator(mp_context, output_queue, self.mode, self.samples())
 
