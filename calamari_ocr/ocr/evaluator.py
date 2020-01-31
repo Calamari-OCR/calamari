@@ -38,8 +38,12 @@ class Evaluator:
             show a progress bar
 
         """
-        gt_dataset.load_samples(progress_bar=progress_bar)
-        self.preloaded_gt = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
+        with StreamingInputDataset(gt_dataset, None, self.text_preprocessor, processes=1) as gt_input_dataset:
+            self.preloaded_gt = [txt for _, txt, _ in tqdm_wrapper(gt_input_dataset.generator(text_only=True),
+                                                                   total=len(gt_dataset),
+                                                                   progress_bar=progress_bar,
+                                                                   desc="Loading GT",
+                                                                   )]
 
     def run(self, _sentinel=None, gt_dataset=None, pred_dataset=None, processes=1, progress_bar=False):
         """ evaluate on the given dataset

@@ -3,8 +3,8 @@ import os
 import shutil
 from tqdm import tqdm
 
-from calamari_ocr.ocr import CrossFold
-from calamari_ocr.utils import split_all_ext
+from calamari_ocr.ocr import CrossFold, FileDataSet, DataSetMode
+from calamari_ocr.utils import split_all_ext, glob_all
 
 
 def main():
@@ -25,7 +25,10 @@ def main():
     args = parser.parse_args()
 
     print("Creating folds")
-    cross_fold = CrossFold(n_folds=args.n_folds, source_files=args.files, output_dir=args.output_dir)
+    images = glob_all(args.files)
+    texts = [split_all_ext(p)[0] + '.gt.txt' for p in images]
+    dataset = FileDataSet(DataSetMode.TRAIN, images=images, texts=texts, skip_invalid=True)
+    cross_fold = CrossFold(n_folds=args.n_folds, dataset=dataset, output_dir=args.output_dir)
 
     print("Copying files")
     for fold_id, fold_files in enumerate(cross_fold.folds):

@@ -4,6 +4,8 @@ import copy
 import numpy as np
 import random
 import inspect
+
+from calamari_ocr.ocr import DataSetType
 from calamari_ocr.scripts.train import setup_train_args
 import calamari_ocr.scripts.cross_fold_train as cross_fold_train
 from calamari_ocr.scripts.eval import print_confusions, write_xlsx
@@ -50,6 +52,9 @@ def run_for_single_line(args):
     setattr(args, "temporary_dir", tmp_dir)
     setattr(args, "keep_temporary_files", False)
     setattr(args, "files", files)
+    setattr(args, "text_files", None)
+    setattr(args, "gt_extension", None)
+    setattr(args, "dataset", DataSetType.FILE)
     setattr(args, "best_model_label", "{id}")
     if not args.skip_train:
         cross_fold_train.main(args)

@@ -39,7 +39,7 @@ def main():
 
     dataset = create_dataset(
         args.eval_dataset,
-        DataSetMode.TRAIN,
+        DataSetMode.PRED_AND_EVAL,
         images=gt_images,
         texts=gt_txts,
         skip_invalid=not args.no_skip_invalid_gt
@@ -102,8 +102,8 @@ def main():
     if args.dump:
         import pickle
         with open(args.dump, 'wb') as f:
-            pickle.dump({"full": full_evaluation, "gt_txts": gt_txts, "gt": dataset.text_samples()}, f)
+            pickle.dump({"full": full_evaluation, "gt_txts": gt_txts, "gt": evaluator.preloaded_gt}, f)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
