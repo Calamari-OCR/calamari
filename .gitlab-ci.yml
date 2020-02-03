@@ -7,7 +7,6 @@ before_script:
   - virtualenv -p python3 venv
   - source venv/bin/activate
   - pip install -r requirements.txt
-  - pip install .[tf_cpu]
   - python setup.py install
 
 cache:
@@ -38,7 +37,6 @@ install_dependencies:
     - virtualenv -p python3 venv
     - source venv/bin/activate
     - pip install -r requirements.txt
-    - pip install .[tf_cpu]
     - python setup.py install
     - wget -q -O - https://github.com/Calamari-OCR/calamari_models/archive/1.0.tar.gz | tar xz && mv calamari_models-1.0 calamari_models
 

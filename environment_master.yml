@@ -3,7 +3,8 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - python=3.7
+  - python=3.6
+  - tensorflow>=2.0
   - lxml
   - scikit-image
   - tqdm
@@ -11,5 +12,4 @@ dependencies:
   - edit_distance
   - xlsxwriter
   - pip:
-    - tf-nightly-gpu
-    - git+https://github.com/Calamari-OCR/calamari.git@dev
+    - git+https://github.com/Calamari-OCR/calamari.git@master
