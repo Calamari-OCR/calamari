@@ -14,6 +14,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def xml_attr(elem, ns, label, default=None):
+    try:
+        return elem.xpath(label, namespaces=ns).pop()
+    except IndexError as e:
+        if default is None:
+            raise e
+
+        return default
+
+
 class PageXMLDatasetGenerator(DatasetGenerator):
     def __init__(self, mp_context, output_queue, mode: DataSetMode, images, xml_files, non_existing_as_empty, text_index, skip_invalid, args):
         super().__init__(mp_context, output_queue, mode, list(zip(images, xml_files)))
@@ -35,7 +45,7 @@ class PageXMLDatasetGenerator(DatasetGenerator):
             orientation = sample["orientation"]
 
             if not text_only and (self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL):
-                ly, lx = img.shape
+                ly, lx = img.shape[:2]
 
                 line_img = PageXMLDataset.cutout(img, sample['coords'], lx / sample['img_width'])
 
@@ -123,13 +133,12 @@ class PageXMLDatasetLoader:
             yield {
                 'page_id': page_id,
                 'ns': ns,
-                "rtype": textline.xpath('../@type', namespaces=ns).pop(),
+                "rtype": xml_attr(textline, ns, '../@type', ''),
                 'xml_element': l,
                 "image_path": img,
-                "id": textline.xpath('./@id', namespaces=ns).pop(),
+                "id": xml_attr(textline, ns, './@id'),
                 "text": text,
-                "coords": textline.xpath('./ns:Coords/@points',
-                                  namespaces=ns).pop(),
+                "coords": xml_attr(textline, ns, './ns:Coords/@points'),
                 "orientation": orientation,
                 "img_width": img_w
             }
@@ -153,12 +162,11 @@ class PageXMLDatasetLoader:
             yield {
                 'page_id': page_id,
                 'ns': ns,
-                "rtype": l.xpath('../@type', namespaces=ns).pop(),
+                "rtype": xml_attr(l, ns, '../@type', ''),
                 'xml_element': l,
                 "image_path": img,
-                "id": l.xpath('./@id', namespaces=ns).pop(),
-                "coords": l.xpath('./ns:Coords/@points',
-                                  namespaces=ns).pop(),
+                "id": xml_attr(l, ns, './@id'),
+                "coords": xml_attr(l, ns, './ns:Coords/@points'),
                 "orientation": orientation,
                 "img_width": img_w,
                 "text": None,
@@ -236,7 +244,8 @@ class PageXMLDataset(DataSet):
         offset = (min([x[0] for x in coords]), min([x[1] for x in coords]))
         box = np.ones(
             (max([x[0] for x in coords]) - offset[0],
-             max([x[1] for x in coords]) - offset[1]),
+             max([x[1] for x in coords]) - offset[1],
+             ) + ((pageimg.shape[-1],) if len(pageimg.shape) == 3 else ()),
             dtype=pageimg.dtype) * 255
         box[rr - offset[0], cc - offset[1]] = pageimg[rr, cc]
         return box
