@@ -11,6 +11,8 @@ from calamari_ocr.utils.multiprocessing import tqdm_wrapper
 from abc import ABC, abstractmethod
 import logging
 
+from ..augmentation.dataaugmentationparams import DataAugmentationAmount, DataAugmentationAmountReference
+
 logger = logging.getLogger(__name__)
 
 
@@ -59,7 +61,7 @@ class OrderedQueueTask:
 
 DataProcessingTaskData = namedtuple("DataProcessingTaskData", [
     "skip_invalid_gt",
-    "data_aug_ratio",
+    "data_aug_params",
     "text_processor",
     "data_processor",
     "data_augmenter",
@@ -120,8 +122,12 @@ class DataProcessingTask:
         if self.params.text_processor and text is not None:
             text = self.params.text_processor.apply([text], 1, False)[0]
 
-        if line is not None and not self.params.generate_only_non_augmented.value and self.params.data_augmenter and np.random.rand() <= self.params.data_aug_ratio:
-            # data augmentation with given ratio
+        # data augmentation
+        if not self.params.data_aug_params.no_augs() \
+                and line is not None \
+                and not self.params.generate_only_non_augmented.value \
+                and self.params.data_augmenter \
+                and np.random.rand() <= self.params.data_aug_params.to_rel():
             line, text = self.params.data_augmenter.augment_single(line, text)
 
         return idx, sample_id, line, text, params
@@ -227,7 +233,7 @@ class StreamingInputDataset(InputDataset):
                  data_preprocessor: DataPreprocessor,
                  text_preprocessor: TextProcessor,
                  data_augmenter: DataAugmenter = None,
-                 data_augmentation_amount: float = 0,
+                 data_augmentation_factor: float = 0,
                  skip_invalid_gt=True,
                  processes=4):
         super().__init__(dataset.mode)
@@ -236,7 +242,7 @@ class StreamingInputDataset(InputDataset):
         self.text_processor = text_preprocessor
         self.skip_invalid_gt = skip_invalid_gt
         self.data_augmenter = data_augmenter
-        self.data_augmentation_amount = data_augmentation_amount
+        self.data_augmentation_params = DataAugmentationAmount.from_factor(data_augmentation_factor)
         self.mp_context = multiprocessing.get_context('spawn')
         self.processes = max(1, processes)
 
@@ -244,7 +250,7 @@ class StreamingInputDataset(InputDataset):
             # no pred_and_eval bc it's augmentation
             raise Exception('Data augmentation is only supported for training, but got {} dataset instead'.format(dataset.mode))
 
-        if data_augmentation_amount > 0 and self.data_augmenter is None:
+        if not self.data_augmentation_params.no_augs() and self.data_augmenter is None:
             raise Exception('Requested data augmentation, but no data augmented provided. Use e. g. SimpleDataAugmenter')
 
         self.data_input_queue = None
@@ -264,7 +270,7 @@ class StreamingInputDataset(InputDataset):
             DataProcessingTask(
                 DataProcessingTaskData(
                     self.skip_invalid_gt,
-                    self.data_augmentation_amount if self.data_augmentation_amount < 1 else 1 - 1 / (self.data_augmentation_amount + 1),
+                    self.data_augmentation_params,
                     self.text_processor,
                     self.data_processor,
                     self.data_augmenter,
@@ -309,10 +315,7 @@ class StreamingInputDataset(InputDataset):
         if self._generate_only_non_augmented.value:
             return len(self)
 
-        if self.data_augmentation_amount >= 1:
-            return int(len(self) * (1 + self.data_augmentation_amount))
-
-        return int(1 / (1 - self.data_augmentation_amount) * len(self))
+        return self.data_augmentation_params.epoch_size(len(self))
 
     def to_raw_input_dataset(self, processes=1, progress_bar=False, text_only=False) -> RawInputDataset:
         print("Preloading dataset type {} with size {}".format(self.dataset.mode, len(self)))
@@ -324,8 +327,8 @@ class StreamingInputDataset(InputDataset):
         preloaded_datas, preloaded_texts, preloaded_params = datas, texts, params
         self._generate_only_non_augmented.value = prev
 
-        if (self.dataset.mode == DataSetMode.TRAIN or self.dataset.mode == DataSetMode.PRED_AND_EVAL) and self.data_augmentation_amount > 0:
-            abs_n_augs = int(self.data_augmentation_amount) if self.data_augmentation_amount >= 1 else int(self.data_augmentation_amount * len(self))
+        if not self.data_augmentation_params.no_augs() and (self.dataset.mode == DataSetMode.TRAIN or self.dataset.mode == DataSetMode.PRED_AND_EVAL):
+            abs_n_augs = self.data_augmentation_params.to_abs()
             preloaded_datas, preloaded_texts \
                 = self.data_augmenter.augment_datas(list(datas), list(texts), n_augmentations=abs_n_augs,
                                                     processes=processes, progress_bar=progress_bar)

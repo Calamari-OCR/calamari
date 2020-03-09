@@ -22,7 +22,10 @@ class DataAugmenter(ABC):
         return self.augment_data(*t)
 
     def augment_datas(self, datas, gt_txts, n_augmentations, processes=1, progress_bar=False):
-        if n_augmentations <= 0:
+        if n_augmentations < 0 or not isinstance(n_augmentations, int):
+            raise ValueError("Number of augmentation must be an integer >= 0")
+
+        if n_augmentations == 0:
             return datas, gt_txts
 
         out = parallel_map(self.augment_data_tuple, list(zip(datas, gt_txts, [n_augmentations] * len(datas))),
