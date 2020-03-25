@@ -15,7 +15,7 @@ class DataAugmentationAmount:
     @staticmethod
     def from_factor(n):
         if n >= 1:
-            return DataAugmentationAmount(DataAugmentationAmountReference.ABSOLUTE, n, None)
+            return DataAugmentationAmount(DataAugmentationAmountReference.ABSOLUTE, int(n), None)
         elif n > 0:
             return DataAugmentationAmount(DataAugmentationAmountReference.PERCENTAGE, None, n)
         elif n == 0:
