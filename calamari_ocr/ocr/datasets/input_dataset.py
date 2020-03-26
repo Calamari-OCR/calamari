@@ -11,6 +11,7 @@ from calamari_ocr.utils.multiprocessing import tqdm_wrapper
 from abc import ABC, abstractmethod
 import logging
 
+from .queue_helper import MaxElementsQueuer
 from ..augmentation.dataaugmentationparams import DataAugmentationAmount, DataAugmentationAmountReference
 
 logger = logging.getLogger(__name__)
@@ -263,7 +264,9 @@ class StreamingInputDataset(InputDataset):
     def __enter__(self):
         super().__enter__()
         # create all tasks and queues
-        self.data_input_queue = self.mp_context.JoinableQueue(self.processes * 4)
+        self.max_queuer = MaxElementsQueuer(self.processes * 4, ctx=self.mp_context)
+        self.data_input_queue = self.max_queuer.input_queue
+        self.ordered_output_queue = self.max_queuer.output_queue
         self.unordered_output_queue = self.mp_context.JoinableQueue()
 
         self.data_processing_tasks = [
@@ -283,7 +286,6 @@ class StreamingInputDataset(InputDataset):
 
         self.data_generator = self.dataset.create_generator(self.mp_context, self.data_input_queue)
         self.data_generator.start()
-        self.ordered_output_queue = self.mp_context.JoinableQueue(self.processes * 4)
         self.data_ordering = OrderedQueueTask(self.unordered_output_queue, self.ordered_output_queue, self.mp_context)
         self.data_ordering.start()
 
