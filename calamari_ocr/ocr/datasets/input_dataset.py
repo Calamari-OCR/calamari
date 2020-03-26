@@ -264,7 +264,7 @@ class StreamingInputDataset(InputDataset):
         super().__enter__()
         # create all tasks and queues
         self.data_input_queue = self.mp_context.JoinableQueue(self.processes * 4)
-        self.unordered_output_queue = self.mp_context.JoinableQueue()
+        self.unordered_output_queue = self.mp_context.JoinableQueue(self.processes * 4)
 
         self.data_processing_tasks = [
             DataProcessingTask(
