@@ -105,7 +105,7 @@ class PageXMLDatasetLoader:
                                 namespaces=ns)
 
             if not tequivs:
-                tequivs = textline.xpath('./ns:TextEquiv', namespaces=ns)
+                tequivs = textline.xpath('./ns:TextEquiv[not(@index)]', namespaces=ns)
 
             if len(tequivs) > 1:
                 logger.warning("PageXML is invalid: TextLine includes TextEquivs with non unique ids")
