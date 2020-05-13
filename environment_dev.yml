@@ -6,7 +6,7 @@ dependencies:
   - python=3.7
   - tensorflow>=2.0
   - lxml
-  - scikit-image
+  - scikit-image>=0.15.0
   - tqdm
   - python-bidi
   - edit_distance
