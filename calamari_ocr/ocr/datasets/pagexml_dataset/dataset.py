@@ -276,7 +276,7 @@ class PageXMLDataset(DataSet):
                   "min_y": min_y, "max_y": max_y}]
         new_word = False
 
-        for pos, entry in enumerate(positions[1:]):
+        for entry in positions[1:]:
             if entry[0] == " ":
                 words.append({"char": entry[0], "min_x": entry[1], "max_x": entry[2], "min_y": min_y, "max_y": max_y})
                 new_word = True
