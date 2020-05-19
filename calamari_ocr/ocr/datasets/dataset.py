@@ -165,10 +165,10 @@ class DataSet(ABC):
 
         return True
 
-    def store_text(self, sentence, sample, output_dir, extension):
+    def store_text(self, prediction, sample, output_dir, extension):
         output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
         with codecs.open(os.path.join(output_dir, sample['id'] + extension), 'w', 'utf-8') as f:
-            f.write(sentence)
+            f.write(prediction.sentence)
 
     def store_extended_prediction(self, data, sample, output_dir, extension):
         if extension == "pred":

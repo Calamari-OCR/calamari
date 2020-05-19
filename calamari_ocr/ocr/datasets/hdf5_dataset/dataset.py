@@ -62,9 +62,9 @@ class Hdf5DataSet(DataSet):
                     "filename": filename,
                 })
 
-    def store_text(self, sentence, sample, output_dir, extension):
+    def store_text(self, prediction, sample, output_dir, extension):
         codec = self.prediction[sample['filename']]['codec']
-        self.prediction[sample['filename']]['transcripts'].append(list(map(codec.index, sentence)))
+        self.prediction[sample['filename']]['transcripts'].append(list(map(codec.index, prediction.sentence)))
 
     def store(self, extension):
         for filename, data in self.prediction.items():

@@ -107,9 +107,9 @@ class AbbyyDataSet(DataSet):
                         "format": fo,
                     })
 
-    def store_text(self, sentence, sample, output_dir, extension):
+    def store_text(self, prediction, sample, output_dir, extension):
         # an Abbyy dataset stores the prediction in one XML file
-        sample["format"].text = sentence
+        sample["format"].text = prediction.sentence
 
     def store(self, extension):
         for page in tqdm(self.book.pages, desc="Writing Abbyy files", total=len(self.book.pages)):
