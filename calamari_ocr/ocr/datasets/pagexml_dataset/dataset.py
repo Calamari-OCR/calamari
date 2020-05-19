@@ -301,7 +301,7 @@ class PageXMLDataset(DataSet):
 
         if textequivelem is not None:
             for index, word in enumerate(words, 1):
-                word_elem = etree.Element("Word", id=f"{line_id}_w{str(index).zfill(3)}")
+                word_elem = etree.Element("{%s}Word" % ns["ns"], nsmap=ns, id=f"{line_id}_w{str(index).zfill(3)}")
                 textequivelem.addprevious(word_elem)
 
                 _points = f'{word["min_x"]},{word["max_y"]} {word["max_x"]},{word["max_y"]} {word["max_x"]},{word["min_y"]} {word["min_x"]},{word["min_y"]}'
