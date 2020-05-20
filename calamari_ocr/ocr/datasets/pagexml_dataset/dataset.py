@@ -1,4 +1,6 @@
 import itertools
+from string import whitespace
+import re
 import os
 import numpy as np
 from PIL import Image
@@ -216,6 +218,7 @@ class PageXMLDataset(DataSet):
 
         self.text_index = args.get('text_index', 0)
         self.word_level = args.get('word_level', 0)
+        self.word_boundary = args.get('word_boundary', 'unicode')
 
         self._non_existing_as_empty = non_existing_as_empty
         if len(xmlfiles) == 0:
@@ -255,14 +258,19 @@ class PageXMLDataset(DataSet):
         box[rr - offset[0], cc - offset[1]] = pageimg[rr, cc]
         return box
 
-    @staticmethod
-    def get_words(prediction, sample):
+    def get_words(self, prediction, sample) -> list:
         def remove_leading_spaces(_positions):
-            return list(itertools.dropwhile(lambda p: p[0][0] == " ", _positions))
+            return list(itertools.dropwhile(lambda p: p[0][0] in whitespace, _positions))
 
-        def remove_trailing_spaces(_positions):
+        def remove_trailing_spaces(_positions) -> list:
             return list(reversed(remove_leading_spaces(reversed(_positions))))
 
+        def is_word_boundary(character: str) -> bool:
+            if self.word_boundary == "unicode":
+                return bool(re.match(r"\B", character, flags=re.U))
+            elif self.word_boundary == "whitespace":
+                return character in whitespace
+            return False
         x_coords, y_coords = map(list, zip(*[coord.split(",") for coord in sample['coords'].split()]))
         x, y = [int(x) for x in x_coords], [int(y) for y in y_coords]
         min_x, max_x, min_y, max_y = min(x), max(x), min(y), max(y)
@@ -275,11 +283,18 @@ class PageXMLDataset(DataSet):
         words = [{"char": positions[0][0], "min_x": positions[0][1], "max_x": positions[0][2],
                   "min_y": min_y, "max_y": max_y}]
         new_word = False
+        word_boundary = False
 
         for entry in positions[1:]:
-            if entry[0] == " ":
-                words.append({"char": entry[0], "min_x": entry[1], "max_x": entry[2], "min_y": min_y, "max_y": max_y})
+            if is_word_boundary(entry[0]):
+                if word_boundary:
+                    if self.word_boundary != "whitespace":
+                        words[-1]["char"] += entry[0]
+                    words[-1]["max_x"] = entry[2]
+                else:
+                    words.append({"char": entry[0], "min_x": entry[1], "max_x": entry[2], "min_y": min_y, "max_y": max_y})
                 new_word = True
+                word_boundary = True
                 continue
             if new_word:
                 words.append({"char": entry[0], "min_x": entry[1], "max_x": entry[2], "min_y": min_y, "max_y": max_y})
@@ -287,6 +302,7 @@ class PageXMLDataset(DataSet):
             else:
                 words[-1]["char"] += entry[0]
                 words[-1]["max_x"] = entry[2]
+            word_boundary = False
 
         return words
 

@@ -81,6 +81,7 @@ def run(args):
         args={
             'text_index': args.pagexml_text_index,
             'word_level': args.pagexml_word_level,
+            'word_boundary': args.pagexml_word_boundary,
             'pad': args.dataset_pad,
         },
     )
@@ -189,6 +190,7 @@ def main():
     parser.add_argument("--dataset_pad", default=None, nargs='+', type=int)
     parser.add_argument("--pagexml_text_index", default=1)
     parser.add_argument("--pagexml_word_level", action="store_true", help="Save word elements in PAGE XML.")
+    parser.add_argument("--pagexml_word_boundary", default="unicode", choices=["unicode", "whitespace"])
 
     args = parser.parse_args()
 
