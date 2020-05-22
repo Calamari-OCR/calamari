@@ -8,4 +8,4 @@ lxml
 h5py
 protobuf
 prettytable
-tensorflow>=2.0
+tensorflow
