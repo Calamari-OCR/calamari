@@ -3,7 +3,6 @@ import numpy as np
 import json
 from typing import Generator
 
-
 from calamari_ocr.ocr.backends.model_interface import ModelInterface, NetworkPredictionResult
 from calamari_ocr.ocr.callbacks import TrainingCallback
 from calamari_ocr.proto import LayerParams, NetworkParams
@@ -44,11 +43,11 @@ class TensorflowModel(ModelInterface):
         super().__init__(network_proto, graph_type, ctc_decoder_params, batch_size,
                          codec=codec, processes=processes)
         self.downscale_factor = 1  # downscaling factor of the inputs due to pooling layers
-        self.input_data = KL.Input(name='input_data', shape=(None, network_proto.features, self.input_channels))
-        self.input_length = KL.Input(name='input_sequence_length', shape=(1,))
+        self.input_data = KL.Input(name='input_data', shape=(None, network_proto.features, self.input_channels), dtype='float32')
+        self.input_length = KL.Input(name='input_sequence_length', shape=(1,), dtype='int32')
         self.input_params = KL.Input(name='input_data_params', shape=(1,), dtype='string')
-        self.targets = KL.Input(name='targets', shape=[None], dtype='int32')
-        self.targets_length = KL.Input(name='targets_length', shape=[1], dtype='int64')
+        self.targets = KL.Input(name='targets', shape=(None,), dtype='int32')
+        self.targets_length = KL.Input(name='targets_length', shape=[1], dtype='int32')
         self.output_seq_len, self.logits, self.softmax, self.scale_factor, self.sparse_decoded = \
             self.create_network(self.network_proto.dropout, self.input_data, self.input_length)
         if graph_type == "train":
@@ -175,12 +174,11 @@ class TensorflowModel(ModelInterface):
         logits = KL.Dense(network_proto.classes, name='logits')(last_layer)
         softmax = KL.Softmax(name='softmax')(logits)
 
-        def sparse_decoded(logits, output_seq_len):
-            return ctc.ctc_greedy_decoder(inputs=array_ops.transpose(logits, perm=[1, 0, 2]),
+        def decoded(lgts, output_seq_len):
+            return ctc.ctc_greedy_decoder(inputs=array_ops.transpose(lgts, perm=[1, 0, 2]),
                                           sequence_length=tf.cast(K.flatten(output_seq_len),
                                                                   'int32'))[0][0]
-
-        sparse_decoded = KL.Lambda(lambda args: sparse_decoded(*args), name='sparse_decoded')(
+        sparse_decoded = KL.Lambda(lambda x: decoded(x[0], x[1]), name='sparse_decoded')(
             (logits, lstm_seq_len))
 
         return lstm_seq_len, logits, softmax, factor, sparse_decoded
@@ -221,9 +219,14 @@ class TensorflowModel(ModelInterface):
 
                 yield i / 255.0, l, [len(i)], [len(l)], [json.dumps(d)]
 
-        dataset = tf.data.Dataset.from_generator(gen, (tf.float32, tf.int32, tf.int32, tf.int32, tf.string))
+        dataset = tf.data.Dataset.from_generator(gen, (tf.float32, tf.int32, tf.int32, tf.int32, tf.string),
+                          (tf.TensorShape((None, line_height, self.input_channels),),
+                           tf.TensorShape((None,)),
+                           tf.TensorShape((1,)),
+                           tf.TensorShape((1,)),
+                           tf.TensorShape((1,))))
         if mode == "train":
-            dataset = dataset.repeat().shuffle(buffer_size, seed=self.network_proto.backend.random_seed)
+            dataset = dataset.repeat().shuffle(buffer_size, seed=self.network_proto.backend.random_seed, reshuffle_each_iteration=True)
         else:
             pass
 
@@ -233,7 +236,7 @@ class TensorflowModel(ModelInterface):
         def group(data, targets, len_data, len_labels, user_data):
             return (
                 {"input_data": data, "input_sequence_length": len_data, "input_data_params": user_data, "targets": targets, "targets_length": len_labels},
-                {'ctc': np.zeros([batch_size])}
+                {'ctc': tf.zeros([batch_size])}
             )
 
         return dataset.prefetch(5).map(group)
@@ -335,7 +338,9 @@ class TensorflowModel(ModelInterface):
 
     def predict_raw_batch(self, x: np.array, len_x: np.array) -> Generator[NetworkPredictionResult, None, None]:
         out = self.model.predict_on_batch(
-            [x / 255, len_x, np.zeros((len(x), 1), dtype=np.str)],
+            [tf.convert_to_tensor(x / 255.0, dtype=tf.float32),
+             tf.convert_to_tensor(len_x, dtype=tf.int32),
+             tf.zeros((len(x), 1), dtype=tf.string)],
         )
         for sm, params, sl in zip(*out):
             sl = sl[0]
