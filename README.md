@@ -46,8 +46,8 @@ Note that you have to `activate` the virtual environment if used during the inst
 
 ### Prediction of a page
 Currently only OCR on lines is supported.
-Modules to segment pages into lines will be available soon.
-In the meantime you should use the scripts provided by OCRopus.
+To segment pages into lines (and the preceding preprocessing steps) we refer to the solutions provided by OCRopus, Kraken, Tesseract, etc.
+For users (especially less technical ones) in need of an all-in-one package [OCR4all](https://github.com/OCR4all) might be worth a look.
 
 The prediction step using very deep neural networks implemented on Tensorflow as core feature of calamari should be used:
 ```
