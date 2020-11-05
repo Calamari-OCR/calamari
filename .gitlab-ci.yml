@@ -6,7 +6,7 @@ before_script:
   - set -e
   - virtualenv -p python3 venv
   - source venv/bin/activate
-  - pip install -r requirements.txt
+  - pip install --use-feature 2020-resolver -r requirements.txt
   - python setup.py install
 
 cache:
