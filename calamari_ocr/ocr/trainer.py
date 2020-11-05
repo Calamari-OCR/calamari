@@ -175,7 +175,7 @@ class Trainer:
                 codec = restore_codec
                 print("Codec changes: {} deletions, {} appends".format(len(codec_changes[0]), len(codec_changes[1])))
                 # The actual weight/bias matrix will be changed after loading the old weights
-                if all([c == 0 for c in codec_changes]):
+                if not any(codec_changes):
                     codec_changes = None  # No codec changes
             else:
                 codec_changes = None
