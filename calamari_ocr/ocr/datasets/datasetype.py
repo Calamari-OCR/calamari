@@ -1,6 +1,13 @@
 from enum import IntEnum
 
 
+class DataSetMode(IntEnum):
+    TRAIN = 0
+    PREDICT = 1
+    EVAL = 2
+    PRED_AND_EVAL = 3
+
+
 class DataSetType(IntEnum):
     RAW = 0
     FILE = 1

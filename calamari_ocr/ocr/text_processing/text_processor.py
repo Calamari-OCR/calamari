@@ -4,6 +4,18 @@ from calamari_ocr.utils import parallel_map
 
 
 class TextProcessor(ABC):
+    @classmethod
+    def from_dict(cls, d: dict):
+        from calamari_ocr.ocr.text_processing import text_processor_cls
+        real_cls = text_processor_cls(d['type'])
+        if real_cls != cls:
+            return real_cls.from_dict(d)
+
+        return cls(**{k: v for k, v in d.items() if k != 'type'})
+
+    def to_dict(self) -> dict:
+        return {'type': self.__class__.__name__}
+
     def __init__(self):
         super().__init__()
 
@@ -32,9 +44,19 @@ class NoopTextProcessor(TextProcessor):
 
 
 class MultiTextProcessor(TextProcessor):
-    def __init__(self, processors=[]):
+    def to_dict(self) -> dict:
+        d = super(MultiTextProcessor, self).to_dict()
+        d['processors'] = [p.to_dict() for p in self.sub_processors]
+        return d
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        d['processors'] = [TextProcessor.from_dict(p) for p in d['processors']]
+        return super(MultiTextProcessor, cls).from_dict(d)
+
+    def __init__(self, processors=None):
         super().__init__()
-        self.sub_processors = processors
+        self.sub_processors = processors if processors else []
 
     def add(self, processor):
         self.sub_processors.append(processor)

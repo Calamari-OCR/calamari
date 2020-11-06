@@ -7,7 +7,7 @@ from typing import Generator, List
 
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 from calamari_ocr.ocr.data_processing import data_processor_from_proto
-from calamari_ocr.ocr.datasets import InputDataset, StreamingInputDataset, RawInputDataset, RawDataSet
+from calamari_ocr.ocr.datasets import RawDataSet
 from calamari_ocr.ocr import Codec, Checkpoint
 from calamari_ocr.ocr.backends import create_backend_from_checkpoint
 from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransformer
@@ -168,7 +168,7 @@ class Predictor:
                                        out_to_in_trans=self.out_to_in_trans, data_proc_params=ip,
                                        ground_truth=p.ground_truth)
 
-    def predict_input_dataset(self, input_dataset: InputDataset, progress_bar=True):
+    def predict_input_dataset(self, input_dataset, progress_bar=True):
         """ Predict raw data
         Parameters
         ----------

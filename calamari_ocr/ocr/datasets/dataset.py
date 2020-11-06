@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 import codecs
 import os
-from enum import Enum
 from typing import Tuple, Generator
 from collections import namedtuple
 
@@ -11,16 +10,11 @@ import multiprocessing as mp
 import queue
 from random import shuffle
 
-from .datasetype import DataSetType
 import logging
+
+from calamari_ocr.ocr.datasets.datasetype import DataSetMode
+
 logger = logging.getLogger(__name__)
-
-
-class DataSetMode(Enum):
-    TRAIN = 0
-    PREDICT = 1
-    EVAL = 2
-    PRED_AND_EVAL = 3
 
 
 RequestParams = namedtuple('RequestParams', ('epochs', 'text_only'))

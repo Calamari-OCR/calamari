@@ -4,7 +4,7 @@ from .dataset import DataSet, DataSetMode, RawDataSet
 from calamari_ocr.ocr.data_processing import DataPreprocessor
 from calamari_ocr.ocr.text_processing import TextProcessor
 from calamari_ocr.ocr.augmentation import DataAugmenter
-from typing import Generator, Tuple, List, Any
+from typing import Generator, Tuple, List, Any, NamedTuple, Optional
 import numpy as np
 import multiprocessing
 from collections import namedtuple
@@ -14,6 +14,7 @@ from abc import ABC, abstractmethod
 import logging
 
 from .queue_helper import MaxElementsQueuer
+from calamari_ocr.ocr.codec import Codec
 from ..augmentation.dataaugmentationparams import DataAugmentationAmount, DataAugmentationAmountReference
 
 logger = logging.getLogger(__name__)
@@ -62,14 +63,19 @@ class OrderedQueueTask:
                     return
 
 
-DataProcessingTaskData = namedtuple("DataProcessingTaskData", [
-    "skip_invalid_gt",
-    "data_aug_params",
-    "text_processor",
-    "data_processor",
-    "data_augmenter",
-    "generate_only_non_augmented",
-])
+class DataProcessingTaskData(NamedTuple):
+    skip_invalid_gt: bool
+    data_aug_params: DataAugmentationAmount
+    text_processor: TextProcessor
+    data_processor: DataPreprocessor
+    data_augmenter: Optional[DataAugmenter]
+    generate_only_non_augmented: bool
+    mode: DataSetMode
+    downscale_factor: int
+    input_channels: int
+    codec: Codec
+
+
 
 
 class DataProcessingTask:
@@ -333,6 +339,7 @@ class StreamingInputDataset(InputDataset):
         preloaded_datas, preloaded_texts, preloaded_params = datas, texts, params
         self._generate_only_non_augmented.value = prev
 
+        # TODO: CONVERT THIS LOGIC
         if not self.data_augmentation_params.no_augs() and (self.dataset.mode == DataSetMode.TRAIN or self.dataset.mode == DataSetMode.PRED_AND_EVAL):
             abs_n_augs = self.data_augmentation_params.to_abs()
             preloaded_datas, preloaded_texts \

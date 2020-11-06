@@ -4,10 +4,14 @@ variables:
 # Workaround to install python packages again, because sometimes they are not found
 before_script:
   - set -e
-  - virtualenv -p python3 venv
+  - virtualenv -p python3.7 venv
   - source venv/bin/activate
   - pip install --use-feature 2020-resolver -r requirements.txt
-  - python setup.py install
+  - pip uninstall -y calamari-ocr tfaip
+  - python setup.py develp --no-deps
+  - git clone https://github.com/Planet-AI-GmbH/tf2_aip_base && cd tf2_aip_base
+  - python setup.py develop --no-deps
+  - cd ..
 
 cache:
   paths:
@@ -34,10 +38,14 @@ install_dependencies:
     - rm -rf calamari_models
   script:
     - set -e
-    - virtualenv -p python3 venv
+    - virtualenv -p python3.7 venv
     - source venv/bin/activate
     - pip install --use-feature 2020-resolver -r requirements.txt
-    - python setup.py install
+    - pip uninstall -y calamari-ocr tfaip
+    - python setup.py develp --no-deps
+    - git clone https://github.com/Planet-AI-GmbH/tf2_aip_base && cd tf2_aip_base
+    - python setup.py develop --no-deps
+    - cd ..
     - wget -q -O - https://github.com/Calamari-OCR/calamari_models/archive/1.0.tar.gz | tar xz && mv calamari_models-1.0 calamari_models
 
 
@@ -47,25 +55,25 @@ test-cpu:
   stage: test
   script:
     - set -e
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10
 
 test-cpu-validation:
   stage: test
   script:
     - set -e
-    - calamari-train --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --early_stopping_frequency 5
+    - calamari-train --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 10 --samples_per_epoch 1 --early_stopping_frequency 2
 
 test-cpu-augmentation:
   stage: test
   script:
     - set -e
-    - calamari-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10
+    - calamari-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10
 
 test-cpu-validation-augmentation:
   stage: test
   script:
     - set -e
-    - calamari-train --n_augmentation 5 --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --early_stopping_frequency 5
+    - calamari-train --n_augmentation 5 --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 10 --early_stopping_frequency 1
 
 
 # cross-fold-training
@@ -74,25 +82,25 @@ test-cpu-cross-fold-train:
   stage: test
   script:
     - set -e
-    - calamari-cross-fold-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
+    - calamari-cross-fold-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
 
 test-cpu-cross-fold-train-augmentation:
   stage: test
   script:
     - set -e
-    - calamari-cross-fold-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
+    - calamari-cross-fold-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
 
 test-cpu-cross-fold-train-preload:
   stage: test
   script:
     - set -e
-    - calamari-cross-fold-train --weights calamari_models/antiqua_modern/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
+    - calamari-cross-fold-train --weights calamari_models/antiqua_modern/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
 
 test-cpu-cross-fold-train-preload5:
   stage: test
   script:
     - set -e
-    - calamari-cross-fold-train --weights calamari_models/antiqua_modern/0.ckpt.json calamari_models/antiqua_modern/1.ckpt.json calamari_models/antiqua_modern/2.ckpt.json calamari_models/antiqua_modern/3.ckpt.json calamari_models/antiqua_modern/4.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 5 --best_models_dir tmp_best_models --max_iters 10
+    - calamari-cross-fold-train --weights calamari_models/antiqua_modern/0.ckpt.json calamari_models/antiqua_modern/1.ckpt.json calamari_models/antiqua_modern/2.ckpt.json calamari_models/antiqua_modern/3.ckpt.json calamari_models/antiqua_modern/4.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 5 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
 
 
 # prediction and evaluation including voting
@@ -114,13 +122,13 @@ test-cpu-pretrained:
   stage: test
   script:
     - set -e
-    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10
+    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5
 
 test-cpu-pretrained-keep-loaded-codec:
   stage: test
   script:
     - set -e
-    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --keep_loaded_codec
+    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --keep_loaded_codec
 
 # on-the-fly data loading
 
@@ -128,25 +136,25 @@ test-cpu-data-on-the-fly:
   stage: test
   script:
     - set -e
-    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10
+    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5
 
 test-cpu-data-on-the-fly-with-weights:
   stage: test
   script:
     - set -e
-    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --weights calamari_models/antiqua_modern/0.ckpt.json
+    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --weights calamari_models/antiqua_modern/0.ckpt.json
 
 test-cpu-validation-data-on-the-fly:
   stage: test
   script:
     - set -e
-    - calamari-train --train_data_on_the_fly --validation_data_on_the_fly --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --early_stopping_frequency 5
+    - calamari-train --train_data_on_the_fly --validation_data_on_the_fly --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --early_stopping_frequency 5
 
 test-cpu-cross-fold-train-augmentation-data-on-the-fly:
   stage: test
   script:
     - set -e
-    - calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
+    - calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
 
 
 # extended prediction data and average prediction confidence computation
@@ -176,7 +184,7 @@ test-cpu-train-on-generated-lines:
       --line_generator_params calamari_ocr/test/data/line_generation_config/line_gen_params.json
       --whitelist_files calamari_ocr/test/data/line_generation_config/whitelist.txt
       --no_auto_compute_codec --checkpoint_frequency 5 --display 1.01 --train_data_on_the_fly
-      --num_threads 4 --batch_size 4 --max_iter 10
+      --num_threads 4 --batch_size 4 --epochs 2 --samples_per_epoch 5
 
 
 # PAGE-XML
@@ -189,17 +197,17 @@ test-cpu-train-on-page-xml:
       calamari-train
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
       --validation calamari_ocr/test/data/avicanon_pagexml/008.nrm.png --validation_dataset PAGEXML
-      --dataset PAGEXML --display 1.01 --num_threads 1 --early_stopping_frequency 5 --max_iter 10
+      --dataset PAGEXML --display 1.01 --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
     - >
       calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
       --dataset PAGEXML --display 1.01
-      --n_folds 3 --best_models_dir tmp_best_models --max_iters 10
+      --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
     - >
       calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
       --dataset PAGEXML --display 1.01
-      --n_folds 3 --best_models_dir tmp_best_models --max_iters 10 --dataset_pad 3 0
+      --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5 --dataset_pad 3 0
 
 test-cpu-train-on-page-xml-validation-on-files:
   stage: test
@@ -209,7 +217,7 @@ test-cpu-train-on-page-xml-validation-on-files:
       calamari-train
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
       --validation calamari_ocr/test/data/uw3_50lines/test/*.png
-      --dataset PAGEXML --display 1.01 --num_threads 1 --early_stopping_frequency 5 --max_iter 10
+      --dataset PAGEXML --display 1.01 --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
 
 test-cpu-predict-and-eval-page-xml:
   stage: test
@@ -230,7 +238,7 @@ test-cpu-train-on-hdf5:
       calamari-train
       --files calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5
       --validation calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5 --validation_dataset HDF5
-      --dataset HDF5 --display 1.01 --num_threads 2 --early_stopping_frequency 5 --max_iter 10
+      --dataset HDF5 --display 1.01 --num_threads 2 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
       --data_preprocessing NOOP_NORMALIZER
 
 test-cpu-predict-and-eval-hdf5:
@@ -251,7 +259,7 @@ test-cpu-train-on-abbyy-xml:
       calamari-train
       --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg
       --validation calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg --validation_dataset ABBYY
-      --dataset ABBYY --display 1.01 --num_threads 1 --early_stopping_frequency 5 --max_iter 10
+      --dataset ABBYY --display 1.01 --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
 
 test-cpu-train-on-aabbyy-xml-validation-on-page-xml:
   stage: test
@@ -261,7 +269,7 @@ test-cpu-train-on-aabbyy-xml-validation-on-page-xml:
       calamari-train
       --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg
       --validation calamari_ocr/test/data/avicanon_pagexml/008.nrm.png --validation_dataset PAGEXML
-      --dataset ABBYY --display 1.01 --num_threads 1 --early_stopping_frequency 5 --max_iter 10
+      --dataset ABBYY --display 1.01 --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
 
 test-cpu-predict-and-eval-abbyy-xml:
   stage: test
@@ -276,8 +284,8 @@ test-cpu-network-architectures:
   stage: test
   script:
     - set -
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --network 'cnn=40:3x3,pool=2x2,lstm=50,dropout=0.5'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --network 'cnn=40:3x3,pool=2x2'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --max_iters 10 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2,concat=1:-1'
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,lstm=50,dropout=0.5'
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2'
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3'
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2'
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2,concat=1:-1'

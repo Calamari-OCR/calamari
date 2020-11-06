@@ -1,10 +1,27 @@
 from abc import ABC, abstractmethod
 from calamari_ocr.utils import parallel_map
-
 import numpy as np
 
 
 class DataAugmenter(ABC):
+    augmenters = {}
+
+    @classmethod
+    def register(cls):
+        DataAugmenter.augmenters[cls.__name__] = cls
+
+    @staticmethod
+    def from_dict(d):
+        cls = DataAugmenter.augmenters[d['type']]
+        return cls(**d['params'])
+
+    def to_dict(self):
+        return {'type': self.__class__.__name__, 'params': self._to_dict()}
+
+    @abstractmethod
+    def _to_dict(self):
+        raise NotImplementedError
+
     def __init__(self):
         super().__init__()
 
@@ -39,6 +56,9 @@ class DataAugmenter(ABC):
 
 
 class NoopDataAugmenter(DataAugmenter):
+    def _to_dict(self):
+        return {}
+
     def __init__(self):
         super().__init__()
 
@@ -50,6 +70,9 @@ class NoopDataAugmenter(DataAugmenter):
 
 
 class SimpleDataAugmenter(DataAugmenter):
+    def _to_dict(self):
+        return {}
+
     def __init__(self):
         super().__init__()
 
@@ -68,6 +91,10 @@ class SimpleDataAugmenter(DataAugmenter):
         data = ocrodeg.printlike_multiscale(data, blur=1, inverted=True)
         data = (data * 255 / data.max()).astype(original_dtype)
         return data, gt_txt
+
+
+NoopDataAugmenter.register()
+SimpleDataAugmenter.register()
 
 
 if __name__ == '__main__':

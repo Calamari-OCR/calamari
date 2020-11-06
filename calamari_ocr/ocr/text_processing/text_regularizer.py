@@ -1,4 +1,8 @@
 import re
+from dataclasses import dataclass
+from typing import List, Optional
+
+from dataclasses_json import dataclass_json
 
 from calamari_ocr.ocr.text_processing import TextProcessor, TextProcessorParams
 
@@ -59,16 +63,20 @@ def parse_groups(string_list):
     return groups
 
 
-def default_text_regularizer_params(params=TextProcessorParams(), groups=["simple"]):
-    params.type = TextProcessorParams.TEXT_REGULARIZER
+@dataclass_json
+@dataclass
+class Replacement:
+    regex: bool
+    old: str
+    new: str
 
+
+def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement]:
+    r = []
     groups = parse_groups(groups)
 
     def replacement(old, new, regex=False):
-        r = params.replacements.add()
-        r.old = old
-        r.new = new
-        r.regex = regex
+        r.append(Replacement(regex, old, new))
 
     if groups["various"]:
         replacement("µ", "μ")    # replace micro unit with greek character
@@ -316,16 +324,26 @@ def default_text_regularizer_params(params=TextProcessorParams(), groups=["simpl
         replacement(r"(?u)^\s+", '', True)   # strip left
         replacement(r"(?u)\s+$", '', True)   # strip right
 
-    return params
+    return r
 
 
 class TextRegularizer(TextProcessor):
-    def __init__(self, params=default_text_regularizer_params()):
+    def to_dict(self) -> dict:
+        d = super(TextRegularizer, self).to_dict()
+        d['replacements'] = [r.to_dict() for r in self.replacements]
+        return d
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        d['replacements'] = [Replacement.from_dict(r) for r in d['replacements']]
+        return super(TextRegularizer, cls).from_dict(d)
+
+    def __init__(self, replacements: Optional[List[Replacement]] = None):
         super().__init__()
-        self.params = params
+        self.replacements = replacements if replacements else default_text_regularizer_replacements()
 
     def _apply_single(self, txt):
-        for replacement in self.params.replacements:
+        for replacement in self.replacements:
             if replacement.regex:
                 txt = re.sub(replacement.old, replacement.new, txt)
             else:
@@ -335,6 +353,6 @@ class TextRegularizer(TextProcessor):
 
 
 if __name__ == "__main__":
-    n = TextRegularizer(default_text_regularizer_params(groups=["quotes", "spaces"]))
+    n = TextRegularizer(default_text_regularizer_replacements(groups=["quotes", "spaces"]))
     assert(n.apply(["“Resolve quotes”"]) == ["''Resolve quotes''"])
     assert(n.apply(["  “Resolve   spaces  ”   "]) == ["''Resolve spaces ''"])

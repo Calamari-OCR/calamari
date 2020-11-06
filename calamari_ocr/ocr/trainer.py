@@ -1,41 +1,16 @@
-from calamari_ocr.ocr.callbacks import ConsoleTrainingCallback
-from calamari_ocr.ocr.text_processing import text_processor_from_proto
-from calamari_ocr.ocr.data_processing import data_processor_from_proto
+from tfaip.base.trainer import Trainer
 from calamari_ocr.ocr import Codec, Checkpoint
-from calamari_ocr.ocr.augmentation import DataAugmenter
 from calamari_ocr.ocr.backends import create_backend_from_checkpoint
-from calamari_ocr.utils.contextmanager import ExitStackWithPop
+from calamari_ocr.proto.params import TrainerParams, ModelParams
 import time
-import os
-import numpy as np
-import bidi.algorithm as bidi
 
-from calamari_ocr.utils import RunningStatistics, checkpoint_path
+from calamari_ocr.utils import checkpoint_path
 
-from calamari_ocr.ocr import Predictor, Evaluator
-
-from google.protobuf import json_format
-
-from .datasets import InputDataset, StreamingInputDataset
+from calamari_ocr.ocr.backends.dataset.data import CalamariDataParams, CalamariData
 
 
-class Trainer:
-    def __init__(self, checkpoint_params,
-                 dataset,
-                 validation_dataset=None,
-                 txt_preproc=None,
-                 txt_postproc=None,
-                 data_preproc=None,
-                 data_augmenter: DataAugmenter = None,
-                 n_augmentations=0,
-                 weights=None,
-                 codec=None,
-                 codec_whitelist=None,
-                 keep_loaded_codec=False,
-                 auto_update_checkpoints=True,
-                 preload_training=False,
-                 preload_validation=False,
-                 ):
+class CalamariTrainer(Trainer):
+    def __init__(self, params: TrainerParams, scenario, restore=False):
         """Train a DNN using given preprocessing, weights, and data
 
         The purpose of the Trainer is handle a default training mechanism.
@@ -50,108 +25,46 @@ class Trainer:
         During the training the Trainer will perform validation checks if a `validation_dataset` is given
         to determine the best model.
         Furthermore, the current status is printet and checkpoints are written.
-
-        Parameters
-        ----------
-        checkpoint_params : CheckpointParams
-            Proto parameter object that defines all hyperparameters of the model
-        dataset : Dataset
-            The Dataset used for training
-        validation_dataset : Dataset, optional
-            The Dataset used for validation, i.e. choosing the best model
-        txt_preproc : TextProcessor, optional
-            Text preprocessor that is applied on loaded text, before the Codec is computed
-        txt_postproc : TextProcessor, optional
-            Text processor that is applied on the loaded GT text and on the prediction to receive the final result
-        data_preproc : DataProcessor, optional
-            Preprocessing for the image lines (e. g. padding, inversion, deskewing, ...)
-        data_augmenter : DataAugmenter, optional
-            A DataAugmenter object to use for data augmentation. Count is set by `n_augmentations`
-        n_augmentations : int, optional
-            The number of augmentations performend by the `data_augmenter`
-        weights : str, optional
-            Path to a trained model for loading its weights
-        codec : Codec, optional
-            If provided the Codec will not be computed automatically based on the GT, but instead `codec` will be used
-        codec_whitelist : obj:`list` of :obj:`str`
-            List of characters to be kept when the loaded `weights` have a different codec than the new one.
-        keep_loaded_codec : bool
-            Include all characters of the codec of the pretrained model in the new codec
         """
-        self.checkpoint_params = checkpoint_params
-        self.txt_preproc = txt_preproc if txt_preproc else text_processor_from_proto(checkpoint_params.model.text_preprocessor, "pre")
-        self.txt_postproc = txt_postproc if txt_postproc else text_processor_from_proto(checkpoint_params.model.text_postprocessor, "post")
-        self.data_preproc = data_preproc if data_preproc else data_processor_from_proto(checkpoint_params.model.data_preprocessor)
-        self.weights = checkpoint_path(weights) if weights else None
-        self.codec = codec
-        self.codec_whitelist = [] if codec_whitelist is None else codec_whitelist
-        self.keep_loaded_codec = keep_loaded_codec
-        self.auto_update_checkpoints = auto_update_checkpoints
-        self.data_augmenter = data_augmenter
-        self.n_augmentations = n_augmentations
-        self.dataset = StreamingInputDataset(dataset, self.data_preproc, self.txt_preproc, data_augmenter, n_augmentations,
-                                             processes=self.checkpoint_params.processes)
-        self.validation_dataset = StreamingInputDataset(validation_dataset, self.data_preproc, self.txt_preproc,
-                                                        processes=self.checkpoint_params.processes
-                                                        ) if validation_dataset else None
-        self.preload_training = preload_training
-        self.preload_validation = preload_validation
+        super(CalamariTrainer, self).__init__(params, scenario, restore)
+        self._params: TrainerParams = params
+        self._params.warmstart_params.model = checkpoint_path(self._params.warmstart_params.model) if self._params.warmstart_params.model else None
+        if not self._params.scenario_params.data_params.train_reader:
+            raise ValueError("Training data factory was not provided")
 
-        if len(self.dataset) == 0:
-            raise Exception("Dataset is empty.")
+    def train(self, callbacks=None):
+        # TODO log total training time
+        # train_start_time = time.time() + self.checkpoint_params.total_time
 
-        if self.validation_dataset and len(self.validation_dataset) == 0:
+        # load preloaded datasets
+        self.scenario.data = self.scenario.create_data()
+        data: CalamariData = self.scenario.data
+        model: ModelParams = self.scenario.params.model_params
+        if len(data.train_reader) == 0:
+            raise Exception("Training dataset is empty.")
+
+        if data.val_reader and len(data.val_reader) == 0:
             raise Exception("Validation dataset is empty. Provide valid validation data for early stopping.")
 
-    def train(self, auto_compute_codec=False, progress_bar=False, training_callback=ConsoleTrainingCallback()):
-        """ Launch the training
+        if self._params.preload_training:
+            data = self.scenario.data = self.scenario.create_data().to_raw_dataset(progress_bar=self._params.progress_bar)
 
-        Parameters
-        ----------
-        auto_compute_codec : bool
-            Compute the codec automatically based on the provided ground truth.
-            Else provide a codec using a whitelist (faster).
-
-        progress_bar : bool
-            Show or hide any progress bar
-
-        training_callback : TrainingCallback
-            Callback for the training process (e.g., for displaying the current cer, loss in the console)
-
-        """
-        with ExitStackWithPop() as exit_stack:
-            checkpoint_params = self.checkpoint_params
-
-            train_start_time = time.time() + self.checkpoint_params.total_time
-
-            exit_stack.enter_context(self.dataset)
-            if self.validation_dataset:
-                exit_stack.enter_context(self.validation_dataset)
-
-            # load training dataset
-            if self.preload_training:
-                new_dataset = self.dataset.to_raw_input_dataset(processes=checkpoint_params.processes, progress_bar=progress_bar)
-                exit_stack.pop(self.dataset)
-                self.dataset = new_dataset
-                exit_stack.enter_context(self.dataset)
-
-            # load validation dataset
-            if self.validation_dataset and self.preload_validation:
-                new_dataset = self.validation_dataset.to_raw_input_dataset(processes=checkpoint_params.processes, progress_bar=progress_bar)
-                exit_stack.pop(self.validation_dataset)
-                self.validation_dataset = new_dataset
-                exit_stack.enter_context(self.validation_dataset)
-
-            # compute the codec
-            if self.codec:
-                codec = self.codec
+        # compute the codec
+        codec = data.params().codec
+        if not codec:
+            if len(self._params.codec_whitelist) == 0 or self._params.auto_compute_codec:
+                codec = Codec.from_input_dataset(self.scenario.data,
+                                                 whitelist=self._params.codec_whitelist, progress_bar=self._params.progress_bar)
             else:
-                if len(self.codec_whitelist) == 0 or auto_compute_codec:
-                    codec = Codec.from_input_dataset([self.dataset, self.validation_dataset],
-                                                     whitelist=self.codec_whitelist, progress_bar=progress_bar)
-                else:
-                    codec = Codec.from_texts([], whitelist=self.codec_whitelist)
+                codec = Codec.from_texts([], whitelist=self._params.codec_whitelist)
 
+        data.params().codec = codec
+        data.params().downscale_factor_ = model.compute_downscale_factor()
+        model.classes = codec.size()
+        data.train_reader.auto_repeat = True
+        super(CalamariTrainer, self).train(callbacks=callbacks)
+
+        if False:
             # create backend
             network_params = checkpoint_params.model.network
             network_params.features = checkpoint_params.model.line_height
@@ -194,10 +107,11 @@ class Trainer:
                                            batch_size=checkpoint_params.batch_size, codec_changes=codec_changes)
 
             if checkpoint_params.current_stage == 0:
-                self._run_train(train_net, train_start_time, progress_bar, self.dataset, self.validation_dataset, training_callback)
+                self._run_train(train_net, train_start_time, progress_bar, self.dataset, training_callback)
 
             if checkpoint_params.data_aug_retrain_on_original and self.data_augmenter and self.n_augmentations != 0:
                 print("Starting training on original data only")
+                # TODO: THIS MUST BE IMPLEMENTED
                 if checkpoint_params.current_stage == 0:
                     checkpoint_params.current_stage = 1
                     checkpoint_params.iter = 0
@@ -206,9 +120,10 @@ class Trainer:
                     checkpoint_params.early_stopping_best_accuracy = 0
 
                 self.dataset.generate_only_non_augmented = True  # this is the important line!
-                self._run_train(train_net, train_start_time, progress_bar, self.dataset, self.validation_dataset, training_callback)
+                self._run_train(train_net, train_start_time, progress_bar, self.dataset, training_callback)
 
-    def _run_train(self, train_net, train_start_time, progress_bar, train_dataset, val_dataset, training_callback):
+    def _run_train(self, train_net, train_start_time, progress_bar, dataset: CalamariData, training_callback):
         checkpoint_params = self.checkpoint_params
-        train_net.train(train_dataset, val_dataset, checkpoint_params, self.txt_postproc, progress_bar, training_callback)
+        with dataset:
+            train_net.train(dataset.get_train_data(), dataset.get_val_data(), checkpoint_params, self.txt_postproc, progress_bar, training_callback)
         print("Total training time {}s for {} iterations.".format(time.time() - train_start_time, self.checkpoint_params.iter))

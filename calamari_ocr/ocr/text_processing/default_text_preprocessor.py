@@ -3,13 +3,12 @@ from calamari_ocr.ocr.text_processing import \
     TextNormalizer, TextRegularizer
 
 
-class DefaultTextPreprocessor(MultiTextProcessor):
-    def __init__(self):
-        super().__init__(
-            [
-                BidiTextProcessor(),
-                StripTextProcessor(),
-                TextNormalizer(),
-                TextRegularizer(),
-            ]
-        )
+def DefaultTextPreprocessor():
+    return MultiTextProcessor(
+        [
+            BidiTextProcessor(),
+            StripTextProcessor(),
+            TextNormalizer(),
+            TextRegularizer(),
+        ]
+    )

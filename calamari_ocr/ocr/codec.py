@@ -1,24 +1,38 @@
-from calamari_ocr.utils.multiprocessing import tqdm_wrapper
-from calamari_ocr.ocr.datasets import InputDataset
+from typing import List, TYPE_CHECKING
 
-from typing import List
+from calamari_ocr.utils.multiprocessing import tqdm_wrapper
+
+if TYPE_CHECKING:
+    from calamari_ocr.ocr.backends.dataset import CalamariDataBase
 
 
 class Codec:
+    def to_dict(self):
+        return {'charset': self.charset}
+
     @staticmethod
-    def from_input_dataset(input_dataset: List[InputDataset], whitelist=None, progress_bar=False):
+    def from_dict(d: dict):
+        return Codec(d['charset'])
+
+    @staticmethod
+    def from_input_dataset(dataset: 'CalamariDataBase', whitelist=None, progress_bar=False):
+        from calamari_ocr.ocr.backends.dataset.data_types import InputSample
         chars = set() if whitelist is None else set(whitelist)
-        for ds in input_dataset:
-            if not ds:
-                continue
-            for text in tqdm_wrapper(ds.text_generator(), total=len(ds), desc="Computing codec", progress_bar=progress_bar):
-                for c in text:
+        data_generators = []
+        if dataset.train_reader:
+            data_generators.append((dataset.train_reader, dataset.get_unprepared_train_data(text_only=True)))
+        if dataset.val_reader:
+            data_generators.append((dataset.val_reader, dataset.get_unprepared_val_data(text_only=True)))
+
+        for reader, ds in data_generators:
+            for sample in tqdm_wrapper(ds, total=len(reader), desc="Computing codec", progress_bar=progress_bar):
+                for c in sample.gt:
                     chars.add(c)
 
         return Codec(sorted(list(chars)))
 
     @staticmethod
-    def from_texts(texts, whitelist=None):
+    def from_texts(texts: List[str], whitelist=None):
         """Compute a codec from given text
 
         First computes a set of all available characters.
@@ -42,8 +56,8 @@ class Codec:
 
         return Codec(sorted(list(chars)))
 
-    def __init__(self, charset):
-        """ Construct a codec based on a given charsed (symbols)
+    def __init__(self, charset: List[str]):
+        """ Construct a codec based on a given charset (symbols)
 
         A symbol is typically a character (e.g. a, b, c, d, ...) in OCR, in OMR this might be
         the position of a note in the staff.

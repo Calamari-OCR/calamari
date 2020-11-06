@@ -5,9 +5,16 @@ from calamari_ocr.ocr.data_processing.scale_to_height_processor import ScaleToHe
 
 
 class CenterNormalizer(DataPreprocessor):
-    def __init__(self, params, extra_params=(4, 1.0, 0.3), debug=False):
+    def to_dict(self) -> dict:
+        d = super(CenterNormalizer, self).to_dict()
+        d['line_height'] = self.target_height
+        d['extra_params'] = (self.range, self.smoothness, self.extra)
+        d['debug'] = self.debug
+        return d
+
+    def __init__(self, line_height=48, extra_params=(4, 1.0, 0.3), debug=False):
         self.debug = debug
-        self.target_height = params.line_height if params.line_height else 48
+        self.target_height = line_height
         self.range, self.smoothness, self.extra = extra_params
         super().__init__()
 

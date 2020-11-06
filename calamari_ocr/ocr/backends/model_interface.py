@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 
 from calamari_ocr.ocr.callbacks import TrainingCallback
 from .ctc_decoder.ctc_decoder import create_ctc_decoder, CTCDecoderParams
-from calamari_ocr.ocr.datasets import InputDataset
 from calamari_ocr.ocr import Codec
 
 from typing import Any, Generator, List

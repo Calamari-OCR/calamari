@@ -25,16 +25,14 @@ class StripTextProcessor(TextProcessor):
 
 
 class BidiTextProcessor(TextProcessor):
-    def __init__(self, default_bidi_direction=TextProcessorParams.BIDI_AUTO):
-        super().__init__()
-        self.base_dir = None
-        self.set_base_dir_from_enum(default_bidi_direction)
+    def to_dict(self) -> dict:
+        d = super(BidiTextProcessor, self).to_dict()
+        d['bidi_direction'] = self.base_dir
+        return d
 
-    def set_base_dir_from_enum(self, d):
-        self.base_dir = {TextProcessorParams.BIDI_LTR: 'L',
-                         TextProcessorParams.BIDI_RTL: 'R',
-                         TextProcessorParams.BIDI_AUTO: None,
-                         }[d]
+    def __init__(self, bidi_direction=None):
+        super().__init__()
+        self.base_dir = bidi_direction
 
     def _apply_single(self, txt):
         # To support arabic text

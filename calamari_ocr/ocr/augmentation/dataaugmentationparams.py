@@ -1,7 +1,7 @@
-from enum import Enum
+from tfaip.util.enum import StrEnum
 
 
-class DataAugmentationAmountReference(Enum):
+class DataAugmentationAmountReference(StrEnum):
     ABSOLUTE = 'absolute'
     PERCENTAGE = 'relative'
 
@@ -12,6 +12,21 @@ class DataAugmentationAmountReference(Enum):
 #      augmented samples, in total 200 samples (=epoch size). 100 / 200 = 0.5.
 #      Or percentage == 0.75 => 300 augmented samplees, in total 400. 300 / 400 = 0.75
 class DataAugmentationAmount:
+    @staticmethod
+    def from_dict(d: dict):
+        return DataAugmentationAmount(
+            reference=d['reference'],
+            amount=d['amount'],
+            percentage=d['percentage'],
+        )
+
+    def to_dict(self):
+        return {
+            'reference': self.reference,
+            'amount': self.amount,
+            'percentage': self.percentage,
+        }
+
     @staticmethod
     def from_factor(n):
         if n >= 1:

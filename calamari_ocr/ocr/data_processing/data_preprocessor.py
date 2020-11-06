@@ -5,6 +5,18 @@ from calamari_ocr.utils import parallel_map
 
 
 class DataPreprocessor(ABC):
+    @classmethod
+    def from_dict(cls, d: dict):
+        from calamari_ocr.ocr.data_processing import data_processor_cls
+        real_cls = data_processor_cls(d['type'])
+        if real_cls != cls:
+            return real_cls.from_dict(d)
+
+        return cls(**{k: v for k, v in d.items() if k != 'type'})
+
+    def to_dict(self) -> dict:
+        return {'type': self.__class__.__name__}
+
     def __init__(self):
         super().__init__()
 
@@ -37,9 +49,19 @@ class NoopDataPreprocessor(DataPreprocessor):
 
 
 class MultiDataProcessor(DataPreprocessor):
-    def __init__(self, processors=[]):
+    def to_dict(self) -> dict:
+        d = super(MultiDataProcessor, self).to_dict()
+        d['processors'] = [p.to_dict() for p in self.sub_processors]
+        return d
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        d['processors'] = [DataPreprocessor.from_dict(p) for p in d['processors']]
+        return super(MultiDataProcessor, cls).from_dict(d)
+
+    def __init__(self, processors=None):
         super().__init__()
-        self.sub_processors = processors
+        self.sub_processors = processors if processors else []
 
     def add(self, processor):
         self.sub_processors.append(processor)

@@ -4,16 +4,29 @@ from calamari_ocr.proto import DataPreprocessorParams
 
 
 class FinalPreparation(DataPreprocessor):
+    def to_dict(self) -> dict:
+        d = super(FinalPreparation, self).to_dict()
+        d['normalize'] = self.normalize
+        d['invert'] = self.invert
+        d['transpose'] = self.transpose
+        d['pad'] = self.pad
+        d['pad_value'] = self.pad_value
+        d['as_uint8'] = self.as_uint8
+        return d
+
     def __init__(self,
-                 params: DataPreprocessorParams,
+                 normalize,
+                 invert,
+                 transpose,
+                 pad,
+                 pad_value,
                  as_uint8=True):
         super().__init__()
-        self.params = params
-        self.normalize = not params.no_normalize
-        self.invert = not params.no_invert
-        self.transpose = not params.no_transpose
-        self.pad = params.pad
-        self.pad_value = params.pad_value
+        self.normalize = normalize
+        self.invert = invert
+        self.transpose = transpose
+        self.pad = pad
+        self.pad_value = pad_value
         self.as_uint8 = as_uint8            # To save memory!
 
     def _apply_single(self, data):

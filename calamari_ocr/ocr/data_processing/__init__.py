@@ -1,3 +1,7 @@
+from inspect import isclass
+
+from tfaip.util.enum import StrEnum
+
 from calamari_ocr.ocr.data_processing.center_normalizer import CenterNormalizer
 from calamari_ocr.ocr.data_processing.data_preprocessor import DataPreprocessor, NoopDataPreprocessor, MultiDataProcessor
 from calamari_ocr.ocr.data_processing.data_range_normalizer import DataRangeNormalizer
@@ -7,6 +11,20 @@ from calamari_ocr.ocr.data_processing.scale_to_height_processor import ScaleToHe
 from calamari_ocr.ocr.data_processing.default_data_preprocessor import DefaultDataPreprocessor
 
 from calamari_ocr.proto import DataPreprocessorParams
+
+DataPreprocessors = StrEnum('DataPreprocessors',
+                            {
+                                **{k: k for k, v in globals().items() if isclass(v) and issubclass(v, DataPreprocessor) and v != DataPreprocessor},
+                                **{'DefaultDataPreprocessor': 'DefaultDataPreprocessor'},
+                             })
+
+
+def data_processor_cls(s: str):
+    return globals()[s]
+
+
+def data_processor_from_dict(d: dict):
+    return DataPreprocessor.from_dict(d)
 
 
 def data_processor_from_proto(data_preprocessor_params):
@@ -19,13 +37,13 @@ def data_processor_from_proto(data_preprocessor_params):
             [data_processor_from_proto(c) for c in data_preprocessor_params.children]
         )
     elif data_preprocessor_params.type == DataPreprocessorParams.DEFAULT_NORMALIZER:
-        return DefaultDataPreprocessor(data_preprocessor_params)
+        return DefaultDataPreprocessor(data_preprocessor_params.line_height, data_preprocessor_params.pad)
     elif data_preprocessor_params.type == DataPreprocessorParams.NOOP_NORMALIZER:
         return NoopDataPreprocessor()
     elif data_preprocessor_params.type == DataPreprocessorParams.RANGE_NORMALIZER:
         return DataRangeNormalizer()
     elif data_preprocessor_params.type == DataPreprocessorParams.CENTER_NORMALIZER:
-        return CenterNormalizer(data_preprocessor_params)
+        return CenterNormalizer(data_preprocessor_params.line_height)
     elif data_preprocessor_params.type == DataPreprocessorParams.FINAL_PREPARATION:
         return FinalPreparation(data_preprocessor_params)
     elif data_preprocessor_params.type == DataPreprocessorParams.SCALE_TO_HEIGHT:

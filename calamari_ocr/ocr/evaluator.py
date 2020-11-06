@@ -3,7 +3,6 @@ from edit_distance import edit_distance
 from calamari_ocr.ocr.text_processing import synchronize
 from calamari_ocr.ocr.text_processing import DefaultTextPreprocessor
 from calamari_ocr.utils import parallel_map, tqdm_wrapper
-from calamari_ocr.ocr.datasets import StreamingInputDataset
 from collections import namedtuple
 
 

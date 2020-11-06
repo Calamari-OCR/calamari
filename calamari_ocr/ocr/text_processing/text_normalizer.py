@@ -11,13 +11,18 @@ def default_text_normalizer_params(params=TextProcessorParams(), default="NFC"):
 
 
 class TextNormalizer(TextProcessor):
-    def __init__(self, params=default_text_normalizer_params()):
+    def to_dict(self) -> dict:
+        d = super(TextNormalizer, self).to_dict()
+        d['unicode_normalization'] = self.unicode_normalization
+        return d
+
+    def __init__(self, unicode_normalization="NFC"):
         super().__init__()
-        self.params = params
+        self.unicode_normalization = unicode_normalization
 
     def _apply_single(self, txt):
         txt = unicodedata.normalize(
-            TextProcessorParams.UnicodeNormalizationType.Name(self.params.unicode_normalization),
+            self.unicode_normalization,
             txt
         )
 

@@ -1,6 +1,6 @@
 import re
 
-from calamari_ocr.proto.calamari_pb2 import LayerParams, NetworkParams
+from calamari_ocr.proto.params import TrainerParams, LayerParams, LayerType, LSTMDirection, ModelParams, IntVec2D
 
 
 def default_network_params():
@@ -11,43 +11,42 @@ def default_network_params():
     return params
 
 
-def set_default_network_params(params):
-    params.solver = NetworkParams.ADAM_SOLVER
-    params.dropout = 0
-    params.ctc_merge_repeated = True
-    params.backend.cudnn = True
-    params.learning_rate = 1e-3
+def set_default_network_params(params: TrainerParams):
+    params.optimizer_params.optimizer = 'Adam'
+    params.scenario_params.model_params.dropout = 0
+    params.scenario_params.model_params.ctc_merge_repeated = True
+    params.learning_rate_params.lr = 1e-3
 
 
-def network_params_from_definition_string(str, params):
+def params_from_definition_string(s: str, trainer_params: TrainerParams):
+    model_params: ModelParams = trainer_params.scenario_params.model_params
     cnn_matcher = re.compile(r"^([\d]+)(:([\d]+)(x([\d]+))?)?$")
     db_matcher = re.compile(r"^([\d]+):([\d]+)(:([\d]+)(x([\d]+))?)?$")
     concat_matcher = re.compile(r"^([\-\d]+):([\-\d]+)$")
     pool_matcher = re.compile(r"^([\d]+)(x([\d]+))?(:([\d]+)x([\d]+))?$")
-    str_params = str.split(",")
+    str_params = s.split(",")
     lstm_appeared = False
-    set_default_network_params(params)
+    set_default_network_params(trainer_params)
     for param in str_params:
         label, value = tuple(param.split("="))
-        flags = ["ctc_merge_repeated", "cudnn"]
-        floats = ["learning_rate", "momentum", "dropout"]
-        if label in flags:
-            setattr(params, label, value.lower() == "true")
-        elif label == "ctc":
-            setattr(params, label, NetworkParams.CTCType.Value(value))
-        elif label == "l_rate":
-            params.learning_rate = float(value)
-        elif label in floats:
-            setattr(params, label, float(value))
+        model_flags = ["ctc_merge_repeated"]
+        if label in model_flags:
+            setattr(trainer_params.scenario_params.model_params, label, value.lower() == "true")
+        elif label == "l_rate" or label == 'learning_rate':
+            trainer_params.learning_rate_params.lr = float(value)
+        elif label == "momentum":
+            trainer_params.optimizer_params.momentum = float(value)
+        elif label == 'dropout':
+            trainer_params.scenario_params.model_params.dropout = float(value)
         elif label == "solver":
-            params.solver = {"momentum": NetworkParams.MOMENTUM_SOLVER,
-                             "adam": NetworkParams.ADAM_SOLVER}[value.lower()]
+            trainer_params.optimizer_params.optimizer = value
         elif label == "lstm":
             lstm_appeared = True
-            layer = params.layers.add()
-            layer.type = LayerParams.LSTM
-            layer.lstm_direction = LayerParams.BIDIRECTIONAL_LSTM
-            layer.hidden_nodes = int(value)
+            model_params.layers.append(LayerParams(
+                type=LayerType.LSTM,
+                lstm_direction=LSTMDirection.Bidirectional,
+                hidden_nodes=int(value)
+            ))
         elif label == 'concat':
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
@@ -57,9 +56,12 @@ def network_params_from_definition_string(str, params):
                 raise Exception("Concat structure needs: concat=[index0]:[index1] but got concat={}".format(value))
 
             match = match.groups()
-            layer = params.layers.add()
-            layer.type = LayerParams.CONCAT
-            layer.concat_indices[:] = list(map(int, match))
+            model_params.layers.append(
+                LayerParams(
+                    type=LayerType.Concat,
+                    concat_indices=list(map(int, match))
+                )
+            )
         elif label == "db":
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
@@ -75,14 +77,13 @@ def network_params_from_definition_string(str, params):
             if match[4] is not None:
                 kernel_size = [int(match[3]), int(match[5])]
 
-            layer = params.layers.add()
-            layer.type = LayerParams.DILATED_BLOCK
-            layer.filters = int(match[0])
-            layer.dilated_depth = int(match[1])
-            layer.kernel_size.x = kernel_size[0]
-            layer.kernel_size.y = kernel_size[1]
-            layer.stride.x = 1
-            layer.stride.y = 1
+            model_params.layers.append(LayerParams(
+                type=LayerType.DilatedBlock,
+                filters=int(match[0]),
+                dilated_depth=int(match[1]),
+                kernel_size=IntVec2D(*kernel_size),
+                stride=IntVec2D(1, 1),
+            ))
         elif label == "cnn":
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
@@ -98,13 +99,12 @@ def network_params_from_definition_string(str, params):
             if match[3] is not None:
                 kernel_size = [int(match[2]), int(match[4])]
 
-            layer = params.layers.add()
-            layer.type = LayerParams.CONVOLUTIONAL
-            layer.filters = int(match[0])
-            layer.kernel_size.x = kernel_size[0]
-            layer.kernel_size.y = kernel_size[1]
-            layer.stride.x = 1
-            layer.stride.y = 1
+            model_params.layers.append(LayerParams(
+                type=LayerType.Convolutional,
+                filters=int(match[0]),
+                kernel_size=IntVec2D(*kernel_size),
+                stride=IntVec2D(1, 1),
+            ))
         elif label == "tcnn":
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
@@ -121,13 +121,12 @@ def network_params_from_definition_string(str, params):
             if match[3] is not None:
                 stride = [int(match[2]), int(match[4])]
 
-            layer = params.layers.add()
-            layer.type = LayerParams.TRANSPOSED_CONVOLUTIONAL
-            layer.filters = int(match[0])
-            layer.kernel_size.x = kernel_size[0]
-            layer.kernel_size.y = kernel_size[1]
-            layer.stride.x = stride[0]
-            layer.stride.y = stride[1]
+            model_params.layers.append(LayerParams(
+                type=LayerType.TransposedConv,
+                filters=int(match[0]),
+                kernel_size=IntVec2D(*kernel_size),
+                stride=IntVec2D(*stride),
+            ))
         elif label == "pool":
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
@@ -145,13 +144,10 @@ def network_params_from_definition_string(str, params):
             else:
                 stride = kernel_size
 
-            layer = params.layers.add()
-            layer.type = LayerParams.MAX_POOLING
-            layer.kernel_size.x = kernel_size[0]
-            layer.kernel_size.y = kernel_size[1]
-            layer.stride.x = stride[0]
-            layer.stride.y = stride[1]
+            model_params.layers.append(LayerParams(
+                type=LayerType.MaxPooling,
+                kernel_size=IntVec2D(*kernel_size),
+                stride=IntVec2D(*stride),
+            ))
         else:
             raise Exception("Unknown layer with name: {}".format(label))
-
-    return params
