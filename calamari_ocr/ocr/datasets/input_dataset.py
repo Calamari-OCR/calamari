@@ -1,3 +1,5 @@
+from random import shuffle
+
 from .dataset import DataSet, DataSetMode, RawDataSet
 from calamari_ocr.ocr.data_processing import DataPreprocessor
 from calamari_ocr.ocr.text_processing import TextProcessor
@@ -214,14 +216,16 @@ class RawInputDataset(InputDataset):
                 # train mode wont generate parameters
                 if self._generate_only_non_augmented.value:
                     # preloaded datas are ordered: first original data, then data augmented, however,
-                    # preloaded params store the 'length' of the non augmented data
-                    # thus, only orignal data is yielded
-                    for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
-                        yield data, text, None
+                    # preloaded params store the number of of the non augmented data
+                    # thus, only orignal data is yielded by applying zip
+                    data = list(zip(self.preloaded_datas, self.preloaded_texts, [None] * len(self.preloaded_params)))
                 else:
                     # yield all data, however no params
-                    for data, text in zip(self.preloaded_datas, self.preloaded_texts):
-                        yield data, text, None
+                    data = list(zip(self.preloaded_datas, self.preloaded_texts, [None] * len(self.preloaded_datas)))
+
+                shuffle(data)
+                for d in data:
+                    yield d
             else:
                 # all other modes generate everything we got, but does not support data augmentation
                 for data, text, params in zip(self.preloaded_datas, self.preloaded_texts, self.preloaded_params):
