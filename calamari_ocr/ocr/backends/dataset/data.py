@@ -14,7 +14,7 @@ from calamari_ocr.utils.multiprocessing import tqdm_wrapper
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 from calamari_ocr.ocr.datasets.datasetype import DataSetMode, DataSetType
 from calamari_ocr.ocr.backends.dataset.datareader import FileDataReader, DataReader, RawDataReader
-from calamari_ocr.ocr.backends.dataset.data_types import InputSample, CalamariDataParams, PreparedSample
+from calamari_ocr.ocr.backends.dataset.data_types import InputSample, CalamariDataParams, PreparedSample, SampleMeta
 from calamari_ocr.ocr.backends.dataset.preproc_pipeline import PreprocPipeline, PreprocWorkerParams
 from calamari_ocr.proto import CheckpointParams
 from calamari_ocr.utils import split_all_ext
@@ -76,8 +76,8 @@ class CalamariData(DataBase):
             output_shapes=(tf.float32, tf.int32, tf.int32)
         ).map(CalamariData.group_predict)
 
-    def get_unprepared_train_data(self, text_only=False) -> Generator[InputSample, None, None]:
-        return self._input_sample_generator(self.train_reader, text_only, self.params().train_num_processes, self.params().train_limit)
+    def get_unprepared_train_data(self, text_only=False, epochs=1, no_augmentations=False) -> Generator[InputSample, None, None]:
+        return self._input_sample_generator(self.train_reader, text_only, self.params().train_num_processes, self.params().train_limit, epochs, no_augmentations)
 
     def get_unprepared_val_data(self, text_only=False) -> Generator[InputSample, None, None]:
         return self._input_sample_generator(self.val_reader, text_only, self.params().val_num_processes, self.params().val_limit)
@@ -85,19 +85,19 @@ class CalamariData(DataBase):
     def _get_unprepared_predict_data(self) -> Generator[InputSample, None, None]:
         return self._input_sample_generator(self.predict_reader, False, self.params().val_num_processes, self.params().val_limit)
 
-    def _input_sample_generator(self, reader: DataReader, text_only, processes, limit) -> Generator[InputSample, None, None]:
+    def _input_sample_generator(self, reader: DataReader, text_only, processes, limit, epochs=1, no_augmentations=False) -> Generator[InputSample, None, None]:
         if self.params().raw_dataset:
-            return reader.generate(text_only)
+            return reader.generate(text_only, epochs)
 
         pp_params = PreprocWorkerParams(
             self._params,
             self._params.text_processor,
             self._params.data_processor,
-            self._params.data_augmenter if reader.mode == DataSetMode.TRAIN else None,
+            self._params.data_augmenter if reader.mode == DataSetMode.TRAIN and not no_augmentations else None,
             self._params.data_aug_params,
             reader.mode,
         )
-        pipeline = PreprocPipeline(reader.generate(text_only), pp_params,
+        pipeline = PreprocPipeline(reader.generate(text_only, epochs), pp_params,
                                    data=self, limit=limit, processes=processes)
         return pipeline.output_generator()
 
@@ -152,11 +152,24 @@ class CalamariData(DataBase):
             return self
 
         with self:
-            def generate_raw(reader: DataReader, dataset: Iterator[InputSample], label: str):
+            def generate_raw(reader: DataReader, dataset: Iterator[InputSample], label: str, processes: int):
                 samples = [sample.to_tuple() for sample in
                            tqdm_wrapper(dataset, total=len(reader), desc=f"Preloading {label} data set",
                                         progress_bar=progress_bar) if sample]
-                return RawDataReaderFactory(RawDataReader(reader.mode, *tuple(zip(*samples))))
+
+                datas, texts, metas = tuple(zip(*samples))
+                # TODO: old also PRED_AND_EVAL
+                if not self._params.data_aug_params.no_augs() and reader.mode in [DataSetMode.TRAIN]:
+                    abs_n_augs = self._params.data_aug_params.to_abs()
+                    datas, texts \
+                        = self._params.data_augmenter.augment_datas(datas, texts, n_augmentations=abs_n_augs,
+                                                                    processes=processes, progress_bar=progress_bar)
+                    metas += tuple(SampleMeta(f'aug_{i}', None, True) for i in range(len(datas) - len(metas)))
+
+                assert(len(datas) == len(texts))
+                assert(len(texts) == len(metas))
+
+                return RawDataReaderFactory(RawDataReader(reader.mode, datas, texts, metas))
 
             params: CalamariDataParams = CalamariDataParams.from_dict(self._params.to_dict())
             params.raw_dataset = True
@@ -164,11 +177,11 @@ class CalamariData(DataBase):
             params.text_processor = None
             params.data_processor = None
             params.train_reader = generate_raw(self.train_reader, self.get_unprepared_train_data(),
-                                               "training") if self.train_reader else None
+                                               "training", self._params.train_num_processes) if self.train_reader else None
             params.val_reader = generate_raw(self.val_reader, self.get_unprepared_val_data(),
-                                             "validation") if self.val_reader else None
+                                             "validation", self._params.val_num_processes) if self.val_reader else None
             params.predict_reader = generate_raw(self.predict_reader, self._get_unprepared_predict_data(),
-                                                 "prediction") if self.predict_reader else None
+                                                 "prediction", self._params.val_num_processes) if self.predict_reader else None
             return CalamariData(
                 params,
             )

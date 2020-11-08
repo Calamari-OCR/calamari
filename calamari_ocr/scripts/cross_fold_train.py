@@ -1,8 +1,9 @@
 import argparse
 import json
 
-from calamari_ocr.ocr import CrossFoldTrainer
-from calamari_ocr.scripts.train import setup_train_args, DataSetType, create_train_dataset
+from calamari_ocr.ocr import CrossFoldTrainer, DataSetMode
+from calamari_ocr.ocr.backends.dataset.datareader.factory import FileDataReaderArgs, FileDataReaderFactory
+from calamari_ocr.scripts.train import setup_train_args, DataSetType
 
 
 def main(args=None):
@@ -65,11 +66,19 @@ def main(args=None):
                 else:
                     setattr(args, key, value)
 
-    dataset = create_train_dataset(args)
+    dataset_args = FileDataReaderArgs(
+        line_generator_params=args.line_generator_params,
+        text_generator_params=args.text_generator_params,
+        pad=args.dataset_pad,
+        text_index=args.pagexml_text_index,
+    )
+    train_reader = FileDataReaderFactory(args.dataset, DataSetMode.TRAIN,
+                                         args.files, args.text_files,
+                                         not args.no_skip_invalid_gt, args.gt_extension, dataset_args).create()
 
     trainer = CrossFoldTrainer(
         n_folds=args.n_folds,
-        dataset=dataset,
+        data_reader=train_reader,
         best_models_dir=args.best_models_dir,
         best_model_label=args.best_model_label,
         train_args=vars(args),

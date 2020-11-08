@@ -76,6 +76,7 @@ class CalamariDataParams(DataBaseParams):
 class SampleMeta:
     id: str
     preproc_info: Optional[Any] = None
+    augmented: bool = False
 
 
 @dataclass

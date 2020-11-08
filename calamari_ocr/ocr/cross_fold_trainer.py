@@ -35,13 +35,13 @@ def train_individual_model(run_args):
 
 
 class CrossFoldTrainer:
-    def __init__(self, n_folds, dataset,
+    def __init__(self, n_folds, data_reader,
                  best_models_dir, best_model_label,
                  train_args,
                  progress_bars=False,
                  ):
         self.n_folds = n_folds
-        self.dataset = dataset
+        self.data_reader = data_reader
         self.best_models_dir = best_models_dir
         self.best_model_label = best_model_label
         self.progress_bars = progress_bars
@@ -98,7 +98,7 @@ class CrossFoldTrainer:
 
         # Compute the files in the cross fold (create a CrossFold)
         fold_file = os.path.join(temporary_dir, "folds.json")
-        cross_fold = CrossFold(n_folds=self.n_folds, dataset=self.dataset, output_dir=temporary_dir,
+        cross_fold = CrossFold(n_folds=self.n_folds, data_reader=self.data_reader, output_dir=temporary_dir,
                                progress_bar=self.progress_bars
                                )
         cross_fold.write_folds_to_json(fold_file)

@@ -47,7 +47,7 @@ class DataAugmenter(ABC):
 
         out = parallel_map(self.augment_data_tuple, list(zip(datas, gt_txts, [n_augmentations] * len(datas))),
                            desc="Augmentation", processes=processes, progress_bar=progress_bar)
-        out_d, out_t = [], []
+        out_d, out_t = type(datas)(), type(datas)()
         for d, t in out:
             out_d += d
             out_t += t

@@ -96,8 +96,12 @@ class DataReader(ABC):
         # either store text or store (e. g. if all predictions must be written at the same time
         pass
 
-    def generate(self, text_only=False) -> Generator[InputSample, None, None]:
-        while True:
+    def generate(self, text_only=False, epochs=1) -> Generator[InputSample, None, None]:
+        if self.auto_repeat:
+            epochs = -1
+
+        while epochs != 0:
+            epochs -= 1
             if self.mode == DataSetMode.TRAIN:
                 # no pred_and_eval bc it's shuffle
                 shuffle(self._samples)
@@ -106,9 +110,6 @@ class DataReader(ABC):
                 for raw_sample in self._load_sample(sample, text_only):
                     assert isinstance(raw_sample, InputSample)
                     yield raw_sample
-
-            if not self.auto_repeat:
-                break
 
     @abstractmethod
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:

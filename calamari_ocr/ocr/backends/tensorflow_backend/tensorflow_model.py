@@ -156,7 +156,8 @@ class CalamariGraph(GraphBase):
         lstm_seq_len, lstm_num_features = shape
         lstm_seq_len = K.cast(lstm_seq_len, 'int32')
         ds = K.shape(last_layer_output)
-        last_layer_output = K.reshape(last_layer_output, (ds[0], ds[1], ds[2] * ds[3]))
+        ss = last_layer_output.shape
+        last_layer_output = K.reshape(last_layer_output, (ds[0], ds[1], ss[2] * ss[3]))
 
         if len(self.lstm_layers) > 0:
             for lstm_params, lstm_layer in self.lstm_layers:
