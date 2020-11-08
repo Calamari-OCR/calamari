@@ -1,17 +1,23 @@
 import copy
+from typing import Type
 
+from tfaip.base.data.pipeline.definitions import PipelineMode
 from tfaip.base.trainer import Trainer
-from calamari_ocr.ocr import Codec, Checkpoint, DataSetMode
+from calamari_ocr.ocr import Codec, Checkpoint
 from calamari_ocr.ocr.backends import create_backend_from_checkpoint
 from calamari_ocr.proto.params import TrainerParams, ModelParams
 import time
 
 from calamari_ocr.utils import checkpoint_path
 
-from calamari_ocr.ocr.backends.dataset.data import CalamariDataParams, CalamariData
+from calamari_ocr.ocr.backends.dataset.data import CalamariData
 
 
 class CalamariTrainer(Trainer):
+    @staticmethod
+    def get_params_cls() -> Type[TrainerParams]:
+        return TrainerParams
+
     def __init__(self, params: TrainerParams, scenario, restore=False):
         """Train a DNN using given preprocessing, weights, and data
 
@@ -30,9 +36,13 @@ class CalamariTrainer(Trainer):
         """
         super(CalamariTrainer, self).__init__(params, scenario, restore)
         self._params: TrainerParams = params
+        if self._params.checkpoint_save_freq_ < 0:
+            self._params.checkpoint_save_freq_ = self._params.early_stopping_params.frequency
         self._params.warmstart_params.model = checkpoint_path(self._params.warmstart_params.model) if self._params.warmstart_params.model else None
-        if not self._params.scenario_params.data_params.train_reader:
-            raise ValueError("Training data factory was not provided")
+        self.checkpoint = None
+        if self._params.warmstart_params.model:
+            self.checkpoint = Checkpoint(self._params.warmstart_params.model)
+            self._params.warmstart_params.model = self.checkpoint.ckpt_path + '.h5'
 
     def train(self, callbacks=None):
         # TODO log total training time
@@ -42,21 +52,30 @@ class CalamariTrainer(Trainer):
         self.scenario.data = self.scenario.create_data()
         data: CalamariData = self.scenario.data
         model: ModelParams = self.scenario.params.model_params
-        if len(data.train_reader) == 0:
+
+        train_pipeline = data.get_pipeline(PipelineMode.Training, data.params().train)
+        if len(train_pipeline) == 0:
             raise Exception("Training dataset is empty.")
 
-        if data.val_reader and len(data.val_reader) == 0:
-            raise Exception("Validation dataset is empty. Provide valid validation data for early stopping.")
+        if data.params().val:
+            val_pipeline = data.get_pipeline(PipelineMode.Evaluation, data.params().val)
+            if len(val_pipeline) == 0:
+                raise Exception("Validation dataset is empty. Provide valid validation data for early stopping.")
+        else:
+            val_pipeline = None
 
         if self._params.preload_training:
-            data = self.scenario.data = self.scenario.create_data().to_raw_dataset(progress_bar=self._params.progress_bar)
+            # preload after codec was created
+            # TODO: progress bar
+            data.preload()
 
         # compute the codec
         codec = data.params().codec
         if not codec:
             if len(self._params.codec_whitelist) == 0 or self._params.auto_compute_codec:
-                codec = Codec.from_input_dataset(filter(lambda x: x, [data.train_reader, data.val_reader]),
-                                                 whitelist=self._params.codec_whitelist, progress_bar=self._params.progress_bar)
+                with data:
+                    codec = Codec.from_input_dataset(filter(lambda x: x, [train_pipeline, val_pipeline]),
+                                                     whitelist=self._params.codec_whitelist, progress_bar=self._params.progress_bar)
             else:
                 codec = Codec.from_texts([], whitelist=self._params.codec_whitelist)
 
@@ -64,12 +83,12 @@ class CalamariTrainer(Trainer):
         data.params().downscale_factor_ = model.compute_downscale_factor()
         model.classes = codec.size()
 
-        if not data.val_reader:
+        if not val_pipeline:
+            # TODO: Make this optional
             # A val reader is required, copy train dataset but in pred and eval mode
-            data.val_reader = copy.copy(data.train_reader)
-            data.val_reader.mode = DataSetMode.PRED_AND_EVAL
+            data._pipelines[PipelineMode.Evaluation] = train_pipeline.to_mode(PipelineMode.Evaluation)
+            data.params().val = data.params().train
 
-        data.train_reader.auto_repeat = True
         super(CalamariTrainer, self).train(callbacks=callbacks)
 
         if False:

@@ -3,15 +3,16 @@ import json
 from contextlib import ExitStack
 from typing import List
 
+from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
+
 from calamari_ocr.ocr.backends.dataset.data_types import InputSample
-from calamari_ocr.ocr.backends.dataset.datareader import DataReader, FileDataReader
+from calamari_ocr.ocr.backends.dataset.datareader.file import FileDataReader
 from calamari_ocr.ocr.backends.dataset.datareader.hdf5.hdf5_dataset_writer import Hdf5DatasetWriter
-from calamari_ocr.utils import tqdm_wrapper
 from calamari_ocr.ocr.datasets import DataSetType
 
 
 class CrossFold:
-    def __init__(self, n_folds: int, data_reader: DataReader, output_dir: str, progress_bar=True,
+    def __init__(self, n_folds: int, data_reader, output_dir: str, progress_bar=True,
                  ):
         """ Prepare cross fold training
 

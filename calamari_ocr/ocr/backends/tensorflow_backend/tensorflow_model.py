@@ -45,8 +45,8 @@ class CalamariGraph(GraphBase):
     def params_cls(cls):
         return ModelParams
 
-    def __init__(self, params: ModelParams):
-        super(CalamariGraph, self).__init__(params)
+    def __init__(self, params: ModelParams, name='CalamariGraph', **kwargs):
+        super(CalamariGraph, self).__init__(params, name=name, **kwargs)
 
         self.conv_layers: List[Tuple[LayerParams, tf.keras.layers.Layer]] = []
         self.lstm_layers: List[Tuple[LayerParams, tf.keras.layers.Layer]] = []
@@ -100,7 +100,7 @@ class CalamariGraph(GraphBase):
                 raise Exception("Unknown layer of type %s" % layer.type)
 
         for layer_index, layer in enumerate([l for l in params.layers if l.type == LayerType.LSTM]):
-            self.lstm_layers.append((layer, KL.Bidirectional(KL.LSTM(
+            lstm = KL.LSTM(
                 units=layer.hidden_nodes,
                 activation='tanh',
                 recurrent_activation='sigmoid',
@@ -109,7 +109,11 @@ class CalamariGraph(GraphBase):
                 use_bias=True,
                 return_sequences=True,
                 unit_forget_bias=True,
-            ),
+                name=f'lstm_{layer_index}'
+            )
+            self.lstm_layers.append((layer, KL.Bidirectional(
+                lstm,
+                name='bidirectional',
                 merge_mode='concat',
             )))
 
@@ -173,15 +177,20 @@ class CalamariGraph(GraphBase):
         logits = self.logits(last_layer_output)
         softmax = self.softmax(logits)
 
-        greedy_decoded = ctc.ctc_greedy_decoder(inputs=array_ops.transpose(logits, perm=[1, 0, 2]),
+        blank_last_logits = tf.roll(logits, shift=-1, axis=-1)
+        blank_last_softmax = tf.nn.softmax(blank_last_logits)
+
+        greedy_decoded = ctc.ctc_greedy_decoder(inputs=array_ops.transpose(blank_last_logits, perm=[1, 0, 2]),
                                                 sequence_length=tf.cast(K.flatten(lstm_seq_len),
                                                                         'int32'))[0][0]
 
         return {
+            'blank_last_logits': blank_last_logits,
+            'blank_last_softmax': blank_last_softmax,
             'out_len': lstm_seq_len,
             'logits': logits,
             'softmax': softmax,
-            'decoded': tf.sparse.to_dense(greedy_decoded, default_value=-1)
+            'decoded': tf.sparse.to_dense(greedy_decoded, default_value=-1) + 1
         }
 
 
@@ -189,6 +198,10 @@ class CalamariModel(ModelBase):
     @staticmethod
     def get_params_cls() -> Type[ModelBaseParams]:
         return ModelParams
+
+    @classmethod
+    def _get_additional_layers(cls) -> List[Type[tf.keras.layers.Layer]]:
+        return [CalamariGraph]
 
     def __init__(self, params: ModelParams):
         super(CalamariModel, self).__init__(params)
@@ -205,17 +218,15 @@ class CalamariModel(ModelBase):
             return K.expand_dims(K.flatten(x), axis=-1)
 
         # note: blank is last index
-        loss = KL.Lambda(lambda args: K.ctc_batch_cost(args[0] - 1, tf.roll(args[1], shift=-1, axis=-1), args[2], args[3]), name='ctc')(
-            (inputs['gt'], outputs['softmax'], to_2d_list(outputs['out_len']), to_2d_list(inputs['gt_len'])))
+        loss = KL.Lambda(lambda args: K.ctc_batch_cost(args[0] - 1, args[1], args[2], args[3]), name='ctc')(
+            (inputs['gt'], outputs['blank_last_softmax'], to_2d_list(outputs['out_len']), to_2d_list(inputs['gt_len'])))
         return {
             'loss': loss
         }
 
     def _extended_metric(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
-        def create_cer(logits, output_seq_len, targets, targets_length):
-            greedy_decoded = ctc.ctc_greedy_decoder(inputs=array_ops.transpose(logits, perm=[1, 0, 2]),
-                                                    sequence_length=tf.cast(K.flatten(output_seq_len),
-                                                                            'int32'))[0][0]
+        def create_cer(decoded, targets, targets_length):
+            greedy_decoded = tf.sparse.from_dense(decoded)
             sparse_targets = tf.cast(K.ctc_label_dense_to_sparse(targets, math_ops.cast(
                 K.flatten(targets_length), dtype='int32')), 'int32')
             return tf.edit_distance(tf.cast(greedy_decoded, tf.int32), sparse_targets, normalize=True)
@@ -223,7 +234,7 @@ class CalamariModel(ModelBase):
         # Note for codec change: the codec size is derived upon creation, therefore the ctc ops must be created
         # using the true codec size (the W/B-Matrix may change its shape however during loading/codec change
         # to match the true codec size
-        cer = KL.Lambda(lambda args: create_cer(*args), output_shape=(1,), name='cer')((outputs['logits'], outputs['out_len'], inputs['gt'], inputs['gt_len']))
+        cer = KL.Lambda(lambda args: create_cer(*args), output_shape=(1,), name='cer')((outputs['decoded'], inputs['gt'], inputs['gt_len']))
         return {
             'CER': cer,
         }

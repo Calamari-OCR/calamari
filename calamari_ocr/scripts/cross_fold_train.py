@@ -1,8 +1,12 @@
 import argparse
 import json
 
-from calamari_ocr.ocr import CrossFoldTrainer, DataSetMode
-from calamari_ocr.ocr.backends.dataset.datareader.factory import FileDataReaderArgs, FileDataReaderFactory
+from tfaip.base.data.pipeline.definitions import PipelineMode
+
+from calamari_ocr.ocr import CrossFoldTrainer
+from calamari_ocr.ocr.backends.dataset import CalamariData
+from calamari_ocr.ocr.backends.dataset.data_types import CalamariPipelineParams
+from calamari_ocr.ocr.backends.dataset.datareader.factory import FileDataReaderArgs, data_reader_from_params
 from calamari_ocr.scripts.train import setup_train_args, DataSetType
 
 
@@ -72,13 +76,22 @@ def main(args=None):
         pad=args.dataset_pad,
         text_index=args.pagexml_text_index,
     )
-    train_reader = FileDataReaderFactory(args.dataset, DataSetMode.TRAIN,
-                                         args.files, args.text_files,
-                                         not args.no_skip_invalid_gt, args.gt_extension, dataset_args).create()
+    train_params = CalamariPipelineParams(
+        type=args.dataset,
+        skip_invalid=not args.no_skip_invalid_gt,
+        remove_invalid=True,
+        files=args.files,
+        text_files=args.text_files,
+        gt_extension=args.gt_extension if args.gt_extension else DataSetType.gt_extension(args.dataset),
+        data_reader_args=dataset_args,
+        batch_size=args.batch_size,
+        num_processes=args.num_threads,
+    )
+    reader = data_reader_from_params(PipelineMode.Training, train_params)
 
     trainer = CrossFoldTrainer(
         n_folds=args.n_folds,
-        data_reader=train_reader,
+        data_reader=reader,
         best_models_dir=args.best_models_dir,
         best_model_label=args.best_model_label,
         train_args=vars(args),

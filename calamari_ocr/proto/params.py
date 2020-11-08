@@ -1,12 +1,14 @@
 from dataclasses import dataclass, field
-from typing import List, Any, Optional
+from typing import List, Any
 
 from dataclasses_json import dataclass_json
-from tfaip.base.data.data_base_params import DataBaseParams
 from tfaip.base.model import ModelBaseParams
 
 from tfaip.base.trainer.trainer import TrainerParams as TfaipTrainerParams
 from tfaip.util.enum import StrEnum
+
+from calamari_ocr.ocr import Checkpoint
+
 
 @dataclass_json
 @dataclass
@@ -18,7 +20,7 @@ class IntVec2D:
 @dataclass_json
 @dataclass
 class TrainerParams(TfaipTrainerParams):
-    version: int = -1  # TODO correct version
+    version: int = Checkpoint.VERSION
 
     skip_invalid_gt: bool = True
     stats_size: int = -1

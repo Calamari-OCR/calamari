@@ -2,36 +2,23 @@ import codecs
 import os
 import numpy as np
 from PIL import Image
+from tfaip.base.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr.backends.dataset.data_types import InputSample, SampleMeta
-from calamari_ocr.ocr.datasets.datasetype import DataSetMode
-
 from calamari_ocr.ocr.backends.dataset.datareader.base import DataReader
+
 from calamari_ocr.utils import split_all_ext
 
 
 class FileDataReader(DataReader):
     def __init__(self,
-                 mode: DataSetMode,
+                 mode: PipelineMode,
                  images=None, texts=None,
                  skip_invalid=False, remove_invalid=True,
                  non_existing_as_empty=False):
         """ Create a dataset from a list of files
 
         Images or texts may be empty to create a dataset for prediction or evaluation only.
-
-        Parameters
-        ----------
-        images : list of str, optional
-            image files
-        texts : list of str, optional
-            text files
-        skip_invalid : bool, optional
-            skip invalid files
-        remove_invalid : bool, optional
-            remove invalid files
-        non_existing_as_empty : bool, optional
-            tread non existing files as empty. This is relevant for evaluation a dataset
         """
         super().__init__(mode,
                          skip_invalid=skip_invalid,
@@ -44,10 +31,10 @@ class FileDataReader(DataReader):
         # when evaluating, only texts are set via --gt argument      --> need dummy [None] imgs
         # when predicting, only imags are set via --files  argument  --> need dummy [None] texts
 
-        if (mode == DataSetMode.PREDICT or mode == DataSetMode.PRED_AND_EVAL) and not texts:
+        if (mode == PipelineMode.Prediction or mode == PipelineMode.Evaluation) and not texts:
             texts = [None] * len(images)
 
-        if (mode == DataSetMode.EVAL or mode == DataSetMode.PRED_AND_EVAL) and not images:
+        if (mode == PipelineMode.Targets or mode == PipelineMode.Evaluation) and not images:
             images = [None] * len(texts)
 
         for image, text in zip(images, texts):

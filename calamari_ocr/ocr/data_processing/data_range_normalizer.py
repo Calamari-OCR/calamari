@@ -1,16 +1,10 @@
 import numpy as np
-from calamari_ocr.ocr.data_processing.data_preprocessor import DataPreprocessor
+
+from calamari_ocr.ocr.data_processing.data_preprocessor import ImageProcessor
 
 
-class DataRangeNormalizer(DataPreprocessor):
-    @staticmethod
-    def from_dict(d: dict):
-        return DataRangeNormalizer()
-
-    def __init__(self):
-        super().__init__()
-
-    def _apply_single(self, data: np.ndarray):
+class DataRangeNormalizer(ImageProcessor):
+    def _apply_single(self, data: np.ndarray, meta):
         """
         Read an image and returns it as a floating point array.
         The optional page number allows images from files containing multiple
@@ -36,4 +30,4 @@ class DataRangeNormalizer(DataPreprocessor):
         if data.ndim == 3:
             data = np.mean(data, axis=2)
 
-        return data, None
+        return data

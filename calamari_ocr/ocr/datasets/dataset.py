@@ -12,8 +12,6 @@ from random import shuffle
 
 import logging
 
-from calamari_ocr.ocr.datasets.datasetype import DataSetMode
-
 logger = logging.getLogger(__name__)
 
 
@@ -91,7 +89,7 @@ class DatasetGenerator:
 
 
 class DataSet(ABC):
-    def __init__(self, mode: DataSetMode, skip_invalid=False, remove_invalid=True):
+    def __init__(self, mode, skip_invalid=False, remove_invalid=True):
         """ Dataset that stores a list of raw images and corresponding labels.
 
         Parameters
@@ -198,7 +196,7 @@ class RawDataSetGenerator(DatasetGenerator):
 
 
 class RawDataSet(DataSet):
-    def __init__(self, mode: DataSetMode, images=None, texts=None):
+    def __init__(self, mode, images=None, texts=None):
         """ Create a dataset from memory
 
         Since this dataset already contains all data in the memory, this dataset may not be loaded

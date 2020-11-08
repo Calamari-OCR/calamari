@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from PIL import Image
+from tfaip.base.data.pipeline.definitions import PipelineMode, inputs_pipeline_modes, targets_pipeline_modes
 from tqdm import tqdm
 from lxml import etree
 from skimage.draw import polygon
@@ -8,9 +9,8 @@ from skimage.transform import rotate
 from typing import List, Generator
 
 from calamari_ocr.ocr.backends.dataset.data_types import InputSample, SampleMeta
-from calamari_ocr.ocr.backends.dataset.datareader import DataReader
+from calamari_ocr.ocr.backends.dataset.datareader.base import DataReader
 from calamari_ocr.ocr.backends.dataset.datareader.factory import FileDataReaderArgs
-from calamari_ocr.ocr.datasets import DataSetMode
 from calamari_ocr.utils import split_all_ext, filename
 
 import logging
@@ -28,7 +28,7 @@ def xml_attr(elem, ns, label, default=None):
 
 
 class PageXMLDatasetLoader:
-    def __init__(self, mode: DataSetMode, non_existing_as_empty: bool, text_index: int, skip_invalid: bool=True):
+    def __init__(self, mode: PipelineMode, non_existing_as_empty: bool, text_index: int, skip_invalid: bool=True):
         self.mode = mode
         self._non_existing_as_empty = non_existing_as_empty
         self.root = None
@@ -45,7 +45,7 @@ class PageXMLDatasetLoader:
         root = etree.parse(xml).getroot()
         self.root = root
 
-        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.EVAL or self.mode == DataSetMode.PRED_AND_EVAL:
+        if self.mode in targets_pipeline_modes:
             return self._samples_gt_from_book(root, img, skip_commented, xml)
         else:
             return self._samples_from_book(root, img, xml)
@@ -55,7 +55,7 @@ class PageXMLDatasetLoader:
         ns = {"ns": root.nsmap[None]}
         imgfile = root.xpath('//ns:Page',
                              namespaces=ns)[0].attrib["imageFilename"]
-        if (self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL) and not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
+        if (self.mode in {PipelineMode.Training, PipelineMode.Evaluation}) and not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
             raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
                 img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
 
@@ -142,7 +142,7 @@ class PageXMLDatasetLoader:
 
 class PageXMLReader(DataReader):
     def __init__(self,
-                 mode: DataSetMode,
+                 mode: PipelineMode,
                  files,
                  xmlfiles: List[str] = None,
                  skip_invalid=False,
@@ -266,14 +266,14 @@ class PageXMLReader(DataReader):
         image_path, xml_path = sample
 
         img = None
-        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
+        if self.mode in inputs_pipeline_modes:
             img = np.array(Image.open(image_path))
 
         for sample in loader.load(image_path, xml_path):
             text = sample["text"]
             orientation = sample["orientation"]
 
-            if not text_only and (self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL):
+            if not text_only and self.mode in inputs_pipeline_modes:
                 ly, lx = img.shape[:2]
 
                 line_img = PageXMLReader.cutout(img, sample['coords'], lx / sample['img_width'])

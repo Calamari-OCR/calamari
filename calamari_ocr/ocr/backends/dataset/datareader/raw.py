@@ -1,12 +1,10 @@
-from typing import Generator, Tuple, Union
-import numpy as np
+from typing import Generator
 
-from calamari_ocr.ocr.datasets.datasetype import DataSetMode
 from calamari_ocr.ocr.backends.dataset.data_types import SampleMeta, InputSample
-from calamari_ocr.ocr.backends.dataset.datareader.base import DataReader
+from calamari_ocr.ocr.backends.dataset.datareader.base import CalamariDataPipeline
 
 
-class RawDataReader(DataReader):
+class RawDataReader(CalamariDataPipeline):
     def __init__(self, mode: DataSetMode, images=None, texts=None, meta=None):
         """ Create a dataset from memory
 

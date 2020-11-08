@@ -1,18 +1,18 @@
 import numpy as np
-from calamari_ocr.ocr.data_processing.data_preprocessor import DataPreprocessor
-from calamari_ocr.proto import DataPreprocessorParams
+from calamari_ocr.ocr.data_processing.data_preprocessor import ImageProcessor
 
 
-class FinalPreparation(DataPreprocessor):
-    def to_dict(self) -> dict:
-        d = super(FinalPreparation, self).to_dict()
-        d['normalize'] = self.normalize
-        d['invert'] = self.invert
-        d['transpose'] = self.transpose
-        d['pad'] = self.pad
-        d['pad_value'] = self.pad_value
-        d['as_uint8'] = self.as_uint8
-        return d
+class FinalPreparation(ImageProcessor):
+    @staticmethod
+    def default_params() -> dict:
+        return {
+            'normalize': True,
+            'invert': True,
+            'transpose': True,
+            'pad': 0,
+            'pad_value': False,
+            'as_uint8': True,
+        }
 
     def __init__(self,
                  normalize,
@@ -20,8 +20,9 @@ class FinalPreparation(DataPreprocessor):
                  transpose,
                  pad,
                  pad_value,
-                 as_uint8=True):
-        super().__init__()
+                 as_uint8=True,
+                 **kwargs):
+        super().__init__(**kwargs)
         self.normalize = normalize
         self.invert = invert
         self.transpose = transpose
@@ -29,7 +30,7 @@ class FinalPreparation(DataPreprocessor):
         self.pad_value = pad_value
         self.as_uint8 = as_uint8            # To save memory!
 
-    def _apply_single(self, data):
+    def _apply_single(self, data, meta):
         if self.normalize:
             amax = np.amax(data)
             if amax > 0:
@@ -52,7 +53,7 @@ class FinalPreparation(DataPreprocessor):
         if self.as_uint8:
             data = (data * 255).astype(np.uint8)
 
-        return data, None
+        return data
 
     def local_to_global_pos(self, x, params):
         if self.pad > 0 and self.transpose:

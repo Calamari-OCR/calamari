@@ -1,26 +1,26 @@
 import numpy as np
 from scipy.ndimage import filters
-from calamari_ocr.ocr.data_processing.data_preprocessor import DataPreprocessor
+from calamari_ocr.ocr.data_processing.data_preprocessor import ImageProcessor
 from calamari_ocr.ocr.data_processing.scale_to_height_processor import ScaleToHeightProcessor
 
 
-class CenterNormalizer(DataPreprocessor):
-    def to_dict(self) -> dict:
-        d = super(CenterNormalizer, self).to_dict()
-        d['line_height'] = self.target_height
-        d['extra_params'] = (self.range, self.smoothness, self.extra)
-        d['debug'] = self.debug
-        return d
+class CenterNormalizer(ImageProcessor):
+    @staticmethod
+    def default_params() -> dict:
+        return {
+            'extra_params': (4, 1.0, 0.3),
+        }
 
-    def __init__(self, line_height=48, extra_params=(4, 1.0, 0.3), debug=False):
+    def __init__(self, extra_params=(4, 1.0, 0.3), debug=False, **kwargs):
+        super().__init__(**kwargs)
         self.debug = debug
-        self.target_height = line_height
+        self.target_height = self.params.line_height_
         self.range, self.smoothness, self.extra = extra_params
-        super().__init__()
 
-    def _apply_single(self, data):
+    def _apply_single(self, data, meta):
         out, params = self.normalize(data, cval=np.amax(data))
-        return out, params
+        meta['center'] = params
+        return out
 
     def set_height(self, target_height):
         self.target_height = target_height
@@ -76,6 +76,6 @@ class CenterNormalizer(DataPreprocessor):
         return scaled, (m1, m2, t)
 
     def local_to_global_pos(self, x, params):
-        m1, m2, t = params
+        m1, m2, t = params['center']
         return x / m1 / m2
 

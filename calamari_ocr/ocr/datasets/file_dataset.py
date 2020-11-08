@@ -4,11 +4,11 @@ from PIL import Image
 import numpy as np
 
 from calamari_ocr.utils import split_all_ext
-from .dataset import DataSet, DataSetMode, DatasetGenerator
+from .dataset import DataSet, DatasetGenerator
 
 
 class FileDataSetGenerator(DatasetGenerator):
-    def __init__(self, mp_context, output_queue, mode: DataSetMode, samples, non_existing_as_empty):
+    def __init__(self, mp_context, output_queue, mode, samples, non_existing_as_empty):
         super().__init__(mp_context, output_queue, mode, samples)
         self._non_existing_as_empty = non_existing_as_empty
 
@@ -55,7 +55,7 @@ class FileDataSetGenerator(DatasetGenerator):
 
 
 class FileDataSet(DataSet):
-    def __init__(self, mode: DataSetMode,
+    def __init__(self, mode,
                  images=None, texts=None,
                  skip_invalid=False, remove_invalid=True,
                  non_existing_as_empty=False):

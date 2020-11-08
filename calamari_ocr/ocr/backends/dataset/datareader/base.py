@@ -1,16 +1,16 @@
 import codecs
 import os
-from abc import ABC, abstractmethod
+from abc import abstractmethod, ABC
 from random import shuffle
 from typing import Generator
 import numpy as np
+from tfaip.base.data.pipeline.definitions import PipelineMode, InputTargetSample
 
 from calamari_ocr.ocr.backends.dataset.data_types import InputSample
-from calamari_ocr.ocr.datasets.datasetype import DataSetMode
 
 
 class DataReader(ABC):
-    def __init__(self, mode: DataSetMode, skip_invalid=False, remove_invalid=True):
+    def __init__(self, mode: PipelineMode, skip_invalid=False, remove_invalid=True):
         """ Dataset that stores a list of raw images and corresponding labels.
 
         Parameters
@@ -67,7 +67,7 @@ class DataReader(ABC):
         self._samples.append(sample)
 
     def is_sample_valid(self, sample, line, text):
-        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
+        if self.mode == PipelineMode.Prediction or self.mode == PipelineMode.Training or self.mode == PipelineMode.Evaluation:
             # skip invalid imanges (e. g. corrupted or empty files)
             if line is None or (line.size == 0 or np.amax(line) == np.amin(line)):
                 return False
@@ -96,20 +96,20 @@ class DataReader(ABC):
         # either store text or store (e. g. if all predictions must be written at the same time
         pass
 
-    def generate(self, text_only=False, epochs=1) -> Generator[InputSample, None, None]:
+    def generate(self, epochs=1) -> Generator[InputTargetSample, None, None]:
         if self.auto_repeat:
             epochs = -1
 
         while epochs != 0:
             epochs -= 1
-            if self.mode == DataSetMode.TRAIN:
+            if self.mode == PipelineMode.Training:
                 # no pred_and_eval bc it's shuffle
                 shuffle(self._samples)
 
             for sample in self._sample_iterator():
-                for raw_sample in self._load_sample(sample, text_only):
+                for raw_sample in self._load_sample(sample, text_only=self.mode == PipelineMode.Targets):
                     assert isinstance(raw_sample, InputSample)
-                    yield raw_sample
+                    yield raw_sample.to_input_target_sample()
 
     def _sample_iterator(self):
         return self._samples

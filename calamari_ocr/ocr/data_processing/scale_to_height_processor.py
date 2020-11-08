@@ -1,21 +1,22 @@
 import numpy as np
-from calamari_ocr.ocr.data_processing.data_preprocessor import DataPreprocessor
-from calamari_ocr.proto import DataPreprocessorParams
+
+from calamari_ocr.ocr.data_processing.data_preprocessor import ImageProcessor
 from scipy.ndimage import interpolation
 
 
-class ScaleToHeightProcessor(DataPreprocessor):
-    def __init__(self, data_preprocessor_params: DataPreprocessorParams):
-        super().__init__()
-        self.height = data_preprocessor_params.line_height
+class ScaleToHeightProcessor(ImageProcessor):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.height = self.params.line_height
 
-    def _apply_single(self, data):
+    def _apply_single(self, data, meta):
         scaled = ScaleToHeightProcessor.scale_to_h(data, self.height)
         scale = scaled.shape[1] / data.shape[1]
-        return scaled, (scale, )
+        meta['scale_to_height'] = (scale, )
+        return scaled
 
     def local_to_global_pos(self, x, params):
-        scale, = params
+        scale, = params['scale_to_height']
         return x / scale
 
     @staticmethod

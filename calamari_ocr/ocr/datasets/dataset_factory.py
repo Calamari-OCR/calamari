@@ -1,12 +1,14 @@
-from typing import List
+from typing import TYPE_CHECKING, List
 
-from calamari_ocr.ocr.datasets.datasetype import DataSetMode, DataSetType
+from tfaip.base.data.pipeline.definitions import PipelineMode
+
 from calamari_ocr.ocr.backends.dataset.datareader.base import DataReader
+from calamari_ocr.ocr.datasets.datasetype import DataSetType
 from calamari_ocr.utils import keep_files_with_same_file_name
 
 
 def create_data_reader(type: DataSetType,
-                       mode: DataSetMode,
+                       mode: PipelineMode,
                        images: List[str] = None,
                        texts: List[str] = None,
                        skip_invalid=False,

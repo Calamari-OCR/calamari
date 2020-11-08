@@ -1,23 +1,30 @@
 import argparse
 import os
 import json
+
+from tfaip.base.data.pipeline.definitions import DataProcessorFactoryParams, inputs_pipeline_modes, \
+    targets_pipeline_modes, PipelineMode, all_pipeline_modes
 from tfaip.util.logging import setup_log
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 
 from calamari_ocr import __version__
-from calamari_ocr.ocr.backends.dataset.data_types import CalamariDataParams
-from calamari_ocr.ocr.backends.dataset.datareader.factory import FileDataReaderFactory, FileDataReaderArgs
+from calamari_ocr.ocr.backends.dataset import CalamariData
+from calamari_ocr.ocr.backends.dataset.data_types import CalamariDataParams, CalamariPipelineParams
+from calamari_ocr.ocr.backends.dataset.datareader.factory import FileDataReaderArgs
+from calamari_ocr.ocr.backends.dataset.imageprocessors.augmentation import AugmentationProcessor
+from calamari_ocr.ocr.backends.dataset.imageprocessors.preparesample import PrepareSampleProcessor
 from calamari_ocr.ocr.backends.scenario import CalamariScenario
-from calamari_ocr.ocr.data_processing import DataPreprocessors, default_data_preprocessors, \
-    data_processor_from_list
+from calamari_ocr.ocr.data_processing import DataRangeNormalizer, CenterNormalizer, FinalPreparation
+from calamari_ocr.ocr.data_processing.data_preprocessor import ImageProcessor
+from calamari_ocr.ocr.data_processing.default_image_processors import default_image_processors
 from calamari_ocr.ocr.text_processing.text_regularizer import default_text_regularizer_replacements
 from calamari_ocr.proto.converters import params_from_definition_string
 from calamari_ocr.utils import glob_all
-from calamari_ocr.ocr.datasets import DataSetType, DataSetMode
+from calamari_ocr.ocr.datasets import DataSetType
 from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
 from calamari_ocr.ocr.text_processing import \
-    MultiTextProcessor, TextNormalizer, \
+    TextNormalizer, \
     TextRegularizer, StripTextProcessor, BidiTextProcessor
 
 
@@ -58,9 +65,9 @@ def setup_train_args(parser, omit=None):
                         help="Frequency of how often an output shall occur during training [epochs]")
     parser.add_argument("--batch_size", type=int, default=1,
                         help="The batch size to use for training")
-    parser.add_argument("--checkpoint_frequency", type=int, default=-1,
+    parser.add_argument("--checkpoint_frequency", type=int, default=0,
                         help="The frequency how often to write checkpoints during training [epochs]"
-                             "If -1, the early_stopping_frequency will be used.")
+                             "If -1, the early_stopping_frequency will be used. default (0) no checkpoints are written")
     parser.add_argument("--epochs", type=int, default=100,
                         help="The number of iterations for training. "
                              "If using early stopping, this is the maximum number of iterations")
@@ -152,8 +159,9 @@ def setup_train_args(parser, omit=None):
                         help="Text regularization to apply.")
     parser.add_argument("--text_normalization", type=str, default="NFC",
                         help="Unicode text normalization to apply. Defaults to NFC")
-    parser.add_argument("--data_preprocessing", nargs="+", type=DataPreprocessors,
-                        choices=list(DataPreprocessors), default=default_data_preprocessors())
+    parser.add_argument("--data_preprocessing", nargs="+", type=str,
+                        choices=[k for k, p in CalamariData.data_processor_factory().processors.items() if issubclass(p, ImageProcessor)],
+                        default=[p.name for p in default_image_processors()])
 
     # text/line generation params (loaded from json files)
     parser.add_argument("--text_generator_params", type=str, default=None)
@@ -167,7 +175,6 @@ def setup_train_args(parser, omit=None):
 
 
 def run(args):
-
     # check if loading a json file
     if len(args.files) == 1 and args.files[0].endswith("json"):
         with open(args.files[0], 'r') as f:
@@ -217,72 +224,102 @@ def run(args):
         text_index=args.pagexml_text_index,
     )
 
-    params: TrainerParams = CalamariScenario.trainer_cls().get_params_cls()()
-    params.scenario_params = CalamariScenario.default_params()
+    params: TrainerParams = CalamariScenario.default_trainer_params()
 
     # =================================================================================================================
     # Data Params
-
     data_params: CalamariDataParams = params.scenario_params.data_params
-    data_params.train_reader = FileDataReaderFactory(args.dataset, DataSetMode.TRAIN,
-                                                     args.files, args.text_files,
-                                                     not args.no_skip_invalid_gt, args.gt_extension, dataset_args)
+    data_params.train = CalamariPipelineParams(
+        type=args.dataset,
+        skip_invalid=not args.no_skip_invalid_gt,
+        remove_invalid=True,
+        files=args.files,
+        text_files=args.text_files,
+        gt_extension=args.gt_extension,
+        data_reader_args=dataset_args,
+        batch_size=args.batch_size,
+        num_processes=args.num_threads,
+    )
     if args.validation:
-        data_params.val_reader = FileDataReaderFactory(args.validation_dataset, DataSetMode.PRED_AND_EVAL,
-                                                       args.validation, args.validation_text_files,
-                                                       not args.no_skip_invalid_gt, args.validation_extension, dataset_args
-                                                       )
+        data_params.val = CalamariPipelineParams(
+            type=args.validation_dataset,
+            files=args.validation,
+            text_files=args.validation_text_files,
+            skip_invalid=not args.no_skip_invalid_gt,
+            gt_extension=args.validation_extension,
+            data_reader_args=dataset_args,
+            batch_size=args.batch_size,
+            num_processes=args.num_threads,
+        )
+    else:
+        data_params.val = None
 
-    data_params.data_processor = data_processor_from_list(args.line_height, args.pad, args.data_preprocessing)
+    data_params.pre_processors_ = []
+    data_params.post_processors_ = []
+    for p in args.data_preprocessing:
+        p_p = CalamariData.data_processor_factory().processors[p].default_params()
+        if 'pad' in p_p:
+            p_p['pad'] = args.pad
+        data_params.pre_processors_.append(DataProcessorFactoryParams(p, inputs_pipeline_modes, p_p))
 
     # Text pre processing (reading)
-    data_params.text_processor = MultiTextProcessor([
-        TextNormalizer(args.text_normalization),
-        TextRegularizer(default_text_regularizer_replacements(args.text_regularization)),
-        StripTextProcessor(),
+    data_params.pre_processors_.extend([
+        DataProcessorFactoryParams(TextNormalizer.__name__, targets_pipeline_modes, {'unicode_normalization': args.text_normalization}),
+        DataProcessorFactoryParams(TextRegularizer.__name__, targets_pipeline_modes, {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
+        DataProcessorFactoryParams(StripTextProcessor.__name__, targets_pipeline_modes)
     ])
 
     # Text post processing (prediction)
-    data_params.text_post_processor = MultiTextProcessor([
-        TextNormalizer(args.text_normalization),
-        TextRegularizer(default_text_regularizer_replacements(args.text_regularization)),
-        StripTextProcessor(),
+    data_params.post_processors_.extend([
+        DataProcessorFactoryParams(TextNormalizer.__name__, targets_pipeline_modes,
+                                   {'unicode_normalization': args.text_normalization}),
+        DataProcessorFactoryParams(TextRegularizer.__name__, targets_pipeline_modes,
+                                   {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
+        DataProcessorFactoryParams(StripTextProcessor.__name__, targets_pipeline_modes)
     ])
+    if args.bidi_dir:
+        data_params.pre_processors_.append(
+            DataProcessorFactoryParams(BidiTextProcessor.__name__, targets_pipeline_modes, {'bidi_direction': args.bidi_dir})
+        )
+        data_params.post_processors_.append(
+            DataProcessorFactoryParams(BidiTextProcessor.__name__, targets_pipeline_modes, {'bidi_direction': args.bidi_dir})
+        )
+
+    data_params.pre_processors_.append(
+        DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}, {'augmenter_type': 'simple'})
+    )
+
+    data_params.data_aug_params = DataAugmentationAmount.from_factor(args.n_augmentations)
+    data_params.line_height_ = args.line_height
 
     # =================================================================================================================
     # TODO: ORDER
     params.device_params.gpus = list(map(int, filter(lambda x: len(x) > 0, os.environ.get("CUDA_VISIBLE_DEVICES", '').split(','))))
     params.force_eager = args.debug
+    params.skip_model_load_test = not args.debug
     params.scenario_params.debug_graph_construction = args.debug
     params.epochs = args.epochs
     params.samples_per_epoch = args.samples_per_epoch
     params.stats_size = args.stats_size
     params.skip_load_model_test = True
     params.scenario_params.export_frozen = False
-    params.scenario_params.data_params.train_batch_size = args.batch_size
-    params.scenario_params.data_params.val_batch_size = args.batch_size
-    # TODO: params.checkpoint_frequency = args.checkpoint_frequency if args.checkpoint_frequency >= 0 else args.early_stopping_frequency
+    params.checkpoint_save_freq_ = args.checkpoint_frequency if args.checkpoint_frequency >= 0 else args.early_stopping_frequency
     params.checkpoint_dir = args.output_dir
     params.test_every_n = args.display
     params.skip_invalid_gt = not args.no_skip_invalid_gt
-    params.scenario_params.data_params.train_num_processes = args.num_threads
-    params.scenario_params.data_params.val_num_processes = args.num_threads
     params.data_aug_retrain_on_original = not args.only_train_on_augmented
 
     params.early_stopping_params.frequency = args.early_stopping_frequency
     params.early_stopping_params.upper_threshold = 0.9
     params.early_stopping_params.lower_threshold = 1.0 - args.early_stopping_at_accuracy
     params.early_stopping_params.n_to_go = args.early_stopping_nbest
-    params.early_stopping_params.best_model_name = args.early_stopping_best_model_prefix
+    params.early_stopping_params.best_model_name = ''
     params.early_stopping_params.best_model_output_dir = args.early_stopping_best_model_output_dir
+    params.scenario_params.default_serve_dir_ = f'{args.early_stopping_best_model_prefix}.ckpt.h5'
+    params.scenario_params.trainer_params_filename_ = f'{args.early_stopping_best_model_prefix}.ckpt.json'
     if args.seed > 0:
         params.random_seed = args.seed
 
-    if args.bidi_dir:
-        params.scenario_params.data_params.text_processor.sub_processors.append(BidiTextProcessor(args.bidi_dir))
-        params.scenario_params.data_params.text_post_processor.sub_processors.append(BidiTextProcessor(args.bidi_dir))
-
-    params.scenario_params.data_params.line_height_ = args.line_height
 
     params_from_definition_string(args.network, params)
     params.optimizer_params.clip_grad = args.gradient_clipping_norm
@@ -294,8 +331,6 @@ def run(args):
     params.preload_validation = not args.validation_data_on_the_fly
     params.warmstart_params.model = args.weights
 
-    params.scenario_params.data_params.data_augmenter = SimpleDataAugmenter()
-    params.scenario_params.data_params.data_aug_params = DataAugmentationAmount.from_factor(args.n_augmentations)
     params.auto_compute_codec = not args.no_auto_compute_codec
     params.progress_bar = not args.no_progress_bars
 

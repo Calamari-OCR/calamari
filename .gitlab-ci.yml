@@ -57,6 +57,13 @@ test-cpu:
     - set -e
     - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10
 
+test-cpu-resume-training:
+  stage: test
+  script:
+    - set -e
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10 --checkpoint_frequency 1
+    - calamari-resume-training checkpoint/checkpoint_0003
+
 test-cpu-validation:
   stage: test
   script:

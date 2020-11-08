@@ -1,15 +1,17 @@
 from typing import Generator
 
+from tfaip.base.data.pipeline.definitions import PipelineMode
+
 from calamari_ocr.ocr.backends.dataset.data_types import InputSample, SampleMeta
-from calamari_ocr.ocr.backends.dataset.datareader import DataReader
-from calamari_ocr.ocr.datasets import DataSetMode
 import numpy as np
 import h5py
+
+from calamari_ocr.ocr.backends.dataset.datareader.base import DataReader
 from calamari_ocr.utils import split_all_ext
 
 
 class Hdf5Reader(DataReader):
-    def __init__(self, mode: DataSetMode,
+    def __init__(self, mode: PipelineMode,
                  images=None, texts=None,
                  ):
         """ Create a dataset from memory
@@ -30,13 +32,13 @@ class Hdf5Reader(DataReader):
         self.filenames = [i for i in set(images + texts) if i is not None]
 
         self.prediction = None
-        if mode == DataSetMode.PREDICT or mode == DataSetMode.PRED_AND_EVAL:
+        if mode == PipelineMode.Prediction or mode == PipelineMode.Evaluation:
             self.prediction = {}
 
         for filename in self.filenames:
             f = h5py.File(filename, 'r')
             codec = list(map(chr, f['codec']))
-            if mode == DataSetMode.PREDICT or mode == DataSetMode.PRED_AND_EVAL:
+            if mode == PipelineMode.Prediction or mode == PipelineMode.Evaluation:
                 self.prediction[filename] = {'transcripts': [], 'codec': codec}
 
             # create empty samples for id and correct dataset size

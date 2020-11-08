@@ -1,18 +1,17 @@
 from dataclasses import dataclass, field
-from typing import Any, NamedTuple, Optional, Tuple
+from typing import Any, NamedTuple, Optional, Tuple, List
+
+from calamari_ocr.ocr.datasets import DataSetType
+from tfaip.base.data.pipeline.definitions import BasePipelineParams, InputTargetSample
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 
-from calamari_ocr.ocr.augmentation import DataAugmenter
 from dataclasses_json import dataclass_json, config
 import numpy as np
 from tfaip.base.data.data_base_params import DataBaseParams
 
-from calamari_ocr.ocr.backends.dataset.datareader.factory import DataReaderFactory
-from calamari_ocr.ocr.data_processing import DataPreprocessor
-from calamari_ocr.ocr.text_processing import TextProcessor
-
 from calamari_ocr.ocr.codec import Codec
+from calamari_ocr.proto.params import LineGeneratorParams, TextGeneratorParams
 
 
 def encoder(value):
@@ -29,8 +28,30 @@ def decoder(t):
     return _decode
 
 
+@dataclass_json
+@dataclass
+class FileDataReaderArgs:
+    line_generator_params: LineGeneratorParams = field(default_factory=LineGeneratorParams)
+    text_generator_params: TextGeneratorParams = field(default_factory=TextGeneratorParams)
+    pad: int = 0
+    text_index: int = 0
+
+
+@dataclass
+class CalamariPipelineParams(BasePipelineParams):
+    type: DataSetType = None
+    skip_invalid: bool = True
+    remove_invalid: bool = True
+    files: List[str] = None
+    text_files: Optional[List[str]] = None
+    gt_extension: Optional[str] = None
+    data_reader_args: Optional[FileDataReaderArgs] = None
+
+
 @dataclass
 class CalamariDataParams(DataBaseParams):
+    train: CalamariPipelineParams = field(default_factory=CalamariPipelineParams)
+    val: CalamariPipelineParams = field(default_factory=CalamariPipelineParams)
     skip_invalid_gt_: bool = True
     input_channels: int = 1
     downscale_factor_: int = -1
@@ -40,38 +61,9 @@ class CalamariDataParams(DataBaseParams):
         encoder=encoder,
         decoder=decoder(Codec),
     ))
-    text_processor: Optional[TextProcessor] = field(default=None, metadata=config(
-        encoder=encoder,
-        decoder=decoder(TextProcessor),
-    ))
-    text_post_processor: Optional[TextProcessor] = field(default=None, metadata=config(
-        encoder=encoder,
-        decoder=decoder(TextProcessor),
-    ))
-    data_processor: Optional[DataPreprocessor] = field(default=None, metadata=config(
-        encoder=encoder,
-        decoder=decoder(DataPreprocessor),
-    ))
-    data_augmenter: Optional[DataAugmenter] = field(default=None, metadata=config(
-        encoder=encoder,
-        decoder=decoder(DataAugmenter),
-    ))
     data_aug_params: Optional[DataAugmentationAmount] = field(default=None, metadata=config(
         encoder=encoder,
         decoder=decoder(DataAugmentationAmount),
-    ))
-
-    train_reader: Optional[DataReaderFactory] = field(default=None, metadata=config(
-        encoder=encoder,
-        decoder=decoder(DataReaderFactory),
-    ))
-    val_reader: Optional[DataReaderFactory] = field(default=None, metadata=config(
-        encoder=encoder,
-        decoder=decoder(DataReaderFactory),
-    ))
-    predict_reader: Optional[DataReaderFactory] = field(default=None, metadata=config(
-        encoder=encoder,
-        decoder=decoder(DataReaderFactory),
     ))
 
 
@@ -79,7 +71,6 @@ class CalamariDataParams(DataBaseParams):
 @dataclass
 class SampleMeta:
     id: str
-    preproc_info: Optional[Any] = None
     augmented: bool = False
 
 
@@ -99,8 +90,8 @@ class InputSample:
         if self.meta:
             assert(type(self.meta) == SampleMeta)
 
-    def to_tuple(self) -> Tuple[Optional[np.ndarray], Optional[str], Optional[SampleMeta]]:
-        return self.image, self.gt, self.meta
+    def to_input_target_sample(self) -> InputTargetSample:
+        return InputTargetSample(self.image, self.gt, self.meta.to_dict())
 
 
 class PreparedSample(NamedTuple):

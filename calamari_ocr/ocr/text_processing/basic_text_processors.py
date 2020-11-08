@@ -1,13 +1,10 @@
 import bidi.algorithm as bidi_algorithm
 
-from calamari_ocr.ocr.text_processing import TextProcessor, TextProcessorParams
+from calamari_ocr.ocr.text_processing import TextProcessor
 
 
 class StripTextProcessor(TextProcessor):
-    def __init__(self):
-        super().__init__()
-
-    def _apply_single(self, txt):
+    def _apply_single(self, txt, meta):
         if isinstance(txt, str):
             return txt.strip()
 
@@ -25,15 +22,14 @@ class StripTextProcessor(TextProcessor):
 
 
 class BidiTextProcessor(TextProcessor):
-    def to_dict(self) -> dict:
-        d = super(BidiTextProcessor, self).to_dict()
-        d['bidi_direction'] = self.base_dir
-        return d
+    @staticmethod
+    def default_params() -> dict:
+        return {'bidi_direction': None}
 
-    def __init__(self, bidi_direction=None):
-        super().__init__()
+    def __init__(self, bidi_direction, **kwargs):
+        super().__init__(**kwargs)
         self.base_dir = bidi_direction
 
-    def _apply_single(self, txt):
+    def _apply_single(self, txt, meta):
         # To support arabic text
         return bidi_algorithm.get_display(txt, base_dir=self.base_dir)

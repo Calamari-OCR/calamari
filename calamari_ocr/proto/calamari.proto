@@ -6,12 +6,6 @@ message CheckpointParams {
 
     ModelParams model = 1;
 
-    int32 processes = 2;
-    int32 max_iters = 3;
-    bool skip_invalid_gt = 4;
-    float display = 5;
-    int32 stats_size = 6;
-    int32 batch_size = 7;
     float checkpoint_frequency = 8;
     string output_dir = 9;
     string output_model_prefix = 22;
@@ -25,17 +19,6 @@ message CheckpointParams {
     int32 early_stopping_nbest = 16;                    // How many models must be worse to stop
     string early_stopping_best_model_prefix = 17;       // Prefix for the best model
     string early_stopping_best_model_output_dir = 21;   // Where to store the best model
-
-
-    // params for storing the training process
-    int32 iter = 10;
-    repeated float loss_stats = 11;
-    repeated float ler_stats = 12;
-    repeated float dt_stats = 13;
-    float total_time = 14;
-    float early_stopping_best_accuracy = 18;        // Current best model accuracy during training
-    int32 early_stopping_best_cur_nbest = 19;       // How often was a worse model found since the last best model
-    int32 early_stopping_best_at_iter = 20;         // Best model was found at iter?
 }
 
 message DoubleMatrix {
@@ -49,38 +32,6 @@ message IntVec2D {
     int32 y = 2;
 }
 
-message LayerParams {
-    enum Type {
-        CONVOLUTIONAL = 0;
-        MAX_POOLING = 1;
-        LSTM = 2;
-        TRANSPOSED_CONVOLUTIONAL = 3;
-        DILATED_BLOCK = 4;
-        CONCAT = 5;
-    }
-
-    enum LSTMDirection {
-        BIDIRECTIONAL_LSTM = 0;
-    }
-
-    Type type = 1;
-
-    // conv/pool
-    int32 filters = 2;
-    IntVec2D kernel_size = 3;
-    IntVec2D stride = 4;
-
-    // dilated block
-    int32 dilated_depth = 8;
-
-    // concat
-    repeated int32 concat_indices = 9;
-
-    // LSTM
-    int32 hidden_nodes = 5;
-    bool peepholes = 6;
-    LSTMDirection lstm_direction = 7;
-}
 
 message CTCDecoderParams {
     enum CTCDecoderType {
@@ -110,25 +61,13 @@ message NetworkParams {
 
     BackendParams backend = 8;
 
-    repeated LayerParams layers = 1;
-    SolverType solver = 2;
-    float learning_rate = 11;
-    float momentum = 3;
-    float dropout = 5;
-
     int32 channels = 14;                    // e.g. 1: binary/gray, 3: color, or any other number (default 0 equiv 1)
     int32 features = 6;
-    int32 classes = 7;
 
-    bool ctc_merge_repeated = 9;
-
-    float clipping_norm = 13;
 }
 
 // Backend data
 message BackendParams {
-    bool cudnn = 1;
-    int32 random_seed = 2;
     int32 shuffle_buffer_size = 3;      // upper limit for the shuffle buffer used during training, 0 means no limit
     int32 num_inter_threads = 4;
     int32 num_intra_threads = 5;

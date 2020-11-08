@@ -328,21 +328,15 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
 
 
 class TextRegularizer(TextProcessor):
-    def to_dict(self) -> dict:
-        d = super(TextRegularizer, self).to_dict()
-        d['replacements'] = [r.to_dict() for r in self.replacements]
-        return d
+    @staticmethod
+    def default_params() -> dict:
+        return {'replacements': [r for r in default_text_regularizer_replacements()]}
 
-    @classmethod
-    def from_dict(cls, d: dict):
-        d['replacements'] = [Replacement.from_dict(r) for r in d['replacements']]
-        return super(TextRegularizer, cls).from_dict(d)
+    def __init__(self, replacements: List[Replacement], **kwargs):
+        super().__init__(**kwargs)
+        self.replacements = replacements
 
-    def __init__(self, replacements: Optional[List[Replacement]] = None):
-        super().__init__()
-        self.replacements = replacements if replacements else default_text_regularizer_replacements()
-
-    def _apply_single(self, txt):
+    def _apply_single(self, txt, meta):
         for replacement in self.replacements:
             if replacement.regex:
                 txt = re.sub(replacement.old, replacement.new, txt)

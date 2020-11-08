@@ -2,20 +2,20 @@ import os
 import numpy as np
 from typing import List, Generator
 from PIL import Image
+from tfaip.base.data.pipeline.definitions import PipelineMode, targets_pipeline_modes, inputs_pipeline_modes
 
 from calamari_ocr.ocr.backends.dataset.data_types import InputSample, SampleMeta
-from calamari_ocr.ocr.backends.dataset.datareader import DataReader
 from calamari_ocr.ocr.backends.dataset.datareader.abbyy.xml.reader import XMLReader
 from calamari_ocr.ocr.backends.dataset.datareader.abbyy.xml.writer import XMLWriter
 from tqdm import tqdm
 
-from calamari_ocr.ocr.datasets import DataSetMode
+from calamari_ocr.ocr.backends.dataset.datareader.base import DataReader
 from calamari_ocr.utils import split_all_ext
 
 
 class AbbyyReader(DataReader):
     def __init__(self,
-                 mode: DataSetMode,
+                 mode: PipelineMode,
                  files: List[str] = None,
                  xmlfiles: List[str] = None,
                  skip_invalid=False,
@@ -81,7 +81,7 @@ class AbbyyReader(DataReader):
 
         book = XMLReader([image_path], [xml_path], self.skip_invalid, self.remove_invalid).read()
 
-        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.PRED_AND_EVAL:
+        if self.mode in inputs_pipeline_modes:
             img = np.array(Image.open(image_path))
             if self.binary:
                 img = img > 0.9
@@ -93,7 +93,7 @@ class AbbyyReader(DataReader):
                 for f, fo in enumerate(line.formats):
                     sample_id = "{}_{}_{}_{}".format(os.path.splitext(page.xmlFile if page.xmlFile else page.imgFile)[0], p, l, f)
                     text = None
-                    if self.mode == DataSetMode.EVAL or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
+                    if self.mode in targets_pipeline_modes:
                         text = fo.text
 
                     if text_only:
@@ -101,7 +101,7 @@ class AbbyyReader(DataReader):
 
                     else:
                         cut_img = None
-                        if self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.PRED_AND_EVAL:
+                        if self.mode in inputs_pipeline_modes:
                             ly, lx = img.shape
 
                             # Cut the Image

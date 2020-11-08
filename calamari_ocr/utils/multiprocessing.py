@@ -1,51 +1,6 @@
-import multiprocessing
-from multiprocessing.pool import ThreadPool
 import os
 import time
 import subprocess
-from tqdm import tqdm
-
-
-def tqdm_wrapper(iterable, _sentinel=None, total=1, desc="", progress_bar=False):
-    if _sentinel:
-        raise Exception("You must call tqdm_wrapper by using parameter names to specify additional parameters.")
-
-    if not progress_bar:
-        return iterable
-    else:
-        return tqdm(iterable, total=total, desc=desc)
-
-
-def parallel_map(f, d, _sentinel=None, desc="", processes=1, progress_bar=False, use_thread_pool=False, max_tasks_per_child=None):
-    if _sentinel:
-        raise Exception("You must call parallel_map by using parameter names to specify additional parameters besides the default map(func, data).")
-
-    if processes <= 0:
-        processes = os.cpu_count()
-
-    processes = min(processes, len(d))
-
-    if processes == 1:
-        if progress_bar:
-            out = list(tqdm(map(f, d), desc=desc, total=len(d)))
-        else:
-            out = list(map(f, d))
-
-    else:
-        if use_thread_pool:
-            with ThreadPool(processes=processes) as pool:
-                if progress_bar:
-                    out = list(tqdm(pool.imap(f, d), desc=desc, total=len(d)))
-                else:
-                    out = pool.map(f, d)
-        else:
-            with multiprocessing.Pool(processes=processes, maxtasksperchild=max_tasks_per_child) as pool:
-                if progress_bar:
-                    out = list(tqdm(pool.imap(f, d), desc=desc, total=len(d)))
-                else:
-                    out = pool.map(f, d)
-
-    return out
 
 
 def prefix_run_command(command, prefix, args):

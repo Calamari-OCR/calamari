@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from calamari_ocr.utils import parallel_map
 import numpy as np
 
 
@@ -100,7 +99,6 @@ SimpleDataAugmenter.register()
 if __name__ == '__main__':
     aug = SimpleDataAugmenter()
     from PIL import Image
-    import numpy as np
     img = 255 - np.mean(np.array(Image.open("../../test/data/uw3_50lines/train/010001.bin.png"))[:, :, 0:2], axis=-1)
     aug_img = [aug.augment_single(img.T, '')[0].T for _ in range(4)]
     import matplotlib.pyplot as plt
