@@ -120,9 +120,6 @@ class CalamariData(DataBase):
             if line.shape[-1] != channels:
                 raise ValueError(f"Expected {channels} channels but got {line.shape[-1]}. Shape of input {line.shape}")
 
-            # tensorflow ctc loss expects last label as blank
-            text -= 1
-
             if mode == DataSetMode.TRAIN and len(line) // downscale_factor < 2 * len(text) + 1:
                 # skip longer outputs than inputs
                 logger.warning(f"Skipping line with longer outputs than inputs (id={sample.meta.id})")

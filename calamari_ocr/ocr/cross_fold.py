@@ -5,13 +5,9 @@ from typing import List
 
 from calamari_ocr.ocr.backends.dataset.data_types import InputSample
 from calamari_ocr.ocr.backends.dataset.datareader import DataReader, FileDataReader
+from calamari_ocr.ocr.backends.dataset.datareader.hdf5.hdf5_dataset_writer import Hdf5DatasetWriter
 from calamari_ocr.utils import tqdm_wrapper
 from calamari_ocr.ocr.datasets import DataSetType
-from calamari_ocr.ocr.datasets.file_dataset import FileDataSet
-from calamari_ocr.ocr.datasets.input_dataset import StreamingInputDataset
-from calamari_ocr.ocr.data_processing import NoopDataPreprocessor
-from calamari_ocr.ocr.text_processing import NoopTextProcessor
-from calamari_ocr.ocr.datasets.hdf5_dataset.hdf5_dataset_writer import Hdf5DatasetWriter
 
 
 class CrossFold:

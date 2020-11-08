@@ -1,5 +1,4 @@
 import argparse
-import copy
 import os
 import json
 from tfaip.util.logging import setup_log
@@ -10,11 +9,12 @@ from calamari_ocr import __version__
 from calamari_ocr.ocr.backends.dataset.data_types import CalamariDataParams
 from calamari_ocr.ocr.backends.dataset.datareader.factory import FileDataReaderFactory, FileDataReaderArgs
 from calamari_ocr.ocr.backends.scenario import CalamariScenario
-from calamari_ocr.ocr.data_processing import DefaultDataPreprocessor
+from calamari_ocr.ocr.data_processing import DataPreprocessors, default_data_preprocessors, \
+    data_processor_from_list
 from calamari_ocr.ocr.text_processing.text_regularizer import default_text_regularizer_replacements
 from calamari_ocr.proto.converters import params_from_definition_string
-from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_file_name
-from calamari_ocr.ocr.datasets import create_data_reader, DataSetType, DataSetMode
+from calamari_ocr.utils import glob_all
+from calamari_ocr.ocr.datasets import DataSetType, DataSetMode
 from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
 from calamari_ocr.ocr.text_processing import \
     MultiTextProcessor, TextNormalizer, \
@@ -152,9 +152,8 @@ def setup_train_args(parser, omit=None):
                         help="Text regularization to apply.")
     parser.add_argument("--text_normalization", type=str, default="NFC",
                         help="Unicode text normalization to apply. Defaults to NFC")
-    # TODO: reactivate
-    # parser.add_argument("--data_preprocessing", nargs="+", type=DataPreprocessors,
-    #                    choices=list(DataPreprocessors), default=[DataPreprocessors.DefaultDataPreprocessor])
+    parser.add_argument("--data_preprocessing", nargs="+", type=DataPreprocessors,
+                        choices=list(DataPreprocessors), default=default_data_preprocessors())
 
     # text/line generation params (loaded from json files)
     parser.add_argument("--text_generator_params", type=str, default=None)
@@ -234,7 +233,7 @@ def run(args):
                                                        not args.no_skip_invalid_gt, args.validation_extension, dataset_args
                                                        )
 
-    data_params.data_processor = DefaultDataPreprocessor(args.line_height, args.pad)
+    data_params.data_processor = data_processor_from_list(args.line_height, args.pad, args.data_preprocessing)
 
     # Text pre processing (reading)
     data_params.text_processor = MultiTextProcessor([
@@ -244,13 +243,11 @@ def run(args):
     ])
 
     # Text post processing (prediction)
-    if False:
-        # TODO: text post processing
-        data_params.text_post_processor = MultiTextProcessor([
-            TextNormalizer(args.text_normalization),
-            TextRegularizer(default_text_regularizer_replacements(args.text_regularization)),
-            StripTextProcessor(),
-        ])
+    data_params.text_post_processor = MultiTextProcessor([
+        TextNormalizer(args.text_normalization),
+        TextRegularizer(default_text_regularizer_replacements(args.text_regularization)),
+        StripTextProcessor(),
+    ])
 
     # =================================================================================================================
     # TODO: ORDER

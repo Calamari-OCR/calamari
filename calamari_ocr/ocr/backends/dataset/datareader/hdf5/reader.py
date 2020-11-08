@@ -1,28 +1,14 @@
-from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
+from typing import Generator
+
+from calamari_ocr.ocr.backends.dataset.data_types import InputSample, SampleMeta
+from calamari_ocr.ocr.backends.dataset.datareader import DataReader
+from calamari_ocr.ocr.datasets import DataSetMode
 import numpy as np
 import h5py
 from calamari_ocr.utils import split_all_ext
 
 
-class Hdf5DataSetGenerator(DatasetGenerator):
-    def __init__(self, mp_context, output_queue, mode: DataSetMode, hdf5_files):
-        super().__init__(mp_context, output_queue, mode, hdf5_files)
-
-    def _load_sample(self, filename, text_only):
-        f = h5py.File(filename, 'r')
-        codec = list(map(chr, f['codec']))
-        if text_only:
-            for i, text in enumerate(f['transcripts']):
-                text = "".join([codec[c] for c in text])
-                yield None, text
-        else:
-            for i, (image, shape, text) in enumerate(zip(f['images'], f['images_dims'], f['transcripts'])):
-                image = np.reshape(image, shape)
-                text = "".join([codec[c] for c in text])
-                yield image, text
-
-
-class Hdf5DataSet(DataSet):
+class Hdf5Reader(DataReader):
     def __init__(self, mode: DataSetMode,
                  images=None, texts=None,
                  ):
@@ -77,5 +63,19 @@ class Hdf5DataSet(DataSet):
                 file['transcripts'][...] = texts
                 file.create_dataset('codec', data=list(map(ord, codec)))
 
-    def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
-        return Hdf5DataSetGenerator(mp_context, output_queue, self.mode, self.filenames)
+    def _sample_iterator(self):
+        return self.filenames
+
+    def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
+        filename = sample
+        f = h5py.File(filename, 'r')
+        codec = list(map(chr, f['codec']))
+        if text_only:
+            for i, text in enumerate(f['transcripts']):
+                text = "".join([codec[c] for c in text])
+                yield InputSample(None, text, SampleMeta(id=f"{filename}_{i}"))
+        else:
+            for i, (image, shape, text) in enumerate(zip(f['images'], f['images_dims'], f['transcripts'])):
+                image = np.reshape(image, shape)
+                text = "".join([codec[c] for c in text])
+                yield InputSample(image, text, SampleMeta(id=f"{filename}_{i}"))

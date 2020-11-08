@@ -6,12 +6,9 @@ import numpy as np
 from typing import Generator, List
 
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
-from calamari_ocr.ocr.data_processing import data_processor_from_proto
-from calamari_ocr.ocr.datasets import RawDataSet
 from calamari_ocr.ocr import Codec, Checkpoint
 from calamari_ocr.ocr.backends import create_backend_from_checkpoint
 from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransformer
-from contextlib import ExitStack
 
 
 class PredictionResult:

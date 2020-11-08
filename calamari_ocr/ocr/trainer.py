@@ -1,5 +1,7 @@
+import copy
+
 from tfaip.base.trainer import Trainer
-from calamari_ocr.ocr import Codec, Checkpoint
+from calamari_ocr.ocr import Codec, Checkpoint, DataSetMode
 from calamari_ocr.ocr.backends import create_backend_from_checkpoint
 from calamari_ocr.proto.params import TrainerParams, ModelParams
 import time
@@ -61,8 +63,13 @@ class CalamariTrainer(Trainer):
         data.params().codec = codec
         data.params().downscale_factor_ = model.compute_downscale_factor()
         model.classes = codec.size()
-        data.train_reader.auto_repeat = True
 
+        if not data.val_reader:
+            # A val reader is required, copy train dataset but in pred and eval mode
+            data.val_reader = copy.copy(data.train_reader)
+            data.val_reader.mode = DataSetMode.PRED_AND_EVAL
+
+        data.train_reader.auto_repeat = True
         super(CalamariTrainer, self).train(callbacks=callbacks)
 
         if False:

@@ -1,10 +1,14 @@
 import tensorflow as tf
 import numpy as np
 import json
-from typing import Generator, Dict, Type, List, Tuple
+from typing import Generator, Dict, Type, List, Tuple, Any
+import bidi.algorithm as bidi
+import Levenshtein
 
 from tfaip.base.model import ModelBase, GraphBase, ModelBaseParams
+from tfaip.util.typing import AnyNumpy
 
+from calamari_ocr.ocr.backends.dataset import CalamariData
 from calamari_ocr.ocr.backends.model_interface import NetworkPredictionResult
 from calamari_ocr.proto.params import ModelParams, LayerType, LayerParams
 from tensorflow.python.ops import array_ops
@@ -169,10 +173,15 @@ class CalamariGraph(GraphBase):
         logits = self.logits(last_layer_output)
         softmax = self.softmax(logits)
 
+        greedy_decoded = ctc.ctc_greedy_decoder(inputs=array_ops.transpose(logits, perm=[1, 0, 2]),
+                                                sequence_length=tf.cast(K.flatten(lstm_seq_len),
+                                                                        'int32'))[0][0]
+
         return {
             'out_len': lstm_seq_len,
             'logits': logits,
             'softmax': softmax,
+            'decoded': tf.sparse.to_dense(greedy_decoded, default_value=-1)
         }
 
 
@@ -180,6 +189,10 @@ class CalamariModel(ModelBase):
     @staticmethod
     def get_params_cls() -> Type[ModelBaseParams]:
         return ModelParams
+
+    def __init__(self, params: ModelParams):
+        super(CalamariModel, self).__init__(params)
+        self._params: ModelParams = params
 
     def _best_logging_settings(self) -> Tuple[str, str]:
         return "min", "cer_metric"
@@ -190,9 +203,10 @@ class CalamariModel(ModelBase):
     def _loss(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
         def to_2d_list(x):
             return K.expand_dims(K.flatten(x), axis=-1)
-        loss = KL.Lambda(lambda args: K.ctc_batch_cost(*args), name='ctc')((inputs['gt'], outputs['softmax'],
-                                                                            to_2d_list(outputs['out_len']),
-                                                                            to_2d_list(inputs['gt_len'])))
+
+        # note: blank is last index
+        loss = KL.Lambda(lambda args: K.ctc_batch_cost(args[0] - 1, tf.roll(args[1], shift=-1, axis=-1), args[2], args[3]), name='ctc')(
+            (inputs['gt'], outputs['softmax'], to_2d_list(outputs['out_len']), to_2d_list(inputs['gt_len'])))
         return {
             'loss': loss
         }
@@ -214,9 +228,23 @@ class CalamariModel(ModelBase):
             'CER': cer,
         }
 
-    def __init__(self, params: ModelParams):
-        super(CalamariModel, self).__init__(params)
-        self._params: ModelParams = params
+    def _target_prediction(self,
+                           targets: Dict[str, AnyNumpy],
+                           outputs: Dict[str, AnyNumpy],
+                           data: 'CalamariData',
+                           ) -> Tuple[Any, Any]:
+        return targets['gt'], outputs['decoded'][np.where(outputs['decoded'] != -1)]
+
+    def _print_evaluate(self, inputs: Dict[str, AnyNumpy], outputs: Dict[str, AnyNumpy], targets: Dict[str, AnyNumpy],
+                        data: 'CalamariData', print_fn):
+        gt, pred = self._target_prediction(targets, outputs, data)
+        pred_sentence = data.params().text_post_processor.apply("".join(data.params().codec.decode(pred)))
+        gt_sentence = data.params().text_post_processor.apply("".join(data.params().codec.decode(gt)))
+        lr = "\u202A\u202B"
+        cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)
+        print_fn("\n  CER:  {}".format(cer) +
+                 "\n  PRED: '{}{}{}'".format(lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C") +
+                 "\n  TRUE: '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C"))
 
     def load_weights(self, filepath):
         self.model.load_weights(filepath + '.h5')

@@ -44,10 +44,11 @@ def create_data_reader(type: DataSetType,
                               remove_invalid=remove_invalid,
                               non_existing_as_empty=non_existing_as_empty)
     elif type == DataSetType.ABBYY:
-        return AbbyyDataSet(mode, images, texts,
-                            skip_invalid=skip_invalid,
-                            remove_invalid=remove_invalid,
-                            non_existing_as_empty=non_existing_as_empty)
+        from calamari_ocr.ocr.backends.dataset.datareader.abbyy import AbbyyReader
+        return AbbyyReader(mode, images, texts,
+                           skip_invalid=skip_invalid,
+                           remove_invalid=remove_invalid,
+                           non_existing_as_empty=non_existing_as_empty)
     elif type == DataSetType.PAGEXML:
         from calamari_ocr.ocr.backends.dataset.datareader.pagexml.reader import PageXMLReader
         return PageXMLReader(mode, images, texts,
@@ -56,7 +57,8 @@ def create_data_reader(type: DataSetType,
                              non_existing_as_empty=non_existing_as_empty,
                              args=args)
     elif type == DataSetType.HDF5:
-        return Hdf5DataSet(mode, images, texts)
+        from calamari_ocr.ocr.backends.dataset.datareader.hdf5 import Hdf5Reader
+        return Hdf5Reader(mode, images, texts)
     elif type == DataSetType.EXTENDED_PREDICTION:
         from .extended_prediction_dataset import ExtendedPredictionDataSet
         return ExtendedPredictionDataSet(texts=texts)

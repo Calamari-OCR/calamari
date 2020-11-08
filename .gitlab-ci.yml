@@ -239,7 +239,7 @@ test-cpu-train-on-hdf5:
       --files calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5
       --validation calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5 --validation_dataset HDF5
       --dataset HDF5 --num_threads 2 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
-      --data_preprocessing NOOP_NORMALIZER
+      --data_preprocessing NoopDataPreprocessor
 
 test-cpu-predict-and-eval-hdf5:
   stage: test

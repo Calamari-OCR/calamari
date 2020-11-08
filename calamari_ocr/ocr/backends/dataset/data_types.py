@@ -44,6 +44,10 @@ class CalamariDataParams(DataBaseParams):
         encoder=encoder,
         decoder=decoder(TextProcessor),
     ))
+    text_post_processor: Optional[TextProcessor] = field(default=None, metadata=config(
+        encoder=encoder,
+        decoder=decoder(TextProcessor),
+    ))
     data_processor: Optional[DataPreprocessor] = field(default=None, metadata=config(
         encoder=encoder,
         decoder=decoder(DataPreprocessor),
