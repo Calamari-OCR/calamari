@@ -53,7 +53,7 @@ class CalamariTrainer(Trainer):
         codec = data.params().codec
         if not codec:
             if len(self._params.codec_whitelist) == 0 or self._params.auto_compute_codec:
-                codec = Codec.from_input_dataset(self.scenario.data,
+                codec = Codec.from_input_dataset(filter(lambda x: x, [data.train_reader, data.val_reader]),
                                                  whitelist=self._params.codec_whitelist, progress_bar=self._params.progress_bar)
             else:
                 codec = Codec.from_texts([], whitelist=self._params.codec_whitelist)
@@ -62,6 +62,7 @@ class CalamariTrainer(Trainer):
         data.params().downscale_factor_ = model.compute_downscale_factor()
         model.classes = codec.size()
         data.train_reader.auto_repeat = True
+
         super(CalamariTrainer, self).train(callbacks=callbacks)
 
         if False:

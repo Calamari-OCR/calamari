@@ -5,15 +5,15 @@ from tqdm import tqdm
 from lxml import etree
 from skimage.draw import polygon
 from skimage.transform import rotate
-from typing import List
+from typing import List, Generator
 
-from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
+from calamari_ocr.ocr.backends.dataset.data_types import InputSample, SampleMeta
+from calamari_ocr.ocr.backends.dataset.datareader import DataReader
+from calamari_ocr.ocr.backends.dataset.datareader.factory import FileDataReaderArgs
+from calamari_ocr.ocr.datasets import DataSetMode
 from calamari_ocr.utils import split_all_ext, filename
 
 import logging
-
-from calamari_ocr.utils.image import load_image
-
 logger = logging.getLogger(__name__)
 
 
@@ -25,46 +25,6 @@ def xml_attr(elem, ns, label, default=None):
             raise e
 
         return default
-
-
-class PageXMLDatasetGenerator(DatasetGenerator):
-    def __init__(self, mp_context, output_queue, mode: DataSetMode, images, xml_files, non_existing_as_empty, text_index, skip_invalid, args):
-        super().__init__(mp_context, output_queue, mode, list(zip(images, xml_files)))
-        self._non_existing_as_empty = non_existing_as_empty
-        self.text_index = text_index
-        self.skip_invalid = skip_invalid
-        self.args = args
-
-    def _load_sample(self, sample, text_only):
-        loader = PageXMLDatasetLoader(self.mode, self._non_existing_as_empty, self.text_index, self.skip_invalid)
-        image_path, xml_path = sample
-
-        img = None
-        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
-            img = load_image(image_path)
-
-        for sample in loader.load(image_path, xml_path):
-            text = sample["text"]
-            orientation = sample["orientation"]
-
-            if not text_only and (self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL):
-                ly, lx = img.shape[:2]
-
-                line_img = PageXMLDataset.cutout(img, sample['coords'], lx / sample['img_width'])
-
-                # rotate by orientation angle in clockwise direction to correct present skew
-                # (skimage rotates in counter-clockwise direction)
-                if orientation and orientation % 360 != 0:
-                    line_img = rotate(line_img, orientation*-1, resize=True, mode='constant', cval=line_img.max(), preserve_range=True).astype(np.uint8)
-
-                # add padding as required from normal files
-                if self.args.get('pad', None):
-                    pad = self.args['pad']
-                    img = np.pad(img, pad, mode='constant', constant_values=img.max())
-            else:
-                line_img = None
-
-            yield line_img, text
 
 
 class PageXMLDatasetLoader:
@@ -143,7 +103,7 @@ class PageXMLDatasetLoader:
                 "rtype": xml_attr(textline, ns, '../@type', ''),
                 'xml_element': l,
                 "image_path": img,
-                "id": "{}/{}".format(page_id, xml_attr(textline, ns, './@id')),
+                "id": xml_attr(textline, ns, './@id'),
                 "text": text,
                 "coords": xml_attr(textline, ns, './ns:Coords/@points'),
                 "orientation": orientation,
@@ -172,7 +132,7 @@ class PageXMLDatasetLoader:
                 "rtype": xml_attr(l, ns, '../@type', ''),
                 'xml_element': l,
                 "image_path": img,
-                "id": "{}/{}".format(page_id, xml_attr(l, ns, './@id')),
+                "id": xml_attr(l, ns, './@id'),
                 "coords": xml_attr(l, ns, './ns:Coords/@points'),
                 "orientation": orientation,
                 "img_width": img_w,
@@ -180,8 +140,7 @@ class PageXMLDatasetLoader:
             }
 
 
-class PageXMLDataset(DataSet):
-
+class PageXMLReader(DataReader):
     def __init__(self,
                  mode: DataSetMode,
                  files,
@@ -189,9 +148,8 @@ class PageXMLDataset(DataSet):
                  skip_invalid=False,
                  remove_invalid=True,
                  non_existing_as_empty=False,
-                 args: dict = None,
+                 args: FileDataReaderArgs = None,
                  ):
-
         """ Create a dataset from a Path as String
 
         Parameters
@@ -203,7 +161,6 @@ class PageXMLDataset(DataSet):
         remove_invalid : bool, optional
             remove invalid files
         """
-
         super().__init__(
             mode,
             skip_invalid, remove_invalid,
@@ -217,7 +174,7 @@ class PageXMLDataset(DataSet):
 
         self.args = args
 
-        self.text_index = args.get('text_index', 0)
+        self.text_index = args.text_index
 
         self._non_existing_as_empty = non_existing_as_empty
         if len(xmlfiles) == 0:
@@ -301,5 +258,36 @@ class PageXMLDataset(DataSet):
         with open(split_all_ext(page_id)[0] + extension, 'w') as f:
             f.write(etree.tounicode(page.getroottree()))
 
-    def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
-        return PageXMLDatasetGenerator(mp_context, output_queue, self.mode, self.files, self.xmlfiles, self._non_existing_as_empty, self.text_index, self.skip_invalid, self.args)
+    def _sample_iterator(self):
+        return zip(self.files, self.xmlfiles)
+
+    def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
+        loader = PageXMLDatasetLoader(self.mode, self._non_existing_as_empty, self.text_index, self.skip_invalid)
+        image_path, xml_path = sample
+
+        img = None
+        if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
+            img = np.array(Image.open(image_path))
+
+        for sample in loader.load(image_path, xml_path):
+            text = sample["text"]
+            orientation = sample["orientation"]
+
+            if not text_only and (self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL):
+                ly, lx = img.shape[:2]
+
+                line_img = PageXMLReader.cutout(img, sample['coords'], lx / sample['img_width'])
+
+                # rotate by orientation angle in clockwise direction to correct present skew
+                # (skimage rotates in counter-clockwise direction)
+                if orientation and orientation % 360 != 0:
+                    line_img = rotate(line_img, orientation*-1, resize=True, mode='constant', cval=line_img.max(), preserve_range=True).astype(np.uint8)
+
+                # add padding as required from normal files
+                if self.args.pad:
+                    pad = self.args.pad
+                    img = np.pad(img, pad, mode='constant', constant_values=img.max())
+            else:
+                line_img = None
+
+            yield InputSample(line_img, text, SampleMeta(id=sample['id']))

@@ -106,10 +106,13 @@ class DataReader(ABC):
                 # no pred_and_eval bc it's shuffle
                 shuffle(self._samples)
 
-            for sample in self._samples:
+            for sample in self._sample_iterator():
                 for raw_sample in self._load_sample(sample, text_only):
                     assert isinstance(raw_sample, InputSample)
                     yield raw_sample
+
+    def _sample_iterator(self):
+        return self._samples
 
     @abstractmethod
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:

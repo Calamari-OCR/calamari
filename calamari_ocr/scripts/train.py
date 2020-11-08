@@ -233,9 +233,6 @@ def run(args):
                                                        args.validation, args.validation_text_files,
                                                        not args.no_skip_invalid_gt, args.validation_extension, dataset_args
                                                        )
-    else:
-        data_params.val_reader = copy.deepcopy(data_params.train_reader)
-        data_params.val_reader.data_set_mode = DataSetMode.PRED_AND_EVAL
 
     data_params.data_processor = DefaultDataPreprocessor(args.line_height, args.pad)
 

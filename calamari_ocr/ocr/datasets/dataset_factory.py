@@ -49,11 +49,12 @@ def create_data_reader(type: DataSetType,
                             remove_invalid=remove_invalid,
                             non_existing_as_empty=non_existing_as_empty)
     elif type == DataSetType.PAGEXML:
-        return PageXMLDataset(mode, images, texts,
-                              skip_invalid=skip_invalid,
-                              remove_invalid=remove_invalid,
-                              non_existing_as_empty=non_existing_as_empty,
-                              args=args)
+        from calamari_ocr.ocr.backends.dataset.datareader.pagexml.reader import PageXMLReader
+        return PageXMLReader(mode, images, texts,
+                             skip_invalid=skip_invalid,
+                             remove_invalid=remove_invalid,
+                             non_existing_as_empty=non_existing_as_empty,
+                             args=args)
     elif type == DataSetType.HDF5:
         return Hdf5DataSet(mode, images, texts)
     elif type == DataSetType.EXTENDED_PREDICTION:

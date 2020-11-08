@@ -183,7 +183,7 @@ test-cpu-train-on-generated-lines:
       --text_generator_params calamari_ocr/test/data/line_generation_config/text_gen_params.json
       --line_generator_params calamari_ocr/test/data/line_generation_config/line_gen_params.json
       --whitelist_files calamari_ocr/test/data/line_generation_config/whitelist.txt
-      --no_auto_compute_codec --checkpoint_frequency 5 --display 1.01 --train_data_on_the_fly
+      --no_auto_compute_codec --checkpoint_frequency 5 --train_data_on_the_fly
       --num_threads 4 --batch_size 4 --epochs 2 --samples_per_epoch 5
 
 
@@ -197,16 +197,16 @@ test-cpu-train-on-page-xml:
       calamari-train
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
       --validation calamari_ocr/test/data/avicanon_pagexml/008.nrm.png --validation_dataset PAGEXML
-      --dataset PAGEXML --display 1.01 --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
+      --dataset PAGEXML --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
     - >
       calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
-      --dataset PAGEXML --display 1.01
+      --dataset PAGEXML
       --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
     - >
       calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
-      --dataset PAGEXML --display 1.01
+      --dataset PAGEXML
       --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5 --dataset_pad 3 0
 
 test-cpu-train-on-page-xml-validation-on-files:
@@ -217,7 +217,7 @@ test-cpu-train-on-page-xml-validation-on-files:
       calamari-train
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
       --validation calamari_ocr/test/data/uw3_50lines/test/*.png
-      --dataset PAGEXML --display 1.01 --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
+      --dataset PAGEXML --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
 
 test-cpu-predict-and-eval-page-xml:
   stage: test
@@ -238,7 +238,7 @@ test-cpu-train-on-hdf5:
       calamari-train
       --files calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5
       --validation calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5 --validation_dataset HDF5
-      --dataset HDF5 --display 1.01 --num_threads 2 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
+      --dataset HDF5 --num_threads 2 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
       --data_preprocessing NOOP_NORMALIZER
 
 test-cpu-predict-and-eval-hdf5:
@@ -259,7 +259,7 @@ test-cpu-train-on-abbyy-xml:
       calamari-train
       --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg
       --validation calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg --validation_dataset ABBYY
-      --dataset ABBYY --display 1.01 --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
+      --dataset ABBYY --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
 
 test-cpu-train-on-aabbyy-xml-validation-on-page-xml:
   stage: test
@@ -269,7 +269,7 @@ test-cpu-train-on-aabbyy-xml-validation-on-page-xml:
       calamari-train
       --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg
       --validation calamari_ocr/test/data/avicanon_pagexml/008.nrm.png --validation_dataset PAGEXML
-      --dataset ABBYY --display 1.01 --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
+      --dataset ABBYY --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
 
 test-cpu-predict-and-eval-abbyy-xml:
   stage: test

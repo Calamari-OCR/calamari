@@ -1,9 +1,9 @@
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Iterator
 
 from calamari_ocr.utils.multiprocessing import tqdm_wrapper
 
 if TYPE_CHECKING:
-    from calamari_ocr.ocr.backends.dataset import CalamariDataBase
+    from calamari_ocr.ocr.backends.dataset.datareader import DataReader
 
 
 class Codec:
@@ -15,17 +15,12 @@ class Codec:
         return Codec(d['charset'])
 
     @staticmethod
-    def from_input_dataset(dataset: 'CalamariDataBase', whitelist=None, progress_bar=False):
+    def from_input_dataset(data_readers: Iterator['DataReader'], whitelist=None, progress_bar=False):
         from calamari_ocr.ocr.backends.dataset.data_types import InputSample
         chars = set() if whitelist is None else set(whitelist)
-        data_generators = []
-        if dataset.train_reader:
-            data_generators.append((dataset.train_reader, dataset.get_unprepared_train_data(text_only=True)))
-        if dataset.val_reader:
-            data_generators.append((dataset.val_reader, dataset.get_unprepared_val_data(text_only=True)))
 
-        for reader, ds in data_generators:
-            for sample in tqdm_wrapper(ds, total=len(reader), desc="Computing codec", progress_bar=progress_bar):
+        for reader in data_readers:
+            for sample in tqdm_wrapper(reader.generate(text_only=True, epochs=1), total=len(reader), desc="Computing codec", progress_bar=progress_bar):
                 for c in sample.gt:
                     chars.add(c)
 
