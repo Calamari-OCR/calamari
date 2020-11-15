@@ -1,3 +1,6 @@
+import shutil
+import sys
+
 import calamari_ocr.scripts.tensorflow_rename_variables as tensorflow_rename_variables
 from calamari_ocr import __version__
 
@@ -50,8 +53,9 @@ class Checkpoint:
             raise Exception(
                 "Due to a update to tensorflow 2.0, the weights can not be converted yet. A retraining is required.")
         elif self.version == 2:
+            from calamari_ocr.ocr.migrations.version2to3 import migrate
             # Calamari 1.3 -> Calamari 2.0
-            raise NotImplementedError
+            self.json = migrate(self.json)
 
         self.version += 1
         self._update_json_version()
@@ -60,6 +64,7 @@ class Checkpoint:
         self.json['version'] = self.version
 
         if not self.dry_run:
+            shutil.copyfile(self.json_path, self.json_path + f'_v{self.version - 1}')
             s = json.dumps(self.json, indent=2)
 
             with open(self.json_path, 'w') as f:

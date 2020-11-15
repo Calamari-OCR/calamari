@@ -87,6 +87,12 @@ class PrePipeline(MultiProcPythonPipeline):
 
 
 class CalamariPipeline(DirectProcPythonPipeline):
+    """
+    The calamari Pipeline has two parts:
+        1. dynamic preprocessors (running as MultiProcPythonPipeline), this is the 'core' pipeline that can be converted
+           to a raw dataset
+        2. sample preparation (this pipeline is fixed), applies the codec (is always present)
+    """
     def generate_samples(self) -> Iterable[InputTargetSample]:
         procs = self.prep_processors
 
@@ -97,7 +103,10 @@ class CalamariPipeline(DirectProcPythonPipeline):
 
     def __init__(self, data: 'DataBase', mode: PipelineMode, params: CalamariPipelineParams, pre_pipeline: PrePipeline = None):
         super(PythonPipeline, self).__init__(data, mode, params)
+        # core pipeline
         self.pre_pipeline = pre_pipeline if pre_pipeline else PrePipeline(data, mode, params)
+
+        # Fixed processors
         self.prep_processors = SequenceProcessor(
             data.params(), mode,
             [PrepareSampleProcessor(data.params(), mode)]
@@ -113,5 +122,6 @@ class CalamariPipeline(DirectProcPythonPipeline):
         return CalamariPipeline(self._data, mode, self.params, self.pre_pipeline.to_mode(mode))
 
     def to_raw_pipeline(self, progress_bar=False):
+        # convert the core pipeline to a raw pipeline
         raw_pre = self.pre_pipeline.to_raw_pipeline(progress_bar)
         return CalamariPipeline(self._data, self.mode, self.params, raw_pre)

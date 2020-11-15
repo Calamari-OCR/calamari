@@ -31,8 +31,8 @@ def decoder(t):
 @dataclass_json
 @dataclass
 class FileDataReaderArgs:
-    line_generator_params: LineGeneratorParams = field(default_factory=LineGeneratorParams)
-    text_generator_params: TextGeneratorParams = field(default_factory=TextGeneratorParams)
+    line_generator_params: Optional[LineGeneratorParams] = None
+    text_generator_params: Optional[TextGeneratorParams] = None
     pad: int = 0
     text_index: int = 0
 

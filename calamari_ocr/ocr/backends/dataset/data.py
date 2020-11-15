@@ -17,7 +17,7 @@ from calamari_ocr.ocr.data_processing import ScaleToHeightProcessor, FinalPrepar
     NoopDataPreprocessor, CenterNormalizer
 from calamari_ocr.ocr.data_processing.default_image_processors import default_image_processors
 from calamari_ocr.ocr.text_processing import TextRegularizer, TextNormalizer, StripTextProcessor, BidiTextProcessor, \
-    NoopTextProcessor
+    NoopTextProcessor, StrToCharList
 from calamari_ocr.ocr.text_processing.default_text_processor import default_text_pre_processors
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 from calamari_ocr.ocr.datasets.datasetype import DataSetType
@@ -48,6 +48,7 @@ class CalamariData(DataBase):
             NoopTextProcessor,
             BidiTextProcessor,
             StripTextProcessor,
+            StrToCharList,
             TextNormalizer,
             TextRegularizer,
             AugmentationProcessor,

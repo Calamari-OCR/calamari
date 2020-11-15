@@ -109,7 +109,7 @@ class CalamariGraph(GraphBase):
                 use_bias=True,
                 return_sequences=True,
                 unit_forget_bias=True,
-                name=f'lstm_{layer_index}'
+                name=f'lstm_{layer_index}' if layer_index > 0 else 'lstm',
             )
             self.lstm_layers.append((layer, KL.Bidirectional(
                 lstm,
@@ -257,42 +257,6 @@ class CalamariModel(ModelBase):
                  "\n  PRED: '{}{}{}'".format(lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C") +
                  "\n  TRUE: '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C"))
 
-    def load_weights(self, filepath):
-        self.model.load_weights(filepath + '.h5')
-
-    def copy_weights_from_model(self, model, indices_to_delete, indices_to_add):
-        for target_layer, source_layer in zip(self.model.conv_layers, model.model.conv_layers):
-            target_weights = target_layer.weights
-            source_weights = source_layer.weights
-            if len(target_weights) != len(source_weights):
-                raise Exception("Different network structure detected.")
-
-            if len(target_weights) == 0:
-                continue
-
-            if target_layer.name.startswith('logits'):
-                tW, sW = [(tw, sw) for tw, sw in zip(target_weights, source_weights) if 'kernel' in tw.name][0]
-                tB, sB = [(tw, sw) for tw, sw in zip(target_weights, source_weights) if 'bias' in tw.name][0]
-
-                W_val = np.delete(sW.value(), [i - 1 for i in indices_to_delete], axis=1)
-                B_val = np.delete(sB.value(), [i - 1 for i in indices_to_delete], axis=0)
-
-                # add new indices at the end
-                if list(range(W_val.shape[1], W_val.shape[1] + len(indices_to_add))) != list(sorted(indices_to_add)):
-                    raise Exception("Additional labels must be added at the end, but got label indices {} != {}".format(
-                        range(W_val.shape[1], W_val.shape[1] + len(indices_to_add)), sorted(indices_to_add)))
-
-                W_val = np.concatenate(
-                    (W_val[:, :-1], np.random.uniform(-0.1, 0.1, (W_val.shape[0], len(indices_to_add))), W_val[:, -1:]),
-                    axis=1)
-                B_val = np.concatenate((B_val[:-1], np.zeros((len(indices_to_add),)), B_val[-1:]), axis=0)
-
-                # reassign values
-                tW.assign(W_val)
-                tB.assign(B_val)
-            else:
-                for tw, sw in zip(target_weights, source_weights):
-                    tw.assign(sw)
 
     def predict_raw_batch(self, x: np.array, len_x: np.array) -> Generator[NetworkPredictionResult, None, None]:
         out = self.model.predict_on_batch(

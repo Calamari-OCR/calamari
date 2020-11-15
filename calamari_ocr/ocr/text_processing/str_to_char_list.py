@@ -1,13 +1,19 @@
-from calamari_ocr.ocr.text_processing import TextProcessor, TextProcessorParams
+from typing import List
+
+from calamari_ocr.ocr.text_processing import TextProcessor
 
 
 class StrToCharList(TextProcessor):
-    def __init__(self, params: TextProcessorParams):
-        super().__init__()
-        # chars are priority ordered and might be words as-well!
-        self.chars = params.characters
+    @staticmethod
+    def default_params() -> dict:
+        return {'chars': []}
 
-    def _apply_single(self, txt):
+    def __init__(self, chars: List[str], **kwargs):
+        super().__init__(**kwargs)
+        # chars are priority ordered and might be words as-well!
+        self.chars = chars
+
+    def _apply_single(self, txt, meta):
         index = 0
         out = []
         while index < len(txt):
