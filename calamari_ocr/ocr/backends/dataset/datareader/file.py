@@ -31,10 +31,10 @@ class FileDataReader(DataReader):
         # when evaluating, only texts are set via --gt argument      --> need dummy [None] imgs
         # when predicting, only imags are set via --files  argument  --> need dummy [None] texts
 
-        if (mode == PipelineMode.Prediction or mode == PipelineMode.Evaluation) and not texts:
+        if mode == PipelineMode.Prediction:
             texts = [None] * len(images)
 
-        if (mode == PipelineMode.Targets or mode == PipelineMode.Evaluation) and not images:
+        if mode == PipelineMode.Targets:
             images = [None] * len(texts)
 
         for image, text in zip(images, texts):

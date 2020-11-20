@@ -1,11 +1,13 @@
 from typing import Generator
 
+from tfaip.base.data.pipeline.definitions import PipelineMode
+
 from calamari_ocr.ocr.backends.dataset.data_types import SampleMeta, InputSample
-from calamari_ocr.ocr.backends.dataset.datareader.base import CalamariDataPipeline
+from calamari_ocr.ocr.backends.dataset.datareader.base import DataReader
 
 
-class RawDataReader(CalamariDataPipeline):
-    def __init__(self, mode: DataSetMode, images=None, texts=None, meta=None):
+class RawDataReader(DataReader):
+    def __init__(self, mode: PipelineMode, images=None, texts=None, meta=None):
         """ Create a dataset from memory
 
         Since this dataset already contains all data in the memory, this dataset may not be loaded

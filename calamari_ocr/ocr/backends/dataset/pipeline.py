@@ -2,24 +2,21 @@ import copy
 from functools import partial
 from typing import Iterable
 
+from tfaip.base.data.pipeline.datapipeline import DataPipeline, DataGenerator
 from tfaip.base.data.pipeline.dataprocessor import SequenceProcessor
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper, parallel_map
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount, DataAugmentationAmountReference
 from tfaip.base.data.pipeline.definitions import InputTargetSample, PipelineMode
-from tfaip.base.data.pipeline.pypipeline import PythonPipeline, RawPythonPipeline, DirectProcPythonPipeline, \
-    MultiProcPythonPipeline
 
 from calamari_ocr.ocr.backends.dataset.data_types import CalamariPipelineParams, CalamariDataParams
 from calamari_ocr.ocr.backends.dataset.datareader.factory import data_reader_from_params
 from calamari_ocr.ocr.backends.dataset.imageprocessors.augmentation import AugmentationProcessor
-from calamari_ocr.ocr.backends.dataset.imageprocessors.preparesample import PrepareSampleProcessor
 
 
-class PrePipeline(MultiProcPythonPipeline):
+class PrePipeline:
     def __init__(self, data: 'DataBase', mode: PipelineMode, params: CalamariPipelineParams, reader=None):
-        super(PythonPipeline, self).__init__(data, mode, params)
-        self.reader = data_reader_from_params(mode, params) if reader is None else reader
+        super(PrePipeline, self).__init__(data, mode, params)
         self._has_meta = False
 
     def __len__(self):
@@ -86,42 +83,31 @@ class PrePipeline(MultiProcPythonPipeline):
         return RawPythonPipeline(augmented_samples, self._data, self.mode, self.params)
 
 
-class CalamariPipeline(DirectProcPythonPipeline):
-    """
-    The calamari Pipeline has two parts:
-        1. dynamic preprocessors (running as MultiProcPythonPipeline), this is the 'core' pipeline that can be converted
-           to a raw dataset
-        2. sample preparation (this pipeline is fixed), applies the codec (is always present)
-    """
-    def generate_samples(self) -> Iterable[InputTargetSample]:
-        procs = self.prep_processors
+class CalamariPipeline(DataPipeline):
+    def __init__(self,
+                 mode: PipelineMode,
+                 data_base: 'DataBase',
+                 generator_params: 'DataGeneratorParams',
+                 input_processors=None,
+                 output_processors=None,
+                 ):
+        super(CalamariPipeline, self).__init__(mode, data_base, generator_params, input_processors, output_processors)
+        self._reader = None
 
-        def proc(sample):
-            return procs.apply_on_sample(sample)
+    def reader(self):
+        if self._reader is None:
+            self._reader = data_reader_from_params(self.mode, self.generator_params)
 
-        return filter(lambda x: x is not None, map(proc, self.pre_pipeline.generate_preprocessed_samples()))
+        return self._reader
 
-    def __init__(self, data: 'DataBase', mode: PipelineMode, params: CalamariPipelineParams, pre_pipeline: PrePipeline = None):
-        super(PythonPipeline, self).__init__(data, mode, params)
-        # core pipeline
-        self.pre_pipeline = pre_pipeline if pre_pipeline else PrePipeline(data, mode, params)
+    def create_data_generator(self) -> DataGenerator:
+        reader = self.reader()
 
-        # Fixed processors
-        self.prep_processors = SequenceProcessor(
-            data.params(), mode,
-            [PrepareSampleProcessor(data.params(), mode)]
-        )
+        class Gen(DataGenerator):
+            def __len__(self):
+                return len(reader)
 
-    def __len__(self):
-        return len(self.pre_pipeline)
+            def generate(self) -> Iterable[InputTargetSample]:
+                return reader.generate()
 
-    def to_mode(self, mode):
-        if mode == self.mode:
-            # No need to copy
-            return self
-        return CalamariPipeline(self._data, mode, self.params, self.pre_pipeline.to_mode(mode))
-
-    def to_raw_pipeline(self, progress_bar=False):
-        # convert the core pipeline to a raw pipeline
-        raw_pre = self.pre_pipeline.to_raw_pipeline(progress_bar)
-        return CalamariPipeline(self._data, self.mode, self.params, raw_pre)
+        return Gen(self.mode, self.generator_params)

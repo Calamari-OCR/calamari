@@ -1,10 +1,10 @@
 from typing import List, TYPE_CHECKING, Iterator
 
-from tfaip.base.data.pipeline.definitions import PipelineMode
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
+from tfaip.base.data.pipeline.definitions import PipelineMode
 
 if TYPE_CHECKING:
-    from calamari_ocr.ocr.backends.dataset.pipeline import CalamariPipeline
+    from tfaip.base.data.pipeline.datapipeline import DataPipeline
 
 
 class Codec:
@@ -16,13 +16,14 @@ class Codec:
         return Codec(d['charset'])
 
     @staticmethod
-    def from_input_dataset(data_readers: Iterator['CalamariPipeline'], whitelist=None, progress_bar=False):
+    def from_input_dataset(data_pipelines: Iterator['DataPipeline'], whitelist=None, progress_bar=False):
         chars = set() if whitelist is None else set(whitelist)
 
-        for reader in data_readers:
-            targets_pipeline = reader.pre_pipeline.to_mode(PipelineMode.Targets)
-            for sample in tqdm_wrapper(targets_pipeline.generate_preprocessed_samples(False), total=len(targets_pipeline), desc="Computing codec", progress_bar=progress_bar):
-                assert(sample.inputs is None)  # Inputs shall not be generated here
+        for pipeline in data_pipelines:
+            pipeline = pipeline.to_mode(PipelineMode.Targets)
+            data_gen = pipeline.create_data_generator()
+            for sample in tqdm_wrapper(data_gen.generate(), total=len(data_gen), desc="Computing codec", progress_bar=progress_bar):
+                # assert(sample.inputs is None)  # Inputs shall not be generated here
                 for c in sample.targets:
                     chars.add(c)
 

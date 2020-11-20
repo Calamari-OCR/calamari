@@ -28,4 +28,4 @@ class PrepareSampleProcessor(DataProcessor):
             logger.warning(f"Skipping line with longer outputs than inputs (id={meta['id']})")
             return None, None
 
-        return (json.dumps(meta), line / 255.0, len(line)), (text, len(text))
+        return {'img': line / 255.0, 'img_len': len(line)}, {'gt': text, 'gt_len': len(text)}

@@ -1,4 +1,3 @@
-import copy
 from functools import partial
 from typing import Type
 import numpy as np
@@ -85,7 +84,7 @@ class CalamariTrainer(Trainer):
         """
         super(CalamariTrainer, self).__init__(params, scenario, restore)
         self._params: TrainerParams = params
-        if self._params.checkpoint_save_freq_ < 0:
+        if not isinstance(self._params.checkpoint_save_freq_, str) and self._params.checkpoint_save_freq_ < 0:
             self._params.checkpoint_save_freq_ = self._params.early_stopping_params.frequency
         self._params.warmstart_params.model = checkpoint_path(self._params.warmstart_params.model) if self._params.warmstart_params.model else None
         self.checkpoint = None
@@ -106,12 +105,13 @@ class CalamariTrainer(Trainer):
         data: CalamariData = self.scenario.data
         model_params: ModelParams = self.scenario.params.model_params
 
-        train_pipeline = data.get_pipeline(PipelineMode.Training, data.params().train)
-        if len(train_pipeline) == 0:
-            raise Exception("Training dataset is empty.")
+        train_pipeline = data.get_train_data()
+        # TODO: len
+        # if len(train_pipeline) == 0:
+        #    raise Exception("Training dataset is empty.")
 
         if data.params().val:
-            val_pipeline = data.get_pipeline(PipelineMode.Evaluation, data.params().val)
+            val_pipeline = data.get_val_data()
             if len(val_pipeline) == 0:
                 raise Exception("Validation dataset is empty. Provide valid validation data for early stopping.")
         else:
@@ -119,16 +119,17 @@ class CalamariTrainer(Trainer):
 
         if self._params.preload_training:
             # preload after codec was created
-            # TODO: progress bar
-            data.preload()
+            data.preload(progress_bar=self._params.progress_bar)
+            train_pipeline = data.get_train_data()
+            if val_pipeline:
+                val_pipeline = data.get_val_data()
 
         # compute the codec
         codec = data.params().codec
         if not codec:
             if len(self._params.codec_whitelist) == 0 or self._params.auto_compute_codec:
-                with data:
-                    codec = Codec.from_input_dataset(filter(lambda x: x, [train_pipeline, val_pipeline]),
-                                                     whitelist=self._params.codec_whitelist, progress_bar=self._params.progress_bar)
+                codec = Codec.from_input_dataset(filter(lambda x: x, [train_pipeline, val_pipeline]),
+                                                 whitelist=self._params.codec_whitelist, progress_bar=self._params.progress_bar)
             else:
                 codec = Codec.from_texts([], whitelist=self._params.codec_whitelist)
 

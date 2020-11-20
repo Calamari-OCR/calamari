@@ -53,9 +53,10 @@ class Checkpoint:
             raise Exception(
                 "Due to a update to tensorflow 2.0, the weights can not be converted yet. A retraining is required.")
         elif self.version == 2:
-            from calamari_ocr.ocr.migrations.version2to3 import migrate
+            from calamari_ocr.ocr.migrations.version2to3 import migrate, update_model
             # Calamari 1.3 -> Calamari 2.0
             self.json = migrate(self.json)
+            update_model(self.json, self.ckpt_path)
 
         self.version += 1
         self._update_json_version()

@@ -1,9 +1,9 @@
 import os
-from typing import Callable
+from typing import Callable, Type
 
-from tfaip.base.data.pipeline.base import BasePipeline
+from tfaip.base.data.pipeline.datapipeline import DataPipeline, SequenceProcessorPipelineParams, SamplePipelineParams
 from tfaip.base.data.pipeline.dataprocessor import DataProcessorFactory
-from tfaip.base.data.pipeline.definitions import PipelineMode, BasePipelineParams, DataProcessorFactoryParams
+from tfaip.base.data.pipeline.definitions import PipelineMode, DataProcessorFactoryParams, InputTargetSample
 from typeguard import typechecked
 import tensorflow as tf
 import logging
@@ -33,7 +33,7 @@ def to_tuple(x):
 
 class CalamariData(DataBase):
     @classmethod
-    def pipeline_factory(cls) -> Callable[['DataBase', PipelineMode, BasePipelineParams], BasePipeline]:
+    def data_pipeline_cls(cls) -> Type[DataPipeline]:
         from calamari_ocr.ocr.backends.dataset.pipeline import CalamariPipeline
         return CalamariPipeline
 
@@ -52,6 +52,7 @@ class CalamariData(DataBase):
             TextNormalizer,
             TextRegularizer,
             AugmentationProcessor,
+            PrepareSampleProcessor,
         ])
 
     @staticmethod
@@ -64,7 +65,6 @@ class CalamariData(DataBase):
 
     def _input_layer_specs(self):
         return {
-            'meta': tf.TensorSpec([], dtype=tf.string),
             'img': tf.TensorSpec([None, self._params.line_height_, self._params.input_channels], dtype=tf.float32),
             'img_len': tf.TensorSpec([], dtype=tf.int32),
                 }
@@ -82,23 +82,28 @@ if __name__ == '__main__':
     this_dir = os.path.dirname(os.path.realpath(__file__))
     base_path = os.path.abspath(os.path.join(this_dir, '../..', '..', 'test', 'data', 'uw3_50lines', 'train'))
     fdr = CalamariPipelineParams(
-        num_processes=1,
+        num_processes=8,
         type=DataSetType.FILE,
         files=[os.path.join(base_path, '*.png')],
         gt_extension=DataSetType.gt_extension(DataSetType.FILE),
-        limit=5,
+        limit=100,
     )
 
     params = CalamariDataParams(
         codec=Codec('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;-?+=_()*{}[]`@#$%^&\'"'),
         downscale_factor_=4,
         line_height_=48,
-        pre_processors_=
-        default_image_processors() +
-        default_text_pre_processors() +
-        [
-            DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}),
-        ],
+        pre_processors_=SequenceProcessorPipelineParams([
+            SamplePipelineParams(
+                run_parallel=True,
+                sample_processors=default_image_processors() +
+                                  default_text_pre_processors() +
+                                  [
+                                      DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}),
+                                      DataProcessorFactoryParams(PrepareSampleProcessor.__name__),
+                                  ],
+            )]
+        ),
         data_aug_params=DataAugmentationAmount(amount=2),
         train=fdr,
         val=fdr,
@@ -108,14 +113,14 @@ if __name__ == '__main__':
     print(params.to_json(indent=2))
 
     data = CalamariData(params)
-    pipeline: CalamariPipeline = CalamariData.pipeline_factory()(data, PipelineMode.Training, fdr)
-    with data:
-        for d in pipeline.generate_preprocessed_samples():
-            print(d)
-        for d in data.get_train_data():
-            pass
+    pipeline: CalamariPipeline = data.get_train_data()
+    with pipeline as rd:
+        for i, d in enumerate(rd.generate_input_samples()):
+            print(i)
+        for i, d in enumerate(rd.input_dataset()):
+            print(i)
 
-    with data:
-        raw_pipeline = pipeline.to_raw_pipeline()
-    for d in raw_pipeline.generate_preprocessed_samples():
-        print(d)
+    raw_pipeline = pipeline.as_preloaded()
+    with raw_pipeline as rd:
+        for i, d in enumerate(rd.generate_input_samples(auto_repeat=False)):
+            print(i)

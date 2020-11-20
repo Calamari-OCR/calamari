@@ -6,8 +6,9 @@ from bidi.algorithm import get_base_level
 from google.protobuf.json_format import MessageToJson
 
 from calamari_ocr import __version__
+from calamari_ocr.ocr.backends.dataset.data_types import CalamariPipelineParams, FileDataReaderArgs
 from calamari_ocr.utils.glob import glob_all
-from calamari_ocr.ocr.datasets import DataSetType, create_dataset, DataSetMode
+from calamari_ocr.ocr.datasets import DataSetType
 from calamari_ocr.ocr import MultiPredictor
 from calamari_ocr.ocr.voting import voter_from_proto
 from calamari_ocr.proto import VoterParams, Predictions, CTCDecoderParams
@@ -71,75 +72,78 @@ def run(args):
         args.text_files = glob_all(args.text_files)
 
     # skip invalid files and remove them, there wont be predictions of invalid files
-    dataset = create_dataset(
-        args.dataset,
-        DataSetMode.PREDICT,
-        input_image_files,
-        args.text_files,
+    predict_params = CalamariPipelineParams(
+        type=args.dataset,
         skip_invalid=True,
         remove_invalid=True,
-        args={
-            'text_index': args.pagexml_text_index,
-            'pad': args.dataset_pad,
-        },
+        files=input_image_files,
+        text_files=args.text_files,
+        gt_extension=args.extension,
+        data_reader_args=FileDataReaderArgs(
+            pad=args.dataset_pad,
+            text_index=args.pagexml_text_index,
+        ),
+        batch_size=args.batch_size,
+        num_processes=args.processes,
     )
 
-    print("Found {} files in the dataset".format(len(dataset)))
-    if len(dataset) == 0:
-        raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
+    # TODO: Comput size
+    # print(f"Found {len(dataset)} files in the dataset")
+    # if len(dataset) == 0:
+    #     raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
 
     # predict for all models
-    predictor = MultiPredictor(checkpoints=args.checkpoint, batch_size=args.batch_size, processes=args.processes,
-                               ctc_decoder_params=ctc_decoder_params)
-    do_prediction = predictor.predict_dataset(dataset, progress_bar=not args.no_progress_bars)
+    # TODO: Use CTC Decoder params
+    with MultiPredictor(checkpoints=args.checkpoint) as predictor:
+        do_prediction = predictor.predict(predict_params, progress_bar=not args.no_progress_bars)
 
-    avg_sentence_confidence = 0
-    n_predictions = 0
+        avg_sentence_confidence = 0
+        n_predictions = 0
 
-    dataset.prepare_store()
+        dataset.prepare_store()
 
-    # output the voted results to the appropriate files
-    for result, sample in do_prediction:
-        n_predictions += 1
-        for i, p in enumerate(result):
-            p.prediction.id = "fold_{}".format(i)
+        # output the voted results to the appropriate files
+        for result, sample in do_prediction:
+            n_predictions += 1
+            for i, p in enumerate(result):
+                p.prediction.id = "fold_{}".format(i)
 
-        # vote the results (if only one model is given, this will just return the sentences)
-        prediction = voter.vote_prediction_result(result)
-        prediction.id = "voted"
-        sentence = prediction.sentence
-        avg_sentence_confidence += prediction.avg_char_probability
-        if args.verbose:
-            lr = "\u202A\u202B"
-            print("{}: '{}{}{}'".format(sample['id'], lr[get_base_level(sentence)], sentence, "\u202C" ))
+            # vote the results (if only one model is given, this will just return the sentences)
+            prediction = voter.vote_prediction_result(result)
+            prediction.id = "voted"
+            sentence = prediction.sentence
+            avg_sentence_confidence += prediction.avg_char_probability
+            if args.verbose:
+                lr = "\u202A\u202B"
+                print("{}: '{}{}{}'".format(sample['id'], lr[get_base_level(sentence)], sentence, "\u202C" ))
 
-        output_dir = args.output_dir
+            output_dir = args.output_dir
 
-        dataset.store_text(sentence, sample, output_dir=output_dir, extension=args.extension)
+            dataset.store_text(sentence, sample, output_dir=output_dir, extension=args.extension)
 
-        if args.extended_prediction_data:
-            ps = Predictions()
-            ps.line_path = sample['image_path'] if 'image_path' in sample else sample['id']
-            ps.predictions.extend([prediction] + [r.prediction for r in result])
-            output_dir = output_dir if output_dir else os.path.dirname(ps.line_path)
-            if not os.path.exists(output_dir):
-                os.mkdir(output_dir)
+            if args.extended_prediction_data:
+                ps = Predictions()
+                ps.line_path = sample['image_path'] if 'image_path' in sample else sample['id']
+                ps.predictions.extend([prediction] + [r.prediction for r in result])
+                output_dir = output_dir if output_dir else os.path.dirname(ps.line_path)
+                if not os.path.exists(output_dir):
+                    os.mkdir(output_dir)
 
-            if args.extended_prediction_data_format == "pred":
-                data = ps.SerializeToString()
-            elif args.extended_prediction_data_format == "json":
-                # remove logits
-                for prediction in ps.predictions:
-                    prediction.logits.rows = 0
-                    prediction.logits.cols = 0
-                    prediction.logits.data[:] = []
+                if args.extended_prediction_data_format == "pred":
+                    data = ps.SerializeToString()
+                elif args.extended_prediction_data_format == "json":
+                    # remove logits
+                    for prediction in ps.predictions:
+                        prediction.logits.rows = 0
+                        prediction.logits.cols = 0
+                        prediction.logits.data[:] = []
 
-                data = MessageToJson(ps, including_default_value_fields=True)
-            else:
-                raise Exception("Unknown prediction format.")
+                    data = MessageToJson(ps, including_default_value_fields=True)
+                else:
+                    raise Exception("Unknown prediction format.")
 
 
-            dataset.store_extended_prediction(data, sample, output_dir=output_dir, extension=args.extended_prediction_data_format)
+                dataset.store_extended_prediction(data, sample, output_dir=output_dir, extension=args.extended_prediction_data_format)
 
     print("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
 
@@ -159,7 +163,7 @@ def main():
     parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
     parser.add_argument("--extension", type=str, default=None,
                         help="Define the prediction extension. This parameter can be used to override ground truth files.")
-    parser.add_argument("--checkpoint", type=str, nargs="+", default=[],
+    parser.add_argument("--checkpoint", type=str, nargs="+", required=True,
                         help="Path to the checkpoint without file extension")
     parser.add_argument("-j", "--processes", type=int, default=1,
                         help="Number of processes to use")

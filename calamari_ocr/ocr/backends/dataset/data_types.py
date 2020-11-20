@@ -1,14 +1,14 @@
 from dataclasses import dataclass, field
-from typing import Any, NamedTuple, Optional, Tuple, List
+from typing import NamedTuple, Optional, List
 
 from calamari_ocr.ocr.datasets import DataSetType
-from tfaip.base.data.pipeline.definitions import BasePipelineParams, InputTargetSample
+from tfaip.base.data.pipeline.definitions import InputTargetSample
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 
 from dataclasses_json import dataclass_json, config
 import numpy as np
-from tfaip.base.data.data_base_params import DataBaseParams
+from tfaip.base.data.data_base_params import DataBaseParams, DataGeneratorParams
 
 from calamari_ocr.ocr.codec import Codec
 from calamari_ocr.proto.params import LineGeneratorParams, TextGeneratorParams
@@ -38,7 +38,7 @@ class FileDataReaderArgs:
 
 
 @dataclass
-class CalamariPipelineParams(BasePipelineParams):
+class CalamariPipelineParams(DataGeneratorParams):
     type: DataSetType = None
     skip_invalid: bool = True
     remove_invalid: bool = True

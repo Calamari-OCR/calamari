@@ -1,4 +1,64 @@
+import inspect
+import os
+import shutil
 from typing import Optional
+import logging
+
+from tensorflow import keras
+import tensorflow as tf
+from tensorflow.python.ops import ctc_ops
+import tensorflow.keras.backend as K
+
+from calamari_ocr.ocr.backends.scenario import CalamariScenario
+
+
+logger = logging.getLogger(__name__)
+
+
+def update_model(params: dict, path: str):
+    logger.info(f"Updateing model at {path}")
+    trainer_params = CalamariScenario.trainer_params_from_dict(params)
+    scenario_params = trainer_params.scenario_params
+    model = keras.models.load_model(path + '.h5', compile=False)
+    pred_model_inputs = model.inputs[1:3]
+
+    class WrappedOutputLayer(keras.layers.Layer):
+        def call(self, inputs, **kwargs):
+            logits, output_len = inputs
+            outputs = {
+                'softmax': tf.nn.softmax(logits, axis=-1),
+                'out_len': output_len,
+            }
+            outputs['blank_last_logits'] = tf.roll(logits, shift=-1, axis=-1)
+            outputs['blank_last_softmax'] = tf.nn.softmax(outputs['blank_last_logits'])
+
+            greedy_decoded = \
+                ctc_ops.ctc_greedy_decoder(inputs=tf.transpose(outputs['blank_last_logits'], perm=[1, 0, 2]),
+                                           sequence_length=tf.cast(K.flatten(outputs['out_len']),
+                                                                   'int32'))[0][0]
+            greedy_decoded = tf.cast(greedy_decoded, 'int32', 'greedy_int32')
+            outputs['decoded'] = tf.sparse.to_dense(greedy_decoded,
+                                                    default_value=tf.constant(-1, dtype=greedy_decoded.dtype)) + 1
+            return outputs
+
+    outputs = [l.input for l in model.layers if l.name == 'softmax'][0], model.layers[-1].input[2]
+    pred_model = keras.models.Model(inputs=pred_model_inputs, outputs=outputs)
+    # wrap with correct input layers
+    img_input = keras.Input(shape=[None, scenario_params.data_params.line_height_, scenario_params.data_params.input_channels], dtype=tf.float32)
+    img_len = keras.Input(shape=[], dtype=tf.int32)
+    final_model_inputs = {'img': img_input, 'img_len': img_len}
+    output_wrapper = WrappedOutputLayer()
+    final_model_outputs = output_wrapper(pred_model((final_model_inputs['img'], final_model_inputs['img_len'])))
+
+    pred_model = keras.models.Model(inputs=final_model_inputs, outputs=final_model_outputs)
+    logger.info(f"Writing converted model at {path}.h5.tmp")
+    pred_model.save(path + '.h5.tmp', include_optimizer=False)
+    logger.info(f"Attempting to load converted model at {path}.h5.tmp")
+    keras.models.load_model(path + '.h5.tmp')
+    logger.info(f"Replacing old model at {path}.h5")
+    os.remove(path + '.h5')
+    os.rename(path + '.h5.tmp', path + '.h5')
+    logger.info(f"New model successfully written")
 
 
 def convert_codec(codec: dict):
@@ -51,8 +111,8 @@ def text_processor(name, args: Optional[dict] = None):
     return {
         "name": name,
         "modes": [ "targets", "training", "evaluation" ],
-        "args": args
-    },
+        "args": args,
+    }
 
 
 def convert_text_processor(proc: dict):
@@ -143,6 +203,8 @@ def migrate(d: dict):
             "lr": network.get('learningRate', 0),
         },
         "scenario_params": {
+            "scenario_base_path_": inspect.getfile(CalamariScenario),
+            "scenario_module_": CalamariScenario.__module__,
             "model_params": {
                 "layers": [convert_layer(l) for l in network.get('layers', [])],
                 "dropout": network.get('dropout', 0),
@@ -153,7 +215,7 @@ def migrate(d: dict):
                 "preproc_max_tasks_per_child": 250,
                 "resource_base_path_": ".",
                 "skip_invalid_gt_": d.get('skipInvalidGt', False),
-                "input_channels": model.get('channels', 0),
+                "input_channels": model.get('channels', 1),
                 "line_height_": model.get('lineHeight'),
                 "codec": convert_codec(codec),
                 "pre_processors_": converted_pre_processors,
