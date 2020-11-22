@@ -1,22 +1,19 @@
 import json
-import time
-from contextlib import ExitStack
+from functools import partial
 
-from tensorflow import keras
+from calamari_ocr.ocr.dataset.data import CalamariData
+from calamari_ocr.ocr.voting import voter_from_params
+from tfaip.base.data.pipeline.definitions import PipelineMode, InputOutputSample
 from tfaip.base.device_config import DeviceConfig
 from tfaip.base.predict import Predictor, PredictorParams, MultiModelPredictor
-from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
+from tfaip.base.predict.multimodelpredictor import MultiModelVoter
 from tqdm import tqdm
 
-import numpy as np
-from typing import Generator, List, Union
+from typing import List, Callable
 
-from calamari_ocr.ocr.backends.dataset.data_types import CalamariPipelineParams
-from calamari_ocr.ocr.backends.scenario import CalamariScenario
-from calamari_ocr.ocr.backends.tensorflow_backend.tensorflow_model import CalamariModel
-from calamari_ocr.ocr.text_processing import text_processor_from_proto
-from calamari_ocr.ocr import Codec, Checkpoint
-from calamari_ocr.ocr.backends import create_backend_from_checkpoint
+from calamari_ocr.ocr.dataset.params import CalamariPipelineParams
+from calamari_ocr.ocr.scenario import CalamariScenario
+from calamari_ocr.ocr import Codec, SavedModel
 from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransformer
 
 
@@ -26,7 +23,7 @@ class CalamariPredictorParams(PredictorParams):
 
 
 class PredictionResult:
-    def __init__(self, prediction, codec, text_postproc, out_to_in_trans, data_proc_params, ground_truth=None):
+    def __init__(self, prediction, codec, text_postproc, out_to_in_trans: Callable[[int], int], ground_truth=None):
         """ The output of a networks prediction (PredictionProto) with additional information
 
         It stores all required information for decoding (`codec`) and interpreting the output.
@@ -41,14 +38,13 @@ class PredictionResult:
             text processor to apply to the decodec `prediction` to receive the actual prediction sentence
         """
         self.prediction = prediction
-        self.logits = np.reshape(prediction.logits.data, (prediction.logits.rows, prediction.logits.cols))
+        self.logits = prediction.logits
         self.codec = codec
         self.text_postproc = text_postproc
         self.chars = codec.decode(prediction.labels)
-        self.sentence = self.text_postproc.apply("".join(self.chars))
+        self.sentence = self.text_postproc.apply('', "".join(self.chars), {})[1]
         self.prediction.sentence = self.sentence
         self.out_to_in_trans = out_to_in_trans
-        self.data_proc_params = data_proc_params
         self.ground_truth = ground_truth
 
         self.prediction.avg_char_probability = 0
@@ -57,8 +53,8 @@ class PredictionResult:
             for c in p.chars:
                 c.char = codec.code2char[c.label]
 
-            p.global_start = int(self.out_to_in_trans.local_to_global(p.local_start, self.data_proc_params))
-            p.global_end = int(self.out_to_in_trans.local_to_global(p.local_end, self.data_proc_params))
+            p.global_start = int(self.out_to_in_trans(p.local_start))
+            p.global_end = int(self.out_to_in_trans(p.local_end))
             if len(p.chars) > 0:
                 self.prediction.avg_char_probability += p.chars[0].probability
 
@@ -68,7 +64,7 @@ class PredictionResult:
 
 class CalamariPredictor(Predictor):
     def from_checkpoint(self, params: CalamariPredictorParams, checkpoint: str, auto_update_checkpoints=True):
-        ckpt = Checkpoint(checkpoint, auto_update=auto_update_checkpoints)
+        ckpt = SavedModel(checkpoint, auto_update=auto_update_checkpoints)
         trainer_params = CalamariScenario.trainer_params_from_dict(ckpt.json)
         scenario = CalamariScenario(trainer_params.scenario_params)
         predictor = CalamariPredictor(params, scenario.create_data())
@@ -153,9 +149,38 @@ class CalamariPredictor(Predictor):
                                    ground_truth=p.ground_truth)
 
 
-class MultiPredictor(ExitStack):
+class CalamariMultiModelVoter(MultiModelVoter):
+    def __init__(self, voter_params, datas, post_proc, out_to_in_transformer):
+        self.voter = voter_from_params(voter_params)
+        self.datas = datas
+        self.post_proc = post_proc
+        self.out_to_in_transformer = out_to_in_transformer
+
+    def vote(self, sample: InputOutputSample) -> InputOutputSample:
+        inputs, outputs, meta = sample
+        prediction_results = []
+        input_meta = json.loads(inputs['meta'])
+        for i, (prediction, m, data, post_) in enumerate(zip(outputs, meta, self.datas, self.post_proc)):
+            prediction.id = "fold_{}".format(i)
+            prediction_results.append(PredictionResult(prediction,
+                                                       codec=data.params().codec,
+                                                       text_postproc=post_,
+                                                       out_to_in_trans=partial(self.out_to_in_transformer.local_to_global,
+                                                                               model_factor=inputs['img_len'] /
+                                                                                            prediction.logits.shape[0],
+                                                                               data_proc_params=input_meta),
+                                                       ))
+        # vote the results (if only one model is given, this will just return the sentences)
+        prediction = self.voter.vote_prediction_result(prediction_results)
+        prediction.id = "voted"
+        return InputOutputSample(inputs, (prediction_results, prediction), input_meta)
+
+
+class MultiPredictor:
     def __init__(self, checkpoints: List[str] = None,
+                 voter_params=None,
                  auto_update_checkpoints=True,
+                 progress_bar=True,
                  ):
         """Predict multiple models to use voting
         """
@@ -164,23 +189,31 @@ class MultiPredictor(ExitStack):
         if len(checkpoints) == 0:
             raise Exception("No checkpoints provided.")
 
-        predictor_params = PredictorParams(silent=True)
+        class CalamariMultiModelPredictor(MultiModelPredictor):
+            def create_voter(self, data_params: 'DataBaseParams') -> MultiModelVoter:
+                post_proc = [CalamariData.data_processor_factory().create_sequence(
+                    data.params().post_processors_.sample_processors[1:], data.params(), PipelineMode.Prediction) for
+                    data in self.datas]
+                pre_proc = CalamariData.data_processor_factory().create_sequence(
+                    self.data.params().pre_processors_.sample_processors, self.data.params(),
+                    PipelineMode.Prediction)
+                out_to_in_transformer = OutputToInputTransformer(pre_proc)
+                return CalamariMultiModelVoter(voter_params, self.datas, post_proc, out_to_in_transformer)
+
+        predictor_params = PredictorParams(silent=True, progress_bar=progress_bar)
         DeviceConfig(predictor_params.device_params)
-        self.checkpoints = [Checkpoint(ckpt, auto_update=auto_update_checkpoints) for ckpt in checkpoints]
-        self.multi_predictor = MultiModelPredictor.from_paths([ckpt.json_path for ckpt in self.checkpoints],
-                                                              predictor_params,
-                                                              CalamariScenario,
-                                                              model_paths=[ckpt.ckpt_path + '.h5' for ckpt in self.checkpoints],
-                                                              )
+        self.checkpoints = [SavedModel(ckpt, auto_update=auto_update_checkpoints) for ckpt in checkpoints]
+        self.multi_predictor = CalamariMultiModelPredictor.from_paths([ckpt.json_path for ckpt in self.checkpoints],
+                                                                      predictor_params,
+                                                                      CalamariScenario,
+                                                                      model_paths=[ckpt.ckpt_path + '.h5' for ckpt in self.checkpoints],
+                                                                      )
 
-    def __enter__(self):
-        super(MultiPredictor, self).__enter__()
-        self.enter_context(self.multi_predictor)
-        return self
+    def data(self) -> CalamariData:
+        return self.multi_predictor._data
 
-    def predict(self, dataset: CalamariPipelineParams, progress_bar=True):
-        # TODO: compute correct dataset size
-        for inputs, outputs, meta in tqdm_wrapper(self.multi_predictor.predict(dataset), progress_bar=progress_bar):
-            yield outputs
+    def predict(self, dataset: CalamariPipelineParams):
+        for inputs, outputs, meta in self.multi_predictor.predict(dataset):
+            yield inputs, outputs, meta
 
         self.multi_predictor.benchmark_results.pretty_print()

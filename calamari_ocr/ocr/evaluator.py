@@ -1,15 +1,17 @@
 from edit_distance import edit_distance
 
-from calamari_ocr.ocr.text_processing import synchronize
 from collections import namedtuple
 
+from tfaip.util.multiprocessing.parallelmap import parallel_map
+
+from calamari_ocr.ocr.dataset.textprocessors import synchronize
 
 SingleEvalData = namedtuple('SingleEvalData', ['chars', 'char_errs', 'sync_errs', 'conf', 'gt_pred'])
 
 
 class Evaluator:
     def __init__(self, text_preprocessor=None, skip_empty_gt=False):
-        """ Class to evaluation the CER and errors of two datasets
+        """ Class to evaluation the CER and errors of two dataset
 
         Parameters
         ----------

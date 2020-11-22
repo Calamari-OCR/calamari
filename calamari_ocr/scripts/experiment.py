@@ -187,7 +187,7 @@ def main():
             folds_lers.append(eval['avg_ler'])
 
         data += ",{},{}".format(np.mean(folds_lers), np.std(folds_lers))
-        for voter in ['sequence_voter', 'confidence_voter_default_ctc', 'confidence_voter_fuzzy_ctc']:
+        for voter in ['sequence_voter', 'confidence_voter_default_ctc']:
             eval = prediction[voter]["eval"]
             data += ",{}".format(eval['avg_ler'])
 
@@ -205,7 +205,7 @@ def main():
                 print("FOLD {}".format(fold))
                 print_confusions(prediction[str(fold)]['eval'], args.n_confusions)
 
-            for voter in ['sequence_voter', 'confidence_voter_default_ctc', 'confidence_voter_fuzzy_ctc']:
+            for voter in ['sequence_voter', 'confidence_voter_default_ctc']:
                 print("VOTER {}".format(voter))
                 print_confusions(prediction[voter]['eval'], args.n_confusions)
 

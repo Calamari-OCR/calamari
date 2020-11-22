@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import argparse
-from calamari_ocr.ocr.datasets import create_dataset, DataSetType, DataSetMode
-from calamari_ocr.ocr.datasets.input_dataset import StreamingInputDataset
+from calamari_ocr.ocr.dataset import create_dataset, DataSetType, DataSetMode
+from calamari_ocr.ocr.dataset.input_dataset import StreamingInputDataset
 from calamari_ocr import __version__
 from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_file_name
 from calamari_ocr.ocr.text_processing import text_processor_from_proto

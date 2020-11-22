@@ -5,7 +5,7 @@ import logging
 
 from tfaip.util.logging import setup_log
 
-from calamari_ocr.ocr.backends.scenario import CalamariScenario
+from calamari_ocr.ocr.scenario import CalamariScenario
 
 logger = logging.getLogger(__name__)
 

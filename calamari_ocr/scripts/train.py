@@ -2,34 +2,29 @@ import argparse
 import os
 import json
 
-from tfaip.base.data.pipeline.datapipeline import SequenceProcessorPipelineParams, SamplePipelineParams
+from tfaip.base.data.pipeline.datapipeline import SamplePipelineParams
 from tfaip.base.data.pipeline.definitions import DataProcessorFactoryParams, inputs_pipeline_modes, \
-    targets_pipeline_modes, PipelineMode, all_pipeline_modes
+    targets_pipeline_modes, PipelineMode
 from tfaip.util.logging import setup_log
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 
 from calamari_ocr import __version__
-from calamari_ocr.ocr.backends.dataset import CalamariData
-from calamari_ocr.ocr.backends.dataset.data_types import CalamariDataParams, CalamariPipelineParams
-from calamari_ocr.ocr.backends.dataset.datareader.factory import FileDataReaderArgs
-from calamari_ocr.ocr.backends.dataset.imageprocessors.augmentation import AugmentationProcessor
-from calamari_ocr.ocr.backends.dataset.imageprocessors.preparesample import PrepareSampleProcessor
-from calamari_ocr.ocr.backends.scenario import CalamariScenario
-from calamari_ocr.ocr.data_processing import DataRangeNormalizer, CenterNormalizer, FinalPreparation
-from calamari_ocr.ocr.data_processing.data_preprocessor import ImageProcessor
-from calamari_ocr.ocr.data_processing.default_image_processors import default_image_processors
-from calamari_ocr.ocr.text_processing.text_regularizer import default_text_regularizer_replacements
-from calamari_ocr.proto.converters import params_from_definition_string
+from calamari_ocr.ocr.dataset.data import CalamariData
+from calamari_ocr.ocr.dataset.datareader.generated_line_dataset import TextGeneratorParams, LineGeneratorParams
+from calamari_ocr.ocr.dataset.params import CalamariDataParams, CalamariPipelineParams
+from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs
+from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessor
+from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessor
+from calamari_ocr.ocr.scenario import CalamariScenario
+from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
+from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
+from calamari_ocr.ocr.dataset.textprocessors import TextNormalizer, TextRegularizer, StripTextProcessor, \
+    BidiTextProcessor
+from calamari_ocr.ocr.dataset.textprocessors.text_regularizer import default_text_regularizer_replacements
+from calamari_ocr.ocr.training.params import params_from_definition_string
 from calamari_ocr.utils import glob_all
-from calamari_ocr.ocr.datasets import DataSetType
-from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
-from calamari_ocr.ocr.text_processing import \
-    TextNormalizer, \
-    TextRegularizer, StripTextProcessor, BidiTextProcessor
-
-
-from calamari_ocr.proto.params import *
+from calamari_ocr.ocr.dataset import DataSetType
 
 
 def setup_train_args(parser, omit=None):
@@ -50,7 +45,7 @@ def setup_train_args(parser, omit=None):
 
     parser.add_argument("--train_data_on_the_fly", action='store_true', default=False,
                         help='Instead of preloading all data during the training, load the data on the fly. '
-                             'This is slower, but might be required for limited RAM or large datasets')
+                             'This is slower, but might be required for limited RAM or large dataset')
 
     parser.add_argument("--seed", type=int, default="0",
                         help="Seed for random operations. If negative or zero a 'random' seed is used")
@@ -108,7 +103,7 @@ def setup_train_args(parser, omit=None):
                         help="Whitelist of txt files that may not be removed on restoring a model")
     parser.add_argument("--whitelist", type=str, nargs="+", default=[],
                         help="Whitelist of characters that may not be removed on restoring a model. "
-                             "For large datasets you can use this to skip the automatic codec computation "
+                             "For large dataset you can use this to skip the automatic codec computation "
                              "(see --no_auto_compute_codec)")
     parser.add_argument("--keep_loaded_codec", action='store_true', default=False,
                         help="Fully include the codec of the loaded model to the new codec")
@@ -129,7 +124,7 @@ def setup_train_args(parser, omit=None):
 
     parser.add_argument("--validation_data_on_the_fly", action='store_true', default=False,
                         help='Instead of preloading all data during the training, load the data on the fly. '
-                             'This is slower, but might be required for limited RAM or large datasets')
+                             'This is slower, but might be required for limited RAM or large dataset')
 
     parser.add_argument("--early_stopping_frequency", type=int, default=1,
                         help="The frequency of early stopping [epochs].")
@@ -255,16 +250,16 @@ def run(args):
     else:
         data_params.val = None
 
-    data_params.pre_processors_ = SequenceProcessorPipelineParams([SamplePipelineParams(run_parallel=True)])
-    data_params.post_processors_ = SequenceProcessorPipelineParams()
+    data_params.pre_processors_ = SamplePipelineParams(run_parallel=True)
+    data_params.post_processors_ = SamplePipelineParams(run_parallel=True)
     for p in args.data_preprocessing:
         p_p = CalamariData.data_processor_factory().processors[p].default_params()
         if 'pad' in p_p:
             p_p['pad'] = args.pad
-        data_params.pre_processors_.sample_pipelines[0].sample_processors.append(DataProcessorFactoryParams(p, inputs_pipeline_modes, p_p))
+        data_params.pre_processors_.sample_processors.append(DataProcessorFactoryParams(p, inputs_pipeline_modes, p_p))
 
     # Text pre processing (reading)
-    data_params.pre_processors_.sample_pipelines[0].sample_processors.extend(
+    data_params.pre_processors_.sample_processors.extend(
         [
             DataProcessorFactoryParams(TextNormalizer.__name__, targets_pipeline_modes, {'unicode_normalization': args.text_normalization}),
             DataProcessorFactoryParams(TextRegularizer.__name__, targets_pipeline_modes, {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
@@ -272,33 +267,26 @@ def run(args):
         ])
 
     # Text post processing (prediction)
-    data_params.post_processors_.sample_pipelines.append(SamplePipelineParams(
-        run_parallel=False,
-        sample_processors=[
+    data_params.post_processors_.sample_processors.extend(
+        [
             DataProcessorFactoryParams(TextNormalizer.__name__, targets_pipeline_modes,
                                        {'unicode_normalization': args.text_normalization}),
             DataProcessorFactoryParams(TextRegularizer.__name__, targets_pipeline_modes,
                                        {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
             DataProcessorFactoryParams(StripTextProcessor.__name__, targets_pipeline_modes)
-        ]))
+        ])
     if args.bidi_dir:
-        data_params.pre_processors_.sample_pipelines[0].sample_processors.append(
+        data_params.pre_processors_.sample_processors.append(
             DataProcessorFactoryParams(BidiTextProcessor.__name__, targets_pipeline_modes, {'bidi_direction': args.bidi_dir})
         )
-        data_params.post_processors_.append(
+        data_params.post_processors_.sample_processors.append(
             DataProcessorFactoryParams(BidiTextProcessor.__name__, targets_pipeline_modes, {'bidi_direction': args.bidi_dir})
         )
 
-    data_params.pre_processors_.sample_pipelines[0].sample_processors.append(
-        DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}, {'augmenter_type': 'simple'})
-    )
-    data_params.pre_processors_.sample_pipelines.append(SamplePipelineParams(
-        run_parallel=False,
-        sample_processors=[
-            DataProcessorFactoryParams(PrepareSampleProcessor.__name__)
-        ],
-        can_be_preloaded=False,
-    ))
+    data_params.pre_processors_.sample_processors.extend([
+        DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}, {'augmenter_type': 'simple'}),
+        DataProcessorFactoryParams(PrepareSampleProcessor.__name__),
+    ])
 
     data_params.data_aug_params = DataAugmentationAmount.from_factor(args.n_augmentations)
     data_params.line_height_ = args.line_height

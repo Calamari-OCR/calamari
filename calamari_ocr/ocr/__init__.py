@@ -1,9 +1,5 @@
-from calamari_ocr.ocr.checkpoint import Checkpoint
-from calamari_ocr.ocr.codec import Codec
-from calamari_ocr.ocr.datasets import *
+from calamari_ocr.ocr.savedmodel.saved_model import SavedModel
+from calamari_ocr.ocr.dataset.codec import Codec
+from calamari_ocr.ocr.dataset import *
 from calamari_ocr.ocr.evaluator import Evaluator
-from calamari_ocr.ocr.predictor import Predictor, MultiPredictor, PredictionResult
-from calamari_ocr.ocr.trainer import Trainer
-from calamari_ocr.ocr.cross_fold import CrossFold
-from calamari_ocr.ocr.cross_fold_trainer import CrossFoldTrainer
-import calamari_ocr.ocr.backends
+from calamari_ocr.ocr.training.cross_fold import CrossFold

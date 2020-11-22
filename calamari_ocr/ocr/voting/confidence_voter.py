@@ -1,7 +1,8 @@
 import operator
 
+from calamari_ocr.ocr.model.ctc_decoder.ctc_decoder import PredictionPosition, PredictionCharacter
+from calamari_ocr.ocr.dataset.textprocessors import synchronize
 from calamari_ocr.ocr.voting.voter import Voter
-from calamari_ocr.ocr.text_processing.text_synchronizer import synchronize
 
 
 def add_llocs(s, new):
@@ -91,9 +92,8 @@ def perform_conf_vote(voters):
 
 
 class ConfidenceVoter(Voter):
-    def __init__(self, blank_index=0, fuzzy_ctc=False, blank_threshold=0.7):
+    def __init__(self, blank_index=0, blank_threshold=0.7):
         super().__init__()
-        self.fuzzy_ctc = fuzzy_ctc
         self.blank_threshold = blank_threshold
         self.blank_index = blank_index
         self.min_candidate_probability = 1e-4
@@ -118,11 +118,15 @@ class ConfidenceVoter(Voter):
         sentence = ""
 
         for voted_pos in voted:
-            pos = prediction_out.positions.add()
+            pos = PredictionPosition()
+            prediction_out.positions.append(pos)
             for character in voted_pos:
-                char = pos.chars.add()
-                char.char = character.char
-                char.probability = character.p
+                pos.chars.append(
+                    PredictionCharacter(
+                        character.char,
+                        character.p,
+                    )
+                )
 
             if len(voted_pos) > 0:
                 pos.global_start = voted_pos[0].start

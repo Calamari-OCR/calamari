@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from calamari_ocr.ocr.datasets import create_dataset, DataSetMode, DataSetType, InputDataset
+from calamari_ocr.ocr.dataset import create_dataset, DataSetMode, DataSetType, InputDataset
 from calamari_ocr.utils import glob_all
 
 import numpy as np

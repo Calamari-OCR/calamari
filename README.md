@@ -57,7 +57,7 @@ Calamari also supports several **voting** algorithms to improve different predic
 ```
 calamari-predict --checkpoint path_to_model_1.ckpt path_to_model_2.ckpt ... --files your_images.*.png
 ```
-The voting algorithm can be changed by the `--voter` flag. Possible values are: `confidence_voter_default_ctc (default), confidence_voter_fuzzy_ctc, sequence_voter`. Note that both confidence voters depend on the loss function used for training a model, while the sequence voter can be used for all models but might yield slightly worse results.
+The voting algorithm can be changed by the `--voter` flag. Possible values are: `confidence_voter_default_ctc (default), sequence_voter`. Note that both confidence voters depend on the loss function used for training a model, while the sequence voter can be used for all models but might yield slightly worse results.
 
 ### Training of a model
 In calamari you can both train a single model using a given data set or train a fold of several (default 5) models to generate different voters for a voted prediction.

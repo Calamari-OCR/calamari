@@ -1,17 +1,17 @@
 import argparse
 import os
+import zlib
 
 from bidi.algorithm import get_base_level
 
-from google.protobuf.json_format import MessageToJson
-
 from calamari_ocr import __version__
-from calamari_ocr.ocr.backends.dataset.data_types import CalamariPipelineParams, FileDataReaderArgs
+from calamari_ocr.ocr.model.ctc_decoder.ctc_decoder import Predictions, CTCDecoderParams, CTCDecoderType
+from calamari_ocr.ocr.dataset.params import CalamariPipelineParams, FileDataReaderArgs
+from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
+from calamari_ocr.ocr.voting import VoterParams, VoterType
 from calamari_ocr.utils.glob import glob_all
-from calamari_ocr.ocr.datasets import DataSetType
+from calamari_ocr.ocr.dataset import DataSetType
 from calamari_ocr.ocr import MultiPredictor
-from calamari_ocr.ocr.voting import voter_from_proto
-from calamari_ocr.proto import VoterParams, Predictions, CTCDecoderParams
 
 
 def create_ctc_decoder_params(args):
@@ -33,7 +33,7 @@ def create_ctc_decoder_params(args):
 
     if args.dictionary:
         print("USING A LANGUAGE MODEL IS CURRENTLY EXPERIMENTAL ONLY. NOTE: THE PREDICTION IS VERY SLOW!")
-        params.type = CTCDecoderParams.CTC_WORD_BEAM_SEARCH
+        params.type = CTCDecoderType.WordBeamSearch
 
     return params
 
@@ -63,8 +63,7 @@ def run(args):
 
     # create voter
     voter_params = VoterParams()
-    voter_params.type = VoterParams.Type.Value(args.voter.upper())
-    voter = voter_from_proto(voter_params)
+    voter_params.type = VoterType(args.voter)
 
     # load files
     input_image_files = glob_all(args.files)
@@ -87,67 +86,60 @@ def run(args):
         num_processes=args.processes,
     )
 
-    # TODO: Comput size
-    # print(f"Found {len(dataset)} files in the dataset")
-    # if len(dataset) == 0:
-    #     raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
-
     # predict for all models
     # TODO: Use CTC Decoder params
-    with MultiPredictor(checkpoints=args.checkpoint) as predictor:
-        do_prediction = predictor.predict(predict_params, progress_bar=not args.no_progress_bars)
+    predictor = MultiPredictor(checkpoints=args.checkpoint, voter_params=voter_params, progress_bar=not args.no_progress_bars)
+    do_prediction = predictor.predict(predict_params)
+    pipeline: CalamariPipeline = predictor.data().get_predict_data(predict_params)
+    reader = pipeline.reader()
+    print(f"Found {len(reader)} files in the dataset")
+    if len(reader) == 0:
+        raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
 
-        avg_sentence_confidence = 0
-        n_predictions = 0
+    avg_sentence_confidence = 0
+    n_predictions = 0
 
-        dataset.prepare_store()
+    reader.prepare_store()
 
-        # output the voted results to the appropriate files
-        for result, sample in do_prediction:
-            n_predictions += 1
-            for i, p in enumerate(result):
-                p.prediction.id = "fold_{}".format(i)
+    # output the voted results to the appropriate files
+    for inputs, (result, prediction), meta in do_prediction:
+        sample = reader.sample_by_id(meta['id'])
+        n_predictions += 1
+        sentence = prediction.sentence
 
-            # vote the results (if only one model is given, this will just return the sentences)
-            prediction = voter.vote_prediction_result(result)
-            prediction.id = "voted"
-            sentence = prediction.sentence
-            avg_sentence_confidence += prediction.avg_char_probability
-            if args.verbose:
-                lr = "\u202A\u202B"
-                print("{}: '{}{}{}'".format(sample['id'], lr[get_base_level(sentence)], sentence, "\u202C" ))
+        avg_sentence_confidence += prediction.avg_char_probability
+        if args.verbose:
+            lr = "\u202A\u202B"
+            print("{}: '{}{}{}'".format(meta['id'], lr[get_base_level(sentence)], sentence, "\u202C"))
 
-            output_dir = args.output_dir
+        output_dir = args.output_dir
 
-            dataset.store_text(sentence, sample, output_dir=output_dir, extension=args.extension)
+        reader.store_text(sentence, sample, output_dir=output_dir, extension=args.extension)
 
-            if args.extended_prediction_data:
-                ps = Predictions()
-                ps.line_path = sample['image_path'] if 'image_path' in sample else sample['id']
-                ps.predictions.extend([prediction] + [r.prediction for r in result])
-                output_dir = output_dir if output_dir else os.path.dirname(ps.line_path)
-                if not os.path.exists(output_dir):
-                    os.mkdir(output_dir)
+        if args.extended_prediction_data:
+            ps = Predictions()
+            ps.line_path = sample['image_path'] if 'image_path' in sample else sample['id']
+            ps.predictions.extend([prediction] + [r.prediction for r in result])
+            output_dir = output_dir if output_dir else os.path.dirname(ps.line_path)
+            if not os.path.exists(output_dir):
+                os.mkdir(output_dir)
 
-                if args.extended_prediction_data_format == "pred":
-                    data = ps.SerializeToString()
-                elif args.extended_prediction_data_format == "json":
-                    # remove logits
-                    for prediction in ps.predictions:
-                        prediction.logits.rows = 0
-                        prediction.logits.cols = 0
-                        prediction.logits.data[:] = []
+            if args.extended_prediction_data_format == "pred":
+                data = zlib.compress(ps.to_json(indent=2, ensure_ascii=False).encode('utf-8'))
+            elif args.extended_prediction_data_format == "json":
+                # remove logits
+                for prediction in ps.predictions:
+                    prediction.logits = None
 
-                    data = MessageToJson(ps, including_default_value_fields=True)
-                else:
-                    raise Exception("Unknown prediction format.")
+                data = ps.to_json(indent=2)
+            else:
+                raise Exception("Unknown prediction format.")
 
-
-                dataset.store_extended_prediction(data, sample, output_dir=output_dir, extension=args.extended_prediction_data_format)
+            reader.store_extended_prediction(data, sample, output_dir=output_dir, extension=args.extended_prediction_data_format)
 
     print("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
 
-    dataset.store(args.extension)
+    reader.store(args.extension)
     print("All files written")
 
 
@@ -173,7 +165,7 @@ def main():
                         help="Print additional information")
     parser.add_argument("--voter", type=str, default="confidence_voter_default_ctc",
                         help="The voting algorithm to use. Possible values: confidence_voter_default_ctc (default), "
-                             "confidence_voter_fuzzy_ctc, sequence_voter")
+                             "sequence_voter")
     parser.add_argument("--output_dir", type=str,
                         help="By default the prediction files will be written to the same directory as the given files. "
                              "You can use this argument to specify a specific output dir for the prediction files.")

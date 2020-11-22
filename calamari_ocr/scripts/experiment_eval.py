@@ -17,9 +17,9 @@ def main():
                         help="Number of processes to use")
     parser.add_argument("--verbose", action="store_true",
                         help="Print additional information")
-    parser.add_argument("--voter", type=str, nargs="+", default=["sequence_voter", "confidence_voter_default_ctc", "confidence_voter_fuzzy_ctc"],
+    parser.add_argument("--voter", type=str, nargs="+", default=["sequence_voter", "confidence_voter_default_ctc"],
                         help="The voting algorithm to use. Possible values: confidence_voter_default_ctc (default), "
-                             "confidence_voter_fuzzy_ctc, sequence_voter")
+                             "sequence_voter")
     parser.add_argument("--batch_size", type=int, default=10,
                         help="The batch size for prediction")
     parser.add_argument("--dump", type=str,

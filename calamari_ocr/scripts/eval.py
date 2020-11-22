@@ -7,7 +7,7 @@ from google.protobuf import json_format
 
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.ocr import Evaluator
-from calamari_ocr.ocr.datasets import create_dataset, DataSetType, DataSetMode
+from calamari_ocr.ocr.dataset import create_dataset, DataSetType, DataSetMode
 from calamari_ocr.proto import CheckpointParams
 from calamari_ocr.ocr.text_processing import text_processor_from_proto
 

@@ -1,7 +1,7 @@
 import numpy as np
 
+from calamari_ocr.ocr.dataset.textprocessors import synchronize
 from calamari_ocr.ocr.voting.voter import Voter
-from calamari_ocr.ocr.text_processing.text_synchronizer import synchronize
 
 
 class SequenceVoter(Voter):

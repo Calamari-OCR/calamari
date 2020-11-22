@@ -1,1 +1,0 @@
-from calamari_ocr.ocr.backends.factory import create_backend_from_checkpoint

@@ -42,7 +42,6 @@ class Attrs():
         self.early_stopping_best_model_prefix = "uw3_50lines_best"
         self.early_stopping_best_model_output_dir = self.output_dir
         self.n_augmentations = 0
-        self.fuzzy_ctc_library_path = ""
         self.num_inter_threads = 0
         self.num_intra_threads = 0
         self.text_regularization = ["extended"]
