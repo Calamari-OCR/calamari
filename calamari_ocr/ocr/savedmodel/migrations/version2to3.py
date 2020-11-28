@@ -28,7 +28,7 @@ def update_model(params: dict, path: str):
             'out_len': output_len,
             'logits': tf.roll(logits, shift=1, axis=-1),
         }
-        outputs['blank_last_softmax'] = tf.nn.softmax(outputs['blank_last_logits'], axis=-1),
+        outputs['blank_last_softmax'] = tf.nn.softmax(outputs['blank_last_logits'], axis=-1)
         outputs['softmax'] = tf.nn.softmax(outputs['logits'])
 
         greedy_decoded = \
@@ -123,7 +123,6 @@ def convert_text_processor(proc: dict):
         elif t == 'DEFAULT_PRE_NORMALIZER':
             flat.extend(default_text_preprocessor())
         elif t == 'DEFAULT_POST_NORMALIZER':
-            # TODO:
             flat.extend(default_text_preprocessor())
         elif t == 'MULTI_NORMALIZER':
             for c in p['children']:
@@ -170,6 +169,7 @@ def convert_layer(layer: dict):
         'lstm_direction': 'bidirectional',
     }
 
+
 def migrate(d: dict):
     solver_mapper = {
         "ADAM_SOLVER": "Adam",
@@ -186,7 +186,8 @@ def migrate(d: dict):
     converted_pre_processors = \
         convert_image_processor(data_preprocessor) + \
         convert_text_processor(text_preprocessor)
-    converted_pre_processors.append({"name": "PrepareSampleProcessor"})
+
+    converted_pre_processors.append({"name": "PrepareSampleProcessor", "modes": ["prediction", "training", "evaluation"]})
 
     converted_post_processors = convert_text_processor(text_postprocessor)
     converted_post_processors.insert(0, {'name': "CTCDecoderProcessor"})

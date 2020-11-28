@@ -63,90 +63,17 @@ class PredictionResult:
 
 
 class CalamariPredictor(Predictor):
-    def from_checkpoint(self, params: CalamariPredictorParams, checkpoint: str, auto_update_checkpoints=True):
-        ckpt = SavedModel(checkpoint, auto_update=auto_update_checkpoints)
+    @staticmethod
+    def from_checkpoint(params: CalamariPredictorParams, checkpoint: str, auto_update_checkpoints=True):
+        ckpt = SavedModel(checkpoint, auto_update=False)
         trainer_params = CalamariScenario.trainer_params_from_dict(ckpt.json)
+        trainer_params.scenario_params.data_params.pre_processors_.run_parallel = False
+        trainer_params.scenario_params.data_params.post_processors_.run_parallel = False
         scenario = CalamariScenario(trainer_params.scenario_params)
         predictor = CalamariPredictor(params, scenario.create_data())
-        scenario.setup_training('Adam')  # dummy setup
-        model = scenario.keras_predict_model
-        model.load_weights(ckpt.ckpt_path + 'h5')
-        predictor.set_model(model)
+        ckpt = SavedModel(checkpoint, auto_update=auto_update_checkpoints)  # Device params must be specified first
+        predictor.set_model(ckpt.ckpt_path + '.h5')
         return predictor
-
-    def __init__(self, params: CalamariPredictorParams, data: 'DataBase'):
-        """ Predicting a dataset based on a trained model
-        """
-        super(CalamariPredictor, self).__init__(params, data)
-        # TODO: transform: self.out_to_in_trans = OutputToInputTransformer(self.data_preproc, self.network)
-
-    def predict_dataset(self, dataset, progress_bar=True, apply_preproc=True):
-        """ Predict a complete dataset
-
-        Parameters
-        ----------
-        dataset : Dataset
-            Dataset to predict
-        progress_bar : bool, optional
-            hide or show a progress bar
-
-        Yields
-        -------
-        PredictionResult
-            Single PredictionResult
-        dict
-            Dataset entry of the prediction result
-        """
-        # if isinstance(dataset, RawDataSet):
-        #     input_dataset = dataset.to_raw_input_dataset()
-        # else:
-        input_dataset = StreamingInputDataset(dataset, self.data_preproc if apply_preproc else None,
-                                              self.text_postproc if apply_preproc else None)
-
-        with input_dataset:
-            prediction_results = self.predict_input_dataset(input_dataset, progress_bar)
-
-            for prediction, sample in zip(prediction_results, dataset.samples()):
-                yield prediction, sample
-
-    def predict_raw(self, images, progress_bar=True, batch_size=-1, apply_preproc=True, params=None):
-        batch_size = len(images) if batch_size < 0 else self.network.batch_size if batch_size == 0 else batch_size
-        if apply_preproc:
-            images, params = zip(*self.data_preproc.apply(images, progress_bar=progress_bar, processes=self.processes))
-
-        for i in range(0, len(images), batch_size):
-            input_images = images[i:i + batch_size]
-            input_params = params[i:i + batch_size]
-            for p, ip in zip(self.network.predict_raw(input_images), input_params):
-                yield PredictionResult(p.decoded, codec=self.codec, text_postproc=self.text_postproc,
-                                       out_to_in_trans=self.out_to_in_trans, data_proc_params=ip,
-                                       ground_truth=p.ground_truth)
-
-    def predict_input_dataset(self, input_dataset, progress_bar=True):
-        """ Predict raw data
-        Parameters
-        ----------
-        datas : list of array_like
-            list of images
-        progress_bar : bool, optional
-            Show or hide a progress bar
-        apply_preproc : bool, optional
-            Apply the `data_preproc` to the `datas` before predicted by the DNN
-        Yields
-        -------
-        PredictionResult
-            A single PredictionResult
-        """
-
-        if progress_bar:
-            out = tqdm(self.network.predict_dataset(input_dataset), desc="Prediction", total=len(input_dataset))
-        else:
-            out = self.network.predict_dataset(input_dataset)
-
-        for p in out:
-            yield PredictionResult(p.decoded, codec=self.codec, text_postproc=self.text_postproc,
-                                   out_to_in_trans=self.out_to_in_trans, data_proc_params=p.params,
-                                   ground_truth=p.ground_truth)
 
 
 class CalamariMultiModelVoter(MultiModelVoter):
@@ -210,7 +137,7 @@ class MultiPredictor:
                                                                       )
 
     def data(self) -> CalamariData:
-        return self.multi_predictor._data
+        return self.multi_predictor.data
 
     def predict(self, dataset: CalamariPipelineParams):
         for inputs, outputs, meta in self.multi_predictor.predict(dataset):

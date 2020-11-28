@@ -3,7 +3,7 @@ from dataclasses import field, dataclass
 from typing import List, Optional
 
 import numpy as np
-from dataclasses_json import dataclass_json
+from dataclasses_json import dataclass_json, config
 from tfaip.util.enum import StrEnum
 
 
@@ -36,7 +36,7 @@ class Prediction:
     sentence: str = ''
     labels: List[int] = field(default_factory=list)
     positions: List[PredictionPosition] = field(default_factory=list)
-    logits: Optional[np.ndarray] = field(default=None)
+    logits: Optional[np.array] = field(default=None)
     total_probability: float = 0
     avg_char_probability: float = 0
     is_voted_result: bool = False

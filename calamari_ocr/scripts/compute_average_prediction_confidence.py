@@ -1,6 +1,9 @@
 from argparse import ArgumentParser
 
-from calamari_ocr.ocr.dataset import create_dataset, DataSetMode, DataSetType, InputDataset
+from calamari_ocr.ocr.dataset import DataSetType
+from tfaip.base.data.pipeline.definitions import PipelineMode
+
+from calamari_ocr.ocr.dataset.dataset_factory import create_data_reader
 from calamari_ocr.utils import glob_all
 
 import numpy as np
@@ -16,13 +19,13 @@ def main():
     print("Resolving files")
     pred_files = sorted(glob_all(args.pred))
 
-    data_set = create_dataset(
+    reader = create_data_reader(
         DataSetType.EXTENDED_PREDICTION,
-        DataSetMode.EVAL,
-        texts=pred_files,
+        PipelineMode.Evaluation,
+        texts=pred_files
     )
 
-    print('Average confidence: {:.2%}'.format(np.mean([s['best_prediction'].avg_char_probability for s in data_set.samples()])))
+    print('Average confidence: {:.2%}'.format(np.mean([s['best_prediction'].avg_char_probability for s in reader.samples()])))
 
 
 if __name__ == '__main__':

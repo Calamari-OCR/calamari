@@ -1,9 +1,10 @@
 import os
 from typing import Type
 
+from tfaip.base.data.data_base_params import DataBaseParams
 from tfaip.base.data.pipeline.datapipeline import DataPipeline, SamplePipelineParams
 from tfaip.base.data.pipeline.dataprocessor import DataProcessorFactory
-from tfaip.base.data.pipeline.definitions import PipelineMode, DataProcessorFactoryParams
+from tfaip.base.data.pipeline.definitions import PipelineMode, DataProcessorFactoryParams, inputs_pipeline_modes
 from typeguard import typechecked
 import tensorflow as tf
 import logging
@@ -39,6 +40,24 @@ class CalamariData(DataBase):
     def data_pipeline_cls(cls) -> Type[DataPipeline]:
         from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
         return CalamariPipeline
+
+    @classmethod
+    def get_default_params(cls) -> CalamariDataParams:
+        params: CalamariDataParams = super(CalamariData, cls).get_default_params()
+        params.pre_processors_ = SamplePipelineParams(
+            run_parallel=True,
+            sample_processors=default_image_processors() +
+                              default_text_pre_processors() +
+                              [
+                                  DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}),
+                                  DataProcessorFactoryParams(PrepareSampleProcessor.__name__, inputs_pipeline_modes),
+                              ],
+        )
+        params.post_processors_ = SamplePipelineParams(
+            run_parallel=True,
+            sample_processors=default_text_pre_processors()
+        )
+        return params
 
     @classmethod
     def data_processor_factory(cls) -> DataProcessorFactory:

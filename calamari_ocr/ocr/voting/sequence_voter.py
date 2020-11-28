@@ -14,7 +14,6 @@ class SequenceVoter(Voter):
         texts = [prediction_result.sentence for prediction_result in predictions]
         out = self.process_text(texts)
 
-        # TODO:
         prediction_out.sentence = "".join([c for c, p in out])
 
     def process_text(self, texts):

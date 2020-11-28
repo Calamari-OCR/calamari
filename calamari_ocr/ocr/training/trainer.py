@@ -1,7 +1,6 @@
 from functools import partial
 from typing import Type, List
 import numpy as np
-from tensorflow import keras
 from tfaip.base.data.pipeline.datapipeline import RawDataPipeline
 
 from tfaip.base.trainer import Trainer
@@ -101,8 +100,6 @@ class CalamariTrainer(Trainer):
 
     def train(self, callbacks=None):
         callbacks = callbacks if callbacks else []
-        # TODO log total training time
-        # train_start_time = time.time() + self.checkpoint_params.total_time
 
         # load preloaded dataset
         self.scenario.data = self.scenario.create_data()

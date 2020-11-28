@@ -2,14 +2,17 @@ from argparse import ArgumentParser
 import os
 import json
 import numpy as np
+from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from google.protobuf import json_format
+from calamari_ocr.ocr.dataset import DataSetType
+from calamari_ocr.ocr.dataset.data import CalamariData
+from calamari_ocr.ocr.dataset.params import FileDataReaderArgs
+from calamari_ocr.ocr.scenario import CalamariScenario
+from calamari_ocr.ocr.training.params import TrainerParams
+from calamari_ocr.ocr.training.trainer import CalamariTrainer
 
 from calamari_ocr.utils import glob_all, split_all_ext
-from calamari_ocr.ocr import Evaluator
-from calamari_ocr.ocr.dataset import create_dataset, DataSetType, DataSetMode
-from calamari_ocr.proto import CheckpointParams
-from calamari_ocr.ocr.text_processing import text_processor_from_proto
+from calamari_ocr.ocr import Evaluator, CalamariPipelineParams, SavedModel
 
 
 def print_confusions(r, n_confusions):
@@ -178,29 +181,30 @@ def main():
             del pred_files[idx]
             del gt_files[idx]
 
-    text_preproc = None
+    data_params = CalamariData.get_default_params()
     if args.checkpoint:
-        with open(args.checkpoint if args.checkpoint.endswith(".json") else args.checkpoint + '.json', 'r') as f:
-            checkpoint_params = json_format.Parse(f.read(), CheckpointParams())
-            text_preproc = text_processor_from_proto(checkpoint_params.model.text_preprocessor)
+        saved_model = SavedModel(args.checkpoint, auto_update=True)
+        trainer_params = CalamariScenario.trainer_params_from_dict(saved_model.json)
+        data_params = trainer_params.scenario_params.data_params
 
-    non_existing_as_empty = args.non_existing_file_handling_mode.lower() != "error "
-    gt_data_set = create_dataset(
-        args.dataset,
-        DataSetMode.EVAL,
-        texts=gt_files,
-        non_existing_as_empty=non_existing_as_empty,
-        args={'text_index': args.pagexml_gt_text_index},
+    data = CalamariData(data_params)
+
+    reader_args = FileDataReaderArgs(
+        text_index=args.pagexml_gt_text_index
     )
-    pred_data_set = create_dataset(
-        args.pred_dataset,
-        DataSetMode.EVAL,
-        texts=pred_files,
-        non_existing_as_empty=non_existing_as_empty,
-        args={'text_index': args.pagexml_pred_text_index},
+    gt_data_set = CalamariPipelineParams(
+        type=args.dataset,
+        text_files=gt_files,
+        data_reader_args=reader_args,
+        skip_invalid=args.skip_empty_gt,
+    )
+    pred_data_set = CalamariPipelineParams(
+        type=args.pred_dataset,
+        text_files=pred_files,
+        data_reader_args=reader_args,
     )
 
-    evaluator = Evaluator(text_preprocessor=text_preproc, skip_empty_gt=args.skip_empty_gt)
+    evaluator = Evaluator(data=data)
     r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, processes=args.num_threads,
                       progress_bar=not args.no_progress_bars)
 
@@ -214,7 +218,7 @@ def main():
     # sort descending
     print_confusions(r, args.n_confusions)
 
-    print_worst_lines(r, gt_data_set.samples(), args.n_worst_lines)
+    print_worst_lines(r, data.create_pipeline(PipelineMode.Targets, gt_data_set).reader().samples(), args.n_worst_lines)
 
     if args.xlsx_output:
         write_xlsx(args.xlsx_output,

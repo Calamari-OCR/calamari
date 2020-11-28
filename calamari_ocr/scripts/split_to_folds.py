@@ -1,9 +1,12 @@
 import argparse
 import os
 import shutil
+
+from tfaip.base.data.pipeline.definitions import PipelineMode
 from tqdm import tqdm
 
-from calamari_ocr.ocr import CrossFold, FileDataSet, DataSetMode
+from calamari_ocr.ocr import CrossFold
+from calamari_ocr.ocr.dataset.datareader.file import FileDataReader
 from calamari_ocr.utils import split_all_ext, glob_all
 
 
@@ -27,8 +30,8 @@ def main():
     print("Creating folds")
     images = glob_all(args.files)
     texts = [split_all_ext(p)[0] + '.gt.txt' for p in images]
-    dataset = FileDataSet(DataSetMode.TRAIN, images=images, texts=texts, skip_invalid=True)
-    cross_fold = CrossFold(n_folds=args.n_folds, dataset=dataset, output_dir=args.output_dir)
+    data_reader = FileDataReader(PipelineMode.Training, images=images, texts=texts, skip_invalid=True)
+    cross_fold = CrossFold(n_folds=args.n_folds, data_reader=data_reader, output_dir=args.output_dir)
 
     print("Copying files")
     for fold_id, fold_files in enumerate(cross_fold.folds):

@@ -1,9 +1,13 @@
 import argparse
 
 import numpy as np
+from calamari_ocr.ocr.dataset import DataSetType
+from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
 
+from calamari_ocr.ocr.dataset.dataset_factory import create_data_reader
 from calamari_ocr.utils import glob_all, split_all_ext
-from calamari_ocr.ocr import create_dataset, DataSetType, DataSetMode
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -21,14 +25,13 @@ def main():
     image_files = glob_all(args.files)
     gt_files = [split_all_ext(p)[0] + ".gt.txt" for p in image_files]
 
-    ds = create_dataset(
+    ds = create_data_reader(
         args.dataset,
-        DataSetMode.TRAIN,
+        PipelineMode.Training,
         images=image_files, texts=gt_files, non_existing_as_empty=True)
 
     print("Loading {} files".format(len(image_files)))
-    ds.load_samples(processes=1, progress_bar=True)
-    images, texts = ds.train_samples(skip_empty=True)
+    images, texts, metas = list(zip(*tqdm_wrapper(ds.generate(), progress_bar=True, total=len(ds))))
     statistics = {
         "n_lines": len(images),
         "chars": [len(c) for c in texts],

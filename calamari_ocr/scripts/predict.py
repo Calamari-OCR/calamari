@@ -3,6 +3,7 @@ import os
 import zlib
 
 from bidi.algorithm import get_base_level
+from calamari_ocr.ocr.predictor import MultiPredictor
 
 from calamari_ocr import __version__
 from calamari_ocr.ocr.model.ctc_decoder.ctc_decoder import Predictions, CTCDecoderParams, CTCDecoderType
@@ -11,7 +12,6 @@ from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
 from calamari_ocr.ocr.voting import VoterParams, VoterType
 from calamari_ocr.utils.glob import glob_all
 from calamari_ocr.ocr.dataset import DataSetType
-from calamari_ocr.ocr import MultiPredictor
 
 
 def create_ctc_decoder_params(args):

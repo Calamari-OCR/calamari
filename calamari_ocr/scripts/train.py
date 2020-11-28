@@ -141,12 +141,6 @@ def setup_train_args(parser, omit=None):
                              "only the non augmented data. This will take longer. Use this flag to disable this "
                              "behavior.")
 
-    # backend specific params
-    parser.add_argument("--num_inter_threads", type=int, default=0,
-                        help="Tensorflow's session inter threads param")
-    parser.add_argument("--num_intra_threads", type=int, default=0,
-                        help="Tensorflow's session intra threads param")
-
     # text normalization/regularization
     parser.add_argument("--text_regularization", type=str, nargs="+", default=["extended"],
                         help="Text regularization to apply.")
@@ -289,8 +283,7 @@ def run(args):
     data_params.line_height_ = args.line_height
 
     # =================================================================================================================
-    # TODO: ORDER
-    params.device_params.gpus = list(map(int, filter(lambda x: len(x) > 0, os.environ.get("CUDA_VISIBLE_DEVICES", '').split(','))))
+    # Trainer Params
     params.force_eager = args.debug
     params.skip_model_load_test = not args.debug
     params.scenario_params.debug_graph_construction = args.debug
@@ -303,6 +296,18 @@ def run(args):
     params.test_every_n = args.display
     params.skip_invalid_gt = not args.no_skip_invalid_gt
     params.data_aug_retrain_on_original = not args.only_train_on_augmented
+    if args.seed > 0:
+        params.random_seed = args.seed
+
+    params.optimizer_params.clip_grad = args.gradient_clipping_norm
+    params.codec_whitelist = whitelist
+    params.keep_loaded_codec = args.keep_loaded_codec
+    params.preload_training = not args.train_data_on_the_fly
+    params.preload_validation = not args.validation_data_on_the_fly
+    params.warmstart_params.model = args.weights
+
+    params.auto_compute_codec = not args.no_auto_compute_codec
+    params.progress_bar = not args.no_progress_bars
 
     params.early_stopping_params.frequency = args.early_stopping_frequency
     params.early_stopping_params.upper_threshold = 0.9
@@ -312,22 +317,10 @@ def run(args):
     params.early_stopping_params.best_model_output_dir = args.early_stopping_best_model_output_dir
     params.scenario_params.default_serve_dir_ = f'{args.early_stopping_best_model_prefix}.ckpt.h5'
     params.scenario_params.trainer_params_filename_ = f'{args.early_stopping_best_model_prefix}.ckpt.json'
-    if args.seed > 0:
-        params.random_seed = args.seed
 
+    params.device_params.gpus = list(map(int, filter(lambda x: len(x) > 0, os.environ.get("CUDA_VISIBLE_DEVICES", '').split(','))))
 
     params_from_definition_string(args.network, params)
-    params.optimizer_params.clip_grad = args.gradient_clipping_norm
-    # params.model.network.backend.num_inter_threads = args.num_inter_threads
-    # params.model.network.backend.num_intra_threads = args.num_intra_threads
-    params.codec_whitelist = whitelist
-    params.keep_loaded_codec = args.keep_loaded_codec
-    params.preload_training = not args.train_data_on_the_fly
-    params.preload_validation = not args.validation_data_on_the_fly
-    params.warmstart_params.model = args.weights
-
-    params.auto_compute_codec = not args.no_auto_compute_codec
-    params.progress_bar = not args.no_progress_bars
 
     scenario = CalamariScenario(params.scenario_params)
     trainer = scenario.create_trainer(params)

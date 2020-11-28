@@ -1,14 +1,24 @@
 import matplotlib.pyplot as plt
 import argparse
-from calamari_ocr.ocr.dataset import create_dataset, DataSetType, DataSetMode
-from calamari_ocr.ocr.dataset.input_dataset import StreamingInputDataset
+
+from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
+from tfaip.base.data.pipeline.datapipeline import SamplePipelineParams
+from tfaip.base.data.pipeline.definitions import DataProcessorFactoryParams, inputs_pipeline_modes, \
+    targets_pipeline_modes, PipelineMode
+
+from calamari_ocr.ocr.dataset import DataSetType
+
 from calamari_ocr import __version__
+from calamari_ocr.ocr.dataset.data import CalamariData
+from calamari_ocr.ocr.dataset.datareader.base import DataReader
+from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessor, PrepareSampleProcessor
+from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
+from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
+from calamari_ocr.ocr.dataset.params import FileDataReaderArgs, CalamariPipelineParams, CalamariDataParams
+from calamari_ocr.ocr.dataset.textprocessors import TextNormalizer, TextRegularizer, StripTextProcessor, \
+    BidiTextProcessor
+from calamari_ocr.ocr.dataset.textprocessors.text_regularizer import default_text_regularizer_replacements
 from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_file_name
-from calamari_ocr.ocr.text_processing import text_processor_from_proto
-from calamari_ocr.ocr.data_processing import data_processor_from_proto
-from calamari_ocr.proto import DataPreprocessorParams, TextProcessorParams
-from calamari_ocr.ocr.text_processing import \
-    default_text_normalizer_params, default_text_regularizer_params
 import os
 from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
 
@@ -44,78 +54,89 @@ def main():
                         help="Text regularization to apply.")
     parser.add_argument("--text_normalization", type=str, default="NFC",
                         help="Unicode text normalization to apply. Defaults to NFC")
-    parser.add_argument("--data_preprocessing", nargs="+", type=DataPreprocessorParams.Type.Value,
-                        choices=DataPreprocessorParams.Type.values(), default=[DataPreprocessorParams.DEFAULT_NORMALIZER])
+    parser.add_argument("--data_preprocessing", nargs="+", type=str,
+                        choices=[k for k, p in CalamariData.data_processor_factory().processors.items() if issubclass(p, ImageProcessor)],
+                        default=[p.name for p in default_image_processors()])
+    parser.add_argument("--bidi_dir", type=str, default=None, choices=["ltr", "rtl", "auto"],
+                        help="The default text direction when preprocessing bidirectional text. Supported values "
+                             "are 'auto' to automatically detect the direction, 'ltr' and 'rtl' for left-to-right and "
+                             "right-to-left, respectively")
 
     args = parser.parse_args()
 
-    # Text/Data processing
-    if args.data_preprocessing is None or len(args.data_preprocessing) == 0:
-        args.data_preprocessing = [DataPreprocessorParams.DEFAULT_NORMALIZER]
+    if args.gt_extension is None:
+        args.gt_extension = DataSetType.gt_extension(args.dataset)
 
-    data_preprocessor = DataPreprocessorParams()
-    data_preprocessor.type = DataPreprocessorParams.MULTI_NORMALIZER
-    for preproc in args.data_preprocessing:
-        pp = data_preprocessor.children.add()
-        pp.type = preproc
-        pp.line_height = args.line_height
-        pp.pad = args.pad
-
-    # Text pre processing (reading)
-    text_preprocessor = TextProcessorParams()
-    text_preprocessor.type = TextProcessorParams.MULTI_NORMALIZER
-    default_text_normalizer_params(text_preprocessor.children.add(), default=args.text_normalization)
-    default_text_regularizer_params(text_preprocessor.children.add(), groups=args.text_regularization)
-    strip_processor_params = text_preprocessor.children.add()
-    strip_processor_params.type = TextProcessorParams.STRIP_NORMALIZER
-
-    text_preprocessor = text_processor_from_proto(text_preprocessor)
-    data_preprocessor = data_processor_from_proto(data_preprocessor)
-
-    print("Resolving input files")
-    input_image_files = sorted(glob_all(args.files))
-    if not args.text_files:
-        if args.gt_extension:
-            gt_txt_files = [split_all_ext(f)[0] + args.gt_extension for f in input_image_files]
-        else:
-            gt_txt_files = [None] * len(input_image_files)
-    else:
-        gt_txt_files = sorted(glob_all(args.text_files))
-        input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
-        for img, gt in zip(input_image_files, gt_txt_files):
-            if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:
-                raise Exception("Expected identical basenames of file: {} and {}".format(img, gt))
-
-    if len(set(gt_txt_files)) != len(gt_txt_files):
-        raise Exception("Some image are occurring more than once in the data set.")
-
-    dataset = create_dataset(
-        args.dataset,
-        DataSetMode.TRAIN,
-        images=input_image_files,
-        texts=gt_txt_files,
-        non_existing_as_empty=True,
+    dataset_args = FileDataReaderArgs(
+        pad=args.pad,
     )
 
+    data_params: CalamariDataParams = CalamariData.get_default_params()
+    data_params.train = CalamariPipelineParams(
+        type=args.dataset,
+        remove_invalid=True,
+        files=args.files,
+        text_files=args.text_files,
+        gt_extension=args.gt_extension,
+        data_reader_args=dataset_args,
+        batch_size=1,
+        num_processes=args.processes,
+    )
+
+    data_params.pre_processors_ = SamplePipelineParams(run_parallel=True)
+    data_params.post_processors_ = SamplePipelineParams(run_parallel=True)
+    for p in args.data_preprocessing:
+        p_p = CalamariData.data_processor_factory().processors[p].default_params()
+        if 'pad' in p_p:
+            p_p['pad'] = args.pad
+        data_params.pre_processors_.sample_processors.append(DataProcessorFactoryParams(p, inputs_pipeline_modes, p_p))
+
+    # Text pre processing (reading)
+    data_params.pre_processors_.sample_processors.extend(
+        [
+            DataProcessorFactoryParams(TextNormalizer.__name__, targets_pipeline_modes, {'unicode_normalization': args.text_normalization}),
+            DataProcessorFactoryParams(TextRegularizer.__name__, targets_pipeline_modes, {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
+            DataProcessorFactoryParams(StripTextProcessor.__name__, targets_pipeline_modes)
+        ])
+
+    # Text post processing (prediction)
+    data_params.post_processors_.sample_processors.extend(
+        [
+            DataProcessorFactoryParams(TextNormalizer.__name__, targets_pipeline_modes,
+                                       {'unicode_normalization': args.text_normalization}),
+            DataProcessorFactoryParams(TextRegularizer.__name__, targets_pipeline_modes,
+                                       {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
+            DataProcessorFactoryParams(StripTextProcessor.__name__, targets_pipeline_modes)
+        ])
+    if args.bidi_dir:
+        data_params.pre_processors_.sample_processors.append(
+            DataProcessorFactoryParams(BidiTextProcessor.__name__, targets_pipeline_modes, {'bidi_direction': args.bidi_dir})
+        )
+        data_params.post_processors_.sample_processors.append(
+            DataProcessorFactoryParams(BidiTextProcessor.__name__, targets_pipeline_modes, {'bidi_direction': args.bidi_dir})
+        )
+
+    data_params.pre_processors_.sample_processors.extend([
+        DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}, {'augmenter_type': 'simple'}),
+        # DataProcessorFactoryParams(PrepareSampleProcessor.__name__),  # NOT THIS, since, we want to access raw input
+    ])
+
+    data_params.data_aug_params = DataAugmentationAmount.from_factor(args.n_augmentations)
+    data_params.line_height_ = args.line_height
+
+    data = CalamariData(data_params)
+    data_pipeline = data.get_train_data()
+    reader: DataReader = data_pipeline.reader()
     if len(args.select) == 0:
-        args.select = range(len(dataset.samples()))
-        dataset._samples = dataset.samples()
+        args.select = range(len(reader.samples()))
+        reader._samples = reader.samples()
     else:
-        dataset._samples = [dataset.samples()[i] for i in args.select]
+        reader._samples = [reader.samples()[i] for i in args.select]
 
-    samples = dataset.samples()
-
-    print("Found {} files in the dataset".format(len(dataset)))
-
-    with StreamingInputDataset(dataset,
-                               data_preprocessor,
-                               text_preprocessor,
-                               SimpleDataAugmenter(),
-                               args.n_augmentations,
-                               ) as input_dataset:
-        f, ax = plt.subplots(args.n_rows, args.n_cols, sharey='all')
-        row, col = 0, 0
-        for i, (id, sample) in enumerate(zip(args.select, input_dataset.generator(args.processes))):
+    f, ax = plt.subplots(args.n_rows, args.n_cols, sharey='all')
+    row, col = 0, 0
+    with data_pipeline as dataset:
+        for i, (id, sample) in enumerate(zip(args.select, dataset.generate_input_samples(auto_repeat=False))):
             line, text, params = sample
             if args.n_cols == 1:
                 ax[row].imshow(line.transpose())
@@ -129,7 +150,7 @@ def main():
                 row = 0
                 col += 1
 
-            if col == args.n_cols or i == len(samples) - 1:
+            if col == args.n_cols or i == len(dataset) - 1:
                 plt.show()
                 f, ax = plt.subplots(args.n_rows, args.n_cols, sharey='all')
                 row, col = 0, 0

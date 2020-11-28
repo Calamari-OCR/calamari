@@ -2,29 +2,25 @@ from edit_distance import edit_distance
 
 from collections import namedtuple
 
-from tfaip.util.multiprocessing.parallelmap import parallel_map
+from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.util.multiprocessing.parallelmap import parallel_map, tqdm_wrapper
 
+from calamari_ocr.ocr import CalamariDataParams, CalamariPipelineParams
+from calamari_ocr.ocr.dataset.data import CalamariData
+from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
 from calamari_ocr.ocr.dataset.textprocessors import synchronize
 
 SingleEvalData = namedtuple('SingleEvalData', ['chars', 'char_errs', 'sync_errs', 'conf', 'gt_pred'])
 
 
 class Evaluator:
-    def __init__(self, text_preprocessor=None, skip_empty_gt=False):
+    def __init__(self, data: CalamariData):
         """ Class to evaluation the CER and errors of two dataset
-
-        Parameters
-        ----------
-        text_preprocessor : TextProcessor
-            a text preprocessor to apply before computing the errors
-        skip_empty_gt : bool
-            skip gt text lines that are empty
         """
-        self.text_preprocessor = text_preprocessor if text_preprocessor is not None else DefaultTextPreprocessor()
-        self.skip_empty_gt = skip_empty_gt
+        self.data = data
         self.preloaded_gt = None
 
-    def preload_gt(self, gt_dataset, progress_bar=False):
+    def preload_gt(self, gt_dataset: CalamariPipelineParams, progress_bar=False):
         """ Preload gt to be used for several experiments
 
         Use this method to specify ground truth data to be tested versus many predictions
@@ -37,57 +33,38 @@ class Evaluator:
             show a progress bar
 
         """
-        with StreamingInputDataset(gt_dataset, None, self.text_preprocessor, processes=1) as gt_input_dataset:
-            self.preloaded_gt = [txt for _, txt, _ in tqdm_wrapper(gt_input_dataset.generator(text_only=True),
-                                                                   total=len(gt_dataset),
+        with self.data.create_pipeline(PipelineMode.Targets, gt_dataset) as dataset:
+            self.preloaded_gt = [txt for _, txt, _ in tqdm_wrapper(dataset.generate_input_samples(),
+                                                                   total=len(dataset),
                                                                    progress_bar=progress_bar,
                                                                    desc="Loading GT",
                                                                    )]
 
-    def run(self, _sentinel=None, gt_dataset=None, pred_dataset=None, processes=1, progress_bar=False):
+    def run(self, *, gt_dataset: CalamariPipelineParams, pred_dataset: CalamariPipelineParams, processes=1, progress_bar=False):
         """ evaluate on the given dataset
-
-        Parameters
-        ----------
-        _sentinel : do not use
-            Forcing the use of `gt_dataset` and `pred_dataset` fore safety
-        gt_dataset : Dataset, optional
-            the ground truth
-        pred_dataset : Dataset
-            the prediction dataset
-        processes : int, optional
-            the processes to use for preprocessing and evaluation
-        progress_bar : bool, optional
-            show a progress bar
-
         Returns
         -------
         evaluation dictionary
         """
-        if _sentinel:
-            raise Exception("You must call run by using parameter names.")
-
         if self.preloaded_gt:
             gt_data = self.preloaded_gt
         else:
-            # gt_dataset.load_samples(progress_bar=progress_bar)
-            # gt_data = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
-            with StreamingInputDataset(gt_dataset, None, self.text_preprocessor, processes=processes) as gt_input_dataset:
-                gt_data = [txt for _, txt, _ in tqdm_wrapper(gt_input_dataset.generator(text_only=True),
-                                                             total=len(gt_dataset),
+            with self.data.create_pipeline(PipelineMode.Targets, gt_dataset) as data:
+                gt_data = [txt for _, txt, _ in tqdm_wrapper(data.generate_input_samples(),
+                                                             total=len(data),
                                                              progress_bar=progress_bar,
                                                              desc="Loading GT",
                                                              )]
 
-        with StreamingInputDataset(pred_dataset, None, self.text_preprocessor, processes=processes) as pred_input_dataset:
-            pred_data = [txt for _, txt, _ in tqdm_wrapper(pred_input_dataset.generator(text_only=True),
-                                                           total=len(pred_dataset),
+        with self.data.create_pipeline(PipelineMode.Targets, pred_dataset) as data:
+            pred_data = [txt for _, txt, _ in tqdm_wrapper(data.generate_input_samples(),
+                                                           total=len(data),
                                                            progress_bar=progress_bar,
                                                            desc="Loading Prediction"
                                                            )]
 
         return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar,
-                             skip_empty_gt=self.skip_empty_gt)
+                             skip_empty_gt=gt_dataset.skip_invalid)
 
     @staticmethod
     def evaluate_single_args(args):
