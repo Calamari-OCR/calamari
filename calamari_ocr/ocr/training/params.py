@@ -16,9 +16,8 @@ class TrainerParams(TfaipTrainerParams):
     version: int = SavedModel.VERSION
 
     skip_invalid_gt: bool = True
-    stats_size: int = -1
     data_aug_retrain_on_original: bool = True  # Retrain the model with only the non augmented data in a second run
-    current_stage_: int = -1  # Current training progress: 0 standard, 1 retraining on non aug.
+    current_stage: int = 0  # Current training progress: 0 standard, 1 retraining on non aug.
 
     codec_whitelist: List[str] = field(default_factory=list)
     keep_loaded_codec: bool = True

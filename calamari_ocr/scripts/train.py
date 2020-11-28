@@ -22,7 +22,7 @@ from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import de
 from calamari_ocr.ocr.dataset.textprocessors import TextNormalizer, TextRegularizer, StripTextProcessor, \
     BidiTextProcessor
 from calamari_ocr.ocr.dataset.textprocessors.text_regularizer import default_text_regularizer_replacements
-from calamari_ocr.ocr.training.params import params_from_definition_string
+from calamari_ocr.ocr.training.params import params_from_definition_string, TrainerParams
 from calamari_ocr.utils import glob_all
 from calamari_ocr.ocr.dataset import DataSetType
 
@@ -73,9 +73,6 @@ def setup_train_args(parser, omit=None):
                         )
     parser.add_argument("--early_stopping_at_accuracy", type=float, default=1.0,
                         help="Stop training if the early stopping accuracy reaches this value")
-    parser.add_argument("--stats_size", type=int, default=100,
-                        help="Average this many iterations for computing an average loss, label error rate and "
-                             "training time")
     parser.add_argument("--no_skip_invalid_gt", action="store_true",
                         help="Do no skip invalid gt, instead raise an exception.")
     parser.add_argument("--no_progress_bars", action="store_true",
@@ -299,7 +296,6 @@ def run(args):
     params.scenario_params.debug_graph_construction = args.debug
     params.epochs = args.epochs
     params.samples_per_epoch = args.samples_per_epoch
-    params.stats_size = args.stats_size
     params.skip_load_model_test = True
     params.scenario_params.export_frozen = False
     params.checkpoint_save_freq_ = args.checkpoint_frequency if args.checkpoint_frequency >= 0 else args.early_stopping_frequency

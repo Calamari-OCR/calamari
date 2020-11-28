@@ -1,18 +1,23 @@
 from functools import partial
 from typing import Type, List
 import numpy as np
-import time
+from tensorflow import keras
+from tfaip.base.data.pipeline.datapipeline import RawDataPipeline
 
 from tfaip.base.trainer import Trainer
 from tfaip.base.trainer.warmstart.warmstarter import Warmstarter
 
 from calamari_ocr.ocr import Codec, SavedModel
+from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessor
 from calamari_ocr.ocr.model.params import ModelParams
 from calamari_ocr.ocr.training.params import TrainerParams
 from calamari_ocr.utils import checkpoint_path
 from calamari_ocr.ocr.dataset.data import CalamariData
 
 
+class NoopWarmstarter(Warmstarter):
+    def warmstart(self, *args, **kwargs):
+        return None
 
 
 class WarmstarterWithCodecAdaption(Warmstarter):
@@ -166,34 +171,26 @@ class CalamariTrainer(Trainer):
             # preload after codec was created
             data.preload(progress_bar=self._params.progress_bar)
 
-        super(CalamariTrainer, self).train(
-            callbacks=callbacks,
-            warmstart_fn=partial(WarmstarterWithCodecAdaption, codec_changes=codec_changes),
-        )
+        if self._params.current_stage == 0:
+            super(CalamariTrainer, self).train(
+                callbacks=callbacks,
+                warmstart_fn=partial(WarmstarterWithCodecAdaption, codec_changes=codec_changes),
+            )
 
-        if False:
-            train_net = backend.create_net(codec, graph_type="train",
-                                           checkpoint_to_load=SavedModel(self.weights) if self.weights else None,
-                                           batch_size=checkpoint_params.batch_size, codec_changes=codec_changes)
+        if self._params.data_aug_retrain_on_original and self._params.scenario_params.data_params.data_aug_params.to_abs() > 0:
+            print("Starting training on original data only")
+            if self._params.current_stage == 0:
+                self._params.current_epoch = 0
+                self._params.current_stage = 1
+                self._params.early_stopping_params.current_ = 0
+                self._params.early_stopping_params.n_ = 0
 
-            if checkpoint_params.current_stage == 0:
-                self._run_train(train_net, train_start_time, progress_bar, self.dataset, training_callback)
+            # Remove data augmenter
+            self._data.params().pre_processors_.sample_processors = [p for p in self._data.params().pre_processors_.sample_processors if p.name != AugmentationProcessor.__name__]
+            # Remove augmented samples if 'preloaded"
+            if isinstance(train_pipeline, RawDataPipeline):
+                train_pipeline.samples = [s for s in train_pipeline.samples if not s.meta.get('augmented', False)]
 
-            if checkpoint_params.data_aug_retrain_on_original and self.data_augmenter and self.n_augmentations != 0:
-                print("Starting training on original data only")
-                # TODO: THIS MUST BE IMPLEMENTED
-                if checkpoint_params.current_stage == 0:
-                    checkpoint_params.current_stage = 1
-                    checkpoint_params.iter = 0
-                    checkpoint_params.early_stopping_best_at_iter = 0
-                    checkpoint_params.early_stopping_best_cur_nbest = 0
-                    checkpoint_params.early_stopping_best_accuracy = 0
+            print(f"Training on {len(train_pipeline.create_data_generator())} samples.")
 
-                self.dataset.generate_only_non_augmented = True  # this is the important line!
-                self._run_train(train_net, train_start_time, progress_bar, self.dataset, training_callback)
-
-    def _run_train(self, train_net, train_start_time, progress_bar, dataset: CalamariData, training_callback):
-        checkpoint_params = self.checkpoint_params
-        with dataset:
-            train_net.train(dataset.get_train_data(), dataset.get_val_data(), checkpoint_params, self.txt_postproc, progress_bar, training_callback)
-        print("Total training time {}s for {} iterations.".format(time.time() - train_start_time, self.checkpoint_params.iter))
+            super(CalamariTrainer, self).fit()
