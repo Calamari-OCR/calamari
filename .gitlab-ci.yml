@@ -9,7 +9,7 @@ before_script:
   - pip install --use-feature 2020-resolver -r requirements.txt
   - pip uninstall -y calamari-ocr tfaip
   - python setup.py develop --no-deps
-  - git clone https://github.com/Planet-AI-GmbH/tf2_aip_base && cd tf2_aip_base
+  - git clone -b develop https://github.com/Planet-AI-GmbH/tf2_aip_base && cd tf2_aip_base
   - python setup.py develop --no-deps
   - cd ..
 
@@ -43,7 +43,7 @@ install_dependencies:
     - pip install --use-feature 2020-resolver -r requirements.txt
     - pip uninstall -y calamari-ocr tfaip
     - python setup.py develop --no-deps
-    - git clone https://github.com/Planet-AI-GmbH/tf2_aip_base && cd tf2_aip_base
+    - git clone -b develop https://github.com/Planet-AI-GmbH/tf2_aip_base && cd tf2_aip_base
     - python setup.py develop --no-deps
     - cd ..
     - wget -q -O - https://github.com/Calamari-OCR/calamari_models/archive/1.0.tar.gz | tar xz && mv calamari_models-1.0 calamari_models
@@ -61,7 +61,7 @@ test-cpu-resume-training:
   stage: test
   script:
     - set -e
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10 --checkpoint_frequency 1
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 5 --samples_per_epoch 10 --checkpoint_frequency 1
     - calamari-resume-training checkpoint/checkpoint_0003
 
 test-cpu-validation:

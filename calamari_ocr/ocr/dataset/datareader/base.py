@@ -108,11 +108,14 @@ class DataReader(ABC):
             if self.mode == PipelineMode.Training:
                 # no pred_and_eval bc it's shuffle
                 shuffle(self._samples)
+            for sample in self._generate_epoch(text_only=self.mode == PipelineMode.Targets):
+                yield sample.to_input_target_sample()
 
-            for sample in self._sample_iterator():
-                for raw_sample in self._load_sample(sample, text_only=self.mode == PipelineMode.Targets):
-                    assert isinstance(raw_sample, InputSample)
-                    yield raw_sample.to_input_target_sample()
+    def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
+        for sample in self._sample_iterator():
+            for raw_sample in self._load_sample(sample, text_only=text_only):
+                assert isinstance(raw_sample, InputSample)
+                yield raw_sample
 
     def _sample_iterator(self):
         return self._samples

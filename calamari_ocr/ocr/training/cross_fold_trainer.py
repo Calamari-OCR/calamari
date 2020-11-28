@@ -5,9 +5,7 @@ import json
 import tempfile
 import sys
 
-from calamari_ocr.ocr.datasets import DataSetType
-
-from calamari_ocr.ocr import CrossFold
+from calamari_ocr.ocr import CrossFold, SavedModel
 from calamari_ocr.utils.multiprocessing import prefix_run_command, run
 
 # path to the dir of this script to automatically detect the training script
@@ -115,9 +113,6 @@ class CrossFoldTrainer:
                 fold_args["dataset"] = cross_fold.dataset_type.name
                 fold_args["validation_dataset"] = cross_fold.dataset_type.name
                 fold_args["validation_extension"] = self.train_args['gt_extension']
-                if cross_fold.dataset_type == DataSetType.HDF5:
-                    del fold_args["validation_extension"]
-                    del fold_args["gt_extension"]
                 fold_args["id"] = fold
                 fold_args["files"] = train_files
                 fold_args["validation"] = test_files
@@ -141,6 +136,9 @@ class CrossFoldTrainer:
                 if fold_args["weights"]:
                     if len(fold_args["weights"].strip()) == 0 or fold_args["weights"].upper() == "NONE":
                         fold_args["weights"] = None
+                    else:
+                        # access model once to upgrade the model if necessary (can not be performed in parallel)
+                        SavedModel(fold_args["weights"])
 
                 json.dump(
                     fold_args,

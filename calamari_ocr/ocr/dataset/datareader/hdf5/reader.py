@@ -1,3 +1,4 @@
+from random import shuffle
 from typing import Generator
 
 from tfaip.base.data.pipeline.definitions import PipelineMode
@@ -46,7 +47,7 @@ class Hdf5Reader(DataReader):
                 self.add_sample({
                     "image": None,
                     "text": "",
-                    "id": str(i),
+                    "id": f"{filename}/{i}",
                     "filename": filename,
                 })
 
@@ -68,16 +69,24 @@ class Hdf5Reader(DataReader):
     def _sample_iterator(self):
         return self.filenames
 
+    def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
+        for filename in self.filenames:
+            f = h5py.File(filename, 'r')
+            codec = list(map(chr, f['codec']))
+            if text_only:
+                for i, text in enumerate(f['transcripts']):
+                    text = "".join([codec[c] for c in text])
+                    yield InputSample(None, text, SampleMeta(id=f"{filename}/{i}"))
+            else:
+                gen = zip(f['images'], f['images_dims'], f['transcripts'])
+                if self.mode == PipelineMode.Training:
+                    gen = list(gen)
+                    shuffle(gen)
+
+                for i, (image, shape, text) in enumerate(gen):
+                    image = np.reshape(image, shape)
+                    text = "".join([codec[c] for c in text])
+                    yield InputSample(image, text, SampleMeta(id=f"{filename}/{i}"))
+
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
-        filename = sample
-        f = h5py.File(filename, 'r')
-        codec = list(map(chr, f['codec']))
-        if text_only:
-            for i, text in enumerate(f['transcripts']):
-                text = "".join([codec[c] for c in text])
-                yield InputSample(None, text, SampleMeta(id=f"{filename}_{i}"))
-        else:
-            for i, (image, shape, text) in enumerate(zip(f['images'], f['images_dims'], f['transcripts'])):
-                image = np.reshape(image, shape)
-                text = "".join([codec[c] for c in text])
-                yield InputSample(image, text, SampleMeta(id=f"{filename}_{i}"))
+        raise NotImplementedError

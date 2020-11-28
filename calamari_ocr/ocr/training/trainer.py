@@ -33,7 +33,7 @@ class WarmstarterWithCodecAdaption(Warmstarter):
 
     def apply_weights(self, target_model, new_weights):
         if self.codec_changes is None:
-            target_model.load_weights(new_weights)
+            super(WarmstarterWithCodecAdaption, self).apply_weights(target_model, new_weights)
         else:
             self.copy_weights_from_model(target_model, new_weights, *self.codec_changes)
 

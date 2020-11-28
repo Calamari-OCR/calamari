@@ -3,9 +3,9 @@ import json
 
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr import CrossFoldTrainer
 from calamari_ocr.ocr.dataset.params import CalamariPipelineParams
 from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs, data_reader_from_params
+from calamari_ocr.ocr.training.cross_fold_trainer import CrossFoldTrainer
 from calamari_ocr.scripts.train import setup_train_args, DataSetType
 
 

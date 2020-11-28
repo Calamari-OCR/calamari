@@ -75,19 +75,15 @@ class AbbyyReader(DataReader):
     def _sample_iterator(self):
         return zip(self.files, self.xmlfiles)
 
-    def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
-        image_path, xml_path = sample
+    def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
+        for p, page in enumerate(self.book.pages):
+            if self.mode in inputs_pipeline_modes:
+                img = np.array(Image.open(page.imgFile))
+                if self.binary:
+                    img = img > 0.9
+            else:
+                img = None
 
-        book = XMLReader([image_path], [xml_path], self.skip_invalid, self.remove_invalid).read()
-
-        if self.mode in inputs_pipeline_modes:
-            img = np.array(Image.open(image_path))
-            if self.binary:
-                img = img > 0.9
-        else:
-            img = None
-
-        for p, page in enumerate(book.pages):
             for l, line in enumerate(page.getLines()):
                 for f, fo in enumerate(line.formats):
                     sample_id = "{}_{}_{}_{}".format(os.path.splitext(page.xmlFile if page.xmlFile else page.imgFile)[0], p, l, f)
@@ -111,3 +107,5 @@ class AbbyyReader(DataReader):
 
                         yield InputSample(cut_img, text, SampleMeta(id=sample_id))
 
+    def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
+        raise NotImplementedError

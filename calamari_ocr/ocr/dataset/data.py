@@ -55,7 +55,11 @@ class CalamariData(DataBase):
         )
         params.post_processors_ = SamplePipelineParams(
             run_parallel=True,
-            sample_processors=default_text_pre_processors()
+            sample_processors=
+            [
+                DataProcessorFactoryParams(CTCDecoderProcessor.__name__),
+            ] +
+            default_text_pre_processors()
         )
         return params
 

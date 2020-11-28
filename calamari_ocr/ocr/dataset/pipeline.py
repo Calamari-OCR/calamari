@@ -16,6 +16,7 @@ class CalamariPipeline(DataPipeline):
                  ):
         super(CalamariPipeline, self).__init__(mode, data_base, generator_params, input_processors, output_processors)
         self._reader = None
+        self._output_processors.run_parallel = False  # TODO: parallel support, but currently in voter this makes one prediction per pipeline, mega slow
 
     def reader(self):
         if self._reader is None:

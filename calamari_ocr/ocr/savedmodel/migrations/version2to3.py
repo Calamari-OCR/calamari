@@ -57,6 +57,7 @@ def update_model(params: dict, path: str):
     os.remove(path + '.h5')
     os.rename(path + '.tmp.h5', path + '.h5')
     logger.info(f"New model successfully written")
+    keras.backend.clear_session()
 
 
 def convert_codec(codec: dict):

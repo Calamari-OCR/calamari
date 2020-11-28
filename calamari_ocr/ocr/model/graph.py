@@ -18,18 +18,21 @@ def calculate_padding(input, scaling_factor):
     def scale(i, f):
         return (f - i % f) % f
 
-    shape = tf.shape(input=input)
-    px = scale(tf.gather(shape, 1), scaling_factor[0])
-    py = scale(tf.gather(shape, 2), scaling_factor[1])
+    shape = input.shape
+    dyn_shape = K.shape(input)
+    px = scale(shape[1] or K.gather(dyn_shape, 1), scaling_factor[0])
+    py = scale(shape[2] or K.gather(dyn_shape, 2), scaling_factor[1])
     return px, py
 
 
 def pad(input_tensors):
     input, padding = input_tensors[0], input_tensors[1]
     px, py = padding
-    shape = tf.keras.backend.shape(input)
-    output = tf.image.pad_to_bounding_box(input, 0, 0, tf.keras.backend.gather(shape, 1) + px,
-                                          tf.keras.backend.gather(shape, 2) + py)
+    shape = K.shape(input)
+    static_shape = input.shape
+    output = tf.image.pad_to_bounding_box(input, 0, 0,
+                                          static_shape[1] or K.gather(shape, 1) + px,
+                                          static_shape[2] or K.gather(shape, 2) + py)
     return output
 
 
@@ -128,8 +131,7 @@ class CalamariGraph(GraphBase):
                     [l for l in params.layers if l.type == LayerType.MaxPooling]):
                 sx *= layer.stride.x
                 sy *= layer.stride.y
-
-            padding = KL.Lambda(lambda x: calculate_padding(x, (sx, sy)), name='compute_padding')(input_data)
+            padding = calculate_padding(input_data, (sx, sy))
             padded = KL.Lambda(pad, name='padded_input')([input_data, padding])
             last_layer_output = padded
         else:
@@ -141,11 +143,14 @@ class CalamariGraph(GraphBase):
             if lp.type == LayerType.Convolutional:
                 last_layer_output = layer(last_layer_output)
             elif lp.type == LayerType.Concat:
-                last_layer_output = layer([layers_by_index[i] for i in layer.concat_indices])
+                last_layer_output = layer([layers_by_index[i] for i in lp.concat_indices])
             elif lp.type == LayerType.DilatedBlock:
+                ds = K.shape(last_layer_output)
+                ss = last_layer_output.shape
                 dilated_layers, concat_layer = layer
                 dilated_layers = [dl(last_layer_output) for dl in dilated_layers]
                 last_layer_output = concat_layer(dilated_layers)
+                last_layer_output = K.reshape(last_layer_output, [ds[0], ds[1], ss[2], ss[3]])
             elif lp.type == LayerType.TransposedConv:
                 last_layer_output = layer(last_layer_output)
             elif lp.type == LayerType.MaxPooling:

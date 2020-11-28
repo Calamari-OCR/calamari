@@ -2,11 +2,13 @@ import unittest
 import os
 import numpy as np
 from PIL import Image
+from tensorflow import keras
 
+from calamari_ocr.ocr import DataSetType, CalamariPipelineParams
+from calamari_ocr.ocr.predictor import CalamariPredictor, CalamariPredictorParams, CalamariMultiPredictor
 from calamari_ocr.utils import glob_all
 
 from calamari_ocr.scripts.predict import run
-from calamari_ocr.ocr import DataSetType, Predictor, MultiPredictor, create_dataset, DataSetMode
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -14,8 +16,7 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 class PredictionAttrs:
     def __init__(self):
         self.files = sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")]))
-        self.checkpoint = [os.path.join(this_dir, "test_models", "uw3_50lines_best.ckpt")]
-        # self.checkpoint = sorted(glob_all([os.path.join(this_dir, "..", "..", "..", "calamari_models/antiqua_modern/*.ckpt.json")]))
+        self.checkpoint = [os.path.join(this_dir, "models", "0.ckpt")]
         self.processes = 1
         self.batch_size = 1
         self.verbose = True
@@ -28,9 +29,15 @@ class PredictionAttrs:
         self.dataset = DataSetType.FILE
         self.text_files = None
         self.pagexml_text_index = 0
+        self.beam_width = 20
+        self.dictionary = []
+        self.dataset_pad = None
 
 
 class TestValidationTrain(unittest.TestCase):
+    def tearDown(self) -> None:
+        keras.backend.clear_session()
+
     def test_prediction(self):
         args = PredictionAttrs()
         args.checkpoint = args.checkpoint[0:1]
@@ -42,30 +49,28 @@ class TestValidationTrain(unittest.TestCase):
 
     def test_raw_prediction(self):
         args = PredictionAttrs()
-        predictor = Predictor(checkpoint=args.checkpoint[0])
+        predictor = CalamariPredictor.from_checkpoint(CalamariPredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
         images = [np.array(Image.open(file), dtype=np.uint8) for file in args.files]
         for file, image in zip(args.files, images):
-            r = list(predictor.predict_raw([image], progress_bar=False))[0]
-            print(file, r.sentence)
+            _, prediction, _ = list(predictor.predict_raw([image]))[0]
+            print(file, prediction.sentence)
 
     def test_raw_dataset_prediction(self):
         args = PredictionAttrs()
-        predictor = Predictor(checkpoint=args.checkpoint[0])
-        data = create_dataset(
-            DataSetType.FILE,
-            DataSetMode.PREDICT,
-            images=args.files,
+        predictor = CalamariPredictor.from_checkpoint(CalamariPredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
+        params = CalamariPipelineParams(
+            type=DataSetType.FILE,
+            files=args.files
         )
-        for prediction, sample in predictor.predict_dataset(data):
+        for inputs, outputs, meta in predictor.predict(params):
             pass
 
     def test_raw_prediction_voted(self):
         args = PredictionAttrs()
-        predictor = MultiPredictor(checkpoints=args.checkpoint)
+        predictor = CalamariMultiPredictor.from_paths(checkpoints=args.checkpoint, predictor_params=CalamariPredictorParams(progress_bar=False, silent=True))
         images = [np.array(Image.open(file), dtype=np.uint8) for file in args.files]
-        for file, image in zip(args.files, images):
-            r = list(predictor.predict_raw([image], progress_bar=False))[0]
-            print(file, [rn.sentence for rn in r])
+        for inputs, (r, voted), meta in predictor.predict_raw(images):
+            print([rn.sentence for rn in r])
 
 
 if __name__ == "__main__":

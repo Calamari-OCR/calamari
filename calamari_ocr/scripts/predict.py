@@ -3,7 +3,7 @@ import os
 import zlib
 
 from bidi.algorithm import get_base_level
-from calamari_ocr.ocr.predictor import MultiPredictor
+from calamari_ocr.ocr.predictor import CalamariMultiPredictor, CalamariPredictorParams
 
 from calamari_ocr import __version__
 from calamari_ocr.ocr.model.ctc_decoder.ctc_decoder import Predictions, CTCDecoderParams, CTCDecoderType
@@ -55,7 +55,6 @@ def run(args):
     args.checkpoint = [(cp if cp.endswith(".json") else cp + ".json") for cp in args.checkpoint]
     args.checkpoint = glob_all(args.checkpoint)
     args.checkpoint = [cp[:-5] for cp in args.checkpoint]
-
     args.extension = args.extension if args.extension else DataSetType.pred_extension(args.dataset)
 
     # create ctc decoder
@@ -77,7 +76,6 @@ def run(args):
         remove_invalid=True,
         files=input_image_files,
         text_files=args.text_files,
-        gt_extension=args.extension,
         data_reader_args=FileDataReaderArgs(
             pad=args.dataset_pad,
             text_index=args.pagexml_text_index,
@@ -88,9 +86,9 @@ def run(args):
 
     # predict for all models
     # TODO: Use CTC Decoder params
-    predictor = MultiPredictor(checkpoints=args.checkpoint, voter_params=voter_params, progress_bar=not args.no_progress_bars)
+    predictor = CalamariMultiPredictor.from_paths(checkpoints=args.checkpoint, voter_params=voter_params, predictor_params=CalamariPredictorParams(silent=True, progress_bar=not args.no_progress_bars))
     do_prediction = predictor.predict(predict_params)
-    pipeline: CalamariPipeline = predictor.data().get_predict_data(predict_params)
+    pipeline: CalamariPipeline = predictor.data.get_predict_data(predict_params)
     reader = pipeline.reader()
     print(f"Found {len(reader)} files in the dataset")
     if len(reader) == 0:

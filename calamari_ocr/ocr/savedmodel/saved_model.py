@@ -1,10 +1,11 @@
 import shutil
 
-import calamari_ocr.scripts.tensorflow_rename_variables as tensorflow_rename_variables
 from calamari_ocr import __version__
 
 import json
 import os
+
+from calamari_ocr.ocr.savedmodel.migrations.version0to1 import rename
 
 
 class SavedModel:
@@ -46,8 +47,8 @@ class SavedModel:
         print('Upgrading from version {}'.format(self.version))
         if self.version == 0:
             if self.json['model']['network']['backend'].get('type', 'TENSORFLOW') == 'TENSORFLOW':
-                tensorflow_rename_variables.rename(self.ckpt_path, '', '', 'cnn_lstm/',
-                                                   dry_run=self.dry_run, force_prefix=False)
+                rename(self.ckpt_path, '', '', 'cnn_lstm/',
+                       dry_run=self.dry_run, force_prefix=False)
         elif self.version == 1:
             raise Exception(
                 "Due to a update to tensorflow 2.0, the weights can not be converted yet. A retraining is required.")

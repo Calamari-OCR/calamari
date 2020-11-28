@@ -1,8 +1,11 @@
+import tempfile
 import unittest
 import os
 
+from tensorflow import keras
+
 from calamari_ocr.ocr import DataSetType
-from calamari_ocr.proto import DataPreprocessorParams
+from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
 from calamari_ocr.scripts.train import run
 from calamari_ocr.utils import glob_all
 
@@ -22,11 +25,12 @@ class Attrs():
         self.display = 1
         self.batch_size = 1
         self.checkpoint_frequency = 1000
-        self.max_iters = 1000
+        self.epochs = 1
+        self.samples_per_epoch = 8
         self.stats_size = 100
         self.no_skip_invalid_gt = False
         self.no_progress_bars = True
-        self.output_dir = os.path.join(this_dir, "test_models")
+        self.output_dir = None
         self.output_model_prefix = "uw3_50lines"
         self.bidi_dir = None
         self.weights = None
@@ -51,19 +55,25 @@ class Attrs():
         self.pagexml_text_index = 0
         self.text_files = None
         self.only_train_on_augmented = False
-        self.data_preprocessing = [DataPreprocessorParams.DEFAULT_NORMALIZER]
+        self.data_preprocessing = [p.name for p in default_image_processors()]
         self.shuffle_buffer_size = 1000
         self.keep_loaded_codec = False
         self.train_data_on_the_fly = False
         self.validation_data_on_the_fly = False
         self.no_auto_compute_codec = False
         self.dataset_pad = 0
+        self.debug = False
 
 
 class TestSimpleTrain(unittest.TestCase):
+    def tearDown(self) -> None:
+        keras.backend.clear_session()
+
     def test_simple_train(self):
         args = Attrs()
-        run(args)
+        with tempfile.TemporaryDirectory() as d:
+            args.output_dir = d
+            run(args)
 
 
 if __name__ == "__main__":
