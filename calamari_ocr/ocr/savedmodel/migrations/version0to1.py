@@ -1,3 +1,9 @@
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+
 def rename(checkpoint, replace_from, replace_to, add_prefix, dry_run, force_prefix=False):
     import tensorflow as tf
     tf.compat.v1.reset_default_graph()
@@ -16,12 +22,12 @@ def rename(checkpoint, replace_from, replace_to, add_prefix, dry_run, force_pref
                     new_name = add_prefix + new_name
 
             if dry_run:
-                print('%s would be renamed to %s.' % (var_name, new_name))
+                logger.info(f'{var_name} would be renamed to {new_name}.')
             else:
                 if var_name == new_name:
-                    print('No change for {}'.format(var_name))
+                    logger.info(f'No change for {var_name}')
                 else:
-                    print('Renaming %s to %s.' % (var_name, new_name))
+                    logger.info(f'Renaming {var_name} to {new_name}.')
 
                 # Rename the variable
                 tf.Variable(var, name=new_name)

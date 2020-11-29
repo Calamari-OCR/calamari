@@ -7,14 +7,11 @@ from tfaip.base.model import ModelBaseParams
 from tfaip.util.enum import StrEnum
 
 
-
 @dataclass_json
 @dataclass
 class IntVec2D:
     x: int = 0
     y: int = 0
-
-
 
 
 class LayerType(StrEnum):

@@ -1,7 +1,7 @@
 from copy import deepcopy
 from abc import ABC, abstractmethod
 
-from calamari_ocr.ocr.model.ctc_decoder.ctc_decoder import Prediction
+from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import Prediction
 
 
 class Voter(ABC):

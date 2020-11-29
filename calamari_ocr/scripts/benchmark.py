@@ -4,14 +4,14 @@ import time
 import numpy as np
 from prettytable import PrettyTable
 
-from calamari_ocr.ocr.predictor import CalamariPredictor, CalamariPredictorParams
+from calamari_ocr.ocr.predict.predictor import Predictor, PredictorParams
 
 import multiprocessing
 
 
 def benchmark_prediction(model, batch_size, processes, n_examples, runs=10):
-    params = CalamariPredictorParams(silent=True)
-    predictor = CalamariPredictor.from_checkpoint(params, model)
+    params = PredictorParams(silent=True)
+    predictor = Predictor.from_checkpoint(params, model)
 
     data = (np.random.random((400, 48)) * 255).astype(np.uint8)
     print("Running with bs={}, proc={}, n={}".format(batch_size, processes, n_examples))

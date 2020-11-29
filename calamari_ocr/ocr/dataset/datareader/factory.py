@@ -6,7 +6,7 @@ from tensorflow.python.estimator.inputs import inputs
 from calamari_ocr.ocr.dataset import DataSetType
 from tfaip.base.data.pipeline.definitions import PipelineMode, inputs_pipeline_modes
 
-from calamari_ocr.ocr.dataset.params import CalamariPipelineParams, FileDataReaderArgs
+from calamari_ocr.ocr.dataset.params import PipelineParams, FileDataReaderArgs
 from calamari_ocr.ocr.dataset.datareader.base import DataReader
 
 from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_file_name
@@ -14,7 +14,7 @@ from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_fil
 logger = logging.getLogger(__name__)
 
 
-def data_reader_from_params(mode: PipelineMode, params: CalamariPipelineParams) -> DataReader:
+def data_reader_from_params(mode: PipelineMode, params: PipelineParams) -> DataReader:
     assert(params.type is not None)
     from calamari_ocr.ocr.dataset.dataset_factory import create_data_reader
     # Training dataset

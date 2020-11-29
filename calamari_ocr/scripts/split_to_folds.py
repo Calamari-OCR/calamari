@@ -1,6 +1,7 @@
 import argparse
 import os
 import shutil
+import logging
 
 from tfaip.base.data.pipeline.definitions import PipelineMode
 from tqdm import tqdm
@@ -8,6 +9,10 @@ from tqdm import tqdm
 from calamari_ocr.ocr import CrossFold
 from calamari_ocr.ocr.dataset.datareader.file import FileDataReader
 from calamari_ocr.utils import split_all_ext, glob_all
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -27,13 +32,13 @@ def main():
 
     args = parser.parse_args()
 
-    print("Creating folds")
+    logger.info("Creating folds")
     images = glob_all(args.files)
     texts = [split_all_ext(p)[0] + '.gt.txt' for p in images]
     data_reader = FileDataReader(PipelineMode.Training, images=images, texts=texts, skip_invalid=True)
     cross_fold = CrossFold(n_folds=args.n_folds, data_reader=data_reader, output_dir=args.output_dir)
 
-    print("Copying files")
+    logger.info("Copying files")
     for fold_id, fold_files in enumerate(cross_fold.folds):
         fold_out_dir = os.path.join(args.output_dir, str(fold_id))
         if not os.path.exists(fold_out_dir):
@@ -52,7 +57,7 @@ def main():
                 output_file = os.path.join(fold_out_dir, "{}{}".format(output_basename, ".gt.txt"))
                 shutil.copyfile(txt_file, output_file)
             else:
-                print("Warning: Does not exist {} or {}".format(img_file, txt_file))
+                logger.info("Warning: Does not exist {} or {}".format(img_file, txt_file))
 
 
 if __name__ == "__main__":

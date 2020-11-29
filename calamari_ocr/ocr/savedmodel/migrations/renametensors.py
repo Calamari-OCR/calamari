@@ -1,3 +1,9 @@
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+
 def from_to_prefix(replace_from, replace_to, add_prefix, force_prefix=False):
     def op(var_name):
         # Set the new name
@@ -26,12 +32,12 @@ def rename(checkpoint, op, dry_run):
             new_name = op(var_name)
 
             if dry_run:
-                print('%s would be renamed to %s.' % (var_name, new_name))
+                logger.info(f'{var_name} would be renamed to {new_name}.')
             else:
                 if var_name == new_name:
-                    print('No change for {}'.format(var_name))
+                    logger.info(f'No change for {var_name}')
                 else:
-                    print('Renaming %s to %s.' % (var_name, new_name))
+                    logger.info(f'Renaming {var_name} to {new_name}.')
 
                 # Rename the variable
                 tf.Variable(var, name=new_name)

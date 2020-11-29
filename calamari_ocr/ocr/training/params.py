@@ -4,16 +4,16 @@ from typing import List
 
 from dataclasses_json import dataclass_json
 
-from tfaip.base.trainer.trainer import TrainerParams as TfaipTrainerParams
+from tfaip.base.trainer.trainer import TrainerParams as AIPTrainerParams
 
-from calamari_ocr.ocr import SavedModel
+from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.model.params import LayerParams, LayerType, LSTMDirection, ModelParams, IntVec2D
 
 
 @dataclass_json
 @dataclass
-class TrainerParams(TfaipTrainerParams):
-    version: int = SavedModel.VERSION
+class TrainerParams(AIPTrainerParams):
+    version: int = SavedCalamariModel.VERSION
 
     skip_invalid_gt: bool = True
     data_aug_retrain_on_original: bool = True  # Retrain the model with only the non augmented data in a second run

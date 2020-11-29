@@ -5,7 +5,7 @@ import logging
 
 from tfaip.util.logging import setup_log
 
-from calamari_ocr.ocr.scenario import CalamariScenario
+from calamari_ocr.ocr.scenario import Scenario
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +25,11 @@ def main():
     with open(os.path.join(args.checkpoint_dir, 'trainer_params.json')) as f:
         d = json.load(f)
 
-    trainer_params = CalamariScenario.trainer_params_from_dict(d)
+    trainer_params = Scenario.trainer_params_from_dict(d)
     logger.info("trainer_params=" + trainer_params.to_json(indent=2))
 
     scenario_params = trainer_params.scenario_params
-    scenario = CalamariScenario(scenario_params)
+    scenario = Scenario(scenario_params)
     trainer = scenario.create_trainer(trainer_params, restore=True)
     trainer.train()
 

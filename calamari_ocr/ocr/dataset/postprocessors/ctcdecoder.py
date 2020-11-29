@@ -1,6 +1,6 @@
 from typing import Optional
 
-from calamari_ocr.ocr.model.ctc_decoder.ctc_decoder import create_ctc_decoder, CTCDecoderParams
+from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import create_ctc_decoder, CTCDecoderParams
 from tfaip.base.data.pipeline.dataprocessor import DataProcessor
 from tfaip.base.data.pipeline.definitions import PipelineMode
 

@@ -1,6 +1,6 @@
 import operator
 
-from calamari_ocr.ocr.model.ctc_decoder.ctc_decoder import PredictionPosition, PredictionCharacter
+from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import PredictionPosition, PredictionCharacter
 from calamari_ocr.ocr.dataset.textprocessors import synchronize
 from calamari_ocr.ocr.voting.voter import Voter
 

@@ -9,18 +9,15 @@ from tfaip.base.data.pipeline.definitions import DataProcessorFactoryParams, inp
 from calamari_ocr.ocr.dataset import DataSetType
 
 from calamari_ocr import __version__
-from calamari_ocr.ocr.dataset.data import CalamariData
+from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.datareader.base import DataReader
 from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessor, PrepareSampleProcessor
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
-from calamari_ocr.ocr.dataset.params import FileDataReaderArgs, CalamariPipelineParams, CalamariDataParams
+from calamari_ocr.ocr.dataset.params import FileDataReaderArgs, PipelineParams, DataParams
 from calamari_ocr.ocr.dataset.textprocessors import TextNormalizer, TextRegularizer, StripTextProcessor, \
     BidiTextProcessor
 from calamari_ocr.ocr.dataset.textprocessors.text_regularizer import default_text_regularizer_replacements
-from calamari_ocr.utils import glob_all, split_all_ext, keep_files_with_same_file_name
-import os
-from calamari_ocr.ocr.augmentation.data_augmenter import SimpleDataAugmenter
 
 
 def main():
@@ -55,7 +52,7 @@ def main():
     parser.add_argument("--text_normalization", type=str, default="NFC",
                         help="Unicode text normalization to apply. Defaults to NFC")
     parser.add_argument("--data_preprocessing", nargs="+", type=str,
-                        choices=[k for k, p in CalamariData.data_processor_factory().processors.items() if issubclass(p, ImageProcessor)],
+                        choices=[k for k, p in Data.data_processor_factory().processors.items() if issubclass(p, ImageProcessor)],
                         default=[p.name for p in default_image_processors()])
     parser.add_argument("--bidi_dir", type=str, default=None, choices=["ltr", "rtl", "auto"],
                         help="The default text direction when preprocessing bidirectional text. Supported values "
@@ -71,8 +68,8 @@ def main():
         pad=args.pad,
     )
 
-    data_params: CalamariDataParams = CalamariData.get_default_params()
-    data_params.train = CalamariPipelineParams(
+    data_params: DataParams = Data.get_default_params()
+    data_params.train = PipelineParams(
         type=args.dataset,
         remove_invalid=True,
         files=args.files,
@@ -86,7 +83,7 @@ def main():
     data_params.pre_processors_ = SamplePipelineParams(run_parallel=True)
     data_params.post_processors_ = SamplePipelineParams(run_parallel=True)
     for p in args.data_preprocessing:
-        p_p = CalamariData.data_processor_factory().processors[p].default_params()
+        p_p = Data.data_processor_factory().processors[p].default_params()
         if 'pad' in p_p:
             p_p['pad'] = args.pad
         data_params.pre_processors_.sample_processors.append(DataProcessorFactoryParams(p, inputs_pipeline_modes, p_p))
@@ -124,7 +121,7 @@ def main():
     data_params.data_aug_params = DataAugmentationAmount.from_factor(args.n_augmentations)
     data_params.line_height_ = args.line_height
 
-    data = CalamariData(data_params)
+    data = Data(data_params)
     data_pipeline = data.get_train_data()
     reader: DataReader = data_pipeline.reader()
     if len(args.select) == 0:

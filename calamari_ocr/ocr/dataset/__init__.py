@@ -1,2 +1,2 @@
 from .datasetype import DataSetType
-from .params import CalamariPipelineParams, CalamariDataParams
+from .params import PipelineParams, DataParams

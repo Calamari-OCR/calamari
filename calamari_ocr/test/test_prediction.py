@@ -4,8 +4,8 @@ import numpy as np
 from PIL import Image
 from tensorflow import keras
 
-from calamari_ocr.ocr import DataSetType, CalamariPipelineParams
-from calamari_ocr.ocr.predictor import CalamariPredictor, CalamariPredictorParams, CalamariMultiPredictor
+from calamari_ocr.ocr import DataSetType, PipelineParams
+from calamari_ocr.ocr.predict.predictor import Predictor, PredictorParams, MultiPredictor
 from calamari_ocr.utils import glob_all
 
 from calamari_ocr.scripts.predict import run
@@ -49,7 +49,7 @@ class TestValidationTrain(unittest.TestCase):
 
     def test_raw_prediction(self):
         args = PredictionAttrs()
-        predictor = CalamariPredictor.from_checkpoint(CalamariPredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
+        predictor = Predictor.from_checkpoint(PredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
         images = [np.array(Image.open(file), dtype=np.uint8) for file in args.files]
         for file, image in zip(args.files, images):
             _, prediction, _ = list(predictor.predict_raw([image]))[0]
@@ -57,8 +57,8 @@ class TestValidationTrain(unittest.TestCase):
 
     def test_raw_dataset_prediction(self):
         args = PredictionAttrs()
-        predictor = CalamariPredictor.from_checkpoint(CalamariPredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
-        params = CalamariPipelineParams(
+        predictor = Predictor.from_checkpoint(PredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
+        params = PipelineParams(
             type=DataSetType.FILE,
             files=args.files
         )
@@ -67,7 +67,7 @@ class TestValidationTrain(unittest.TestCase):
 
     def test_raw_prediction_voted(self):
         args = PredictionAttrs()
-        predictor = CalamariMultiPredictor.from_paths(checkpoints=args.checkpoint, predictor_params=CalamariPredictorParams(progress_bar=False, silent=True))
+        predictor = MultiPredictor.from_paths(checkpoints=args.checkpoint, predictor_params=PredictorParams(progress_bar=False, silent=True))
         images = [np.array(Image.open(file), dtype=np.uint8) for file in args.files]
         for inputs, (r, voted), meta in predictor.predict_raw(images):
             print([rn.sentence for rn in r])

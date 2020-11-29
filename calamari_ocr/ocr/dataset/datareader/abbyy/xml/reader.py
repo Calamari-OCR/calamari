@@ -3,6 +3,10 @@ from lxml import etree as ET
 from .data import Book, Page, Block, Format, Line, Par, Rect
 from .exceptions import XMLParseError
 from tqdm import tqdm
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class XMLReader:
@@ -59,8 +63,9 @@ class XMLReader:
             try:
                 book.pages += list(self.parseXMLfile(imgfile, xmlfile))
             except XMLParseError as e:
-                print(e)
+                logger.exception(e)
                 if self.skip_invalid:
+                    logger.warning("Exception during XMLParsing ignored. Skipping example.")
                     toremove.append(i)
                     continue
                 else:

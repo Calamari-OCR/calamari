@@ -4,9 +4,13 @@ import inspect
 import json
 import tempfile
 import sys
+import logging
 
-from calamari_ocr.ocr import CrossFold, SavedModel
+from calamari_ocr.ocr import CrossFold, SavedCalamariModel
 from calamari_ocr.utils.multiprocessing import prefix_run_command, run
+
+
+logger = logging.getLogger(__name__)
 
 # path to the dir of this script to automatically detect the training script
 this_absdir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
@@ -19,6 +23,10 @@ def train_individual_model(run_args):
     #       skeduler to train all folds on different machines
     args = run_args["args"]
     train_args_json = run_args["json"]
+    fold_logger = logging.getLogger(f"FOLD {args['id']}")
+    for handler in fold_logger.handlers:
+        handler.terminator = ''
+
     for line in run(prefix_run_command([
         sys.executable, "-u",
         args["train_script"],
@@ -27,7 +35,7 @@ def train_individual_model(run_args):
     ], args.get("run", None), {"threads": args.get('num_threads', -1)}), verbose=args.get("verbose", False)):
         # Print the output of the thread
         if args.get("verbose", False):
-            print("FOLD {} | {}".format(args["id"], line), end="")
+            fold_logger.info(line)
 
     return args
 
@@ -138,7 +146,7 @@ class CrossFoldTrainer:
                         fold_args["weights"] = None
                     else:
                         # access model once to upgrade the model if necessary (can not be performed in parallel)
-                        SavedModel(fold_args["weights"])
+                        SavedCalamariModel(fold_args["weights"])
 
                 json.dump(
                     fold_args,

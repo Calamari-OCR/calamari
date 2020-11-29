@@ -1,17 +1,23 @@
 import argparse
 import os
 import zlib
+import logging
 
 from bidi.algorithm import get_base_level
-from calamari_ocr.ocr.predictor import CalamariMultiPredictor, CalamariPredictorParams
+
+from calamari_ocr.ocr.predict.params import Predictions
+from calamari_ocr.ocr.predict.predictor import MultiPredictor, PredictorParams
 
 from calamari_ocr import __version__
-from calamari_ocr.ocr.model.ctc_decoder.ctc_decoder import Predictions, CTCDecoderParams, CTCDecoderType
-from calamari_ocr.ocr.dataset.params import CalamariPipelineParams, FileDataReaderArgs
+from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import CTCDecoderParams, CTCDecoderType
+from calamari_ocr.ocr.dataset.params import PipelineParams, FileDataReaderArgs
 from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
 from calamari_ocr.ocr.voting import VoterParams, VoterType
 from calamari_ocr.utils.glob import glob_all
 from calamari_ocr.ocr.dataset import DataSetType
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_ctc_decoder_params(args):
@@ -21,18 +27,18 @@ def create_ctc_decoder_params(args):
 
     if args.dictionary and len(args.dictionary) > 0:
         dictionary = set()
-        print("Creating dictionary")
+        logger.info("Creating dictionary")
         for path in glob_all(args.dictionary):
             with open(path, 'r') as f:
                 dictionary = dictionary.union({word for word in f.read().split()})
 
         params.dictionary[:] = dictionary
-        print("Dictionary with {} unique words successfully created.".format(len(dictionary)))
+        logger.info("Dictionary with {} unique words successfully created.".format(len(dictionary)))
     else:
         args.dictionary = None
 
     if args.dictionary:
-        print("USING A LANGUAGE MODEL IS CURRENTLY EXPERIMENTAL ONLY. NOTE: THE PREDICTION IS VERY SLOW!")
+        logger.warning("USING A LANGUAGE MODEL IS CURRENTLY EXPERIMENTAL ONLY. NOTE: THE PREDICTION IS VERY SLOW!")
         params.type = CTCDecoderType.WordBeamSearch
 
     return params
@@ -70,7 +76,7 @@ def run(args):
         args.text_files = glob_all(args.text_files)
 
     # skip invalid files and remove them, there wont be predictions of invalid files
-    predict_params = CalamariPipelineParams(
+    predict_params = PipelineParams(
         type=args.dataset,
         skip_invalid=True,
         remove_invalid=True,
@@ -86,11 +92,11 @@ def run(args):
 
     # predict for all models
     # TODO: Use CTC Decoder params
-    predictor = CalamariMultiPredictor.from_paths(checkpoints=args.checkpoint, voter_params=voter_params, predictor_params=CalamariPredictorParams(silent=True, progress_bar=not args.no_progress_bars))
+    predictor = MultiPredictor.from_paths(checkpoints=args.checkpoint, voter_params=voter_params, predictor_params=PredictorParams(silent=True, progress_bar=not args.no_progress_bars))
     do_prediction = predictor.predict(predict_params)
     pipeline: CalamariPipeline = predictor.data.get_predict_data(predict_params)
     reader = pipeline.reader()
-    print(f"Found {len(reader)} files in the dataset")
+    logger.info(f"Found {len(reader)} files in the dataset")
     if len(reader) == 0:
         raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
 
@@ -108,7 +114,7 @@ def run(args):
         avg_sentence_confidence += prediction.avg_char_probability
         if args.verbose:
             lr = "\u202A\u202B"
-            print("{}: '{}{}{}'".format(meta['id'], lr[get_base_level(sentence)], sentence, "\u202C"))
+            logger.info("{}: '{}{}{}'".format(meta['id'], lr[get_base_level(sentence)], sentence, "\u202C"))
 
         output_dir = args.output_dir
 
@@ -126,8 +132,8 @@ def run(args):
                 data = zlib.compress(ps.to_json(indent=2, ensure_ascii=False).encode('utf-8'))
             elif args.extended_prediction_data_format == "json":
                 # remove logits
-                for prediction in ps.predictions:
-                    prediction.logits = None
+                for p in ps.predictions:
+                    p.logits = None
 
                 data = ps.to_json(indent=2)
             else:
@@ -135,10 +141,10 @@ def run(args):
 
             reader.store_extended_prediction(data, sample, output_dir=output_dir, extension=args.extended_prediction_data_format)
 
-    print("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
+    logger.info("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
 
     reader.store(args.extension)
-    print("All files written")
+    logger.info("All files written")
 
 
 def main():

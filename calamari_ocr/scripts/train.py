@@ -10,13 +10,13 @@ from tfaip.util.logging import setup_log
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 
 from calamari_ocr import __version__
-from calamari_ocr.ocr.dataset.data import CalamariData
+from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset import TextGeneratorParams, LineGeneratorParams
-from calamari_ocr.ocr.dataset.params import CalamariDataParams, CalamariPipelineParams
+from calamari_ocr.ocr.dataset.params import DataParams, PipelineParams
 from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs
 from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessor
 from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessor
-from calamari_ocr.ocr.scenario import CalamariScenario
+from calamari_ocr.ocr.scenario import Scenario
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
 from calamari_ocr.ocr.dataset.textprocessors import TextNormalizer, TextRegularizer, StripTextProcessor, \
@@ -147,7 +147,7 @@ def setup_train_args(parser, omit=None):
     parser.add_argument("--text_normalization", type=str, default="NFC",
                         help="Unicode text normalization to apply. Defaults to NFC")
     parser.add_argument("--data_preprocessing", nargs="+", type=str,
-                        choices=[k for k, p in CalamariData.data_processor_factory().processors.items() if issubclass(p, ImageProcessor)],
+                        choices=[k for k, p in Data.data_processor_factory().processors.items() if issubclass(p, ImageProcessor)],
                         default=[p.name for p in default_image_processors()])
 
     # text/line generation params (loaded from json files)
@@ -211,12 +211,12 @@ def run(args):
         text_index=args.pagexml_text_index,
     )
 
-    params: TrainerParams = CalamariScenario.default_trainer_params()
+    params: TrainerParams = Scenario.default_trainer_params()
 
     # =================================================================================================================
     # Data Params
-    data_params: CalamariDataParams = params.scenario_params.data_params
-    data_params.train = CalamariPipelineParams(
+    data_params: DataParams = params.scenario_params.data_params
+    data_params.train = PipelineParams(
         type=args.dataset,
         skip_invalid=not args.no_skip_invalid_gt,
         remove_invalid=True,
@@ -228,7 +228,7 @@ def run(args):
         num_processes=args.num_threads,
     )
     if args.validation:
-        data_params.val = CalamariPipelineParams(
+        data_params.val = PipelineParams(
             type=args.validation_dataset,
             files=args.validation,
             text_files=args.validation_text_files,
@@ -244,7 +244,7 @@ def run(args):
     data_params.pre_processors_ = SamplePipelineParams(run_parallel=True)
     data_params.post_processors_ = SamplePipelineParams(run_parallel=True)
     for p in args.data_preprocessing:
-        p_p = CalamariData.data_processor_factory().processors[p].default_params()
+        p_p = Data.data_processor_factory().processors[p].default_params()
         if 'pad' in p_p:
             p_p['pad'] = args.pad
         data_params.pre_processors_.sample_processors.append(DataProcessorFactoryParams(p, inputs_pipeline_modes, p_p))
@@ -322,7 +322,7 @@ def run(args):
 
     params_from_definition_string(args.network, params)
 
-    scenario = CalamariScenario(params.scenario_params)
+    scenario = Scenario(params.scenario_params)
     trainer = scenario.create_trainer(params)
     trainer.train()
 

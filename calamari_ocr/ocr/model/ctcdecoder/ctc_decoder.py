@@ -1,53 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import field, dataclass
-from typing import List, Optional
+from typing import List
 
 import numpy as np
-from dataclasses_json import dataclass_json, config
+from dataclasses_json import dataclass_json
 from tfaip.util.enum import StrEnum
 
-
-@dataclass_json
-@dataclass
-class PredictionCharacter:
-    char: str = ''
-    label: int = 0
-    probability: float = 0
-
-    def __post_init__(self):
-        self.probability = float(self.probability)
-        self.label = int(self.label)
-
-
-@dataclass_json
-@dataclass
-class PredictionPosition:
-    chars: List[PredictionCharacter] = field(default_factory=list)
-    local_start: int = 0
-    local_end: int = 0
-    global_start: int = 0
-    global_end: int = 0
-
-
-@dataclass_json
-@dataclass
-class Prediction:
-    id: str = ''
-    sentence: str = ''
-    labels: List[int] = field(default_factory=list)
-    positions: List[PredictionPosition] = field(default_factory=list)
-    logits: Optional[np.array] = field(default=None)
-    total_probability: float = 0
-    avg_char_probability: float = 0
-    is_voted_result: bool = False
-    line_path: str = ''
-
-
-@dataclass_json
-@dataclass
-class Predictions:
-    predictions: List[Prediction] = field(default_factory=list)
-    line_path: str = ''
+from calamari_ocr.ocr.predict.params import Prediction, PredictionPosition, PredictionCharacter
 
 
 class CTCDecoderType(StrEnum):
@@ -115,11 +74,15 @@ class CTCDecoder(ABC):
         pred.is_voted_result = False
         pred.logits = probabilities
         for c, l in zip(sentence, pred.labels):
-            pos = pred.positions.add()
-            char = pos.chars.add()
-            char.label = l
-            char.char = c
-            char.probability = 1.0
+            pred.positions.append(
+                PredictionPosition(
+                    chars=[
+                        PredictionCharacter(
+                            label=l, char=c, probability=1.0
+                        )
+                    ]
+                )
+            )
         return pred
 
     def find_alternatives(self, probabilities, sentence, threshold):

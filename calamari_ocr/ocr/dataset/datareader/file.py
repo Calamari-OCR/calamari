@@ -2,6 +2,7 @@ import codecs
 import os
 import numpy as np
 from PIL import Image
+import logging
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr.dataset.params import InputSample, SampleMeta
@@ -9,6 +10,8 @@ from calamari_ocr.ocr.dataset.datareader.base import DataReader
 
 from calamari_ocr.utils import split_all_ext
 
+
+logger = logging.getLogger(__name__)
 
 class FileDataReader(DataReader):
     def __init__(self,
@@ -62,8 +65,9 @@ class FileDataReader(DataReader):
                         img_bn, text_bn
                     ))
             except Exception as e:
+                logger.exception(e)
                 if self.skip_invalid:
-                    print("Invalid data: {}".format(e))
+                    logger.warning("Exception raised. Invalid data. Skipping invalid example.")
                     continue
                 else:
                     raise e

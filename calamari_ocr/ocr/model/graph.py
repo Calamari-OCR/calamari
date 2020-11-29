@@ -11,7 +11,6 @@ from tfaip.base.model import GraphBase
 keras = tf.keras
 K = keras.backend
 KL = keras.layers
-Model = keras.Model
 
 
 def calculate_padding(input, scaling_factor):
@@ -36,13 +35,13 @@ def pad(input_tensors):
     return output
 
 
-class CalamariGraph(GraphBase):
+class Graph(GraphBase):
     @classmethod
     def params_cls(cls):
         return ModelParams
 
     def __init__(self, params: ModelParams, name='CalamariGraph', **kwargs):
-        super(CalamariGraph, self).__init__(params, name=name, **kwargs)
+        super(Graph, self).__init__(params, name=name, **kwargs)
 
         self.conv_layers: List[Tuple[LayerParams, tf.keras.layers.Layer]] = []
         self.lstm_layers: List[Tuple[LayerParams, tf.keras.layers.Layer]] = []

@@ -1,4 +1,5 @@
 import argparse
+import logging
 
 import numpy as np
 from calamari_ocr.ocr.dataset import DataSetType
@@ -7,6 +8,9 @@ from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
 
 from calamari_ocr.ocr.dataset.dataset_factory import create_data_reader
 from calamari_ocr.utils import glob_all, split_all_ext
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -21,7 +25,7 @@ def main():
 
     args = parser.parse_args()
 
-    print("Resolving files")
+    logger.info("Resolving files")
     image_files = glob_all(args.files)
     gt_files = [split_all_ext(p)[0] + ".gt.txt" for p in image_files]
 
@@ -30,7 +34,7 @@ def main():
         PipelineMode.Training,
         images=image_files, texts=gt_files, non_existing_as_empty=True)
 
-    print("Loading {} files".format(len(image_files)))
+    logger.info(f"Loading {len(image_files)} files")
     images, texts, metas = list(zip(*tqdm_wrapper(ds.generate(), progress_bar=True, total=len(ds))))
     statistics = {
         "n_lines": len(images),
@@ -64,8 +68,7 @@ def main():
     del statistics["chars"]
     del statistics["widths"]
 
-
-    print(statistics)
+    logger.info(statistics)
 
 
 if __name__ == "__main__":

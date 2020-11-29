@@ -5,8 +5,12 @@ from skimage.transform import rescale
 from enum import IntEnum
 from collections import namedtuple
 from typing import List
+import logging
 
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset import LineGeneratorParams
+
+
+logger = logging.getLogger(__name__)
 
 
 class Script(IntEnum):
@@ -49,7 +53,7 @@ class FontVariants:
             try:
                 return Font(ImageFont.truetype(ttf, size=font_size))
             except OSError:
-                print("Error loading font {}. Using default font.".format(ttf))
+                logger.warning(f"Error loading font {ttf}. Using default font.")
                 return self.default_font
 
         self.variants = [
@@ -140,8 +144,8 @@ class Font:
 
             return image
         except Exception as e:
-            print(e)
-            print(text, spacing, scale, len(text.strip()))
+            logger.exception(e)
+            logger.warning(f"Text: {text}, Spacing: {spacing}, Scale: {scale}, Length: {len(text.strip())}")
             raise e
 
 

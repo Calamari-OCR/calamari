@@ -10,7 +10,7 @@ class DataAugmentationAmountReference(StrEnum):
 #      in total 300 samples (=epoch size)
 # PER: percentage is the probability to "chose" an augmented sample, e.g. 100 samples, percentage == 0.5 => 100
 #      augmented samples, in total 200 samples (=epoch size). 100 / 200 = 0.5.
-#      Or percentage == 0.75 => 300 augmented samplees, in total 400. 300 / 400 = 0.75
+#      Or percentage == 0.75 => 300 augmented samples, in total 400. 300 / 400 = 0.75
 class DataAugmentationAmount:
     @staticmethod
     def from_dict(d: dict):
@@ -36,7 +36,7 @@ class DataAugmentationAmount:
         elif n == 0:
             return DataAugmentationAmount(DataAugmentationAmountReference.PERCENTAGE, 0, 0)
         else:
-            raise ValueError("Factor must be between (0, +infty) but got {}".format(n))
+            raise ValueError("Factor must be between (0, +infinity) but got {}".format(n))
 
     def __init__(self,
                  reference=DataAugmentationAmountReference.ABSOLUTE,

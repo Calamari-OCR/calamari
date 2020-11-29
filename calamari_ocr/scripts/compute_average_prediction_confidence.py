@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import logging
 
 from calamari_ocr.ocr.dataset import DataSetType
 from tfaip.base.data.pipeline.definitions import PipelineMode
@@ -9,6 +10,10 @@ from calamari_ocr.utils import glob_all
 import numpy as np
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 def main():
     parser = ArgumentParser()
     parser.add_argument("--pred", nargs="+", required=True,
@@ -16,7 +21,7 @@ def main():
 
     args = parser.parse_args()
 
-    print("Resolving files")
+    logger.info("Resolving files")
     pred_files = sorted(glob_all(args.pred))
 
     reader = create_data_reader(
@@ -25,7 +30,7 @@ def main():
         texts=pred_files
     )
 
-    print('Average confidence: {:.2%}'.format(np.mean([s['best_prediction'].avg_char_probability for s in reader.samples()])))
+    logger.info('Average confidence: {:.2%}'.format(np.mean([s['best_prediction'].avg_char_probability for s in reader.samples()])))
 
 
 if __name__ == '__main__':

@@ -1,6 +1,10 @@
 import os
 import time
 import subprocess
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def prefix_run_command(command, prefix, args):
@@ -20,7 +24,7 @@ def run(command, verbose=False):
         raise Exception("The command must be a list or tuple of commands and arguments")
 
     if verbose:
-        print("Executing: {}".format(" ".join(command)))
+        logger.info("Executing: {}".format(" ".join(command)))
 
     env = os.environ.copy()
     env['PYTHONIOENCODING'] = 'utf-8'

@@ -2,17 +2,18 @@ from argparse import ArgumentParser
 import os
 import json
 import numpy as np
+import logging
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr.dataset import DataSetType
-from calamari_ocr.ocr.dataset.data import CalamariData
+from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.params import FileDataReaderArgs
-from calamari_ocr.ocr.scenario import CalamariScenario
-from calamari_ocr.ocr.training.params import TrainerParams
-from calamari_ocr.ocr.training.trainer import CalamariTrainer
-
+from calamari_ocr.ocr.scenario import Scenario
+from calamari_ocr.ocr import Evaluator, PipelineParams, SavedCalamariModel
 from calamari_ocr.utils import glob_all, split_all_ext
-from calamari_ocr.ocr import Evaluator, CalamariPipelineParams, SavedModel
+
+
+logger = logging.getLogger(__name__)
 
 
 def print_confusions(r, n_confusions):
@@ -51,7 +52,7 @@ def print_worst_lines(r, gt_samples, n_worst_lines):
 
 
 def write_xlsx(xlsx_file, eval_datas):
-    print("Writing xlsx file to {}".format(xlsx_file))
+    logger.info("Writing xlsx file to {}".format(xlsx_file))
     import xlsxwriter
     workbook = xlsxwriter.Workbook(xlsx_file)
 
@@ -165,7 +166,7 @@ def main():
             for key, value in json_args.items():
                 setattr(args, key, value)
 
-    print("Resolving files")
+    logger.info("Resolving files")
     gt_files = sorted(glob_all(args.gt))
 
     if args.pred:
@@ -181,24 +182,24 @@ def main():
             del pred_files[idx]
             del gt_files[idx]
 
-    data_params = CalamariData.get_default_params()
+    data_params = Data.get_default_params()
     if args.checkpoint:
-        saved_model = SavedModel(args.checkpoint, auto_update=True)
-        trainer_params = CalamariScenario.trainer_params_from_dict(saved_model.json)
+        saved_model = SavedCalamariModel(args.checkpoint, auto_update=True)
+        trainer_params = Scenario.trainer_params_from_dict(saved_model.dict)
         data_params = trainer_params.scenario_params.data_params
 
-    data = CalamariData(data_params)
+    data = Data(data_params)
 
     reader_args = FileDataReaderArgs(
         text_index=args.pagexml_gt_text_index
     )
-    gt_data_set = CalamariPipelineParams(
+    gt_data_set = PipelineParams(
         type=args.dataset,
         text_files=gt_files,
         data_reader_args=reader_args,
         skip_invalid=args.skip_empty_gt,
     )
-    pred_data_set = CalamariPipelineParams(
+    pred_data_set = PipelineParams(
         type=args.pred_dataset,
         text_files=pred_files,
         data_reader_args=reader_args,

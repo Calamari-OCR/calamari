@@ -7,34 +7,33 @@ import Levenshtein
 from tfaip.base.model import ModelBase, GraphBase, ModelBaseParams
 from tfaip.util.typing import AnyNumpy
 
-from calamari_ocr.ocr.model.graph import CalamariGraph
+from calamari_ocr.ocr.model.graph import Graph
 from calamari_ocr.ocr.model.params import ModelParams
 from tensorflow.python.ops import math_ops
 
 keras = tf.keras
 K = keras.backend
 KL = keras.layers
-Model = keras.Model
 
 
-class CalamariModel(ModelBase):
+class Model(ModelBase):
     @staticmethod
     def get_params_cls() -> Type[ModelBaseParams]:
         return ModelParams
 
     @classmethod
     def _get_additional_layers(cls) -> List[Type[tf.keras.layers.Layer]]:
-        return [CalamariGraph]
+        return [Graph]
 
     def __init__(self, params: ModelParams):
-        super(CalamariModel, self).__init__(params)
+        super(Model, self).__init__(params)
         self._params: ModelParams = params
 
     def _best_logging_settings(self) -> Tuple[str, str]:
         return "min", "cer_metric"
 
     def create_graph(self, params: ModelBaseParams) -> 'GraphBase':
-        return CalamariGraph(params)
+        return Graph(params)
 
     def _loss(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
         def to_2d_list(x):

@@ -1,6 +1,11 @@
 import argparse
 import os
 import random
+import logging
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def mkdir(d):
@@ -48,7 +53,7 @@ def main():
             os.symlink(os.path.join(args.base_dir, d_), os.path.join(out_dir, d_), target_is_directory=True)
 
     for td, od in zip([train_dirs_, eval_dirs_], [train_dir, eval_dir]):
-        print("Processing '{}' to '{}'".format(td, od))
+        logger.info("Processing '{}' to '{}'".format(td, od))
         make_lns(td, od)
 
 

@@ -8,7 +8,7 @@ import tensorflow as tf
 from tensorflow.python.ops import ctc_ops
 import tensorflow.keras.backend as K
 
-from calamari_ocr.ocr.scenario import CalamariScenario
+from calamari_ocr.ocr.scenario import Scenario
 
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def update_model(params: dict, path: str):
     logger.info(f"Updateing model at {path}")
-    trainer_params = CalamariScenario.trainer_params_from_dict(params)
+    trainer_params = Scenario.trainer_params_from_dict(params)
     scenario_params = trainer_params.scenario_params
     model = keras.models.load_model(path + '.h5', compile=False)
     pred_model_inputs = model.inputs[1:3]
@@ -205,8 +205,8 @@ def migrate(d: dict):
             "lr": network.get('learningRate', 0),
         },
         "scenario_params": {
-            "scenario_base_path_": inspect.getfile(CalamariScenario),
-            "scenario_module_": CalamariScenario.__module__,
+            "scenario_base_path_": inspect.getfile(Scenario),
+            "scenario_module_": Scenario.__module__,
             "model_params": {
                 "layers": [convert_layer(l) for l in network.get('layers', [])],
                 "dropout": network.get('dropout', 0),

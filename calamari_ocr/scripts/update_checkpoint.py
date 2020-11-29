@@ -1,9 +1,13 @@
 import argparse
+import logging
+
 from tqdm import tqdm
 import os
 
-from calamari_ocr.ocr import SavedModel
+from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.utils import glob_all
+
+logging.basicConfig(level=logging.INFO)
 
 
 def main():
@@ -15,7 +19,7 @@ def main():
 
     for ckpt in tqdm(glob_all(args.checkpoints)):
         ckpt = os.path.splitext(ckpt)[0]
-        SavedModel(ckpt, dry_run=args.dry_run)
+        SavedCalamariModel(ckpt, dry_run=args.dry_run)
 
 
 if __name__ == '__main__':

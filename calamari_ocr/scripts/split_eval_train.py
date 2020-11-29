@@ -2,8 +2,13 @@ import argparse
 import shutil
 from tqdm import tqdm
 import os
+import logging
 
 from calamari_ocr.utils import glob_all, split_all_ext
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -62,11 +67,11 @@ def main():
 
         for img, txt in tqdm(zip(imgs, txts), total=len(imgs), desc="Writing to {}".format(out_dir)):
             if not os.path.exists(img):
-                print("Image file at {} not found".format(img))
+                logger.warning("Image file at {} not found".format(img))
                 continue
 
             if not os.path.exists(txt):
-                print("Ground truth file at {} not found".format(txt))
+                logger.warning("Ground truth file at {} not found".format(txt))
                 continue
 
             shutil.copyfile(img, os.path.join(out_dir, os.path.basename(img)))
@@ -74,7 +79,6 @@ def main():
 
     copy_files(img_files[:args.n_eval], gt_txt_files[:args.n_eval], os.path.join(args.output_dir, args.eval_sub_dir))
     copy_files(img_files[args.n_eval:], gt_txt_files[args.n_eval:], os.path.join(args.output_dir, args.train_sub_dir))
-
 
 
 if __name__ == "__main__":

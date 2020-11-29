@@ -5,22 +5,21 @@ from collections import namedtuple
 from tfaip.base.data.pipeline.definitions import PipelineMode
 from tfaip.util.multiprocessing.parallelmap import parallel_map, tqdm_wrapper
 
-from calamari_ocr.ocr import CalamariDataParams, CalamariPipelineParams
-from calamari_ocr.ocr.dataset.data import CalamariData
-from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
+from calamari_ocr.ocr import PipelineParams
+from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.textprocessors import synchronize
 
 SingleEvalData = namedtuple('SingleEvalData', ['chars', 'char_errs', 'sync_errs', 'conf', 'gt_pred'])
 
 
 class Evaluator:
-    def __init__(self, data: CalamariData):
+    def __init__(self, data: Data):
         """ Class to evaluation the CER and errors of two dataset
         """
         self.data = data
         self.preloaded_gt = None
 
-    def preload_gt(self, gt_dataset: CalamariPipelineParams, progress_bar=False):
+    def preload_gt(self, gt_dataset: PipelineParams, progress_bar=False):
         """ Preload gt to be used for several experiments
 
         Use this method to specify ground truth data to be tested versus many predictions
@@ -40,7 +39,7 @@ class Evaluator:
                                                                    desc="Loading GT",
                                                                    )]
 
-    def run(self, *, gt_dataset: CalamariPipelineParams, pred_dataset: CalamariPipelineParams, processes=1, progress_bar=False):
+    def run(self, *, gt_dataset: PipelineParams, pred_dataset: PipelineParams, processes=1, progress_bar=False):
         """ evaluate on the given dataset
         Returns
         -------

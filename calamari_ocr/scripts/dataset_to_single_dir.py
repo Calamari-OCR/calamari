@@ -1,10 +1,14 @@
 import argparse
+import logging
 import os
 import shutil
 import skimage.io as skimage_io
 from tqdm import tqdm
 
 from calamari_ocr.utils import glob_all, split_all_ext
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -26,7 +30,7 @@ def main():
 
     args.target_dir = os.path.expanduser(args.target_dir)
 
-    print("Resolving files")
+    logger.info("Resolving files")
     image_files = glob_all(args.files)
     gt_files = [split_all_ext(p)[0] + ".gt.txt" for p in image_files]
 

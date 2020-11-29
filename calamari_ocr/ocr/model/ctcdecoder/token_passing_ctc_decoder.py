@@ -4,7 +4,7 @@
 
 import math
 import numpy as np
-from calamari_ocr.ocr.model.ctc_decoder.ctc_decoder import CTCDecoder
+from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import CTCDecoder
 
 
 class TokenPassingCTCDecoder(CTCDecoder):

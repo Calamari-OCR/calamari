@@ -1,15 +1,13 @@
 from dataclasses import dataclass, field
-from typing import NamedTuple, Optional, List
-
-from calamari_ocr.ocr.dataset import DataSetType
-from tfaip.base.data.pipeline.definitions import InputTargetSample
-
-from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
-
+from typing import Optional, List
 from dataclasses_json import dataclass_json, config
 import numpy as np
+
+from tfaip.base.data.pipeline.definitions import InputTargetSample
 from tfaip.base.data.data_base_params import DataBaseParams, DataGeneratorParams
 
+from calamari_ocr.ocr.dataset import DataSetType
+from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 from calamari_ocr.ocr.dataset.codec import Codec
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset import TextGeneratorParams, LineGeneratorParams
 
@@ -38,7 +36,7 @@ class FileDataReaderArgs:
 
 
 @dataclass
-class CalamariPipelineParams(DataGeneratorParams):
+class PipelineParams(DataGeneratorParams):
     type: DataSetType = None
     skip_invalid: bool = True
     remove_invalid: bool = True
@@ -49,9 +47,9 @@ class CalamariPipelineParams(DataGeneratorParams):
 
 
 @dataclass
-class CalamariDataParams(DataBaseParams):
-    train: CalamariPipelineParams = field(default_factory=CalamariPipelineParams)
-    val: CalamariPipelineParams = field(default_factory=CalamariPipelineParams)
+class DataParams(DataBaseParams):
+    train: PipelineParams = field(default_factory=PipelineParams)
+    val: PipelineParams = field(default_factory=PipelineParams)
     skip_invalid_gt_: bool = True
     input_channels: int = 1
     downscale_factor_: int = -1
@@ -94,13 +92,4 @@ class InputSample:
 
     def to_input_target_sample(self) -> InputTargetSample:
         return InputTargetSample(self.image, self.gt, self.meta.to_dict())
-
-
-class PreparedSample(NamedTuple):
-    image: np.ndarray  # dtype float
-    gt: np.ndarray
-    image_len: np.int32
-    gt_len: np.int32
-    serialized_meta: str
-
 

@@ -3,7 +3,7 @@ import zlib
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr.dataset.datareader.base import DataReader
-from calamari_ocr.ocr.model.ctc_decoder.ctc_decoder import Predictions
+from calamari_ocr.ocr.predict.params import Predictions
 from calamari_ocr.utils import split_all_ext
 
 import codecs
@@ -24,10 +24,10 @@ class ExtendedPredictionDataSet(DataReader):
                 "pred_path": text,
                 "id": text_bn,
             }
-            self._load_sample(sample)
+            self._load_sample(sample, False)
             self.add_sample(sample)
 
-    def _load_sample(self, sample):
+    def _load_sample(self, sample, text_only):
         gt_txt_path = sample['pred_path']
         if gt_txt_path is None:
             return None, None
