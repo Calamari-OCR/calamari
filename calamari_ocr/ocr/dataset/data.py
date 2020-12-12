@@ -1,10 +1,9 @@
 import os
 from typing import Type
 
-from tfaip.base.data.data_base_params import DataBaseParams
 from tfaip.base.data.pipeline.datapipeline import DataPipeline, SamplePipelineParams
 from tfaip.base.data.pipeline.dataprocessor import DataProcessorFactory
-from tfaip.base.data.pipeline.definitions import PipelineMode, DataProcessorFactoryParams, inputs_pipeline_modes
+from tfaip.base.data.pipeline.definitions import PipelineMode, DataProcessorFactoryParams, INPUT_PROCESSOR
 from typeguard import typechecked
 import tensorflow as tf
 import logging
@@ -24,6 +23,7 @@ from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import de
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 from calamari_ocr.ocr.dataset.datasetype import DataSetType
 from calamari_ocr.ocr.dataset.params import  DataParams, PipelineParams
+from calamari_ocr.ocr.dataset.postprocessors.reshape import ReshapeOutputsProcessor
 from calamari_ocr.ocr.dataset.textprocessors import NoopTextProcessor, BidiTextProcessor, StripTextProcessor, \
     StrToCharList, TextNormalizer, TextRegularizer
 from calamari_ocr.ocr.dataset.textprocessors.default_text_processor import default_text_pre_processors
@@ -50,13 +50,14 @@ class Data(DataBase):
                               default_text_pre_processors() +
                               [
                                   DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}),
-                                  DataProcessorFactoryParams(PrepareSampleProcessor.__name__, inputs_pipeline_modes),
+                                  DataProcessorFactoryParams(PrepareSampleProcessor.__name__, INPUT_PROCESSOR),
                               ],
         )
         params.post_processors_ = SamplePipelineParams(
             run_parallel=True,
             sample_processors=
             [
+                DataProcessorFactoryParams(ReshapeOutputsProcessor.__name__),
                 DataProcessorFactoryParams(CTCDecoderProcessor.__name__),
             ] +
             default_text_pre_processors()
@@ -80,6 +81,7 @@ class Data(DataBase):
             AugmentationProcessor,
             PrepareSampleProcessor,
 
+            ReshapeOutputsProcessor,
             CTCDecoderProcessor,
         ])
 
@@ -94,14 +96,14 @@ class Data(DataBase):
     def _input_layer_specs(self):
         return {
             'img': tf.TensorSpec([None, self._params.line_height_, self._params.input_channels], dtype=tf.uint8),
-            'img_len': tf.TensorSpec([], dtype=tf.int32),
-            'meta': tf.TensorSpec([], dtype=tf.string),
+            'img_len': tf.TensorSpec([1], dtype=tf.int32),
+            'meta': tf.TensorSpec([1], dtype=tf.string),
                 }
 
     def _target_layer_specs(self):
         return {
             'gt': tf.TensorSpec([None], dtype=tf.int32),
-            'gt_len': tf.TensorSpec([], dtype=tf.int32),
+            'gt_len': tf.TensorSpec([1], dtype=tf.int32),
         }
 
 
@@ -131,6 +133,7 @@ if __name__ == '__main__':
                                   DataProcessorFactoryParams(PrepareSampleProcessor.__name__),
                               ],
         ),
+        post_processors_=SamplePipelineParams(run_parallel=False),
         data_aug_params=DataAugmentationAmount(amount=2),
         train=fdr,
         val=fdr,

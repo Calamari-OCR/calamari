@@ -3,8 +3,8 @@ from typing import Optional, List
 from dataclasses_json import dataclass_json, config
 import numpy as np
 
-from tfaip.base.data.pipeline.definitions import InputTargetSample
-from tfaip.base.data.data_base_params import DataBaseParams, DataGeneratorParams
+from tfaip.base.data.pipeline.definitions import Sample
+from tfaip.base.data.databaseparams import DataBaseParams, DataGeneratorParams
 
 from calamari_ocr.ocr.dataset import DataSetType
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
@@ -90,6 +90,6 @@ class InputSample:
         else:
             self.meta = SampleMeta()
 
-    def to_input_target_sample(self) -> InputTargetSample:
-        return InputTargetSample(self.image, self.gt, self.meta.to_dict())
+    def to_input_target_sample(self) -> Sample:
+        return Sample(self.image, self.gt, self.meta.to_dict())
 

@@ -2,7 +2,7 @@ import os
 import numpy as np
 from typing import List, Generator
 from PIL import Image
-from tfaip.base.data.pipeline.definitions import PipelineMode, targets_pipeline_modes, inputs_pipeline_modes
+from tfaip.base.data.pipeline.definitions import PipelineMode, TARGETS_PROCESSOR, INPUT_PROCESSOR
 
 from calamari_ocr.ocr.dataset.params import InputSample, SampleMeta
 from calamari_ocr.ocr.dataset.datareader.abbyy.xml import XMLReader, XMLWriter
@@ -77,7 +77,7 @@ class AbbyyReader(DataReader):
 
     def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
         for p, page in enumerate(self.book.pages):
-            if self.mode in inputs_pipeline_modes:
+            if self.mode in INPUT_PROCESSOR:
                 img = np.array(Image.open(page.imgFile))
                 if self.binary:
                     img = img > 0.9
@@ -88,7 +88,7 @@ class AbbyyReader(DataReader):
                 for f, fo in enumerate(line.formats):
                     sample_id = "{}_{}_{}_{}".format(os.path.splitext(page.xmlFile if page.xmlFile else page.imgFile)[0], p, l, f)
                     text = None
-                    if self.mode in targets_pipeline_modes:
+                    if self.mode in TARGETS_PROCESSOR:
                         text = fo.text
 
                     if text_only:
@@ -96,7 +96,7 @@ class AbbyyReader(DataReader):
 
                     else:
                         cut_img = None
-                        if self.mode in inputs_pipeline_modes:
+                        if self.mode in INPUT_PROCESSOR:
                             ly, lx = img.shape
 
                             # Cut the Image

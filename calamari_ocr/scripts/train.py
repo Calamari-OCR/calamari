@@ -3,8 +3,8 @@ import os
 import json
 
 from tfaip.base.data.pipeline.datapipeline import SamplePipelineParams
-from tfaip.base.data.pipeline.definitions import DataProcessorFactoryParams, inputs_pipeline_modes, \
-    targets_pipeline_modes, PipelineMode
+from tfaip.base.data.pipeline.definitions import DataProcessorFactoryParams, INPUT_PROCESSOR, \
+    TARGETS_PROCESSOR, PipelineMode
 from tfaip.util.logging import setup_log
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
@@ -67,9 +67,8 @@ def setup_train_args(parser, omit=None):
     parser.add_argument("--epochs", type=int, default=100,
                         help="The number of iterations for training. "
                              "If using early stopping, this is the maximum number of iterations")
-    # TODO: allow negative values to give fraction of sample size e.g. -1 = complete dataset
-    parser.add_argument("--samples_per_epoch", type=int, default=100,
-                        help="The number of samples to process per epoch"
+    parser.add_argument("--samples_per_epoch", type=int, default=-1,
+                        help="The number of samples to process per epoch. By default the size of the training dataset"
                         )
     parser.add_argument("--early_stopping_at_accuracy", type=float, default=1.0,
                         help="Stop training if the early stopping accuracy reaches this value")
@@ -247,31 +246,31 @@ def run(args):
         p_p = Data.data_processor_factory().processors[p].default_params()
         if 'pad' in p_p:
             p_p['pad'] = args.pad
-        data_params.pre_processors_.sample_processors.append(DataProcessorFactoryParams(p, inputs_pipeline_modes, p_p))
+        data_params.pre_processors_.sample_processors.append(DataProcessorFactoryParams(p, INPUT_PROCESSOR, p_p))
 
     # Text pre processing (reading)
     data_params.pre_processors_.sample_processors.extend(
         [
-            DataProcessorFactoryParams(TextNormalizer.__name__, targets_pipeline_modes, {'unicode_normalization': args.text_normalization}),
-            DataProcessorFactoryParams(TextRegularizer.__name__, targets_pipeline_modes, {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
-            DataProcessorFactoryParams(StripTextProcessor.__name__, targets_pipeline_modes)
+            DataProcessorFactoryParams(TextNormalizer.__name__, TARGETS_PROCESSOR, {'unicode_normalization': args.text_normalization}),
+            DataProcessorFactoryParams(TextRegularizer.__name__, TARGETS_PROCESSOR, {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
+            DataProcessorFactoryParams(StripTextProcessor.__name__, TARGETS_PROCESSOR)
         ])
 
     # Text post processing (prediction)
     data_params.post_processors_.sample_processors.extend(
         [
-            DataProcessorFactoryParams(TextNormalizer.__name__, targets_pipeline_modes,
+            DataProcessorFactoryParams(TextNormalizer.__name__, TARGETS_PROCESSOR,
                                        {'unicode_normalization': args.text_normalization}),
-            DataProcessorFactoryParams(TextRegularizer.__name__, targets_pipeline_modes,
+            DataProcessorFactoryParams(TextRegularizer.__name__, TARGETS_PROCESSOR,
                                        {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
-            DataProcessorFactoryParams(StripTextProcessor.__name__, targets_pipeline_modes)
+            DataProcessorFactoryParams(StripTextProcessor.__name__, TARGETS_PROCESSOR)
         ])
     if args.bidi_dir:
         data_params.pre_processors_.sample_processors.append(
-            DataProcessorFactoryParams(BidiTextProcessor.__name__, targets_pipeline_modes, {'bidi_direction': args.bidi_dir})
+            DataProcessorFactoryParams(BidiTextProcessor.__name__, TARGETS_PROCESSOR, {'bidi_direction': args.bidi_dir})
         )
         data_params.post_processors_.sample_processors.append(
-            DataProcessorFactoryParams(BidiTextProcessor.__name__, targets_pipeline_modes, {'bidi_direction': args.bidi_dir})
+            DataProcessorFactoryParams(BidiTextProcessor.__name__, TARGETS_PROCESSOR, {'bidi_direction': args.bidi_dir})
         )
 
     data_params.pre_processors_.sample_processors.extend([

@@ -61,8 +61,9 @@ class MultiPredictor(aip_predict.MultiModelPredictor):
         self.voter_params = voter_params or VoterParams()
 
     def create_voter(self, data_params: 'DataParams') -> MultiModelVoter:
+        # Cut non text processors (first two)
         post_proc = [Data.data_processor_factory().create_sequence(
-            data.params().post_processors_.sample_processors[1:], data.params(), PipelineMode.Prediction) for
+            data.params().post_processors_.sample_processors[2:], data.params(), PipelineMode.Prediction) for
             data in self.datas]
         pre_proc = Data.data_processor_factory().create_sequence(
             self.data.params().pre_processors_.sample_processors, self.data.params(),

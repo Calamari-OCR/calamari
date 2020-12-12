@@ -3,8 +3,8 @@ import argparse
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 from tfaip.base.data.pipeline.datapipeline import SamplePipelineParams
-from tfaip.base.data.pipeline.definitions import DataProcessorFactoryParams, inputs_pipeline_modes, \
-    targets_pipeline_modes, PipelineMode
+from tfaip.base.data.pipeline.definitions import DataProcessorFactoryParams, INPUT_PROCESSOR, \
+    TARGETS_PROCESSOR, PipelineMode
 
 from calamari_ocr.ocr.dataset import DataSetType
 
@@ -86,31 +86,31 @@ def main():
         p_p = Data.data_processor_factory().processors[p].default_params()
         if 'pad' in p_p:
             p_p['pad'] = args.pad
-        data_params.pre_processors_.sample_processors.append(DataProcessorFactoryParams(p, inputs_pipeline_modes, p_p))
+        data_params.pre_processors_.sample_processors.append(DataProcessorFactoryParams(p, INPUT_PROCESSOR, p_p))
 
     # Text pre processing (reading)
     data_params.pre_processors_.sample_processors.extend(
         [
-            DataProcessorFactoryParams(TextNormalizer.__name__, targets_pipeline_modes, {'unicode_normalization': args.text_normalization}),
-            DataProcessorFactoryParams(TextRegularizer.__name__, targets_pipeline_modes, {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
-            DataProcessorFactoryParams(StripTextProcessor.__name__, targets_pipeline_modes)
+            DataProcessorFactoryParams(TextNormalizer.__name__, TARGETS_PROCESSOR, {'unicode_normalization': args.text_normalization}),
+            DataProcessorFactoryParams(TextRegularizer.__name__, TARGETS_PROCESSOR, {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
+            DataProcessorFactoryParams(StripTextProcessor.__name__, TARGETS_PROCESSOR)
         ])
 
     # Text post processing (prediction)
     data_params.post_processors_.sample_processors.extend(
         [
-            DataProcessorFactoryParams(TextNormalizer.__name__, targets_pipeline_modes,
+            DataProcessorFactoryParams(TextNormalizer.__name__, TARGETS_PROCESSOR,
                                        {'unicode_normalization': args.text_normalization}),
-            DataProcessorFactoryParams(TextRegularizer.__name__, targets_pipeline_modes,
+            DataProcessorFactoryParams(TextRegularizer.__name__, TARGETS_PROCESSOR,
                                        {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
-            DataProcessorFactoryParams(StripTextProcessor.__name__, targets_pipeline_modes)
+            DataProcessorFactoryParams(StripTextProcessor.__name__, TARGETS_PROCESSOR)
         ])
     if args.bidi_dir:
         data_params.pre_processors_.sample_processors.append(
-            DataProcessorFactoryParams(BidiTextProcessor.__name__, targets_pipeline_modes, {'bidi_direction': args.bidi_dir})
+            DataProcessorFactoryParams(BidiTextProcessor.__name__, TARGETS_PROCESSOR, {'bidi_direction': args.bidi_dir})
         )
         data_params.post_processors_.sample_processors.append(
-            DataProcessorFactoryParams(BidiTextProcessor.__name__, targets_pipeline_modes, {'bidi_direction': args.bidi_dir})
+            DataProcessorFactoryParams(BidiTextProcessor.__name__, TARGETS_PROCESSOR, {'bidi_direction': args.bidi_dir})
         )
 
     data_params.pre_processors_.sample_processors.extend([

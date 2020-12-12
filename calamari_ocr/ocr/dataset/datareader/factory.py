@@ -4,7 +4,7 @@ import logging
 from tensorflow.python.estimator.inputs import inputs
 
 from calamari_ocr.ocr.dataset import DataSetType
-from tfaip.base.data.pipeline.definitions import PipelineMode, inputs_pipeline_modes
+from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
 
 from calamari_ocr.ocr.dataset.params import PipelineParams, FileDataReaderArgs
 from calamari_ocr.ocr.dataset.datareader.base import DataReader
@@ -29,7 +29,7 @@ def data_reader_from_params(mode: PipelineMode, params: PipelineParams) -> DataR
                 gt_txt_files = None
         else:
             gt_txt_files = sorted(glob_all(params.text_files))
-            if mode in inputs_pipeline_modes:
+            if mode in INPUT_PROCESSOR:
                 input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
                 for img, gt in zip(input_image_files, gt_txt_files):
                     if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:

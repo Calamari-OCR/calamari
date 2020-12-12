@@ -75,7 +75,8 @@ class FileDataReader(DataReader):
             self.add_sample({
                 "image_path": image,
                 "text_path": text,
-                "id": img_bn if image else text_bn,
+                "id": image or text,
+                "base_name": img_bn or text_bn,
             })
 
     def _load_sample(self, sample, text_only):

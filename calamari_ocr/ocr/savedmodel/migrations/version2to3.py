@@ -44,7 +44,7 @@ def update_model(params: dict, path: str):
     pred_model = keras.models.Model(inputs=pred_model_inputs, outputs=outputs)
     # wrap with correct input layers
     img_input = keras.Input(shape=[None, scenario_params.data_params.line_height_, scenario_params.data_params.input_channels], dtype=tf.uint8)
-    img_len = keras.Input(shape=[], dtype=tf.int32)
+    img_len = keras.Input(shape=[1], dtype=tf.int32)
     final_model_inputs = {'img': img_input, 'img_len': img_len}
     final_model_outputs = wrap(pred_model((tf.cast(final_model_inputs['img'], tf.float32) / 255.0, final_model_inputs['img_len'])))
 
@@ -192,6 +192,7 @@ def migrate(d: dict):
 
     converted_post_processors = convert_text_processor(text_postprocessor)
     converted_post_processors.insert(0, {'name': "CTCDecoderProcessor"})
+    converted_post_processors.insert(0, {'name': "ReshapeOutputsProcessor"})
 
     # migrate to dict based on tfaip
     return {

@@ -4,7 +4,7 @@ from abc import abstractmethod, ABC
 from random import shuffle
 from typing import Generator
 import numpy as np
-from tfaip.base.data.pipeline.definitions import PipelineMode, InputTargetSample
+from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
 
 from calamari_ocr.ocr.dataset.params import InputSample
 
@@ -79,15 +79,17 @@ class DataReader(ABC):
 
     def store_text(self, sentence, sample, output_dir, extension):
         output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
-        with codecs.open(os.path.join(output_dir, sample['id'] + extension), 'w', 'utf-8') as f:
+        bn = sample.get('base_name', sample['id'])
+        with codecs.open(os.path.join(output_dir, bn + extension), 'w', 'utf-8') as f:
             f.write(sentence)
 
     def store_extended_prediction(self, data, sample, output_dir, extension):
+        bn = sample.get('base_name', sample['id'])
         if extension == "pred":
-            with open(os.path.join(output_dir, sample['id'] + ".pred"), 'wb') as f:
+            with open(os.path.join(output_dir, bn + ".pred"), 'wb') as f:
                 f.write(data)
         elif extension == "json":
-            with open(os.path.join(output_dir, sample['id'] + ".json"), 'w') as f:
+            with open(os.path.join(output_dir, bn + ".json"), 'w') as f:
                 f.write(data)
         else:
             raise Exception("Unknown prediction format.")
@@ -99,7 +101,7 @@ class DataReader(ABC):
         # either store text or store (e. g. if all predictions must be written at the same time
         pass
 
-    def generate(self, epochs=1) -> Generator[InputTargetSample, None, None]:
+    def generate(self, epochs=1) -> Generator[Sample, None, None]:
         if self.auto_repeat:
             epochs = -1
 

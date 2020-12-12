@@ -7,7 +7,7 @@ from tfaip.util.multiprocessing.parallelmap import parallel_map
 
 from calamari_ocr.ocr.augmentation import SimpleDataAugmenter
 from tfaip.base.data.pipeline.dataprocessor import DataProcessor
-from tfaip.base.data.pipeline.definitions import InputTargetSample
+from tfaip.base.data.pipeline.definitions import Sample
 
 
 class AugmentationProcessor(DataProcessor):
@@ -21,11 +21,11 @@ class AugmentationProcessor(DataProcessor):
         self.data_augmenter = SimpleDataAugmenter()
 
     def preload(self,
-                samples: List[InputTargetSample],
+                samples: List[Sample],
                 num_processes=1,
                 drop_invalid=True,
                 progress_bar=False,
-                ) -> Iterable[InputTargetSample]:
+                ) -> Iterable[Sample]:
         n_augmentation = self.params.data_aug_params.to_abs()  # real number of augmentations
         if n_augmentation == 0:
             return samples
@@ -49,7 +49,7 @@ class AugmentationProcessor(DataProcessor):
         meta['augmented'] = True
         return self.data_augmenter.augment_single(line, text)
 
-    def multi_augment(self, sample: InputTargetSample, n_augmentations=1, include_non_augmented=True):
+    def multi_augment(self, sample: Sample, n_augmentations=1, include_non_augmented=True):
         if include_non_augmented:
             out = [sample]
         else:
@@ -58,7 +58,7 @@ class AugmentationProcessor(DataProcessor):
         for n in range(n_augmentations):
             meta = copy.deepcopy(sample.meta)
             l, t = self.augment(sample.inputs, sample.targets, meta)
-            out.append(InputTargetSample(l, t, meta))
+            out.append(Sample(l, t, meta))
 
         return out
 

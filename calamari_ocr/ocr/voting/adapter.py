@@ -1,6 +1,6 @@
 import json
 
-from tfaip.base.data.pipeline.definitions import InputOutputSample
+from tfaip.base.data.pipeline.definitions import Sample
 from tfaip.base.predict.multimodelpredictor import MultiModelVoter
 
 from calamari_ocr.ocr.predict.params import PredictionResult
@@ -15,7 +15,7 @@ class CalamariMultiModelVoter(MultiModelVoter):
         self.post_proc = post_proc
         self.out_to_in_transformer = out_to_in_transformer
 
-    def vote(self, sample: InputOutputSample) -> InputOutputSample:
+    def vote(self, sample: Sample) -> Sample:
         inputs, outputs, meta = sample
         prediction_results = []
         input_meta = json.loads(inputs['meta'])
@@ -34,4 +34,4 @@ class CalamariMultiModelVoter(MultiModelVoter):
         # vote the results (if only one model is given, this will just return the sentences)
         prediction = self.voter.vote_prediction_result(prediction_results)
         prediction.id = "voted"
-        return InputOutputSample(inputs, (prediction_results, prediction), input_meta)
+        return Sample(inputs, (prediction_results, prediction), input_meta)

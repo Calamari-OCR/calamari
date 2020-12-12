@@ -53,6 +53,8 @@ class SavedCalamariModel:
 
     def _single_upgrade(self):
         logger.info(f'Upgrading from version {self.version}')
+        shutil.copyfile(self.json_path, self.json_path + f'_v{self.version}')
+        shutil.copyfile(self.ckpt_path + '.h5', self.ckpt_path + f'.h5_v{self.version}')
         if self.version == 0:
             if self.dict['model']['network']['backend'].get('type', 'TENSORFLOW') == 'TENSORFLOW':
                 rename(self.ckpt_path, '', '', 'cnn_lstm/',
@@ -73,7 +75,6 @@ class SavedCalamariModel:
         self.dict['version'] = self.version
 
         if not self.dry_run:
-            shutil.copyfile(self.json_path, self.json_path + f'_v{self.version - 1}')
             s = json.dumps(self.dict, indent=2)
 
             with open(self.json_path, 'w') as f:

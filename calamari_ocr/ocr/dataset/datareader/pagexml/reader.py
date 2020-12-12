@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from PIL import Image
-from tfaip.base.data.pipeline.definitions import PipelineMode, inputs_pipeline_modes, targets_pipeline_modes
+from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR, TARGETS_PROCESSOR
 from tqdm import tqdm
 from lxml import etree
 from skimage.draw import polygon
@@ -45,7 +45,7 @@ class PageXMLDatasetLoader:
         root = etree.parse(xml).getroot()
         self.root = root
 
-        if self.mode in targets_pipeline_modes:
+        if self.mode in TARGETS_PROCESSOR:
             return self._samples_gt_from_book(root, img, skip_commented, xml)
         else:
             return self._samples_from_book(root, img, xml)
@@ -266,14 +266,14 @@ class PageXMLReader(DataReader):
         image_path, xml_path = sample
 
         img = None
-        if self.mode in inputs_pipeline_modes:
+        if self.mode in INPUT_PROCESSOR:
             img = np.array(Image.open(image_path))
 
         for sample in loader.load(image_path, xml_path):
             text = sample["text"]
             orientation = sample["orientation"]
 
-            if not text_only and self.mode in inputs_pipeline_modes:
+            if not text_only and self.mode in INPUT_PROCESSOR:
                 ly, lx = img.shape[:2]
 
                 line_img = PageXMLReader.cutout(img, sample['coords'], lx / sample['img_width'])

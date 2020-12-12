@@ -1,7 +1,7 @@
 from typing import Iterable
 
 from tfaip.base.data.pipeline.datapipeline import DataPipeline, DataGenerator
-from tfaip.base.data.pipeline.definitions import InputTargetSample, PipelineMode
+from tfaip.base.data.pipeline.definitions import Sample, PipelineMode
 
 from calamari_ocr.ocr.dataset.datareader.factory import data_reader_from_params
 
@@ -31,7 +31,7 @@ class CalamariPipeline(DataPipeline):
             def __len__(self):
                 return len(reader)
 
-            def generate(self) -> Iterable[InputTargetSample]:
+            def generate(self) -> Iterable[Sample]:
                 return reader.generate()
 
         return Gen(self.mode, self.generator_params)

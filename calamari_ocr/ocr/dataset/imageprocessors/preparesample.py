@@ -26,9 +26,9 @@ class PrepareSampleProcessor(DataProcessor):
         if line.shape[-1] != self.params.input_channels:
             raise ValueError(f"Expected {self.params.input_channels} channels but got {line.shape[-1]}. Shape of input {line.shape}")
 
-        if self.mode == PipelineMode.Training and len(line) // self.params.downscale_factor_ < 2 * len(text) + 1:
-            # skip longer outputs than inputs
+        if self.mode in {PipelineMode.Training, PipelineMode.Evaluation} and len(line) // self.params.downscale_factor_ < 2 * len(text) + 1:
+            # skip longer outputs than inputs (also in evaluation due to loss computation)
             logger.warning(f"Skipping line with longer outputs than inputs (id={meta['id']})")
             return None, None
 
-        return {'img': line.astype(np.uint8), 'img_len': len(line), 'meta': json.dumps(meta)}, {'gt': text, 'gt_len': len(text)}
+        return {'img': line.astype(np.uint8), 'img_len': [len(line)], 'meta': [json.dumps(meta)]}, {'gt': text, 'gt_len': [len(text)]}

@@ -3,7 +3,7 @@ import json
 from contextlib import ExitStack
 from typing import List
 
-from tfaip.base.data.pipeline.definitions import InputTargetSample
+from tfaip.base.data.pipeline.definitions import Sample
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
 
 from calamari_ocr.ocr.dataset.datareader.file import FileDataReader
@@ -50,7 +50,7 @@ class CrossFold:
 
                 for i, sample in tqdm_wrapper(enumerate(self.data_reader.generate(epochs=1)), progress_bar=progress_bar,
                                               total=len(self.data_reader), desc="Creating hdf5 files"):
-                    sample: InputTargetSample = sample
+                    sample: Sample = sample
                     folds[i % self.n_folds].write(sample.inputs, sample.targets)
 
                 self.folds = [f.files for f in folds]
