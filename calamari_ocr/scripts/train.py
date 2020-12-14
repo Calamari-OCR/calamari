@@ -69,8 +69,9 @@ def setup_train_args(parser, omit=None):
     parser.add_argument("--epochs", type=int, default=100,
                         help="The number of iterations for training. "
                              "If using early stopping, this is the maximum number of iterations")
-    parser.add_argument("--samples_per_epoch", type=int, default=-1,
-                        help="The number of samples to process per epoch. By default the size of the training dataset"
+    parser.add_argument("--samples_per_epoch", type=float, default=-1,
+                        help="The number of samples to process per epoch. By default the size of the training dataset."
+                             "If in (0,1) it is relative to the dataset size"
                         )
     parser.add_argument("--early_stopping_at_accuracy", type=float, default=1.0,
                         help="Stop training if the early stopping accuracy reaches this value")
@@ -294,7 +295,8 @@ def run(args):
     params.skip_model_load_test = not args.debug
     params.scenario_params.debug_graph_construction = args.debug
     params.epochs = args.epochs
-    params.samples_per_epoch = args.samples_per_epoch
+    params.samples_per_epoch = int(args.samples_per_epoch) if args.samples_per_epoch >= 1 else -1
+    params.scale_epoch_size = args.samples_per_epoch if 0 < args.samples_per_epoch < 1 else 1
     params.skip_load_model_test = True
     params.scenario_params.export_frozen = False
     params.checkpoint_save_freq_ = args.checkpoint_frequency if args.checkpoint_frequency >= 0 else args.early_stopping_frequency
@@ -323,8 +325,6 @@ def run(args):
     params.early_stopping_params.best_model_output_dir = args.early_stopping_best_model_output_dir
     params.scenario_params.default_serve_dir_ = f'{args.early_stopping_best_model_prefix}.ckpt.h5'
     params.scenario_params.trainer_params_filename_ = f'{args.early_stopping_best_model_prefix}.ckpt.json'
-
-    params.device_params.gpus = list(map(int, filter(lambda x: len(x) > 0, os.environ.get("CUDA_VISIBLE_DEVICES", '').split(','))))
 
     params_from_definition_string(args.network, params)
 
