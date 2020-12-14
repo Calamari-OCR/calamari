@@ -13,6 +13,18 @@ class PrepareSampleProcessor(DataProcessor):
     def supports_preload(self):
         return self.params.codec is not None
 
+    @staticmethod
+    def is_valid_line(text, line_len):
+        last_char = -1
+        required_blanks = 0
+        for char in text:
+            if last_char == char:
+                required_blanks += 1
+            last_char = char
+
+        required_len = len(text) + required_blanks
+        return required_len <= line_len
+
     def apply(self, inputs, targets, meta: dict):
         codec = self.params.codec
         # final preparation
@@ -26,7 +38,7 @@ class PrepareSampleProcessor(DataProcessor):
         if line.shape[-1] != self.params.input_channels:
             raise ValueError(f"Expected {self.params.input_channels} channels but got {line.shape[-1]}. Shape of input {line.shape}")
 
-        if self.mode in {PipelineMode.Training, PipelineMode.Evaluation} and len(line) // self.params.downscale_factor_ < 2 * len(text) + 1:
+        if self.mode in {PipelineMode.Training, PipelineMode.Evaluation} and not self.is_valid_line(text, len(line) // self.params.downscale_factor_):
             # skip longer outputs than inputs (also in evaluation due to loss computation)
             logger.warning(f"Skipping line with longer outputs than inputs (id={meta['id']})")
             return None, None
