@@ -16,6 +16,8 @@ from calamari_ocr.ocr.dataset.params import DataParams, PipelineParams
 from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs
 from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessor
 from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessor
+from calamari_ocr.ocr.dataset.postprocessors.ctcdecoder import CTCDecoderProcessor
+from calamari_ocr.ocr.dataset.postprocessors.reshape import ReshapeOutputsProcessor
 from calamari_ocr.ocr.scenario import Scenario
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
@@ -241,7 +243,12 @@ def run(args):
         data_params.val = None
 
     data_params.pre_processors_ = SamplePipelineParams(run_parallel=True)
-    data_params.post_processors_ = SamplePipelineParams(run_parallel=True)
+    data_params.post_processors_.run_parallel = SamplePipelineParams(
+        run_parallel=False, sample_processors=[
+            DataProcessorFactoryParams(ReshapeOutputsProcessor.__name__),
+            DataProcessorFactoryParams(CTCDecoderProcessor.__name__),
+        ])
+
     for p in args.data_preprocessing:
         p_p = Data.data_processor_factory().processors[p].default_params()
         if 'pad' in p_p:

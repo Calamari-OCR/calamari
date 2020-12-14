@@ -25,7 +25,10 @@ class CTCDecoderProcessor(DataProcessor):
         self.ctc_decoder = create_ctc_decoder(params.codec, ctc_decoder_params)
 
     def apply(self, inputs, outputs, meta: dict):
-        outputs = self.ctc_decoder.decode(outputs['softmax'].astype(float))
-        outputs.labels = list(map(int, outputs.labels))
-        outputs.sentence = "".join(self.params.codec.decode(outputs.labels))
+        if 'gt' in outputs:
+            outputs['sentence'] = "".join(self.params.codec.decode(outputs['gt']))
+        else:
+            outputs = self.ctc_decoder.decode(outputs['softmax'].astype(float))
+            outputs.labels = list(map(int, outputs.labels))
+            outputs.sentence = "".join(self.params.codec.decode(outputs.labels))
         return inputs, outputs

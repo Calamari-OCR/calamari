@@ -1,8 +1,11 @@
+import json
+
 import tensorflow as tf
 import numpy as np
 from typing import Dict, Type, List, Tuple, Any
 import bidi.algorithm as bidi
 import Levenshtein
+from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
 
 from tfaip.base.model import ModelBase, GraphBase, ModelBaseParams
 from tfaip.util.typing import AnyNumpy
@@ -10,6 +13,8 @@ from tfaip.util.typing import AnyNumpy
 from calamari_ocr.ocr.model.graph import Graph
 from calamari_ocr.ocr.model.params import ModelParams
 from tensorflow.python.ops import math_ops
+
+from calamari_ocr.ocr.predict.params import Prediction
 
 keras = tf.keras
 K = keras.backend
@@ -30,7 +35,7 @@ class Model(ModelBase):
         self._params: ModelParams = params
 
     def _best_logging_settings(self) -> Tuple[str, str]:
-        return "min", "cer_metric"
+        return "min", "CER"
 
     def create_graph(self, params: ModelBaseParams) -> 'GraphBase':
         return Graph(params)
@@ -61,18 +66,10 @@ class Model(ModelBase):
             'CER': cer,
         }
 
-    def _target_prediction(self,
-                           targets: Dict[str, AnyNumpy],
-                           outputs: Dict[str, AnyNumpy],
-                           data: 'CalamariData',
-                           ) -> Tuple[Any, Any]:
-        return targets['gt'], outputs['decoded'][np.where(outputs['decoded'] != -1)]
-
-    def _print_evaluate(self, inputs: Dict[str, AnyNumpy], outputs: Dict[str, AnyNumpy], targets: Dict[str, AnyNumpy],
-                        data: 'CalamariData', print_fn):
-        gt, pred = self._target_prediction(targets, outputs, data)
-        pred_sentence = data.params().text_post_processor.apply("".join(data.params().codec.decode(pred)))
-        gt_sentence = data.params().text_post_processor.apply("".join(data.params().codec.decode(gt)))
+    def print_evaluate(self, inputs: Dict[str, AnyNumpy], outputs: Prediction, targets: Dict[str, AnyNumpy],
+                       data: 'CalamariData', print_fn):
+        pred_sentence = outputs.sentence
+        gt_sentence = targets['sentence']
         lr = "\u202A\u202B"
         cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)
         print_fn("\n  CER:  {}".format(cer) +
