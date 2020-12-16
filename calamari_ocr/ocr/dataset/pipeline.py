@@ -32,6 +32,12 @@ class CalamariPipeline(DataPipeline):
                 return len(reader)
 
             def generate(self) -> Iterable[Sample]:
+                # Depending on the mode, do not produce images or targets (force it for the future pipeline)
+                if self.mode == PipelineMode.Prediction:
+                    return map(lambda s: Sample(s.first, None, s.meta), reader.generate())
+                elif self.mode == PipelineMode.Targets:
+                    return map(lambda s: Sample(None, s.second, s.meta), reader.generate())
+
                 return reader.generate()
 
         return Gen(self.mode, self.generator_params)
