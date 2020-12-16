@@ -28,7 +28,7 @@ class Scenario(ScenarioBase):
         scenario_params.export_frozen = False
         scenario_params.export_net_config_ = False
         scenario_params.default_serve_dir_ = 'best.ckpt.h5'
-        scenario_params.scenario_params_filename_ = None  # should never be written!
+        scenario_params.scenario_params_filename_ = 'scenario_params.json'  # should never be written!
         scenario_params.trainer_params_filename_ = 'best.ckpt.json'
         return scenario_params
 

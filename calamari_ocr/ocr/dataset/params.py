@@ -31,7 +31,7 @@ def decoder(t):
 class FileDataReaderArgs:
     line_generator_params: Optional[LineGeneratorParams] = None
     text_generator_params: Optional[TextGeneratorParams] = None
-    pad: int = 0
+    pad: Optional[List[int]] = 0
     text_index: int = 0
 
 
