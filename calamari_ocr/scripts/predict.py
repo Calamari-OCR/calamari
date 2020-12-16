@@ -1,7 +1,7 @@
+import tfaip.util.logging
 import argparse
 import os
 import zlib
-import logging
 
 from bidi.algorithm import get_base_level
 
@@ -17,7 +17,7 @@ from calamari_ocr.utils.glob import glob_all
 from calamari_ocr.ocr.dataset import DataSetType
 
 
-logger = logging.getLogger(__name__)
+logger = tfaip.util.logging.logger(__name__)
 
 
 def create_ctc_decoder_params(args):
@@ -96,7 +96,6 @@ def run(args):
     do_prediction = predictor.predict(predict_params)
     pipeline: CalamariPipeline = predictor.data.get_predict_data(predict_params)
     reader = pipeline.reader()
-    logger.info(f"Found {len(reader)} files in the dataset")
     if len(reader) == 0:
         raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
 
@@ -144,7 +143,7 @@ def run(args):
     logger.info("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
 
     reader.store(args.extension)
-    logger.info("All files written")
+    logger.info("All prediction files written")
 
 
 def main():

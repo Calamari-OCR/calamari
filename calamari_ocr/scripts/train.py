@@ -1,3 +1,4 @@
+import tfaip.util.logging
 import argparse
 import os
 import json
@@ -27,6 +28,9 @@ from calamari_ocr.ocr.dataset.textprocessors.text_regularizer import default_tex
 from calamari_ocr.ocr.training.params import params_from_definition_string, TrainerParams
 from calamari_ocr.utils import glob_all
 from calamari_ocr.ocr.dataset import DataSetType
+
+
+logger = tfaip.util.logging.logger(__name__)
 
 
 def setup_train_args(parser, omit=None):

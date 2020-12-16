@@ -1,8 +1,8 @@
+import tfaip.util.logging
 from argparse import ArgumentParser
 import os
 import json
 import numpy as np
-import logging
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr.dataset import DataSetType
@@ -13,7 +13,7 @@ from calamari_ocr.ocr import Evaluator, PipelineParams, SavedCalamariModel
 from calamari_ocr.utils import glob_all, split_all_ext
 
 
-logger = logging.getLogger(__name__)
+logger = tfaip.util.logging.logger(__name__)
 
 
 def print_confusions(r, n_confusions):
