@@ -1,12 +1,8 @@
 tfaip
-numpy
-tqdm
 scikit-image>=0.15.0
 python-bidi
 edit_distance
 xlsxwriter
 lxml
 h5py
-protobuf
 prettytable
-tensorflow

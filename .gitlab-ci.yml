@@ -116,10 +116,10 @@ test-cpu-predict-and-eval-with-voting:
   stage: test
   script:
     - set -e
-    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json
+    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json --batch_size
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt --skip_empty_gt
-    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json
+    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json --batch_size 5
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt --n_worst_lines 10 --xlsx_output text.xlsx
 
 
