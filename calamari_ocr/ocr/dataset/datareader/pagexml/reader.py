@@ -205,12 +205,10 @@ class PageXMLReader(DataReader):
             return pageimg[min(c[0] for c in coords):max(c[0] for c in coords),
                    min(c[1] for c in coords):max(c[1] for c in coords)]
         rr, cc = polygon(coords[:, 0], coords[:, 1], pageimg.shape)
-        offset = (min([x[0] for x in coords]), min([x[1] for x in coords]))
-        box = np.ones(
-            (max([x[0] for x in coords]) - offset[0],
-             max([x[1] for x in coords]) - offset[1],
-             ) + ((pageimg.shape[-1],) if len(pageimg.shape) == 3 else ()),
-            dtype=pageimg.dtype) * 255
+        coords = np.asarray([rr, cc])
+        offset = np.min(coords, axis=1)
+        size = np.max(coords, axis=1) - offset + 1
+        box = np.ones(tuple(map(int, size)) + ((pageimg.shape[-1],) if len(pageimg.shape) == 3 else ()), dtype=pageimg.dtype) * 255
         box[rr - offset[0], cc - offset[1]] = pageimg[rr, cc]
         return box
 
