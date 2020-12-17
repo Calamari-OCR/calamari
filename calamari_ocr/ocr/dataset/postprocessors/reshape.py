@@ -9,6 +9,9 @@ class ReshapeOutputsProcessor(DataProcessor):
         outputs = outputs.copy()
         inputs['img_len'] = inputs['img_len'][0]
         inputs['meta'] = inputs['meta'][0]
+        if 'out_len' in outputs and outputs['out_len'].shape == (1,):
+            outputs['out_len'] = outputs['out_len'][0]
+
         for name in {'logits', 'softmax', 'blank_last_logits', 'blank_last_softmax'}:
             if name in outputs:
                 outputs[name] = outputs[name][:outputs['out_len']]
