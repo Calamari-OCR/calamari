@@ -18,9 +18,10 @@ class CenterNormalizer(ImageProcessor):
         self.range, self.smoothness, self.extra = extra_params
 
     def _apply_single(self, data, meta):
+        data = data / 255.0
         out, params = self.normalize(data, cval=np.amax(data))
         meta['center'] = params
-        return out
+        return (out * 255).astype('uint8')
 
     def set_height(self, target_height):
         self.target_height = target_height
