@@ -123,8 +123,8 @@ class ConfidenceVoter(Voter):
             for character in voted_pos:
                 pos.chars.append(
                     PredictionCharacter(
-                        character.char,
-                        character.p,
+                        char=character.char,
+                        probability=character.p,
                     )
                 )
 
