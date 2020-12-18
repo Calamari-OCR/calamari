@@ -136,7 +136,7 @@ class Trainer(AIPTrainer):
             if self._params.current_stage == 0:
                 self._params.current_epoch = 0
                 self._params.current_stage = 1
-                self._params.early_stopping_params.current_ = 0
+                self._params.early_stopping_params.current_ = 1  # CER = 100% as initial value
                 self._params.early_stopping_params.n_ = 0
 
             # Remove data augmenter
