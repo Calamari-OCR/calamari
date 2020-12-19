@@ -301,7 +301,7 @@ def run(args):
     params.scenario_params.debug_graph_construction = args.debug
     params.epochs = args.epochs
     params.samples_per_epoch = int(args.samples_per_epoch) if args.samples_per_epoch >= 1 else -1
-    params.scale_epoch_size = args.samples_per_epoch if 0 < args.samples_per_epoch < 1 else 1
+    params.scale_epoch_size = abs(args.samples_per_epoch) if args.samples_per_epoch < 1 else 1
     params.skip_load_model_test = True
     params.scenario_params.export_frozen = False
     params.checkpoint_save_freq_ = args.checkpoint_frequency if args.checkpoint_frequency >= 0 else args.early_stopping_frequency
