@@ -198,17 +198,18 @@ def run(args):
     if args.validation_extension is None:
         args.validation_extension = DataSetType.gt_extension(args.validation_dataset)
 
-    if args.text_generator_params is not None:
-        with open(args.text_generator_params, 'r') as f:
-            args.text_generator_params = TextGeneratorParams.from_json(f.read())
-    else:
-        args.text_generator_params = TextGeneratorParams()
+    if args.dataset == DataSetType.GENERATED_LINE or args.validation_dataset == DataSetType.GENERATED_LINE:
+        if args.text_generator_params is not None:
+            with open(args.text_generator_params, 'r') as f:
+                args.text_generator_params = TextGeneratorParams.from_json(f.read())
+        else:
+            args.text_generator_params = TextGeneratorParams()
 
-    if args.line_generator_params is not None:
-        with open(args.line_generator_params, 'r') as f:
-            args.line_generator_params = LineGeneratorParams.from_json(f.read())
-    else:
-        args.line_generator_params = LineGeneratorParams()
+        if args.line_generator_params is not None:
+            with open(args.line_generator_params, 'r') as f:
+                args.line_generator_params = LineGeneratorParams.from_json(f.read())
+        else:
+            args.line_generator_params = LineGeneratorParams()
 
     dataset_args = FileDataReaderArgs(
         line_generator_params=args.line_generator_params,
