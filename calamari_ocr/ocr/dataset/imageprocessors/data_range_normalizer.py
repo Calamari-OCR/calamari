@@ -27,6 +27,6 @@ class DataRangeNormalizer(ImageProcessor):
             raise Exception("unknown image type: {}".format(data.dtype))
 
         if data.ndim == 3:
-            data = np.mean(data, axis=2, dtype=data.dtype)
+            data = np.mean(data.astype('float32'), axis=2).astype(data.dtype)
 
         return data

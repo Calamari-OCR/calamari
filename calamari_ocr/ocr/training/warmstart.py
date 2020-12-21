@@ -13,7 +13,9 @@ class WarmstarterWithCodecAdaption(Warmstarter):
         names = super(WarmstarterWithCodecAdaption, self)._trim(names)
 
         # Manually trim to support older checkpoints
-        names = [name[14:] if name.startswith('CalamariGraph/') else name for name in names]
+        to_trim = ['CalamariGraph/', 'keras_debug_model/CalamariGraph/']
+        for tt in to_trim:
+            names = [name[len(tt):] if name.startswith(tt) else name for name in names]
         return names
 
     def apply_weights(self, target_model, new_weights):
