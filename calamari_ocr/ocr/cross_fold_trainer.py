@@ -5,6 +5,8 @@ import json
 import tempfile
 import sys
 
+from calamari_ocr.ocr.datasets import DataSetType
+
 from calamari_ocr.ocr import CrossFold
 from calamari_ocr.utils.multiprocessing import prefix_run_command, run
 
@@ -113,6 +115,9 @@ class CrossFoldTrainer:
                 fold_args["dataset"] = cross_fold.dataset_type.name
                 fold_args["validation_dataset"] = cross_fold.dataset_type.name
                 fold_args["validation_extension"] = self.train_args['gt_extension']
+                if cross_fold.dataset_type == DataSetType.HDF5:
+                    del fold_args["validation_extension"]
+                    del fold_args["gt_extension"]
                 fold_args["id"] = fold
                 fold_args["files"] = train_files
                 fold_args["validation"] = test_files
