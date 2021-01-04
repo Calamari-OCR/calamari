@@ -1,11 +1,7 @@
-import json
-
 import tensorflow as tf
-import numpy as np
 from typing import Dict, Type, List, Tuple, Any
 import bidi.algorithm as bidi
 import Levenshtein
-from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
 
 from tfaip.base.model import ModelBase, GraphBase, ModelBaseParams
 from tfaip.util.typing import AnyNumpy
@@ -64,6 +60,11 @@ class Model(ModelBase):
         cer = KL.Lambda(lambda args: create_cer(*args), output_shape=(1,), name='cer')((outputs['decoded'], inputs['gt'], inputs['gt_len']))
         return {
             'CER': cer,
+        }
+
+    def _sample_weights(self, inputs: Dict[str, tf.Tensor], targets: Dict[str, tf.Tensor]) -> Dict[str, Any]:
+        return {
+            "CER": K.flatten(targets['gt_len']),
         }
 
     def print_evaluate(self, inputs: Dict[str, AnyNumpy], outputs: Prediction, targets: Dict[str, AnyNumpy],

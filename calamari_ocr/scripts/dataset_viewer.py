@@ -59,6 +59,9 @@ def main():
                              "are 'auto' to automatically detect the direction, 'ltr' and 'rtl' for left-to-right and "
                              "right-to-left, respectively")
 
+    parser.add_argument("--preload", action='store_true', help='Simulate preloading')
+    parser.add_argument("--as_validation", action='store_true', help="Access as validation instead of training data.")
+
     args = parser.parse_args()
 
     if args.gt_extension is None:
@@ -79,6 +82,7 @@ def main():
         batch_size=1,
         num_processes=args.processes,
     )
+    data_params.val = data_params.train
 
     data_params.pre_processors_ = SamplePipelineParams(run_parallel=True)
     data_params.post_processors_ = SamplePipelineParams(run_parallel=True)
@@ -122,13 +126,21 @@ def main():
     data_params.line_height_ = args.line_height
 
     data = Data(data_params)
-    data_pipeline = data.get_train_data()
-    reader: DataReader = data_pipeline.reader()
-    if len(args.select) == 0:
-        args.select = range(len(reader.samples()))
-        reader._samples = reader.samples()
+    data_pipeline = data.get_val_data() if args.as_validation else data.get_train_data()
+    if not args.preload:
+        reader: DataReader = data_pipeline.reader()
+        if len(args.select) == 0:
+            args.select = range(len(reader))
+        else:
+            reader._samples = [reader.samples()[i] for i in args.select]
     else:
-        reader._samples = [reader.samples()[i] for i in args.select]
+        data.preload()
+        data_pipeline = data.get_val_data() if args.as_validation else data.get_train_data()
+        samples = data_pipeline.samples
+        if len(args.select) == 0:
+            args.select = range(len(samples))
+        else:
+            data_pipeline.samples = [samples[i] for i in args.select]
 
     f, ax = plt.subplots(args.n_rows, args.n_cols, sharey='all')
     row, col = 0, 0

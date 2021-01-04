@@ -4,6 +4,7 @@ from tfaip.base.data.pipeline.datapipeline import RawDataPipeline
 import logging
 
 from tfaip.base.trainer import Trainer as AIPTrainer
+from tfaip.base.trainer.scheduler.learningrate_params import Schedules
 from tfaip.base.trainer.warmstart.warmstarter import Warmstarter
 
 from calamari_ocr.ocr import Codec, SavedCalamariModel
@@ -45,6 +46,7 @@ class Trainer(AIPTrainer):
         """
         super(Trainer, self).__init__(params, scenario, restore)
         self._params: TrainerParams = params
+        self._params.learning_rate_params.type = Schedules.Constant
         if not isinstance(self._params.checkpoint_save_freq_, str) and self._params.checkpoint_save_freq_ < 0:
             self._params.checkpoint_save_freq_ = self._params.early_stopping_params.frequency
         self._params.warmstart_params.model = checkpoint_path(self._params.warmstart_params.model) if self._params.warmstart_params.model else None
