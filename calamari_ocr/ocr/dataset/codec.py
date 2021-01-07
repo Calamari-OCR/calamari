@@ -21,6 +21,7 @@ class Codec:
 
         for pipeline in data_pipelines:
             pipeline = pipeline.to_mode(PipelineMode.Targets)
+            pipeline = pipeline.as_preloaded(progress_bar=progress_bar)
             data_gen = pipeline.create_data_generator()
             for sample in tqdm_wrapper(data_gen.generate(), total=len(data_gen), desc="Computing codec", progress_bar=progress_bar):
                 # assert(sample.inputs is None)  # Inputs shall not be generated here
