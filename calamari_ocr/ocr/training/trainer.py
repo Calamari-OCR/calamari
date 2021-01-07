@@ -4,6 +4,8 @@ from tfaip.base.data.pipeline.datapipeline import RawDataPipeline
 import logging
 
 from tfaip.base.trainer import Trainer as AIPTrainer
+from tfaip.base.trainer.callbacks.tensor_board_callback import TensorBoardCallback
+from tfaip.base.trainer.callbacks.train_params_logger import TrainParamsLoggerCallback
 from tfaip.base.trainer.scheduler.learningrate_params import Schedules
 from tfaip.base.trainer.warmstart.warmstarter import Warmstarter
 
@@ -61,8 +63,7 @@ class Trainer(AIPTrainer):
         callbacks = callbacks if callbacks else []
 
         # load preloaded dataset
-        self.scenario.data = self.scenario.create_data()
-        data: Data = self.scenario.data
+        data: Data = self._data
         model_params: ModelParams = self.scenario.params.model_params
 
         train_pipeline = data.get_train_data()
@@ -126,6 +127,7 @@ class Trainer(AIPTrainer):
         if self._params.preload_training:
             # preload after codec was created
             data.preload(progress_bar=self._params.progress_bar)
+            train_pipeline = data.get_train_data()
 
         if self._params.current_stage == 0:
             super(Trainer, self).train(
@@ -148,6 +150,15 @@ class Trainer(AIPTrainer):
                 train_pipeline.samples = [s for s in train_pipeline.samples if not s.meta.get('augmented', False)]
 
             logger.info(f"Training on {len(train_pipeline.create_data_generator())} samples.")
+
+            super(Trainer, self).setup_steps_per_epoch()
+
+            # replace callbacks that require steps per epoch as parameter
+            tb_callback = next(cb for cb in self._callbacks if isinstance(cb, TensorBoardCallback))
+            tb_callback.steps_per_epoch = self._steps_per_epoch
+            i = next(i for i, cb in enumerate(self._callbacks) if isinstance(cb, TrainParamsLoggerCallback))
+            del self._callbacks[i]
+            self._callbacks.insert(i, self.create_train_params_logger_callback())
 
             super(Trainer, self).fit()
 
