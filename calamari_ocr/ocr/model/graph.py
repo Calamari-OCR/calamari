@@ -6,7 +6,7 @@ from calamari_ocr.ocr.model.params import ModelParams, LayerType, LayerParams
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import ctc_ops as ctc
 
-from tfaip.base.model import GraphBase
+from tfaip.base.model.graphbase import GraphBase
 
 keras = tf.keras
 K = keras.backend

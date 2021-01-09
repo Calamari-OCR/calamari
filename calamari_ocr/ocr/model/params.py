@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import List
 
 from dataclasses_json import dataclass_json
-from tfaip.base.model import ModelBaseParams
+from tfaip.base.model.modelbaseparams import ModelBaseParams
 
 from tfaip.util.enum import StrEnum
 

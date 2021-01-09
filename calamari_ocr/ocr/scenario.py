@@ -1,7 +1,7 @@
 import os
 from typing import Type
 
-from tfaip.base.scenario import ScenarioBase
+from tfaip.base.scenario.scenariobase import ScenarioBase
 
 from calamari_ocr.ocr.model.model import Model
 from calamari_ocr.ocr.dataset.data import Data

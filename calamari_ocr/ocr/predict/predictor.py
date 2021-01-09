@@ -4,7 +4,7 @@ from tensorflow import keras
 
 from tfaip.base.data.pipeline.definitions import PipelineMode
 from tfaip.base.device_config import DeviceConfig
-import tfaip.base.predict as aip_predict
+import tfaip.base.imports as tfaip_cls
 from tfaip.base.predict.multimodelpredictor import MultiModelVoter
 
 from calamari_ocr.ocr.predict.params import PredictorParams
@@ -16,7 +16,7 @@ from calamari_ocr.ocr.voting.adapter import CalamariMultiModelVoter
 from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransformer
 
 
-class Predictor(aip_predict.Predictor):
+class Predictor(tfaip_cls.Predictor):
     @staticmethod
     def from_checkpoint(params: PredictorParams, checkpoint: str, auto_update_checkpoints=True):
         ckpt = SavedCalamariModel(checkpoint, auto_update=False)
@@ -30,7 +30,7 @@ class Predictor(aip_predict.Predictor):
         return predictor
 
 
-class MultiPredictor(aip_predict.MultiModelPredictor):
+class MultiPredictor(tfaip_cls.MultiModelPredictor):
     @classmethod
     def from_paths(cls, checkpoints: List[str],
                    auto_update_checkpoints=True,

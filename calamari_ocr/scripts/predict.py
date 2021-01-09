@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import tfaip.util.logging
 import argparse
 import os
@@ -5,17 +7,17 @@ import zlib
 
 from bidi.algorithm import get_base_level
 
-from calamari_ocr.ocr.predict.params import Predictions
-from calamari_ocr.ocr.predict.predictor import MultiPredictor, PredictorParams
+from calamari_ocr.ocr.predict.params import Predictions, PredictorParams
 
 from calamari_ocr import __version__
 from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import CTCDecoderParams, CTCDecoderType
 from calamari_ocr.ocr.dataset.params import PipelineParams, FileDataReaderArgs
-from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
 from calamari_ocr.ocr.voting import VoterParams, VoterType
 from calamari_ocr.utils.glob import glob_all
 from calamari_ocr.ocr.dataset import DataSetType
 
+if TYPE_CHECKING:
+    from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
 
 logger = tfaip.util.logging.logger(__name__)
 
@@ -92,6 +94,7 @@ def run(args):
 
     # predict for all models
     # TODO: Use CTC Decoder params
+    from calamari_ocr.ocr.predict.predictor import MultiPredictor
     predictor = MultiPredictor.from_paths(checkpoints=args.checkpoint, voter_params=voter_params, predictor_params=PredictorParams(silent=True, progress_bar=not args.no_progress_bars))
     do_prediction = predictor.predict(predict_params)
     pipeline: CalamariPipeline = predictor.data.get_predict_data(predict_params)

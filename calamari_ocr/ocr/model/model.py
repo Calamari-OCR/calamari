@@ -3,7 +3,7 @@ from typing import Dict, Type, List, Tuple, Any
 import bidi.algorithm as bidi
 import Levenshtein
 
-from tfaip.base.model import ModelBase, GraphBase, ModelBaseParams
+from tfaip.base.model.modelbase import ModelBase, ModelBaseParams
 from tfaip.util.typing import AnyNumpy
 
 from calamari_ocr.ocr.model.graph import Graph

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Callable, List, Optional
 import numpy as np
 
-import tfaip.base.predict as aip_predict
+import tfaip.base as tfaip
 from dataclasses_json import dataclass_json
 
 
@@ -51,7 +51,7 @@ class Predictions:
 
 @dataclass_json
 @dataclass
-class PredictorParams(aip_predict.PredictorParams):
+class PredictorParams(tfaip.PredictorParams):
     with_gt: bool = False
     ctc_decoder_params = None
     silent: bool = True

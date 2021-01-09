@@ -1,8 +1,6 @@
 import os
 import logging
 
-from tensorflow.python.estimator.inputs import inputs
-
 from calamari_ocr.ocr.dataset import DataSetType
 from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
 

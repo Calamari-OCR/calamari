@@ -6,10 +6,8 @@ import numpy as np
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr.dataset import DataSetType
-from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.params import FileDataReaderArgs
-from calamari_ocr.ocr.scenario import Scenario
-from calamari_ocr.ocr import Evaluator, PipelineParams, SavedCalamariModel
+from calamari_ocr.ocr import PipelineParams, SavedCalamariModel
 from calamari_ocr.utils import glob_all, split_all_ext
 
 
@@ -122,6 +120,11 @@ def write_xlsx(xlsx_file, eval_datas):
 
 
 def main():
+    # Local imports (imports that require tensorflow)
+    from calamari_ocr.ocr.scenario import Scenario
+    from calamari_ocr.ocr.dataset.data import Data
+    from calamari_ocr.ocr.evaluator import Evaluator
+
     parser = ArgumentParser()
     parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
     parser.add_argument("--gt", nargs="+", required=True,

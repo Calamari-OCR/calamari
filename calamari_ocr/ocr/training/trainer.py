@@ -3,7 +3,7 @@ from typing import Type
 from tfaip.base.data.pipeline.datapipeline import RawDataPipeline
 import logging
 
-from tfaip.base.trainer import Trainer as AIPTrainer
+from tfaip.base.trainer.trainer import Trainer as AIPTrainer
 from tfaip.base.trainer.callbacks.tensor_board_callback import TensorBoardCallback
 from tfaip.base.trainer.callbacks.train_params_logger import TrainParamsLoggerCallback
 from tfaip.base.trainer.scheduler.learningrate_params import Schedules
