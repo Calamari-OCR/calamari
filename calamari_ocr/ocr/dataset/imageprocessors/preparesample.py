@@ -43,4 +43,8 @@ class PrepareSampleProcessor(DataProcessor):
             logger.warning(f"Skipping line with longer outputs than inputs (id={meta['id']})")
             return None, None
 
+        if self.mode in {PipelineMode.Training, PipelineMode.Evaluation} and len(text) == 0:
+            logger.warning(f"Skipping empty line with empty GT (id={meta['id']})")
+            return None, None
+
         return {'img': line.astype(np.uint8), 'img_len': [len(line)], 'meta': [json.dumps(meta)]}, {'gt': text, 'gt_len': [len(text)]}
