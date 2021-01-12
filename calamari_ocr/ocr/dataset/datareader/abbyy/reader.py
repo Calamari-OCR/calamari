@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from calamari_ocr.ocr.dataset.datareader.base import DataReader
 from calamari_ocr.utils import split_all_ext
+from calamari_ocr.utils.image import load_image
 
 
 class AbbyyReader(DataReader):
@@ -78,7 +79,7 @@ class AbbyyReader(DataReader):
     def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
         for p, page in enumerate(self.book.pages):
             if self.mode in INPUT_PROCESSOR:
-                img = np.array(Image.open(page.imgFile))
+                img = load_image(page.imgFile)
                 if self.binary:
                     img = img > 0.9
             else:

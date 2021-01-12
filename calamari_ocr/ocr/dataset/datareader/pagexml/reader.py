@@ -14,6 +14,9 @@ from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs
 from calamari_ocr.utils import split_all_ext, filename
 
 import logging
+
+from calamari_ocr.utils.image import load_image
+
 logger = logging.getLogger(__name__)
 
 
@@ -265,7 +268,7 @@ class PageXMLReader(DataReader):
 
         img = None
         if self.mode in INPUT_PROCESSOR:
-            img = np.array(Image.open(image_path))
+            img = load_image(image_path)
 
         for sample in loader.load(image_path, xml_path):
             text = sample["text"]

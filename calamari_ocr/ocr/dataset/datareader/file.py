@@ -9,7 +9,7 @@ from calamari_ocr.ocr.dataset.params import InputSample, SampleMeta
 from calamari_ocr.ocr.dataset.datareader.base import DataReader
 
 from calamari_ocr.utils import split_all_ext
-
+from calamari_ocr.utils.image import load_image
 
 logger = logging.getLogger(__name__)
 
@@ -114,11 +114,9 @@ class FileDataReader(DataReader):
             else:
                 raise Exception("Image file at '{}' does not exist".format(image_path))
 
-        with Image.open(image_path) as i:
-            try:
-                i.load()
-                img = np.array(i)
-            except:
-                return None
+        try:
+            img = load_image(image_path)
+        except:
+            return None
 
         return img

@@ -9,6 +9,7 @@ from calamari_ocr.ocr.predict.predictor import Predictor, PredictorParams, Multi
 from calamari_ocr.utils import glob_all
 
 from calamari_ocr.scripts.predict import run
+from calamari_ocr.utils.image import load_image
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -50,7 +51,7 @@ class TestValidationTrain(unittest.TestCase):
     def test_raw_prediction(self):
         args = PredictionAttrs()
         predictor = Predictor.from_checkpoint(PredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
-        images = [np.array(Image.open(file), dtype=np.uint8) for file in args.files]
+        images = [load_image(file) for file in args.files]
         for file, image in zip(args.files, images):
             _, prediction, _ = list(predictor.predict_raw([image]))[0]
             print(file, prediction.sentence)
@@ -68,7 +69,7 @@ class TestValidationTrain(unittest.TestCase):
     def test_raw_prediction_voted(self):
         args = PredictionAttrs()
         predictor = MultiPredictor.from_paths(checkpoints=args.checkpoint, predictor_params=PredictorParams(progress_bar=False, silent=True))
-        images = [np.array(Image.open(file), dtype=np.uint8) for file in args.files]
+        images = [load_image(file) for file in args.files]
         for inputs, (r, voted), meta in predictor.predict_raw(images):
             print([rn.sentence for rn in r])
 
