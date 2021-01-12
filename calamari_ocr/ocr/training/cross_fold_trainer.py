@@ -6,7 +6,7 @@ import tempfile
 import sys
 import logging
 
-from calamari_ocr.ocr import CrossFold, SavedCalamariModel
+from calamari_ocr.ocr import CrossFold, SavedCalamariModel, DataSetType
 from calamari_ocr.utils.multiprocessing import prefix_run_command, run
 
 
@@ -147,6 +147,11 @@ class CrossFoldTrainer:
                     else:
                         # access model once to upgrade the model if necessary (can not be performed in parallel)
                         SavedCalamariModel(fold_args["weights"])
+
+                # HDF5 dataset is already preloaded and does not require a extension anymore
+                if cross_fold.dataset_type == DataSetType.HDF5:
+                    del fold_args["validation_extension"]
+                    del fold_args["gt_extension"]
 
                 json.dump(
                     fold_args,
