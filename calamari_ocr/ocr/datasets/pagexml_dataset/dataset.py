@@ -11,6 +11,9 @@ from calamari_ocr.ocr.datasets import DataSet, DataSetMode, DatasetGenerator
 from calamari_ocr.utils import split_all_ext, filename
 
 import logging
+
+from calamari_ocr.utils.image import load_image
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,7 +41,7 @@ class PageXMLDatasetGenerator(DatasetGenerator):
 
         img = None
         if self.mode == DataSetMode.PREDICT or self.mode == DataSetMode.TRAIN or self.mode == DataSetMode.PRED_AND_EVAL:
-            img = np.array(Image.open(image_path))
+            img = load_image(image_path)
 
         for sample in loader.load(image_path, xml_path):
             text = sample["text"]
