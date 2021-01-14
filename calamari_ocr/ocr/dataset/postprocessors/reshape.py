@@ -1,8 +1,11 @@
 from tfaip.base.data.pipeline.dataprocessor import DataProcessor
+from tfaip.base.data.pipeline.definitions import Sample
 
 
 class ReshapeOutputsProcessor(DataProcessor):
-    def apply(self, inputs, outputs, meta: dict):
+    def apply(self, sample: Sample) -> Sample:
+        inputs = sample.inputs
+        outputs = sample.outputs
         assert(inputs['img_len'].shape == (1,))
         assert(inputs['meta'].shape == (1,))
         inputs = inputs.copy()
@@ -15,4 +18,4 @@ class ReshapeOutputsProcessor(DataProcessor):
         for name in {'logits', 'softmax', 'blank_last_logits', 'blank_last_softmax'}:
             if name in outputs:
                 outputs[name] = outputs[name][:outputs['out_len']]
-        return inputs, outputs
+        return sample.new_inputs(inputs).new_outputs(outputs)

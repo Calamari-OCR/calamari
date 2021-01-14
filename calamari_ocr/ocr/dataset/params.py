@@ -88,8 +88,8 @@ class InputSample:
         if self.meta:
             assert(type(self.meta) == SampleMeta)
         else:
-            self.meta = SampleMeta()
+            self.meta = SampleMeta(None)
 
     def to_input_target_sample(self) -> Sample:
-        return Sample(self.image, self.gt, self.meta.to_dict())
+        return Sample(inputs=self.image, targets=self.gt, meta=self.meta.to_dict())
 

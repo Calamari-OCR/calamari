@@ -36,14 +36,15 @@ class AugmentationProcessor(DataProcessor):
         augmented_samples = sum(list(augmented_samples), [])  # Flatten
         return augmented_samples
 
-    def apply(self, line, text, meta: dict):
+    def apply(self, sample: Sample) -> Sample:
         # data augmentation
         if not self.params.data_aug_params.no_augs() \
-                and line is not None \
+                and sample.inputs is not None \
                 and self.data_augmenter \
                 and np.random.rand() <= self.params.data_aug_params.to_rel():
-            line, text = self.augment(line, text, meta)
-        return line, text
+            line, text = self.augment(sample.inputs, sample.targets, sample.meta)
+            return sample.new_inputs(line).new_targets(text)
+        return sample
 
     def augment(self, line, text, meta):
         meta['augmented'] = True
@@ -58,7 +59,7 @@ class AugmentationProcessor(DataProcessor):
         for n in range(n_augmentations):
             meta = copy.deepcopy(sample.meta)
             l, t = self.augment(sample.inputs, sample.targets, meta)
-            out.append(Sample(l, t, meta))
+            out.append(Sample(inputs=l, targets=t, meta=meta))
 
         return out
 

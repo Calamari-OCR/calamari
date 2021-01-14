@@ -108,7 +108,8 @@ def run(args):
     reader.prepare_store()
 
     # output the voted results to the appropriate files
-    for inputs, (result, prediction), meta in do_prediction:
+    for s in do_prediction:
+        inputs, (result, prediction), meta = s.inputs, s.outputs, s.meta
         sample = reader.sample_by_id(meta['id'])
         n_predictions += 1
         sentence = prediction.sentence

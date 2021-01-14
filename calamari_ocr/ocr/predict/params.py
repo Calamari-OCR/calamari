@@ -4,6 +4,7 @@ import numpy as np
 
 import tfaip.base as tfaip
 from dataclasses_json import dataclass_json
+from tfaip.base.data.pipeline.definitions import Sample
 
 
 @dataclass_json
@@ -77,7 +78,7 @@ class PredictionResult:
         self.codec = codec
         self.text_postproc = text_postproc
         self.chars = codec.decode(prediction.labels)
-        self.sentence = self.text_postproc.apply('', "".join(self.chars), {})[1]
+        self.sentence = self.text_postproc.apply(Sample(inputs='', outputs="".join(self.chars))).outputs
         self.prediction.sentence = self.sentence
         self.out_to_in_trans = out_to_in_trans
         self.ground_truth = ground_truth

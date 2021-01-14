@@ -16,7 +16,7 @@ class CalamariMultiModelVoter(MultiModelVoter):
         self.out_to_in_transformer = out_to_in_transformer
 
     def vote(self, sample: Sample) -> Sample:
-        inputs, outputs, meta = sample
+        inputs, outputs, meta = sample.inputs, sample.outputs, sample.meta
         prediction_results = []
         input_meta = json.loads(inputs['meta'])
 
@@ -34,4 +34,4 @@ class CalamariMultiModelVoter(MultiModelVoter):
         # vote the results (if only one model is given, this will just return the sentences)
         prediction = self.voter.vote_prediction_result(prediction_results)
         prediction.id = "voted"
-        return Sample(inputs, (prediction_results, prediction), input_meta)
+        return Sample(inputs=inputs, outputs=(prediction_results, prediction), meta=input_meta)

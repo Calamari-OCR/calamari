@@ -2,7 +2,7 @@ from typing import Optional
 
 from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import create_ctc_decoder, CTCDecoderParams
 from tfaip.base.data.pipeline.dataprocessor import DataProcessor
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
 
 
 class CTCDecoderProcessor(DataProcessor):
@@ -24,11 +24,12 @@ class CTCDecoderProcessor(DataProcessor):
 
         self.ctc_decoder = create_ctc_decoder(params.codec, ctc_decoder_params)
 
-    def apply(self, inputs, outputs, meta: dict):
-        if 'gt' in outputs:
-            outputs['sentence'] = "".join(self.params.codec.decode(outputs['gt']))
-        else:
-            outputs = self.ctc_decoder.decode(outputs['softmax'].astype(float))
+    def apply(self, sample: Sample) -> Sample:
+        if sample.targets and 'gt' in sample.targets:
+            sample.targets['sentence'] = "".join(self.params.codec.decode(sample.targets['gt']))
+        if sample.outputs:
+            outputs = self.ctc_decoder.decode(sample.outputs['softmax'].astype(float))
             outputs.labels = list(map(int, outputs.labels))
             outputs.sentence = "".join(self.params.codec.decode(outputs.labels))
-        return inputs, outputs
+            sample = sample.new_outputs(outputs)
+        return sample

@@ -4,7 +4,7 @@ import logging
 import numpy as np
 
 from tfaip.base.data.pipeline.dataprocessor import DataProcessor
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +25,11 @@ class PrepareSampleProcessor(DataProcessor):
         required_len = len(text) + required_blanks
         return required_len <= line_len
 
-    def apply(self, inputs, targets, meta: dict):
+    def apply(self, sample: Sample) -> Sample:
         codec = self.params.codec
         # final preparation
-        text = np.array(codec.encode(targets) if targets else np.zeros((0,), dtype='int32'))
-        line = inputs
+        text = np.array(codec.encode(sample.targets) if sample.targets else np.zeros((0,), dtype='int32'))
+        line = sample.inputs
 
         # gray or binary input, add missing axis
         if len(line.shape) == 2:
@@ -40,11 +40,14 @@ class PrepareSampleProcessor(DataProcessor):
 
         if self.mode in {PipelineMode.Training, PipelineMode.Evaluation} and not self.is_valid_line(text, len(line) // self.params.downscale_factor_):
             # skip longer outputs than inputs (also in evaluation due to loss computation)
-            logger.warning(f"Skipping line with longer outputs than inputs (id={meta['id']})")
-            return None, None
+            logger.warning(f"Skipping line with longer outputs than inputs (id={sample.meta['id']})")
+            return sample.new_invalid()
 
         if self.mode in {PipelineMode.Training, PipelineMode.Evaluation} and len(text) == 0:
-            logger.warning(f"Skipping empty line with empty GT (id={meta['id']})")
-            return None, None
+            logger.warning(f"Skipping empty line with empty GT (id={sample.meta['id']})")
+            return sample.new_invalid()
 
-        return {'img': line.astype(np.uint8), 'img_len': [len(line)], 'meta': [json.dumps(meta)]}, {'gt': text, 'gt_len': [len(text)]}
+        return sample.new_inputs(
+            {'img': line.astype(np.uint8), 'img_len': [len(line)], 'meta': [json.dumps(sample.meta)]}).new_targets(
+            {'gt': text, 'gt_len': [len(text)]}
+        )

@@ -1,11 +1,15 @@
 from copy import deepcopy
 from abc import ABC, abstractmethod
+from typing import Optional
 
+from tfaip.base.data.pipeline.definitions import Sample
+
+from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import Prediction
 
 
 class Voter(ABC):
-    def __init__(self, text_postproc=None):
+    def __init__(self, text_postproc: Optional[TextProcessor] = None):
         super().__init__()
         self.text_postproc = text_postproc
 
@@ -31,9 +35,9 @@ class Voter(ABC):
         # option 2: (Not implemented) Use only the first text postprocessor
         # option 3: Apply all known postprocessors and apply a sequence voting if different results are received
         if self.text_postproc:
-            p.sentence = self.text_postproc.apply('', p.sentence, {})[1]
+            p.sentence = self.text_postproc.apply(Sample(inputs='', outputs=p.sentence)).outputs
         else:
-            sentences = [pred.text_postproc.apply('', p.sentence, {})[1] for pred in predictions]
+            sentences = [pred.text_postproc.apply(Sample(inputs='', outputs=p.sentence)).outputs for pred in predictions]
 
             if all([s == sentences[0] for s in sentences[1:]]):
                 # usually all postproc should yield the same results
