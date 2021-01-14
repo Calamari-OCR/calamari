@@ -193,19 +193,22 @@ def main():
 
     data = Data(data_params)
 
-    reader_args = FileDataReaderArgs(
+    gt_reader_args = FileDataReaderArgs(
         text_index=args.pagexml_gt_text_index
+    )
+    pred_reader_args = FileDataReaderArgs(
+        text_index=args.pagexml_pred_text_index
     )
     gt_data_set = PipelineParams(
         type=args.dataset,
         text_files=gt_files,
-        data_reader_args=reader_args,
+        data_reader_args=gt_reader_args,
         skip_invalid=args.skip_empty_gt,
     )
     pred_data_set = PipelineParams(
         type=args.pred_dataset,
         text_files=pred_files,
-        data_reader_args=reader_args,
+        data_reader_args=pred_reader_args,
     )
 
     evaluator = Evaluator(data=data)

@@ -83,11 +83,14 @@ class PageXMLDatasetLoader:
             if tequivs is not None and len(tequivs) > 0:
                 l = tequivs[0]
                 text = l.xpath('./ns:Unicode', namespaces=ns).pop().text
+                if text is None:
+                    # Handle empty tag as empty string not as "not existing"
+                    text = ''
             else:
                 l = None
                 text = None
 
-            if not text:
+            if text is None:
                 if self.skip_invalid:
                     continue
                 elif self._non_existing_as_empty:
@@ -106,7 +109,7 @@ class PageXMLDatasetLoader:
                 "rtype": xml_attr(textline, ns, '../@type', ''),
                 'xml_element': l,
                 "image_path": img,
-                "id": xml_attr(textline, ns, './@id'),
+                "id": "{}/{}".format(page_id, xml_attr(textline, ns, './@id')),
                 "text": text,
                 "coords": xml_attr(textline, ns, './ns:Coords/@points'),
                 "orientation": orientation,
@@ -135,7 +138,7 @@ class PageXMLDatasetLoader:
                 "rtype": xml_attr(l, ns, '../@type', ''),
                 'xml_element': l,
                 "image_path": img,
-                "id": xml_attr(l, ns, './@id'),
+                "id": "{}/{}".format(page_id, xml_attr(l, ns, './@id')),
                 "coords": xml_attr(l, ns, './ns:Coords/@points'),
                 "orientation": orientation,
                 "img_width": img_w,

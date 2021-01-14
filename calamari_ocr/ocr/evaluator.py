@@ -49,18 +49,18 @@ class Evaluator:
             gt_data = self.preloaded_gt
         else:
             with self.data.create_pipeline(PipelineMode.Targets, gt_dataset) as data:
-                gt_data = [txt for _, txt, _ in tqdm_wrapper(data.generate_input_samples(),
-                                                             total=len(data),
-                                                             progress_bar=progress_bar,
-                                                             desc="Loading GT",
-                                                             )]
+                gt_data = [sample.targets for sample in tqdm_wrapper(data.generate_input_samples(),
+                                                                     total=len(data),
+                                                                     progress_bar=progress_bar,
+                                                                     desc="Loading GT",
+                                                                     )]
 
         with self.data.create_pipeline(PipelineMode.Targets, pred_dataset) as data:
-            pred_data = [txt for _, txt, _ in tqdm_wrapper(data.generate_input_samples(),
-                                                           total=len(data),
-                                                           progress_bar=progress_bar,
-                                                           desc="Loading Prediction"
-                                                           )]
+            pred_data = [sample.targets for sample in tqdm_wrapper(data.generate_input_samples(),
+                                                                   total=len(data),
+                                                                   progress_bar=progress_bar,
+                                                                   desc="Loading Prediction"
+                                                                   )]
 
         return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar,
                              skip_empty_gt=gt_dataset.skip_invalid)
