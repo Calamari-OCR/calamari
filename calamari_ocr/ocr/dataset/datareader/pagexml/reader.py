@@ -103,6 +103,11 @@ class PageXMLDatasetLoader:
             except (ValueError, IndexError):
                 orientation = 0
 
+            if self.mode in {PipelineMode.Training, PipelineMode.Evaluation}:
+                if len(text) == 0:
+                    # Empty lines cannot be used for training (CTC-loss can not be computed)
+                    continue
+
             yield {
                 'page_id': page_id,
                 'ns': ns,
