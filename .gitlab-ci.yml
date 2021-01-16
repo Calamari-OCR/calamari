@@ -224,6 +224,7 @@ test-cpu-train-on-page-xml-validation-on-files:
       calamari-train
       --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
       --validation calamari_ocr/test/data/uw3_50lines/test/*.png
+      --validation_dataset FILE
       --dataset PAGEXML --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
 
 test-cpu-predict-and-eval-page-xml:

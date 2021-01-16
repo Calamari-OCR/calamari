@@ -37,7 +37,7 @@ def data_reader_from_params(mode: PipelineMode, params: PipelineParams) -> DataR
 
         if mode in {PipelineMode.Training, PipelineMode.Evaluation}:
             if len(set(gt_txt_files)) != len(gt_txt_files):
-                raise Exception("Some image are occurring more than once in the data set.")
+                raise Exception("Some images occur more than once in the data set.")
     else:
         input_image_files = params.files
         gt_txt_files = params.text_files

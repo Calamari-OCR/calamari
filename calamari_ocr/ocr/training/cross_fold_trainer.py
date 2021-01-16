@@ -1,4 +1,5 @@
 import multiprocessing
+import threading
 import os
 import inspect
 import json
@@ -27,7 +28,7 @@ def train_individual_model(run_args):
     for handler in fold_logger.handlers:
         handler.terminator = ''
 
-    for line in run(prefix_run_command([
+    for out, err in run(prefix_run_command([
         sys.executable, "-u",
         args["train_script"],
         "--files", train_args_json,
@@ -35,7 +36,10 @@ def train_individual_model(run_args):
     ], args.get("run", None), {"threads": args.get('num_threads', -1)}), verbose=args.get("verbose", False)):
         # Print the output of the thread
         if args.get("verbose", False):
-            fold_logger.info(line)
+            if out:
+                fold_logger.info(out.rstrip("\n"))
+            if err:
+                fold_logger.info(err.rstrip("\n"))
 
     return args
 
@@ -129,6 +133,7 @@ class CrossFoldTrainer:
                 fold_args["output_dir"] = os.path.join(temporary_dir, "fold_{}".format(fold))
                 fold_args["early_stopping_best_model_output_dir"] = self.best_models_dir
                 fold_args["early_stopping_best_model_prefix"] = self.best_model_label.format(id=fold)
+                fold_args['train_verbose'] = 2
 
                 if seed >= 0:
                     fold_args["seed"] = seed + fold
@@ -162,7 +167,7 @@ class CrossFoldTrainer:
             run_args.append({"json": path, "args": fold_args})
 
         # Launch the individual processes for each training
-        with multiprocessing.Pool(processes=max_parallel_models) as pool:
+        with multiprocessing.pool.ThreadPool(processes=max_parallel_models) as pool:
             # workaround to forward keyboard interrupt
             pool.map_async(train_individual_model, run_args).get()
 

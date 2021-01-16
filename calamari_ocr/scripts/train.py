@@ -123,8 +123,10 @@ def setup_train_args(parser, omit=None):
         parser.add_argument("--validation_text_files", nargs="+", default=None,
                             help="Optional list of validation GT files if they are in other directory")
         parser.add_argument("--validation_extension", default=None,
-                            help="Default extension of the gt files (expected to exist in same dir)")
-        parser.add_argument("--validation_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
+                            help="Default extension of the gt files (expected to exist in same dir). "
+                                 "By default same as gt_extension")
+        parser.add_argument("--validation_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=None,
+                            help="Default validation data set type. By default same as --dataset")
 
     parser.add_argument("--validation_data_on_the_fly", action='store_true', default=False,
                         help='Instead of preloading all data during the training, load the data on the fly. '
@@ -166,6 +168,15 @@ def setup_train_args(parser, omit=None):
     parser.add_argument("--pagexml_text_index", default=0)
 
     parser.add_argument("--debug", action='store_true')
+    parser.add_argument("--train_verbose", default=1)
+
+
+def check_train_args(args):
+    # set defaults
+    if args.validation_dataset is None:
+        args.validation_dataset = args.dataset
+    if args.validation_extension is None:
+        args.validation_extension = args.gt_extension
 
 
 def run(args):
@@ -182,6 +193,8 @@ def run(args):
                     setattr(args, key, DataSetType.from_string(value))
                 else:
                     setattr(args, key, value)
+
+    check_train_args(args)
 
     if args.output_dir is not None:
         args.output_dir = os.path.abspath(args.output_dir)
@@ -301,6 +314,7 @@ def run(args):
 
     # =================================================================================================================
     # Trainer Params
+    params.verbose = args.train_verbose
     params.force_eager = args.debug
     params.skip_model_load_test = not args.debug
     params.scenario_params.debug_graph_construction = args.debug
