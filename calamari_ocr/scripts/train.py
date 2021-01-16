@@ -11,7 +11,6 @@ from tfaip.util.logging import setup_log
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 
 from calamari_ocr import __version__
-from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset import TextGeneratorParams, LineGeneratorParams
 from calamari_ocr.ocr.dataset.params import DataParams, PipelineParams
 from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs
@@ -19,7 +18,6 @@ from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessor
 from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessor
 from calamari_ocr.ocr.dataset.postprocessors.ctcdecoder import CTCDecoderProcessor
 from calamari_ocr.ocr.dataset.postprocessors.reshape import ReshapeOutputsProcessor
-from calamari_ocr.ocr.scenario import Scenario
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
 from calamari_ocr.ocr.dataset.textprocessors import TextNormalizer, TextRegularizer, StripTextProcessor, \
@@ -34,6 +32,9 @@ logger = tfaip.util.logging.logger(__name__)
 
 
 def setup_train_args(parser, omit=None):
+    # required params for args
+    from calamari_ocr.ocr.dataset.data import Data
+
     if omit is None:
         omit = []
 
@@ -168,6 +169,10 @@ def setup_train_args(parser, omit=None):
 
 
 def run(args):
+    # local imports (to prevent tensorflow from being imported to early)
+    from calamari_ocr.ocr.scenario import Scenario
+    from calamari_ocr.ocr.dataset.data import Data
+
     # check if loading a json file
     if len(args.files) == 1 and args.files[0].endswith("json"):
         with open(args.files[0], 'r') as f:

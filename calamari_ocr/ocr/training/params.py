@@ -4,7 +4,7 @@ from typing import List
 
 from dataclasses_json import dataclass_json
 
-from tfaip.base.trainer.trainer import TrainerParams as AIPTrainerParams
+from tfaip.base import TrainerParams as AIPTrainerParams
 
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.model.params import LayerParams, LayerType, LSTMDirection, ModelParams, IntVec2D
