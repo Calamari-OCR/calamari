@@ -49,7 +49,7 @@ class PageXMLDatasetLoader:
         self.root = root
 
         if self.mode in TARGETS_PROCESSOR:
-            return self._samples_gt_from_book(root, img, skip_commented, xml)
+            return self._samples_gt_from_book(root, img, xml, skip_commented)
         else:
             return self._samples_from_book(root, img, xml)
 
