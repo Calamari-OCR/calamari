@@ -68,6 +68,7 @@ def setup_train_args(parser, omit=None):
                         help="Frequency of how often an output shall occur during training [epochs]")
     parser.add_argument("--batch_size", type=int, default=1,
                         help="The batch size to use for training")
+    parser.add_argument("--ema_weights", action="store_true", default=False, help="Use exponentially averaged weights")
     parser.add_argument("--checkpoint_frequency", type=int, default=0,
                         help="The frequency how often to write checkpoints during training [epochs]"
                              "If -1, the early_stopping_frequency will be used. default (0) no checkpoints are written")
@@ -314,6 +315,7 @@ def run(args):
 
     # =================================================================================================================
     # Trainer Params
+    params.calc_ema = args.ema_weights
     params.verbose = args.train_verbose
     params.force_eager = args.debug
     params.skip_model_load_test = not args.debug
