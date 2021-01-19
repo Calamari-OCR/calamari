@@ -17,14 +17,12 @@ The suggested method is to install calamari into a virtual environment using pip
 virtualenv -p python3 PATH_TO_VENV_DIR (e. g. virtualenv calamari_venv)
 source PATH_TO_VENV_DIR/bin/activate
 pip install calamari_ocr
-pip install tensorflow   # or pip install tensorflow_gpu for GPU support
 ```
 which will install calamari and all of its dependencies.
 
 To install the package without a virtual environment simply run
 ```
 pip install calamari_ocr
-pip install tensorflow   # or pip install tensorflow_gpu for GPU support
 ```
 
 To install the package from its source, download the source code and run
@@ -75,10 +73,11 @@ There are several important parameters to adjust the training. For a full list t
  - `--line_height=48`: The height of each rescaled input file passed to the network.
  - `--num_threads=1`: The number of threads used during training and line preprocessing.
  - `--batch_size=1`: The number of lines processed in parallel.
- - `--display=1`: How often an informative string about the current training process is printed in the shell
+ - `--display=1`: (epochs) How often an informative string about the current training process is printed in the shell
  - `--output_dir`: A path where to store checkpoints
- - `--checkpoint_frequency`: How often a model shall be written as checkpoint to the drive
- - `--max_iters=1000000`: The maximum number of training iterations (batches) for training. Note: this is the upper boundary if you use early stopping.
+ - `--checkpoint_frequency`: (epochs) How often a model shall be written as checkpoint to the drive
+ - `--epochs`: The maximum number of training iterations (batches) for training. Note: this is the upper boundary if you use early stopping.
+ - `--samples_per_epoch`: The number of samples to process per epoch (by default the size of the dataset)
  - `--validation=None`: Provide a second data set (images with corresponding .gt.txt) to enable early stopping.
  - `--early_stopping_frequency=checkpoint_frequency`: How often to check for early stopping on the validation dataset.
  - `--early_stopping_nbest=10`: How many successive models must be worse than the current best model to break the training loop

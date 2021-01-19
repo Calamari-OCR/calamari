@@ -7,11 +7,7 @@ before_script:
   - virtualenv -p python3.7 venv
   - source venv/bin/activate
   - pip install --use-feature 2020-resolver -r requirements.txt
-  - pip uninstall -y calamari-ocr tfaip
-  - python setup.py develop --no-deps
-  - git clone -b develop https://github.com/Planet-AI-GmbH/tf2_aip_base && cd tf2_aip_base
-  - python setup.py develop --no-deps
-  - cd ..
+  - python setup.py install
 
 cache:
   paths:
@@ -41,11 +37,7 @@ install_dependencies:
     - virtualenv -p python3.7 venv
     - source venv/bin/activate
     - pip install --use-feature 2020-resolver -r requirements.txt
-    - pip uninstall -y calamari-ocr tfaip
-    - python setup.py develop --no-deps
-    - git clone -b develop https://github.com/Planet-AI-GmbH/tf2_aip_base && cd tf2_aip_base
-    - python setup.py develop --no-deps
-    - cd ..
+    - python setup.py install
     - wget -q -O - https://github.com/Calamari-OCR/calamari_models/archive/1.0.tar.gz | tar xz && mv calamari_models-1.0 calamari_models
 
 

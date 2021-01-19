@@ -1,4 +1,4 @@
-tfaip
+tfaip==1.0.1
 scikit-image>=0.15.0
 python-bidi
 edit_distance
