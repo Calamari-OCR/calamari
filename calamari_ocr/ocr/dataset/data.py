@@ -102,6 +102,7 @@ class Data(DataBase):
 
     def _target_layer_specs(self):
         return {
+            'fold_id': tf.TensorSpec([1], dtype=tf.int32),
             'gt': tf.TensorSpec([None], dtype=tf.int32),
             'gt_len': tf.TensorSpec([1], dtype=tf.int32),
         }

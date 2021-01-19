@@ -10,6 +10,7 @@ from calamari_ocr.ocr.model.graph import Graph
 from calamari_ocr.ocr.model.params import ModelParams
 from tensorflow.python.ops import math_ops
 
+from calamari_ocr.ocr.model.votergraph import VoterGraph
 from calamari_ocr.ocr.predict.params import Prediction
 
 keras = tf.keras
@@ -34,7 +35,8 @@ class Model(ModelBase):
         return "min", "CER"
 
     def create_graph(self, params: ModelBaseParams) -> 'GraphBase':
-        return Graph(params)
+        # return Graph(params)
+        return VoterGraph(params)
 
     def _loss(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
         def to_2d_list(x):

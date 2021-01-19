@@ -13,6 +13,7 @@ from calamari_ocr.utils.image import load_image
 
 logger = logging.getLogger(__name__)
 
+
 class FileDataReader(DataReader):
     def __init__(self,
                  mode: PipelineMode,
@@ -79,16 +80,18 @@ class FileDataReader(DataReader):
                 "base_name": img_bn or text_bn,
             })
 
+        self.split_samples_in_folds(5)
+
     def _load_sample(self, sample, text_only):
         if text_only:
             yield InputSample(None,
                               self._load_gt_txt(sample["text_path"]),
-                              SampleMeta(sample['id']),
+                              SampleMeta(sample['id'], fold_id=sample['fold_id']),
                               )
         else:
             yield InputSample(self._load_line(sample["image_path"]),
                               self._load_gt_txt(sample["text_path"]),
-                              SampleMeta(sample['id']),
+                              SampleMeta(sample['id'], fold_id=sample['fold_id']),
                               )
 
     def _load_gt_txt(self, gt_txt_path):

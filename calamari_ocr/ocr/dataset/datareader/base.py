@@ -52,6 +52,12 @@ class DataReader(ABC):
         """
         return self._samples
 
+    def split_samples_in_folds(self, n_folds):
+        sample_idx = list(range(len(self._samples)))
+        shuffle(sample_idx)
+        for i, idx in enumerate(sample_idx):
+            self._samples[i]['fold_id'] = i % n_folds
+
     def add_sample(self, sample):
         """ Add a sample
 

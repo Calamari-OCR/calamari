@@ -70,6 +70,7 @@ class DataParams(DataBaseParams):
 class SampleMeta:
     id: str
     augmented: bool = False
+    fold_id: int = -1
 
 
 @dataclass
