@@ -37,7 +37,11 @@ def data_reader_from_params(mode: PipelineMode, params: PipelineParams) -> DataR
 
         if mode in {PipelineMode.Training, PipelineMode.Evaluation}:
             if len(set(gt_txt_files)) != len(gt_txt_files):
-                raise Exception("Some images occur more than once in the data set.")
+                logger.warning("Some ground truth text files occur more than once in the data set "
+                               "(ignore this warning, if this was intended).")
+            if len(set(input_image_files)) != len(input_image_files):
+                logger.warning("Some images occur more than once in the data set. "
+                               "This warning should usually not be ignored.")
     else:
         input_image_files = params.files
         gt_txt_files = params.text_files

@@ -47,7 +47,7 @@ def parse_groups(string_list):
             groups["roman_digits"] = True
             groups["ligatures"] = True
             groups["various"] = True
-        elif s == "zpd": # work in progress
+        elif s == "zpd":  # work in progress
             groups["quotes"] = True
             groups["spaces"] = True
             groups["roman_digits"] = True
@@ -80,7 +80,7 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
 
     if groups["various"]:
         replacement("µ", "μ")    # replace micro unit with greek character
-        replacement("–", "-")   # variant length hyphens
+        replacement("–", "-")  # variant length hyphens
         replacement("—", "-")   # variant length hyphens
 
     if groups["quotes"]:
@@ -169,7 +169,7 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("ⅽ", "c")   # expand unicode roman digits
         replacement("ⅾ", "d")   # expand unicode roman digits
         replacement("ⅿ", "m")   # expand unicode roman digits
- 
+
     if groups["uvius"]: # work in progress; based on Uwe Springmann's work for the GT4HistOCR corpus (https://zenodo.org/record/1344132)
         replacement("''", "\"")
 
@@ -322,7 +322,7 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement(r"(?u)\s+", ' ', True)   # Multiple spaces to one
         replacement(r"(?u)\n", '', True)     # Remove line breaks
         replacement(r"(?u)^\s+", '', True)   # strip left
-        replacement(r"(?u)\s+$", '', True)   # strip right
+        replacement(r"(?u)\s+$", '', True)   # strip right0
 
     return r
 
