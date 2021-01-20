@@ -3,6 +3,7 @@ from typing import Type
 from tfaip.base.data.pipeline.datapipeline import RawDataPipeline
 import logging
 
+from tfaip.base.data.pipeline.definitions import PipelineMode
 from tfaip.base.trainer.trainer import Trainer as AIPTrainer
 from tfaip.base.trainer.callbacks.tensor_board_callback import TensorBoardCallback
 from tfaip.base.trainer.callbacks.train_params_logger import TrainParamsLoggerCallback
@@ -128,6 +129,10 @@ class Trainer(AIPTrainer):
             # preload after codec was created
             data.preload(progress_bar=self._params.progress_bar)
             train_pipeline = data.get_train_data()
+
+        if self._params.use_training_as_validation:
+            assert(val_pipeline is None)
+            data.get_pipeline(PipelineMode.Evaluation, train_pipeline.generator_params)
 
         if self._params.current_stage == 0:
             super(Trainer, self).train(

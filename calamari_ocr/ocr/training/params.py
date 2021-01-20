@@ -23,6 +23,7 @@ class TrainerParams(AIPTrainerParams):
     keep_loaded_codec: bool = True
     preload_training: bool = True
     preload_validation: bool = True
+    use_training_as_validation: bool = False
 
     auto_compute_codec: bool = True
     progress_bar: bool = True

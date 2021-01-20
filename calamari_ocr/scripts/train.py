@@ -130,6 +130,7 @@ def setup_train_args(parser, omit=None):
                                  "By default same as gt_extension")
         parser.add_argument("--validation_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=None,
                             help="Default validation data set type. By default same as --dataset")
+        parser.add_argument("--use_train_as_val", action='store_true', default=False)
 
     parser.add_argument("--validation_data_on_the_fly", action='store_true', default=False,
                         help='Instead of preloading all data during the training, load the data on the fly. '
@@ -309,7 +310,7 @@ def run(args):
 
     data_params.pre_processors_.sample_processors.extend([
         DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}, {'augmenter_type': 'simple'}),
-        DataProcessorFactoryParams(PrepareSampleProcessor.__name__, {PipelineMode.Training}),
+        DataProcessorFactoryParams(PrepareSampleProcessor.__name__, INPUT_PROCESSOR),
     ])
 
     data_params.data_aug_params = DataAugmentationAmount.from_factor(args.n_augmentations)
@@ -332,6 +333,7 @@ def run(args):
     params.test_every_n = args.display
     params.skip_invalid_gt = not args.no_skip_invalid_gt
     params.data_aug_retrain_on_original = not args.only_train_on_augmented
+    params.use_training_as_validation = args.use_train_as_val
     if args.seed > 0:
         params.random_seed = args.seed
 
