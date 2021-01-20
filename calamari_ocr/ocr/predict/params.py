@@ -41,6 +41,7 @@ class Prediction:
     avg_char_probability: float = 0
     is_voted_result: bool = False
     line_path: str = ''
+    voter_predictions: Optional[List['Prediction']] = None
 
 
 @dataclass_json

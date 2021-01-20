@@ -112,6 +112,8 @@ def setup_train_args(parser, omit=None):
                              "(see --no_auto_compute_codec)")
     parser.add_argument("--keep_loaded_codec", action='store_true', default=False,
                         help="Fully include the codec of the loaded model to the new codec")
+    parser.add_argument("--model_voters", type=int, default=0,
+                        help="Number of voting models")
 
     # clipping
     parser.add_argument("--gradient_clipping_norm", type=float, default=5,
@@ -307,7 +309,7 @@ def run(args):
 
     data_params.pre_processors_.sample_processors.extend([
         DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}, {'augmenter_type': 'simple'}),
-        DataProcessorFactoryParams(PrepareSampleProcessor.__name__),
+        DataProcessorFactoryParams(PrepareSampleProcessor.__name__, {PipelineMode.Training}),
     ])
 
     data_params.data_aug_params = DataAugmentationAmount.from_factor(args.n_augmentations)
@@ -352,17 +354,21 @@ def run(args):
     params.scenario_params.default_serve_dir_ = f'{args.early_stopping_best_model_prefix}.ckpt.h5'
     params.scenario_params.trainer_params_filename_ = f'{args.early_stopping_best_model_prefix}.ckpt.json'
 
+    # =================================================================================================================
+    # Model params
     params_from_definition_string(args.network, params)
+    params.scenario_params.model_params.voters = args.model_voters
 
     scenario = Scenario(params.scenario_params)
     trainer = scenario.create_trainer(params)
     trainer.train()
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    setup_train_args(parser)
-    args = parser.parse_args()
+def main(args=None):
+    if args is None:
+        parser = argparse.ArgumentParser()
+        setup_train_args(parser)
+        args = parser.parse_args()
     run(args)
 
 

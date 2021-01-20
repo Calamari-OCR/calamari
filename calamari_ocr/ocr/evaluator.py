@@ -33,11 +33,11 @@ class Evaluator:
 
         """
         with self.data.create_pipeline(PipelineMode.Targets, gt_dataset) as dataset:
-            self.preloaded_gt = [txt for _, txt, _ in tqdm_wrapper(dataset.generate_input_samples(),
-                                                                   total=len(dataset),
-                                                                   progress_bar=progress_bar,
-                                                                   desc="Loading GT",
-                                                                   )]
+            self.preloaded_gt = [sample.targets for sample in tqdm_wrapper(dataset.generate_input_samples(),
+                                                                           total=len(dataset),
+                                                                           progress_bar=progress_bar,
+                                                                           desc="Loading GT",
+                                                                           )]
 
     def run(self, *, gt_dataset: PipelineParams, pred_dataset: PipelineParams, processes=1, progress_bar=False):
         """ evaluate on the given dataset

@@ -1,6 +1,7 @@
 import numpy as np
 
 from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import CTCDecoder
+from calamari_ocr.ocr.predict.params import Prediction
 
 
 class DefaultCTCDecoder(CTCDecoder):
@@ -9,7 +10,7 @@ class DefaultCTCDecoder(CTCDecoder):
         self.blank = params.blank_index
         self.threshold = params.min_p_threshold if params.min_p_threshold > 0 else 0.0001
 
-    def decode(self, probabilities):
+    def decode(self, probabilities) -> Prediction:
         last_char = self.blank
         chars = np.argmax(probabilities, axis=1)
         sentence = []

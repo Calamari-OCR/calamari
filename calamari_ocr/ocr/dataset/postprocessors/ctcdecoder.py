@@ -28,8 +28,16 @@ class CTCDecoderProcessor(DataProcessor):
         if sample.targets and 'gt' in sample.targets:
             sample.targets['sentence'] = "".join(self.params.codec.decode(sample.targets['gt']))
         if sample.outputs:
-            outputs = self.ctc_decoder.decode(sample.outputs['softmax'].astype(float))
-            outputs.labels = list(map(int, outputs.labels))
-            outputs.sentence = "".join(self.params.codec.decode(outputs.labels))
+            def decode(suffix):
+                outputs = self.ctc_decoder.decode(sample.outputs['softmax' + suffix].astype(float))
+                outputs.labels = list(map(int, outputs.labels))
+                outputs.sentence = "".join(self.params.codec.decode(outputs.labels))
+                return outputs
+
+            outputs = decode("")
+            outputs.voter_predictions = []
+            for i in range(self.params.voters_):
+                outputs.voter_predictions.append(decode(f"_{i}"))
+
             sample = sample.new_outputs(outputs)
         return sample

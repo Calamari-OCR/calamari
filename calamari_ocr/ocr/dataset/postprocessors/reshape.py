@@ -12,10 +12,19 @@ class ReshapeOutputsProcessor(DataProcessor):
         outputs = outputs.copy()
         inputs['img_len'] = inputs['img_len'][0]
         inputs['meta'] = inputs['meta'][0]
-        if 'out_len' in outputs and outputs['out_len'].shape == (1,):
-            outputs['out_len'] = outputs['out_len'][0]
 
-        for name in {'logits', 'softmax', 'blank_last_logits', 'blank_last_softmax'}:
-            if name in outputs:
-                outputs[name] = outputs[name][:outputs['out_len']]
+        def reshape_outputs(suffix):
+            out_len = 'out_len' + suffix
+            if out_len in outputs and outputs[out_len].shape == (1,):
+                outputs[out_len] = outputs[out_len][0]
+
+            for name in {'logits', 'softmax', 'blank_last_logits', 'blank_last_softmax'}:
+                name += suffix
+                if name in outputs:
+                    outputs[name] = outputs[name][:outputs[out_len]]
+
+        reshape_outputs('')
+        for i in range(self.params.voters_):
+            reshape_outputs(f"_{i}")
+
         return sample.new_inputs(inputs).new_outputs(outputs)

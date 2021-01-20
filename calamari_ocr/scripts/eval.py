@@ -212,6 +212,7 @@ def main():
     )
 
     evaluator = Evaluator(data=data)
+    evaluator.preload_gt(gt_dataset=gt_data_set)
     r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, processes=args.num_threads,
                       progress_bar=not args.no_progress_bars)
 

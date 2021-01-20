@@ -18,24 +18,26 @@ K = keras.backend
 KL = keras.layers
 
 
-class Model(ModelBase):
+class VoterModel(ModelBase):
     @staticmethod
     def get_params_cls() -> Type[ModelBaseParams]:
         return ModelParams
 
     @classmethod
     def _get_additional_layers(cls) -> List[Type[tf.keras.layers.Layer]]:
-        return [Graph, VoterGraph]
+        return [VoterGraph]
 
     def __init__(self, params: ModelParams):
-        super(Model, self).__init__(params)
+        super(VoterModel, self).__init__(params)
+        assert(params.voters is not None)  # Voter variable not set
+        assert(params.voters > 1)  # At least 2 voters required
         self._params: ModelParams = params
 
     def _best_logging_settings(self) -> Tuple[str, str]:
         return "min", "CER"
 
     def create_graph(self, params: ModelBaseParams) -> 'GraphBase':
-        return Graph(params)
+        return VoterGraph(params)
 
     def _loss(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
         def to_2d_list(x):
@@ -44,9 +46,17 @@ class Model(ModelBase):
         # note: blank is last index
         loss = KL.Lambda(lambda args: K.ctc_batch_cost(args[0] - 1, args[1], args[2], args[3]), name='ctc')(
             (inputs['gt'], outputs['blank_last_softmax'], to_2d_list(outputs['out_len']), to_2d_list(inputs['gt_len'])))
-        return {
+        losses = {
             'loss': loss
         }
+
+        for i in range(self._params.voters):
+            loss = KL.Lambda(lambda args: K.ctc_batch_cost(args[0] - 1, args[1], args[2], args[3]), name=f'ctc_{i}')(
+                (inputs['gt'], outputs[f'blank_last_softmax_{i}'], to_2d_list(outputs[f'out_len_{i}']),
+                 to_2d_list(inputs['gt_len'])))
+            losses[f'loss_{i}'] = loss
+
+        return losses
 
     def _extended_metric(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
         def create_cer(decoded, targets, targets_length):
@@ -59,21 +69,43 @@ class Model(ModelBase):
         # using the true codec size (the W/B-Matrix may change its shape however during loading/codec change
         # to match the true codec size
         cer = KL.Lambda(lambda args: create_cer(*args), output_shape=(1,), name='cer')((outputs['decoded'], inputs['gt'], inputs['gt_len']))
-        return {
+        metrics = {
             'CER': cer,
         }
 
+        for i in range(self._params.voters):
+            cer = KL.Lambda(lambda args: create_cer(*args), output_shape=(1,), name=f'cer_{i}')(
+                (outputs[f'decoded_{i}'], inputs['gt'], inputs['gt_len']))
+            metrics[f"CER_{i}"] = cer
+
+        return metrics
+
     def _sample_weights(self, inputs: Dict[str, tf.Tensor], targets: Dict[str, tf.Tensor]) -> Dict[str, Any]:
-        return {
+        weights = {
             "CER": K.flatten(targets['gt_len']),
         }
+        for i in range(self._params.voters):
+            weights[f"CER_{i}"] = weights["CER"]
+
+        return weights
 
     def print_evaluate(self, inputs: Dict[str, AnyNumpy], outputs: Prediction, targets: Dict[str, AnyNumpy],
-                       data: 'CalamariData', print_fn):
-        pred_sentence = outputs.sentence
+                       data, print_fn=print):
         gt_sentence = targets['sentence']
         lr = "\u202A\u202B"
+        s = ""
+        if outputs.voter_predictions:
+            for i, voter in enumerate(outputs.voter_predictions):
+                pred_sentence = voter.sentence
+                cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)
+                s += (
+                        "\n{} PRED (CER={:.2f}): '{}{}{}'".format(i, cer, lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C")
+                )
+
+        pred_sentence = outputs.sentence
         cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)
-        print_fn("\n  CER:  {}".format(cer) +
-                 "\n  PRED: '{}{}{}'".format(lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C") +
-                 "\n  TRUE: '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C"))
+        s += (
+                "\n  PRED (CER={:.2f}): '{}{}{}'".format(cer, lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C") +
+                "\n  TRUE:            '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C"))
+
+        print_fn(s)

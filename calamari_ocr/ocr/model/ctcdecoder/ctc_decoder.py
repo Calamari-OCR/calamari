@@ -85,7 +85,7 @@ class CTCDecoder(ABC):
             )
         return pred
 
-    def find_alternatives(self, probabilities, sentence, threshold):
+    def find_alternatives(self, probabilities, sentence, threshold) -> Prediction:
         """
         Find alternatives to the decoded sentence in the logits.
         E.g. if a 'c' is decoded in the range 2 to 4, this algorithm will add all characters in the interval [2, 4] to
