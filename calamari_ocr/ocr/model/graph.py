@@ -181,7 +181,6 @@ class Graph(GraphBase):
                                                 sequence_length=tf.cast(K.flatten(lstm_seq_len),
                                                                         'int32'))[0][0]
 
-        tf.debugging.assert_equal(tf.reduce_max(lstm_seq_len), tf.shape(blank_last_logits)[1])
         return {
             'blank_last_logits': blank_last_logits,
             'blank_last_softmax': blank_last_softmax,

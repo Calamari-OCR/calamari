@@ -21,18 +21,6 @@ class Intermediate(tf.keras.layers.Layer):
         max_lstm_seq_len = self._params.compute_downscaled(tf.shape(inputs['img'])[1])
         # only pass folds to selected folds
         if 'fold_id' in inputs:
-            def empty_output():
-                # any dummy output is max length, to get actional outpu length t use reduce_min
-                empty = tf.zeros(shape=[batch_size, max_lstm_seq_len, self._params.classes])
-
-                return {
-                    'blank_last_logits': empty,
-                    'blank_last_softmax': empty,
-                    'out_len': tf.repeat(max_lstm_seq_len, repeats=batch_size),
-                    'logits': empty,
-                    'softmax': empty,
-                    'decoded': tf.zeros(shape=[batch_size, max_lstm_seq_len], dtype='int64'),
-                }
             # Training/Validation graph
             def training_step():
                 complete_outputs = [self.fold_graphs[i](inputs) for i in range(len(self.fold_graphs))]
@@ -47,14 +35,35 @@ class Intermediate(tf.keras.layers.Layer):
                 return blank_last_softmax, lstm_seq_len, complete_outputs
 
             def validation_step():
+                # any dummy output is max length, to get actional outpu length t use reduce_min
+                def gen_empty_output(bs):
+                    empty = tf.zeros(shape=[bs, max_lstm_seq_len, self._params.classes], dtype='float32')
+                    return {
+                        'blank_last_logits': empty,
+                        'blank_last_softmax': empty,
+                        'out_len': tf.repeat(max_lstm_seq_len, repeats=bs),
+                        'logits': empty,
+                        'softmax': empty,
+                        'decoded': tf.zeros(shape=[bs, max_lstm_seq_len], dtype='int64'),
+                    }
+
+                empty_output = gen_empty_output(1)
                 # Validation: Compute output for each graph but only for its own partition
                 # Per sample this is one CER which is then used e. g. for early stopping
-                complete_outputs = [tf.cond(tf.equal(i, inputs['fold_id'][0]), lambda: self.fold_graphs[i](inputs), empty_output) for i in range(len(self.fold_graphs))]
-                seq_lens = [out['out_len'] for out in complete_outputs]
-                lstm_seq_len = tf.reshape(tf.reduce_min(seq_lens, axis=0), shape=[batch_size])
-                softmax_outputs = [out['blank_last_softmax'] for i, out in enumerate(complete_outputs)]
-                blank_last_softmax = tf.gather(softmax_outputs, inputs['fold_id'][0])[0]
-                return blank_last_softmax, lstm_seq_len, complete_outputs
+                def apply_single_model(batch):
+                    batch = batch['out_len']  # Take any, all are batch id as input
+                    single_batch_data = {k: [tf.gather(v, batch)] for k, v in inputs.items()}
+                    complete_outputs = [tf.cond(tf.equal(i, inputs['fold_id'][batch]), lambda: self.fold_graphs[i](single_batch_data), lambda: empty_output) for i in range(len(self.fold_graphs))]
+                    outputs = {k: tf.gather(tf.stack([out[k] for out in complete_outputs]),
+                                            inputs['fold_id'][batch][0])[0] for k in empty_output.keys() if k != 'decoded'}
+                    paddings = [([0, 0], [0, max_lstm_seq_len - tf.shape(out['decoded'])[1]]) for out in complete_outputs]
+                    outputs['decoded'] = tf.gather(tf.stack([tf.pad(out['decoded'], padding, 'CONSTANT', constant_values=0) for out, padding in zip(complete_outputs, paddings)]),
+                                                   inputs['fold_id'][batch][0])[0]
+                    return outputs
+
+                complete_outputs = tf.map_fn(apply_single_model, {k: tf.range(batch_size, dtype=v.dtype) for k, v in empty_output.items()},
+                                             parallel_iterations=len(self.fold_graphs), back_prop=False)
+                return complete_outputs['blank_last_softmax'], complete_outputs['out_len'], [complete_outputs] * len(self.fold_graphs)
 
             if isinstance(training, bool) or isinstance(training, int):
                 blank_last_softmax, lstm_seq_len, complete_outputs = training_step() if training else validation_step()
