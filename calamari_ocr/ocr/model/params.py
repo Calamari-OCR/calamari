@@ -66,3 +66,11 @@ class ModelParams(ModelBaseParams):
             elif layer.type == LayerType.MaxPooling:
                 factor *= layer.stride.x
         return factor
+
+    def compute_downscaled(self, length):
+        for layer in self.layers:
+            if layer.type == LayerType.TransposedConv:
+                length = length * layer.stride.x
+            elif layer.type == LayerType.MaxPooling:
+                length = (length + layer.stride.x - 1) // layer.stride.x
+        return length

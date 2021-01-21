@@ -132,7 +132,17 @@ class Trainer(AIPTrainer):
 
         if self._params.use_training_as_validation:
             assert(val_pipeline is None)
-            data.get_pipeline(PipelineMode.Evaluation, train_pipeline.generator_params)
+            if self._params.preload_training:
+                data._pipelines[PipelineMode.Evaluation] = RawDataPipeline(
+                    [s for s in train_pipeline.samples if not s.meta['augmented']],
+                    mode=PipelineMode.Evaluation,
+                    data_base=data,
+                    generator_params=train_pipeline.generator_params,
+                    input_processors=train_pipeline._input_processors,
+                    output_processors=train_pipeline._output_processors,
+                )
+            else:
+                data.get_pipeline(PipelineMode.Evaluation, train_pipeline.generator_params)
 
         if self._params.current_stage == 0:
             super(Trainer, self).train(

@@ -154,7 +154,7 @@ class Graph(GraphBase):
                 last_layer_output = layer(last_layer_output)
             elif lp.type == LayerType.MaxPooling:
                 last_layer_output = layer(last_layer_output)
-                shape = (shape[0] // lp.stride.x, shape[1] // lp.stride.y)
+                shape = ((shape[0] + lp.stride.x - 1) // lp.stride.x, (shape[1] + lp.stride.y - 1) // lp.stride.y)
             else:
                 raise Exception("Unknown layer of type %s" % lp.type)
 
@@ -181,6 +181,7 @@ class Graph(GraphBase):
                                                 sequence_length=tf.cast(K.flatten(lstm_seq_len),
                                                                         'int32'))[0][0]
 
+        tf.debugging.assert_equal(tf.reduce_max(lstm_seq_len), tf.shape(blank_last_logits)[1])
         return {
             'blank_last_logits': blank_last_logits,
             'blank_last_softmax': blank_last_softmax,

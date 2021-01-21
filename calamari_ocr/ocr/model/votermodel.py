@@ -85,7 +85,8 @@ class VoterModel(ModelBase):
             "CER": K.flatten(targets['gt_len']),
         }
         for i in range(self._params.voters):
-            weights[f"CER_{i}"] = weights["CER"]
+            # Only count CERs of this voter for validation
+            weights[f"CER_{i}"] = weights["CER"] * tf.cast(tf.equal(K.flatten(targets['fold_id']), i), tf.int32)
 
         return weights
 
@@ -94,7 +95,8 @@ class VoterModel(ModelBase):
         gt_sentence = targets['sentence']
         lr = "\u202A\u202B"
         s = ""
-        if outputs.voter_predictions:
+        if False and outputs.voter_predictions:
+            # commented out since the val output is only of one fold
             for i, voter in enumerate(outputs.voter_predictions):
                 pred_sentence = voter.sentence
                 cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)
