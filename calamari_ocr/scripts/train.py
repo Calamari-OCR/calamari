@@ -69,9 +69,9 @@ def setup_train_args(parser, omit=None):
     parser.add_argument("--batch_size", type=int, default=1,
                         help="The batch size to use for training")
     parser.add_argument("--ema_weights", action="store_true", default=False, help="Use exponentially averaged weights")
-    parser.add_argument("--checkpoint_frequency", type=int, default=0,
+    parser.add_argument("--checkpoint_frequency", type=int, default=-1,
                         help="The frequency how often to write checkpoints during training [epochs]"
-                             "If -1, the early_stopping_frequency will be used. default (0) no checkpoints are written")
+                             "If -1 (default), the early_stopping_frequency will be used. If 0 no checkpoints are written")
     parser.add_argument("--epochs", type=int, default=100,
                         help="The number of iterations for training. "
                              "If using early stopping, this is the maximum number of iterations")
