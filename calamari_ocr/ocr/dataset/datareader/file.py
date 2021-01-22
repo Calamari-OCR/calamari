@@ -110,7 +110,7 @@ class FileDataReader(DataReader):
 
         if not os.path.exists(image_path):
             if self._non_existing_as_empty:
-                return np.zeros((1, 1))
+                return np.zeros((1, 1), dtype=np.uint8)
             else:
                 raise Exception("Image file at '{}' does not exist".format(image_path))
 
