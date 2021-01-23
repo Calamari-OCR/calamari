@@ -3,11 +3,14 @@ import os
 from typing import Optional
 import logging
 
+import h5py
 from tensorflow import keras
 import tensorflow as tf
+from tensorflow.python.keras.saving.hdf5_format import load_weights_from_hdf5_group
 from tensorflow.python.ops import ctc_ops
 import tensorflow.keras.backend as K
 
+from calamari_ocr.ocr.model.graph import Graph
 from calamari_ocr.ocr.scenario import Scenario
 
 
@@ -18,41 +21,56 @@ def update_model(params: dict, path: str):
     logger.info(f"Updateing model at {path}")
     trainer_params = Scenario.trainer_params_from_dict(params)
     scenario_params = trainer_params.scenario_params
-    model = keras.models.load_model(path + '.h5', compile=False)
-    pred_model_inputs = model.inputs[1:3]
+    try:
+        model = keras.models.load_model(path + '.h5', compile=False)
+        pred_model_inputs = model.inputs[1:3]
 
-    def wrap(inputs):
-        logits, output_len = inputs
-        outputs = {
-            'blank_last_logits': logits,
-            'out_len': output_len,
-            'logits': tf.roll(logits, shift=1, axis=-1),
-        }
-        outputs['blank_last_softmax'] = tf.nn.softmax(outputs['blank_last_logits'], axis=-1)
-        outputs['softmax'] = tf.nn.softmax(outputs['logits'])
+        def wrap(inputs):
+            logits, output_len = inputs
+            outputs = {
+                'blank_last_logits': logits,
+                'out_len': output_len,
+                'logits': tf.roll(logits, shift=1, axis=-1),
+            }
+            outputs['blank_last_softmax'] = tf.nn.softmax(outputs['blank_last_logits'], axis=-1)
+            outputs['softmax'] = tf.nn.softmax(outputs['logits'])
 
-        greedy_decoded = \
-            ctc_ops.ctc_greedy_decoder(inputs=tf.transpose(outputs['blank_last_logits'], perm=[1, 0, 2]),
-                                       sequence_length=tf.cast(K.flatten(outputs['out_len']),
-                                                               'int32'))[0][0]
-        greedy_decoded = tf.cast(greedy_decoded, 'int32', 'greedy_int32')
-        outputs['decoded'] = tf.sparse.to_dense(greedy_decoded,
-                                                default_value=tf.constant(-1, dtype=greedy_decoded.dtype)) + 1
-        return outputs
+            greedy_decoded = \
+                ctc_ops.ctc_greedy_decoder(inputs=tf.transpose(outputs['blank_last_logits'], perm=[1, 0, 2]),
+                                           sequence_length=tf.cast(K.flatten(outputs['out_len']),
+                                                                   'int32'))[0][0]
+            greedy_decoded = tf.cast(greedy_decoded, 'int32', 'greedy_int32')
+            outputs['decoded'] = tf.sparse.to_dense(greedy_decoded,
+                                                    default_value=tf.constant(-1, dtype=greedy_decoded.dtype)) + 1
+            return outputs
 
-    outputs = [l.input for l in model.layers if l.name == 'softmax'][0], model.layers[-1].input[2]
-    pred_model = keras.models.Model(inputs=pred_model_inputs, outputs=outputs)
-    # wrap with correct input layers
-    img_input = keras.Input(shape=[None, scenario_params.data_params.line_height_, scenario_params.data_params.input_channels], dtype=tf.uint8)
-    img_len = keras.Input(shape=[1], dtype=tf.int32)
-    final_model_inputs = {'img': img_input, 'img_len': img_len}
-    final_model_outputs = wrap(pred_model((tf.cast(final_model_inputs['img'], tf.float32) / 255.0, final_model_inputs['img_len'])))
+        outputs = [l.input for l in model.layers if l.name == 'softmax'][0], model.layers[-1].input[2]
+        pred_model = keras.models.Model(inputs=pred_model_inputs, outputs=outputs)
+        # wrap with correct input layers
+        img_input = keras.Input(shape=[None, scenario_params.data_params.line_height_, scenario_params.data_params.input_channels], dtype=tf.uint8)
+        img_len = keras.Input(shape=[1], dtype=tf.int32)
+        final_model_inputs = {'img': img_input, 'img_len': img_len}
+        final_model_outputs = wrap(pred_model((tf.cast(final_model_inputs['img'], tf.float32) / 255.0, final_model_inputs['img_len'])))
 
-    pred_model = keras.models.Model(inputs=final_model_inputs, outputs=final_model_outputs)
+        pred_model = keras.models.Model(inputs=final_model_inputs, outputs=final_model_outputs)
+    except ValueError as e:
+        logger.exception(e)
+        logger.warning("Could not load due to an error. Attempting to create a new model and load weights instead")
+        scenario = Scenario(scenario_params)
+        scenario.setup()
+        input_layers = scenario.data.create_input_layers()
+        outputs = scenario.model.build(input_layers)
+        pred_model = keras.models.Model(inputs=input_layers, outputs=outputs)
+        with h5py.File(path + '.h5', 'r') as f:
+            if 'layer_names' not in f.attrs and 'model_weights' in f:
+                f = f['model_weights']
+            graph: Graph = pred_model.layers[3]
+            load_weights_from_hdf5_group(f, [l for l in graph.conv_layers if len(l.weights) > 0] + graph.lstm_layers + [graph.logits])
+
     logger.info(f"Writing converted model at {path}.tmp.h5")
     pred_model.save(path + '.tmp.h5', include_optimizer=False)
     logger.info(f"Attempting to load converted model at {path}.tmp.h5")
-    keras.models.load_model(path + '.tmp.h5')
+    keras.models.load_model(path + '.tmp.h5', custom_objects={'Graph': Graph})
     logger.info(f"Replacing old model at {path}.h5")
     os.remove(path + '.h5')
     os.rename(path + '.tmp.h5', path + '.h5')

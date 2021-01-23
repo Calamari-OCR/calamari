@@ -65,7 +65,7 @@ def run_for_single_line(args):
     # run the prediction
     if not args.skip_eval:
         # locate the eval script (must be in the same dir as "this")
-        predict_script_path = os.path.join(this_absdir, "experiment_eval.py")
+        predict_script_path = os.path.join(this_absdir, "predict_and_eval.py")
 
         model = os.path.join(best_models_dir, "best.ckpt.json")
         if not os.path.exists(model):
@@ -77,7 +77,7 @@ def run_for_single_line(args):
                 "-j", str(args.num_threads),
                 "--batch_size", str(args.batch_size),
                 "--dump", dump_file,
-                "--eval_imgs"] + args.eval_files + [
+                "--files"] + args.eval_files + [
                 ] + (["--verbose"] if args.verbose else []) + [
                 "--checkpoint"] + [model] + [
                 ], args.run, {"threads": args.num_threads}), verbose=args.verbose):
