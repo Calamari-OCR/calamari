@@ -77,6 +77,7 @@ class AbbyyReader(DataReader):
         return zip(self.files, self.xmlfiles)
 
     def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
+        fold_id = -1
         for p, page in enumerate(self.book.pages):
             if self.mode in INPUT_PROCESSOR:
                 img = load_image(page.imgFile)
@@ -87,13 +88,14 @@ class AbbyyReader(DataReader):
 
             for l, line in enumerate(page.getLines()):
                 for f, fo in enumerate(line.formats):
+                    fold_id += 1
                     sample_id = "{}_{}_{}_{}".format(os.path.splitext(page.xmlFile if page.xmlFile else page.imgFile)[0], p, l, f)
                     text = None
                     if self.mode in TARGETS_PROCESSOR:
                         text = fo.text
 
                     if text_only:
-                        yield InputSample(None, text, SampleMeta(id=sample_id))
+                        yield InputSample(None, text, SampleMeta(id=sample_id, fold_id=fold_id))
 
                     else:
                         cut_img = None
@@ -106,7 +108,7 @@ class AbbyyReader(DataReader):
                             # add padding as required from normal files
                             cut_img = np.pad(cut_img, ((3, 3), (0, 0)), mode='constant', constant_values=cut_img.max())
 
-                        yield InputSample(cut_img, text, SampleMeta(id=sample_id))
+                        yield InputSample(cut_img, text, SampleMeta(id=sample_id, fold_id=fold_id))
 
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
         raise NotImplementedError

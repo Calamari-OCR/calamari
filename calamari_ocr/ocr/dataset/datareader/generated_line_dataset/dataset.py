@@ -74,7 +74,8 @@ class GeneratedLineDataset(DataReader):
 
     def _load_sample(self, sample, text_only):
         image, text = self.data_queue.get()
-        yield InputSample(image, text, SampleMeta(id=sample['id']))
+        fold_id = -1 if self.n_folds <= 0 else np.random.randint(self.n_folds)
+        yield InputSample(image, text, SampleMeta(id=sample['id'], fold_id=fold_id))
 
 
 if __name__ == "__main__":

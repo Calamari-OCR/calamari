@@ -112,7 +112,7 @@ def setup_train_args(parser, omit=None):
                              "(see --no_auto_compute_codec)")
     parser.add_argument("--keep_loaded_codec", action='store_true', default=False,
                         help="Fully include the codec of the loaded model to the new codec")
-    parser.add_argument("--model_voters", type=int, default=0,
+    parser.add_argument("--ensemble", type=int, default=-1,
                         help="Number of voting models")
 
     # clipping
@@ -359,7 +359,7 @@ def run(args):
     # =================================================================================================================
     # Model params
     params_from_definition_string(args.network, params)
-    params.scenario_params.model_params.voters = args.model_voters
+    params.scenario_params.model_params.ensemble = args.ensemble
 
     scenario = Scenario(params.scenario_params)
     trainer = scenario.create_trainer(params)

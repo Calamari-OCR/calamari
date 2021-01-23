@@ -6,11 +6,10 @@ import Levenshtein
 from tfaip.base.model.modelbase import ModelBase, ModelBaseParams
 from tfaip.util.typing import AnyNumpy
 
-from calamari_ocr.ocr.model.graph import Graph
 from calamari_ocr.ocr.model.params import ModelParams
 from tensorflow.python.ops import math_ops
 
-from calamari_ocr.ocr.model.votergraph import VoterGraph
+from calamari_ocr.ocr.model.ensemblegraph import EnsembleGraph
 from calamari_ocr.ocr.predict.params import Prediction
 
 keras = tf.keras
@@ -18,26 +17,26 @@ K = keras.backend
 KL = keras.layers
 
 
-class VoterModel(ModelBase):
+class EnsembleModel(ModelBase):
     @staticmethod
     def get_params_cls() -> Type[ModelBaseParams]:
         return ModelParams
 
     @classmethod
     def _get_additional_layers(cls) -> List[Type[tf.keras.layers.Layer]]:
-        return [VoterGraph]
+        return [EnsembleGraph]
 
     def __init__(self, params: ModelParams):
-        super(VoterModel, self).__init__(params)
-        assert(params.voters is not None)  # Voter variable not set
-        assert(params.voters > 1)  # At least 2 voters required
+        super(EnsembleModel, self).__init__(params)
+        assert(params.ensemble is not None)  # Voter variable not set
+        assert(params.ensemble > 1)  # At least 2 voters required
         self._params: ModelParams = params
 
     def _best_logging_settings(self) -> Tuple[str, str]:
         return "min", "CER"
 
     def create_graph(self, params: ModelBaseParams) -> 'GraphBase':
-        return VoterGraph(params)
+        return EnsembleGraph(params)
 
     def _loss(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
         def to_2d_list(x):
@@ -50,7 +49,7 @@ class VoterModel(ModelBase):
             'loss': loss
         }
 
-        for i in range(self._params.voters):
+        for i in range(self._params.ensemble):
             loss = KL.Lambda(lambda args: K.ctc_batch_cost(args[0] - 1, args[1], args[2], args[3]), name=f'ctc_{i}')(
                 (inputs['gt'], outputs[f'blank_last_softmax_{i}'], to_2d_list(outputs[f'out_len_{i}']),
                  to_2d_list(inputs['gt_len'])))
@@ -73,7 +72,7 @@ class VoterModel(ModelBase):
             'CER': cer,
         }
 
-        for i in range(self._params.voters):
+        for i in range(self._params.ensemble):
             cer = KL.Lambda(lambda args: create_cer(*args), output_shape=(1,), name=f'cer_{i}')(
                 (outputs[f'decoded_{i}'], inputs['gt'], inputs['gt_len']))
             metrics[f"CER_{i}"] = cer
@@ -84,7 +83,7 @@ class VoterModel(ModelBase):
         weights = {
             "CER": K.flatten(targets['gt_len']),
         }
-        for i in range(self._params.voters):
+        for i in range(self._params.ensemble):
             # Only count CERs of this voter for validation
             weights[f"CER_{i}"] = weights["CER"] * tf.cast(tf.equal(K.flatten(targets['fold_id']), i), tf.int32)
 
@@ -95,14 +94,6 @@ class VoterModel(ModelBase):
         gt_sentence = targets['sentence']
         lr = "\u202A\u202B"
         s = ""
-        if False and outputs.voter_predictions:
-            # commented out since the val output is only of one fold
-            for i, voter in enumerate(outputs.voter_predictions):
-                pred_sentence = voter.sentence
-                cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)
-                s += (
-                        "\n{} PRED (CER={:.2f}): '{}{}{}'".format(i, cer, lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C")
-                )
 
         pred_sentence = outputs.sentence
         cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)

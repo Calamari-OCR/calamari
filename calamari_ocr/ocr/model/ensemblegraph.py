@@ -12,17 +12,19 @@ class Intermediate(tf.keras.layers.Layer):
     def __init__(self, params: ModelParams, name='CalamariGraph', **kwargs):
         super(Intermediate, self).__init__(name=name, **kwargs)
         self._params = params
-        self.fold_graphs = [Graph(params, f"voter_{i}") for i in range(params.voters)]
+        self.fold_graphs = [Graph(params, f"voter_{i}") for i in range(params.ensemble)]
 
     def call(self, inputs, training=None):
         if training is None:
             training = K.learning_phase()
+
         batch_size = tf.shape(inputs['img_len'])[0]
         max_lstm_seq_len = self._params.compute_downscaled(tf.shape(inputs['img'])[1])
         # only pass folds to selected folds
         if 'fold_id' in inputs:
             # Training/Validation graph
             def training_step():
+                tf.debugging.assert_greater_equal(inputs['fold_id'], 0)
                 complete_outputs = [self.fold_graphs[i](inputs) for i in range(len(self.fold_graphs))]
 
                 lstm_seq_len = complete_outputs[0]['out_len']  # is the same for all children
@@ -100,13 +102,13 @@ class Intermediate(tf.keras.layers.Layer):
         return outputs
 
 
-class VoterGraph(GraphBase):
+class EnsembleGraph(GraphBase):
     @classmethod
     def params_cls(cls):
         return ModelParams
 
     def __init__(self, params: ModelParams, name='CalamariGraph', **kwargs):
-        super(VoterGraph, self).__init__(params, name=name, **kwargs)
+        super(EnsembleGraph, self).__init__(params, name=name, **kwargs)
         self.wrapper = Intermediate(params)
 
     def call(self, inputs, **kwargs):

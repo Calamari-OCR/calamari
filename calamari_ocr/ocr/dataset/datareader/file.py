@@ -80,8 +80,6 @@ class FileDataReader(DataReader):
                 "base_name": img_bn or text_bn,
             })
 
-        self.split_samples_in_folds(5)
-
     def _load_sample(self, sample, text_only):
         if text_only:
             yield InputSample(None,

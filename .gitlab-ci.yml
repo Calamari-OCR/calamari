@@ -75,6 +75,14 @@ test-cpu-validation-augmentation:
     - calamari-train --n_augmentation 5 --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 10 --early_stopping_frequency 1
 
 
+# ensemble learning
+test-cpu-ensemble-train:
+  stage: test
+  script:
+    - set -e
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --ensemble 3 --epochs 1 --samples_per_epoch 10 --use_train_as_val
+
+
 # cross-fold-training
 
 test-cpu-cross-fold-train:
@@ -102,7 +110,13 @@ test-cpu-cross-fold-train-preload5:
     - calamari-cross-fold-train --weights calamari_models/antiqua_modern/0.ckpt.json calamari_models/antiqua_modern/1.ckpt.json calamari_models/antiqua_modern/2.ckpt.json calamari_models/antiqua_modern/3.ckpt.json calamari_models/antiqua_modern/4.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 5 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
 
 
-# prediction and evaluation including voting
+# prediction and evaluation
+
+test-cpu-predict-and-eval-script:
+  stage: test
+  script:
+    - set -e
+    - calamari-predict-and-eval --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json
 
 test-cpu-predict-and-eval-with-voting:
   stage: test

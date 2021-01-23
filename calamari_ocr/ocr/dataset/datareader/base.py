@@ -28,6 +28,16 @@ class DataReader(ABC):
         self.skip_invalid = skip_invalid
         self.remove_invalid = remove_invalid
 
+        self.n_folds = -1
+
+    def populate_folds(self, n_folds):
+        self.n_folds = n_folds
+
+        sample_idx = list(range(len(self._samples)))
+        shuffle(sample_idx)
+        for i, idx in enumerate(sample_idx):
+            self._samples[i]['fold_id'] = i % n_folds
+
     def __len__(self):
         """ Number of samples
 
@@ -52,12 +62,6 @@ class DataReader(ABC):
         """
         return self._samples
 
-    def split_samples_in_folds(self, n_folds):
-        sample_idx = list(range(len(self._samples)))
-        shuffle(sample_idx)
-        for i, idx in enumerate(sample_idx):
-            self._samples[i]['fold_id'] = i % n_folds
-
     def add_sample(self, sample):
         """ Add a sample
 
@@ -73,6 +77,8 @@ class DataReader(ABC):
             raise Exception("A sample needs an id")
 
         self.loaded = False
+        if 'fold_id' not in sample:
+            sample['fold_id'] = -1  # dummy fold ID
         self._samples.append(sample)
 
     def is_sample_valid(self, sample, line, text):

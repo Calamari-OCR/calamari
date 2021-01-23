@@ -44,6 +44,7 @@ class PipelineParams(DataGeneratorParams):
     text_files: Optional[List[str]] = None
     gt_extension: Optional[str] = None
     data_reader_args: Optional[FileDataReaderArgs] = None
+    n_folds: int = -1
 
 
 @dataclass
@@ -54,7 +55,7 @@ class DataParams(DataBaseParams):
     input_channels: int = 1
     downscale_factor_: int = -1
     line_height_: int = -1
-    voters_: int = 0
+    ensemble_: int = 0
     raw_dataset: bool = False
     codec: Optional[Codec] = field(default=None, metadata=config(
         encoder=encoder,

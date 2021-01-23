@@ -36,7 +36,7 @@ class CTCDecoderProcessor(DataProcessor):
 
             outputs = decode("")
             outputs.voter_predictions = []
-            for i in range(self.params.voters_):
+            for i in range(self.params.ensemble_):
                 outputs.voter_predictions.append(decode(f"_{i}"))
 
             sample = sample.new_outputs(outputs)

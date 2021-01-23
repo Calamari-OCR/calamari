@@ -74,19 +74,21 @@ class Hdf5Reader(DataReader):
             f = h5py.File(filename, 'r')
             codec = list(map(chr, f['codec']))
             if text_only:
-                for i, text in enumerate(f['transcripts']):
+                for i, (text, idx) in enumerate(zip(f['transcripts'], range(len(f['transcripts'])))):
                     text = "".join([codec[c] for c in text])
-                    yield InputSample(None, text, SampleMeta(id=f"{filename}/{i}"))
+                    fold_id = idx % self.n_folds if self.n_folds > 0 else -1
+                    yield InputSample(None, text, SampleMeta(id=f"{filename}/{i}", fold_id=fold_id))
             else:
-                gen = zip(f['images'], f['images_dims'], f['transcripts'])
+                gen = zip(f['images'], f['images_dims'], f['transcripts'], range(len(f['images'])))
                 if self.mode == PipelineMode.Training:
                     gen = list(gen)
                     shuffle(gen)
 
-                for i, (image, shape, text) in enumerate(gen):
+                for i, (image, shape, text, idx) in enumerate(gen):
                     image = np.reshape(image, shape)
                     text = "".join([codec[c] for c in text])
-                    yield InputSample(image, text, SampleMeta(id=f"{filename}/{i}"))
+                    fold_id = idx % self.n_folds if self.n_folds > 0 else -1
+                    yield InputSample(image, text, SampleMeta(id=f"{filename}/{i}", fold_id=fold_id))
 
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
         raise NotImplementedError

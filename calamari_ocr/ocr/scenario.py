@@ -6,7 +6,7 @@ from tfaip.base.scenario.scenariobase import ScenarioBase
 from calamari_ocr.ocr.model.model import Model
 from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.model.params import ModelParams
-from calamari_ocr.ocr.model.votermodel import VoterModel
+from calamari_ocr.ocr.model.ensemblemodel import EnsembleModel
 from calamari_ocr.ocr.training.trainer import Trainer
 
 
@@ -20,10 +20,10 @@ class Scenario(ScenarioBase):
         return Model
 
     def create_model(self):
-        if self._params.model_params.voters == 0:
+        if self._params.model_params.ensemble <= 0:
             return Model(self._params.model_params)
         else:
-            return VoterModel(self._params.model_params)
+            return EnsembleModel(self._params.model_params)
 
     @classmethod
     def trainer_cls(cls):
@@ -50,4 +50,4 @@ class Scenario(ScenarioBase):
 
     def __init__(self, params):
         super(Scenario, self).__init__(params)
-        params.data_params.voters_ = params.model_params.voters
+        params.data_params.ensemble_ = params.model_params.ensemble

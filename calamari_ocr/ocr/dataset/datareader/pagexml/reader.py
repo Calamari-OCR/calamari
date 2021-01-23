@@ -268,17 +268,18 @@ class PageXMLReader(DataReader):
             f.write(etree.tounicode(page.getroottree()))
 
     def _sample_iterator(self):
-        return zip(self.files, self.xmlfiles)
+        return zip(self.files, self.xmlfiles, range(len(self.files)))
 
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
         loader = PageXMLDatasetLoader(self.mode, self._non_existing_as_empty, self.text_index, self.skip_invalid)
-        image_path, xml_path = sample
+        image_path, xml_path, idx = sample
 
         img = None
         if self.mode in INPUT_PROCESSOR:
             img = load_image(image_path)
 
-        for sample in loader.load(image_path, xml_path):
+        for i, sample in enumerate(loader.load(image_path, xml_path)):
+            fold_id = (idx + i) % self.n_folds if self.n_folds > 0 else -1
             text = sample["text"]
             orientation = sample["orientation"]
 
@@ -299,4 +300,4 @@ class PageXMLReader(DataReader):
             else:
                 line_img = None
 
-            yield InputSample(line_img, text, SampleMeta(id=sample['id']))
+            yield InputSample(line_img, text, SampleMeta(id=sample['id'], fold_id=fold_id))

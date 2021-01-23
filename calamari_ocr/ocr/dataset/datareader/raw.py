@@ -54,6 +54,11 @@ class RawDataReader(DataReader):
 
         self.loaded = True
 
+    def populate_folds(self, n_folds):
+        super(RawDataReader, self).populate_folds(n_folds)
+        for s in self.samples():
+            s['meta'].fold_id = s['fold_id']
+
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
         if text_only:
             yield InputSample(None, sample['text'], sample['meta'])

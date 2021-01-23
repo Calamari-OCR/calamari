@@ -67,16 +67,24 @@ class Trainer(AIPTrainer):
         data: Data = self._data
         model_params: ModelParams = self.scenario.params.model_params
 
+        if model_params.ensemble > 0:
+            self._params.use_training_as_validation = True
+
+        # Setup train pipeline
         train_pipeline = data.get_train_data()
         if len(train_pipeline.create_data_generator()) == 0:
             raise ValueError("Training dataset is empty.")
 
+        # Setup validation pipeline
+        val_pipeline = None
         if data.params().val:
-            val_pipeline = data.get_val_data()
-            if len(val_pipeline.create_data_generator()) == 0:
-                raise ValueError("Validation dataset is empty. Provide valid validation data for early stopping.")
-        else:
-            val_pipeline = None
+            if model_params.ensemble > 0:
+                logger.warning("A validation dataset can not be used when training and ensemble. "
+                               "Only a training set is required. Ignoring validation data!")
+            else:
+                val_pipeline = data.get_val_data()
+                if len(val_pipeline.create_data_generator()) == 0:
+                    raise ValueError("Validation dataset is empty. Provide valid validation data for early stopping.")
 
         if self._params.preload_training:
             # preload before codec was created (not all processors can be applied, yet)

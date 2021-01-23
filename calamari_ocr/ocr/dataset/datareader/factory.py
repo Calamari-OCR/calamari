@@ -55,4 +55,7 @@ def data_reader_from_params(mode: PipelineMode, params: PipelineParams) -> DataR
         args=params.data_reader_args if params.data_reader_args else FileDataReaderArgs(),
     )
     logger.info(f"Found {len(dataset)} files in the dataset")
+    if params.n_folds > 0:
+        logger.info(f"Populating {params.n_folds} folds")
+        dataset.populate_folds(params.n_folds)
     return dataset

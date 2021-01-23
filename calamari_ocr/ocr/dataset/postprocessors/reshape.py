@@ -24,7 +24,7 @@ class ReshapeOutputsProcessor(DataProcessor):
                     outputs[name] = outputs[name][:outputs[out_len]]
 
         reshape_outputs('')
-        for i in range(self.params.voters_):
+        for i in range(self.params.ensemble_):
             reshape_outputs(f"_{i}")
 
         return sample.new_inputs(inputs).new_outputs(outputs)

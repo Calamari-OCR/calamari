@@ -10,7 +10,7 @@ from calamari_ocr.ocr.model.graph import Graph
 from calamari_ocr.ocr.model.params import ModelParams
 from tensorflow.python.ops import math_ops
 
-from calamari_ocr.ocr.model.votergraph import VoterGraph
+from calamari_ocr.ocr.model.ensemblegraph import EnsembleGraph
 from calamari_ocr.ocr.predict.params import Prediction
 
 keras = tf.keras
@@ -25,7 +25,7 @@ class Model(ModelBase):
 
     @classmethod
     def _get_additional_layers(cls) -> List[Type[tf.keras.layers.Layer]]:
-        return [Graph, VoterGraph]
+        return [Graph, EnsembleGraph]
 
     def __init__(self, params: ModelParams):
         super(Model, self).__init__(params)

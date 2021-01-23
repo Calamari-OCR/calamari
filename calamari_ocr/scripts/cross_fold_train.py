@@ -85,6 +85,7 @@ def main(args=None):
         data_reader_args=dataset_args,
         batch_size=args.batch_size,
         num_processes=args.num_threads,
+        n_folds=args.ensemble,
     )
     reader = data_reader_from_params(PipelineMode.Training, train_params)
 

@@ -56,7 +56,7 @@ class ModelParams(ModelBaseParams):
     dropout: float = 0
     classes: int = -1
     ctc_merge_repeated: bool = True
-    voters: int = 0  # For usage with the voter-model graph
+    ensemble: int = 0  # For usage with the ensemble-model graph
 
     def compute_downscale_factor(self):
         factor = 1
