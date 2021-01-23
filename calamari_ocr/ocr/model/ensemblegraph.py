@@ -1,3 +1,5 @@
+import logging
+
 from tfaip.base.model.graphbase import GraphBase
 
 import tensorflow as tf
@@ -8,11 +10,16 @@ from calamari_ocr.ocr.model.graph import Graph
 from calamari_ocr.ocr.model.params import ModelParams
 
 
+logger = logging.getLogger(__name__)
+
+
 class Intermediate(tf.keras.layers.Layer):
     def __init__(self, params: ModelParams, name='CalamariGraph', **kwargs):
         super(Intermediate, self).__init__(name=name, **kwargs)
         self._params = params
         self.fold_graphs = [Graph(params, f"voter_{i}") for i in range(params.ensemble)]
+        if self._params.no_masking_out_during_training:
+            logger.warning("Disabling masking during training. This should only be used for evaluation!")
 
     def call(self, inputs, training=None):
         if training is None:
@@ -31,9 +38,13 @@ class Intermediate(tf.keras.layers.Layer):
                 softmax_outputs = tf.stack([out['blank_last_softmax'] for out in complete_outputs], axis=0)
 
                 # Training: Mask out network that does not contribute to a sample to generate strong voters
-                mask = [tf.not_equal(i, inputs['fold_id']) for i in range(len(self.fold_graphs))]
-                softmax_outputs *= tf.cast(tf.expand_dims(mask, axis=-1), dtype='float32')
-                blank_last_softmax = tf.reduce_sum(softmax_outputs, axis=0) / (len(self.fold_graphs) - 1)  # only n - 1 since one voter is 0
+                if not self._params.no_masking_out_during_training:
+                    mask = [tf.not_equal(i, inputs['fold_id']) for i in range(len(self.fold_graphs))]
+                    softmax_outputs *= tf.cast(tf.expand_dims(mask, axis=-1), dtype='float32')
+                    blank_last_softmax = tf.reduce_sum(softmax_outputs, axis=0) / (len(self.fold_graphs) - 1)  # only n - 1 since one voter is 0
+                else:
+                    # In this case, training behaves similar to prediction
+                    blank_last_softmax = tf.reduce_mean(softmax_outputs, axis=0)
                 return blank_last_softmax, lstm_seq_len, complete_outputs
 
             def validation_step():
