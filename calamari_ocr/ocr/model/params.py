@@ -57,7 +57,7 @@ class ModelParams(ModelBaseParams):
     classes: int = -1
     ctc_merge_repeated: bool = True
     ensemble: int = 0  # For usage with the ensemble-model graph
-    no_masking_out_during_training: bool = False  # This parameter is for evaluation only and should not be used in production
+    masking_mode: int = False  # This parameter is for evaluation only and should not be used in production
 
     def compute_downscale_factor(self):
         factor = 1

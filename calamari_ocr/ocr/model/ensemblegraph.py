@@ -18,8 +18,8 @@ class Intermediate(tf.keras.layers.Layer):
         super(Intermediate, self).__init__(name=name, **kwargs)
         self._params = params
         self.fold_graphs = [Graph(params, f"voter_{i}") for i in range(params.ensemble)]
-        if self._params.no_masking_out_during_training:
-            logger.warning("Disabling masking during training. This should only be used for evaluation!")
+        if self._params.masking_mode > 0:
+            logger.warning("Changed masking during training. This should only be used for evaluation!")
 
     def call(self, inputs, training=None):
         if training is None:
@@ -38,13 +38,25 @@ class Intermediate(tf.keras.layers.Layer):
                 softmax_outputs = tf.stack([out['blank_last_softmax'] for out in complete_outputs], axis=0)
 
                 # Training: Mask out network that does not contribute to a sample to generate strong voters
-                if not self._params.no_masking_out_during_training:
+                if self._params.masking_mode == 0:
+                    # Fixed fold ID
                     mask = [tf.not_equal(i, inputs['fold_id']) for i in range(len(self.fold_graphs))]
                     softmax_outputs *= tf.cast(tf.expand_dims(mask, axis=-1), dtype='float32')
                     blank_last_softmax = tf.reduce_sum(softmax_outputs, axis=0) / (len(self.fold_graphs) - 1)  # only n - 1 since one voter is 0
-                else:
+                elif self._params.masking_mode == 1:
+                    # No fold ID
                     # In this case, training behaves similar to prediction
                     blank_last_softmax = tf.reduce_mean(softmax_outputs, axis=0)
+                elif self._params.masking_mode == 2:
+                    # Random fold ID
+                    fold_id = tf.random.uniform(minval=0, maxval=len(self.fold_graphs), dtype='int32', shape=[batch_size, 1])
+                    print(inputs['fold_id'], fold_id)
+                    mask = [tf.not_equal(i, fold_id) for i in range(len(self.fold_graphs))]
+                    softmax_outputs *= tf.cast(tf.expand_dims(mask, axis=-1), dtype='float32')
+                    blank_last_softmax = tf.reduce_sum(softmax_outputs, axis=0) / (
+                                len(self.fold_graphs) - 1)  # only n - 1 since one voter is 0
+                else:
+                    raise NotImplementedError
                 return blank_last_softmax, lstm_seq_len, complete_outputs
 
             def validation_step():

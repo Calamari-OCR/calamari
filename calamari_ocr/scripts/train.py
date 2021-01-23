@@ -116,7 +116,7 @@ def setup_train_args(parser, omit=None):
                         help="Fully include the codec of the loaded model to the new codec")
     parser.add_argument("--ensemble", type=int, default=-1,
                         help="Number of voting models")
-    parser.add_argument("--no_masking", action="store_true", default=False, help="Do not use")  # TODO: remove
+    parser.add_argument("--masking_mode", type=int, default=0, help="Do not use")  # TODO: remove
 
     # clipping
     parser.add_argument("--gradient_clipping_norm", type=float, default=5,
@@ -397,7 +397,7 @@ def run(args):
     # Model params
     params_from_definition_string(args.network, params)
     params.scenario_params.model_params.ensemble = args.ensemble
-    params.scenario_params.model_params.no_masking_out_during_training = args.no_masking
+    params.scenario_params.model_params.masking_mode = args.masking_mode
 
     scenario = Scenario(params.scenario_params)
     trainer = scenario.create_trainer(params)
