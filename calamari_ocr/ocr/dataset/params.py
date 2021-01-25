@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import Optional, List, Union
 from dataclasses_json import dataclass_json, config
 import numpy as np
 
@@ -37,7 +37,7 @@ class FileDataReaderArgs:
 
 @dataclass
 class PipelineParams(DataGeneratorParams):
-    type: DataSetType = None
+    type: Union[DataSetType, str] = None  # str if custom dataset
     skip_invalid: bool = True
     remove_invalid: bool = True
     files: List[str] = None

@@ -4,7 +4,7 @@ import logging
 from calamari_ocr.ocr.dataset import DataSetType
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset.dataset_factory import create_data_reader
+from calamari_ocr.ocr.dataset.datareader.factory import DataReaderFactory
 from calamari_ocr.utils import glob_all
 
 import numpy as np
@@ -24,7 +24,7 @@ def main():
     logger.info("Resolving files")
     pred_files = sorted(glob_all(args.pred))
 
-    reader = create_data_reader(
+    reader = DataReaderFactory.create_data_reader(
         DataSetType.EXTENDED_PREDICTION,
         PipelineMode.Evaluation,
         texts=pred_files

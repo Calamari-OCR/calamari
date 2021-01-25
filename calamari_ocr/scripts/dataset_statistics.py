@@ -6,7 +6,7 @@ from calamari_ocr.ocr.dataset import DataSetType
 from tfaip.base.data.pipeline.definitions import PipelineMode
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
 
-from calamari_ocr.ocr.dataset.dataset_factory import create_data_reader
+from calamari_ocr.ocr.dataset.datareader.factory import DataReaderFactory
 from calamari_ocr.utils import glob_all, split_all_ext
 
 logging.basicConfig(level=logging.INFO)
@@ -29,7 +29,7 @@ def main():
     image_files = glob_all(args.files)
     gt_files = [split_all_ext(p)[0] + ".gt.txt" for p in image_files]
 
-    ds = create_data_reader(
+    ds = DataReaderFactory.create_data_reader(
         args.dataset,
         PipelineMode.Training,
         images=image_files, texts=gt_files, non_existing_as_empty=True)
