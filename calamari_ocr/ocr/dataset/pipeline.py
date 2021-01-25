@@ -3,7 +3,7 @@ from typing import Iterable
 from tfaip.base.data.pipeline.datapipeline import DataPipeline, DataGenerator
 from tfaip.base.data.pipeline.definitions import Sample, PipelineMode
 
-from calamari_ocr.ocr.dataset.datareader.factory import data_reader_from_params
+from calamari_ocr.ocr.dataset.datareader.factory import DataReaderFactory
 
 
 class CalamariPipeline(DataPipeline):
@@ -21,7 +21,7 @@ class CalamariPipeline(DataPipeline):
 
     def reader(self):
         if self._reader is None:
-            self._reader = data_reader_from_params(self.mode, self.generator_params)
+            self._reader = DataReaderFactory.data_reader_from_params(self.mode, self.generator_params)
 
         return self._reader
 

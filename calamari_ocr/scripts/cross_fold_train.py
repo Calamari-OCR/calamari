@@ -3,8 +3,8 @@ import json
 
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset.params import PipelineParams
-from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs, data_reader_from_params
+from calamari_ocr.ocr.dataset.datareader.factory import DataReaderFactory
+from calamari_ocr.ocr.dataset.params import PipelineParams, FileDataReaderArgs
 from calamari_ocr.ocr.training.cross_fold_trainer import CrossFoldTrainer
 from calamari_ocr.scripts.train import setup_train_args, DataSetType, check_train_args
 
@@ -87,7 +87,7 @@ def main(args=None):
         num_processes=args.num_threads,
         n_folds=args.ensemble,
     )
-    reader = data_reader_from_params(PipelineMode.Training, train_params)
+    reader = DataReaderFactory.data_reader_from_params(PipelineMode.Training, train_params)
 
     trainer = CrossFoldTrainer(
         n_folds=args.n_folds,

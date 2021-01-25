@@ -10,7 +10,7 @@ from calamari_ocr.ocr.dataset.params import InputSample
 
 
 class DataReader(ABC):
-    def __init__(self, mode: PipelineMode, skip_invalid=False, remove_invalid=True):
+    def __init__(self, mode: PipelineMode, skip_invalid=False, remove_invalid=True, **kwargs):
         """ Dataset that stores a list of raw images and corresponding labels.
 
         Parameters
