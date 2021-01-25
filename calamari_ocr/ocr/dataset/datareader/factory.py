@@ -99,7 +99,7 @@ class DataReaderFactory:
                                             skip_invalid=skip_invalid,
                                             remove_invalid=remove_invalid,
                                             non_existing_as_empty=non_existing_as_empty,)
-t p
+
         if DataSetType.files(type):
             if images:
                 images.sort()
