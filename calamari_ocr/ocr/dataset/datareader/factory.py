@@ -98,7 +98,9 @@ class DataReaderFactory:
                                             texts=texts,
                                             skip_invalid=skip_invalid,
                                             remove_invalid=remove_invalid,
-                                            non_existing_as_empty=non_existing_as_empty,)
+                                            non_existing_as_empty=non_existing_as_empty,
+                                            args=args,
+                                            )
 
         if DataSetType.files(type):
             if images:
