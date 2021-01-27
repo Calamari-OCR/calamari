@@ -40,7 +40,7 @@ class CenterNormalizer(ImageProcessor):
         smoothed += 0.001 * add
         a = np.argmax(smoothed, axis=0)
         kernel = cv.getGaussianKernel(int((8. * h * self.extra) + .5) + 1, h * self.extra)
-        a = cv.filter2D(a, cv.CV_8U, kernel, borderType=cv.BORDER_REFLECT).flatten()
+        a = cv.filter2D(a.astype(np.uint8), cv.CV_8U, kernel, borderType=cv.BORDER_REFLECT).flatten()
         center = np.array(a, 'i')
         deltas = abs(np.arange(h)[:, np.newaxis] - center[np.newaxis, :])
         mad = np.mean(deltas[line != 0])
