@@ -207,7 +207,7 @@ class PageXMLReader(DataReader):
         self._last_page_id = None
 
     @staticmethod
-    def cutout_cv(pageimg, coordstring, scale=1, rect=False, rrect=False):
+    def cutout(pageimg, coordstring, scale=1, rect=False, rrect=False):
         """ Cut region from image
         Parameters
         ----------
