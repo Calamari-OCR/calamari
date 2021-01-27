@@ -4,6 +4,7 @@ from random import randint
 
 import numpy as np
 import scipy.ndimage as ndi
+import cv2 as cv
 from numpy import *
 
 
@@ -28,6 +29,7 @@ def random_transform(translation=(-0.05, 0.05), rotation=(-2, 2), scale=(-0.1, 0
     aniso = 10**pyr.uniform(*aniso)
     return dict(angle=angle, scale=scale, aniso=aniso, translation=(dx, dy))
 
+
 def transform_image(image, angle=0.0, scale=1.0, aniso=1.0, translation=(0, 0), order=1):
     dx, dy = translation
     scale = 1.0/scale
@@ -41,6 +43,7 @@ def transform_image(image, angle=0.0, scale=1.0, aniso=1.0, translation=(0, 0), 
     d = c - np.dot(m, c) + np.array([dx * w, dy * h])
     return ndi.affine_transform(image, m, offset=d, order=order, mode="nearest", output=dtype("f"))
 
+
 def random_pad(image, horizontal=(0, 100)):
     l, r = np.random.randint(*horizontal, size=1), np.random.randint(*horizontal, size=1)
     return np.pad(image, ((l[0], r[0]), (0, 0)), mode="constant")
@@ -51,11 +54,13 @@ def random_pad(image, horizontal=(0, 100)):
 def bounded_gaussian_noise(shape, sigma, maxdelta):
     n, m = shape
     deltas = np.random.rand(2, n, m)
-    deltas = ndi.gaussian_filter(deltas, (0, sigma, sigma))
+    for n,d in enumerate(deltas):
+        deltas[n] = cv.GaussianBlur(d, (0,0), sigmaX=sigma, sigmaY=sigma, borderType=cv.BORDER_REFLECT)
     deltas -= np.amin(deltas)
     deltas /= np.amax(deltas)
     deltas = (2*deltas-1) * maxdelta
     return deltas
+
 
 def distort_with_noise(image, deltas, order=1):
     assert deltas.shape[0] == 2
@@ -64,7 +69,8 @@ def distort_with_noise(image, deltas, order=1):
     xy = np.transpose(np.array(np.meshgrid(
         range(n), range(m))), axes=[0, 2, 1])
     deltas += xy
-    return ndi.map_coordinates(image, deltas, order=order, mode="reflect")
+    return cv.remap(image, deltas[1].astype(np.float32), deltas[0].astype(np.float32),
+                    cv.INTER_LINEAR, borderMode=cv.BORDER_REFLECT)
 
 
 def noise_distort1d(shape, sigma=100.0, magnitude=100.0):
@@ -141,13 +147,13 @@ def random_blobs(shape, blobdensity, size, roughness=2.0):
     mask = np.zeros((h, w), 'i')
     for i in range(numblobs):
         mask[randint(0, h-1), randint(0, w-1)] = 1
-    dt = ndi.distance_transform_edt(1-mask)
+    dt = cv.distanceTransform(1-mask.astype(np.uint8), cv.DIST_L2, 3)
     mask =  np.array(dt < size, 'f')
-    mask = ndi.gaussian_filter(mask, size/(2*roughness))
+    mask = cv.GaussianBlur(mask, (0,0), sigmaX=size/(2*roughness), borderType=cv.BORDER_REFLECT)
     mask -= np.amin(mask)
     mask /= np.amax(mask)
     noise = np.random.rand(h, w)
-    noise = ndi.gaussian_filter(noise, size/(2*roughness))
+    noise = cv.GaussianBlur(noise, (0,0), sigmaX=size/(2*roughness), borderType=cv.BORDER_REFLECT)
     noise -= np.amin(noise)
     noise /= np.amax(noise)
     return np.array(mask * noise > 0.5, 'f')
@@ -207,7 +213,7 @@ def printlike_multiscale(image, blur=1.0, blotches=5e-5, inverted=None):
     selector = random_blotches(selector, 3*blotches, blotches)
     paper = make_multiscale_noise_uniform(image.shape, span=(0.8, 1.0))
     ink = make_multiscale_noise_uniform(image.shape, span=(0.0, 0.2))
-    blurred = (ndi.gaussian_filter(selector, blur) + selector) / 2
+    blurred = cv.GaussianBlur(selector, (0, 0), sigmaX=blur, borderType=cv.BORDER_REFLECT)
     printed = blurred * ink + (1-blurred) * paper
     if inverted:
         return 1 - printed

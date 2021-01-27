@@ -1,7 +1,7 @@
 import numpy as np
 
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
-from scipy.ndimage import interpolation
+import cv2 as cv
 
 
 class ScaleToHeightProcessor(ImageProcessor):
@@ -24,13 +24,7 @@ class ScaleToHeightProcessor(ImageProcessor):
         h, w = img.shape
         scale = target_height * 1.0 / h
         target_width = np.maximum(int(scale * w), 1)
-        output = interpolation.affine_transform(
-            1.0 * img,
-            np.eye(2) / scale,
-            order=order,
-            output_shape=(target_height,target_width),
-            mode='constant',
-            cval=cval)
-
-        output = np.array(output, dtype=dtype)
-        return output
+        M = np.hstack((np.eye(2, dtype=np.float32) * scale, np.zeros((2, 1), dtype=np.float32)))
+        out = cv.warpAffine(img.astype(np.float32), M, (target_width, target_height),
+                            flags=(cv.INTER_LINEAR), borderMode=cv.BORDER_CONSTANT, borderValue=cval)
+        return out.astype(dtype)

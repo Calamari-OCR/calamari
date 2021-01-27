@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.ndimage import filters
+import cv2 as cv
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessor
 
@@ -27,16 +27,24 @@ class CenterNormalizer(ImageProcessor):
         self.target_height = target_height
 
     def measure(self, line):
+        ddepth = cv.CV_32F
         h, w = line.shape
-        smoothed = filters.gaussian_filter(line, (h * 0.5, h * self.smoothness), mode='constant')
-        smoothed += 0.001 * filters.uniform_filter(smoothed, (h * 0.5, w), mode='constant')
+        kernel1 = cv.getGaussianKernel(int((8. * h * .5) + .5) + 1, h * .5)
+        kernel2 = cv.getGaussianKernel(int((8. * h * self.smoothness) + .5) + 1, h * self.smoothness)
+        smoothed = cv.filter2D(line, ddepth, kernel1, borderType=cv.BORDER_CONSTANT)
+        smoothed = cv.filter2D(smoothed, ddepth, kernel2.T, borderType=cv.BORDER_CONSTANT)
+        kernelX = np.ones((1, w), dtype=np.float64) / w
+        kernelY = np.ones((int(h * .5), 1), dtype=np.float64) / int(h * .5 + .5)
+        add = cv.filter2D(smoothed, ddepth, kernelX, borderType=cv.BORDER_CONSTANT)
+        add = cv.filter2D(add, ddepth, kernelY, borderType=cv.BORDER_CONSTANT)
+        smoothed += 0.001 * add
         a = np.argmax(smoothed, axis=0)
-        a = filters.gaussian_filter(a, h * self.extra)
+        kernel = cv.getGaussianKernel(int((8. * h * self.extra) + .5) + 1, h * self.extra)
+        a = cv.filter2D(a, cv.CV_8U, kernel, borderType=cv.BORDER_REFLECT).flatten()
         center = np.array(a, 'i')
         deltas = abs(np.arange(h)[:, np.newaxis] - center[np.newaxis, :])
         mad = np.mean(deltas[line != 0])
         r = int(1 + self.range * mad)
-
         return center, r
 
     def dewarp(self, img, cval=0, dtype=np.dtype('f')):
@@ -51,7 +59,7 @@ class CenterNormalizer(ImageProcessor):
         h, w = img.shape
         # The actual image img is embedded into a larger image by
         # adding vertical space on top and at the bottom (padding)
-        hpadding = r # this is large enough
+        hpadding = r  # this is large enough
         padded = np.vstack([cval * np.ones((hpadding, w)), img, cval * np.ones((hpadding, w))])
         center = center + hpadding
         dewarped = [padded[center[i] - r:center[i]+r, i] for i in range(w)]
@@ -79,4 +87,3 @@ class CenterNormalizer(ImageProcessor):
     def local_to_global_pos(self, x, params):
         m1, m2, t = params['center']
         return x / m1 / m2
-

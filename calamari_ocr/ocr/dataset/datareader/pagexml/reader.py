@@ -1,11 +1,10 @@
 import os
 import numpy as np
-from PIL import Image
 from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR, TARGETS_PROCESSOR
 from tqdm import tqdm
 from lxml import etree
-from skimage.draw import polygon
 from skimage.transform import rotate
+import cv2 as cv
 from typing import List, Generator
 
 from calamari_ocr.ocr.dataset.params import InputSample, SampleMeta
@@ -68,7 +67,7 @@ class PageXMLDatasetLoader:
 
         for textline in textlines:
             tequivs = textline.xpath('./ns:TextEquiv[@index="{}"]'.format(self.text_index),
-                                namespaces=ns)
+                                     namespaces=ns)
 
             if not tequivs:
                 tequivs = textline.xpath('./ns:TextEquiv[not(@index)]', namespaces=ns)
@@ -208,19 +207,41 @@ class PageXMLReader(DataReader):
         self._last_page_id = None
 
     @staticmethod
-    def cutout(pageimg, coordstring, scale=1, rect=False):
+    def cutout_cv(pageimg, coordstring, scale=1, rect=False, rrect=False):
+        """ Cut region from image
+        Parameters
+        ----------
+        pageimg : image (numpy array)
+        coordstring : coordinates from PAGE as one string
+        scale : factor to scale the coordinates with
+        rect : cut out rectangle instead of polygons
+        rrect : cut minimum enclosing rectangle instead of polygons
+        """
         coords = [p.split(",") for p in coordstring.split()]
-        coords = np.array([(int(scale * int(c[1])), int(scale * int(c[0])))
-                           for c in coords])
-        if rect:
-            return pageimg[min(c[0] for c in coords):max(c[0] for c in coords),
-                   min(c[1] for c in coords):max(c[1] for c in coords)]
-        rr, cc = polygon(coords[:, 0], coords[:, 1], pageimg.shape)
-        coords = np.asarray([rr, cc])
-        offset = np.min(coords, axis=1)
-        size = np.max(coords, axis=1) - offset + 1
-        box = np.ones(tuple(map(int, size)) + ((pageimg.shape[-1],) if len(pageimg.shape) == 3 else ()), dtype=pageimg.dtype) * 255
-        box[rr - offset[0], cc - offset[1]] = pageimg[rr, cc]
+        coords = [(int(scale*int(c[0])), int(scale*int(c[1]))) for c in coords]
+        coords = np.array(coords, np.int32)
+        min_x, max_x = min(c[1] for c in coords), max(c[1] for c in coords)
+        min_y, max_y = min(c[0] for c in coords), max(c[0] for c in coords)
+        cut = pageimg[min_x:max_x+1, min_y:max_y+1]
+        if rect and not rrect:
+            return cut
+        coords = coords - [min_y, min_x]
+        if rrect:
+            rect_ma = cv.minAreaRect(coords)
+            rect = cv.boxPoints(rect_ma)
+            coords = rect.astype(int)
+            shift = np.clip(np.min(coords, 0), None, 0)
+            coords = coords - shift
+            max_d = np.max(coords, 0)
+            lu = [min_y, min_x] + shift
+            cut = pageimg[lu[1]:lu[1] + max_d[1] + 1,
+                          lu[0]:lu[0] + max_d[0] + 1]
+
+        box = np.ones(cut.shape, dtype=cut.dtype) * 255
+        mask = np.zeros((cut.shape[0], cut.shape[1]))
+        cv.fillPoly(mask, [coords], 1)
+        mask = mask.astype(np.bool)
+        box[mask] = cut[mask]
         return box
 
     def prepare_store(self):
@@ -230,7 +251,7 @@ class PageXMLReader(DataReader):
         ns = sample['ns']
         line = sample['xml_element']
         textequivxml = line.find('./ns:TextEquiv[@index="{}"]'.format(self.text_index),
-                                    namespaces=ns)
+                                 namespaces=ns)
         if textequivxml is None:
             textequivxml = etree.SubElement(line, "TextEquiv", attrib={"index": str(self.text_index)})
 
