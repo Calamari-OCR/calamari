@@ -61,6 +61,7 @@ test-cpu-validation:
   script:
     - set -e
     - calamari-train --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 10 --samples_per_epoch 1 --early_stopping_frequency 2
+    - calamari-train --validation_split_ratio 0.2 --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 10 --samples_per_epoch 1 --early_stopping_frequency 2
 
 test-cpu-augmentation:
   stage: test

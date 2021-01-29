@@ -1,3 +1,5 @@
+from random import shuffle
+
 import tfaip.util.logging
 import argparse
 import os
@@ -132,6 +134,8 @@ def setup_train_args(parser, omit=None):
         parser.add_argument("--validation_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=None,
                             help="Default validation data set type. By default same as --dataset")
         parser.add_argument("--use_train_as_val", action='store_true', default=False)
+        parser.add_argument("--validation_split_ratio", type=float, default=None,
+                            help="Use n percent of the training dataset for validation. Can not be used with --validation")
 
     parser.add_argument("--validation_data_on_the_fly", action='store_true', default=False,
                         help='Instead of preloading all data during the training, load the data on the fly. '
@@ -257,7 +261,39 @@ def run(args):
         batch_size=args.batch_size,
         num_processes=args.num_threads,
     )
-    if args.validation:
+    if args.validation_split_ratio:
+        if args.validation is not None:
+            raise ValueError("Set either validation_split_ratio or validation")
+        if not 0 < args.validation_split_ratio < 1:
+            raise ValueError("validation_split_ratio must be in (0, 1)")
+
+        # resolve all files so we can split them
+        data_params.train.prepare_for_mode(PipelineMode.Training)
+        n = int(args.validation_split_ratio * len(data_params.train.files))
+        logger.info(f"Splitting training and validation files with ratio {args.validation_split_ratio}: "
+                    f"{n}/{len(data_params.train.files) - n} for validation/training.")
+        indices = list(range(len(data_params.train.files)))
+        shuffle(indices)
+        all_files = data_params.train.files
+        all_text_files = data_params.train.text_files
+
+        # split train and val img/gt files. Use train settings
+        data_params.train.files = [all_files[i] for i in indices[:n]]
+        if all_text_files is not None:
+            assert(len(all_text_files) == len(all_files))
+            data_params.train.text_files = [all_text_files[i] for i in indices[:n]]
+        data_params.val = PipelineParams(
+            type=args.dataset,
+            skip_invalid=not args.no_skip_invalid_gt,
+            remove_invalid=True,
+            files=[all_files[i] for i in indices[n:]],
+            text_files=[all_text_files[i] for i in indices[n:]] if data_params.train.text_files is not None else None,
+            gt_extension=args.gt_extension,
+            data_reader_args=dataset_args,
+            batch_size=args.batch_size,
+            num_processes=args.num_threads,
+        )
+    elif args.validation:
         data_params.val = PipelineParams(
             type=args.validation_dataset,
             files=args.validation,
