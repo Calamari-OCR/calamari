@@ -81,7 +81,8 @@ test-cpu-ensemble-train:
   stage: test
   script:
     - set -e
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --ensemble 3 --epochs 1 --samples_per_epoch 10 --use_train_as_val
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --ensemble 3 --epochs 1 --samples_per_epoch 10
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --ensemble 3 --epochs 1 --samples_per_epoch 10 --train_data_on_the_fly
 
 
 # cross-fold-training
@@ -151,6 +152,7 @@ test-cpu-data-on-the-fly:
   script:
     - set -e
     - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5
+    - calamari-train --train_data_on_the_fly --use_train_as_val --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5
 
 test-cpu-data-on-the-fly-with-weights:
   stage: test

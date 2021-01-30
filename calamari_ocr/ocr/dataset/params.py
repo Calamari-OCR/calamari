@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Optional, List, Union
 from dataclasses_json import dataclass_json, config
@@ -51,9 +52,10 @@ class PipelineParams(DataGeneratorParams):
     data_reader_args: Optional[FileDataReaderArgs] = None
     n_folds: int = -1
 
-    def prepare_for_mode(self, mode: PipelineMode):
+    def prepare_for_mode(self, mode: PipelineMode) -> 'PipelineParams':
         from calamari_ocr.ocr.dataset.datareader.factory import DataReaderFactory
         assert(self.type is not None)
+        params_out = deepcopy(self)
         # Training dataset
         logger.info("Resolving input files")
         if isinstance(self.type, str):
@@ -90,8 +92,9 @@ class PipelineParams(DataGeneratorParams):
                     logger.warning("Some images occur more than once in the data set. "
                                    "This warning should usually not be ignored.")
 
-            self.files = input_image_files
-            self.text_files = gt_txt_files
+            params_out.files = input_image_files
+            params_out.text_files = gt_txt_files
+        return params_out
 
 
 @dataclass

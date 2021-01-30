@@ -150,7 +150,7 @@ class Trainer(AIPTrainer):
                     output_processors=train_pipeline._output_processors,
                 )
             else:
-                data.get_pipeline(PipelineMode.Evaluation, train_pipeline.generator_params)
+                data._pipelines[PipelineMode.Evaluation] = train_pipeline.to_mode(PipelineMode.Evaluation)
 
         if self._params.current_stage == 0:
             super(Trainer, self).train(

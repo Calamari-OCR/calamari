@@ -268,7 +268,7 @@ def run(args):
             raise ValueError("validation_split_ratio must be in (0, 1)")
 
         # resolve all files so we can split them
-        data_params.train.prepare_for_mode(PipelineMode.Training)
+        data_params.train = data_params.train.prepare_for_mode(PipelineMode.Training)
         n = int(args.validation_split_ratio * len(data_params.train.files))
         logger.info(f"Splitting training and validation files with ratio {args.validation_split_ratio}: "
                     f"{n}/{len(data_params.train.files) - n} for validation/training.")

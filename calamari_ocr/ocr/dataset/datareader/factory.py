@@ -17,7 +17,7 @@ class DataReaderFactory:
 
     @classmethod
     def data_reader_from_params(cls, mode: PipelineMode, params: PipelineParams) -> DataReader:
-        params.prepare_for_mode(mode)
+        params = params.prepare_for_mode(mode)
 
         dataset = cls.create_data_reader(
             params.type,
