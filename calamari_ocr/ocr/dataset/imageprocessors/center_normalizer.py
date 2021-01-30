@@ -19,7 +19,7 @@ class CenterNormalizer(ImageProcessor):
 
     def _apply_single(self, data, meta):
         data = data / 255.0
-        out, params = self.normalize(data, cval=np.amax(data))
+        out, params = self.normalize(data, cval=np.amax(data).item())
         meta['center'] = params
         return (out * 255).astype('uint8')
 
@@ -27,21 +27,14 @@ class CenterNormalizer(ImageProcessor):
         self.target_height = target_height
 
     def measure(self, line):
-        ddepth = cv.CV_32F
         h, w = line.shape
-        kernel1 = cv.getGaussianKernel(int((8. * h * .5) + .5) + 1, h * .5)
-        kernel2 = cv.getGaussianKernel(int((8. * h * self.smoothness) + .5) + 1, h * self.smoothness)
-        smoothed = cv.filter2D(line, ddepth, kernel1, borderType=cv.BORDER_CONSTANT)
-        smoothed = cv.filter2D(smoothed, ddepth, kernel2.T, borderType=cv.BORDER_CONSTANT)
-        kernelX = np.ones((1, w), dtype=np.float64) / w
-        kernelY = np.ones((int(h * .5), 1), dtype=np.float64) / int(h * .5 + .5)
-        add = cv.filter2D(smoothed, ddepth, kernelX, borderType=cv.BORDER_CONSTANT)
-        add = cv.filter2D(add, ddepth, kernelY, borderType=cv.BORDER_CONSTANT)
-        smoothed += 0.001 * add
+        smoothed = cv.GaussianBlur(line, (0, 0), sigmaX=h*self.smoothness, sigmaY=h*.5,
+                                   borderType=cv.BORDER_CONSTANT)
+        smoothed += .001 * cv.blur(smoothed, (w, int(h*.5)))
+
         a = np.argmax(smoothed, axis=0)
-        kernel = cv.getGaussianKernel(int((8. * h * self.extra) + .5) + 1, h * self.extra)
-        a = cv.filter2D(a.astype(np.uint8), cv.CV_8U, kernel, borderType=cv.BORDER_REFLECT).flatten()
-        center = np.array(a, 'i')
+        kernel = cv.getGaussianKernel(int((8.*h*self.extra)+.5)+1, h*self.extra)
+        center = cv.filter2D(a, cv.CV_8U, kernel, borderType=cv.BORDER_REFLECT).flatten()
         deltas = abs(np.arange(h)[:, np.newaxis] - center[np.newaxis, :])
         mad = np.mean(deltas[line != 0])
         r = int(1 + self.range * mad)

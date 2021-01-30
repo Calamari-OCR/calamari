@@ -24,7 +24,7 @@ class ScaleToHeightProcessor(ImageProcessor):
         h, w = img.shape
         scale = target_height * 1.0 / h
         target_width = np.maximum(int(scale * w), 1)
-        M = np.hstack((np.eye(2, dtype=np.float32) * scale, np.zeros((2, 1), dtype=np.float32)))
-        out = cv.warpAffine(img.astype(np.float32), M, (target_width, target_height),
+        M = np.hstack((np.eye(2, dtype=dtype) * scale, np.zeros((2, 1), dtype=dtype)))
+        out = cv.warpAffine(img.astype(dtype), M, (target_width, target_height),
                             flags=(cv.INTER_LINEAR), borderMode=cv.BORDER_CONSTANT, borderValue=cval)
         return out.astype(dtype)
