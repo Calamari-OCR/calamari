@@ -1,7 +1,6 @@
 import numpy as np
 import cv2 as cv
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
-from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessor
 
 
 class CenterNormalizer(ImageProcessor):
@@ -60,22 +59,38 @@ class CenterNormalizer(ImageProcessor):
 
         return dewarped
 
+    def scale_to_h(self, img, target_height):
+        h, w = img.shape
+        if h == target_height:
+            return img
+
+        scale = target_height * 1.0 / h
+        target_width = np.maximum(round(scale * w), 1)
+        if scale <= 1:
+            # Downsampling: interpolation "area"
+            out = cv.resize((img * 255.0).astype(np.uint8), (target_width, target_height),
+                            interpolation=cv.INTER_AREA)
+            return out / 255.0
+
+        else:
+            # Upsampling: linear interpolation
+            return cv.resize(img * 1.0, (target_width, target_height), interpolation=cv.INTER_AREA)
+
     def normalize(self, img, order=1, dtype=np.dtype('f'), cval=0):
         # resize the image to a appropriate height close to the target height to speed up dewarping
         intermediate_height = int(self.target_height * 1.5)
         m1 = 1
         if intermediate_height < img.shape[0]:
             m1 = intermediate_height / img.shape[0]
-            img = ScaleToHeightProcessor.scale_to_h(img, intermediate_height, order=order, dtype=dtype, cval=cval)
-
-        # dewarp
-        dewarped = self.dewarp(img, cval=cval, dtype=dtype)
-
+            img = self.scale_to_h(img, intermediate_height)
+        dewarped = self.dewarp(img.astype(dtype), cval=cval, dtype=dtype)
         t = dewarped.shape[0] - img.shape[0]
+
         # scale to target height
-        scaled = ScaleToHeightProcessor.scale_to_h(dewarped, self.target_height, order=order, dtype=dtype, cval=cval)
+        scaled = self.scale_to_h(dewarped, self.target_height)
+
         m2 = scaled.shape[1] / dewarped.shape[1]
-        return scaled, (m1, m2, t)
+        return scaled.astype(dtype), (m1, m2, t)
 
     def local_to_global_pos(self, x, params):
         m1, m2, t = params['center']
