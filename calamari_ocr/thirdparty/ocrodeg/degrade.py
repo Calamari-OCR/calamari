@@ -213,7 +213,7 @@ def printlike_multiscale(image, blur=1.0, blotches=5e-5, inverted=None):
     selector = random_blotches(selector, 3*blotches, blotches)
     paper = make_multiscale_noise_uniform(image.shape, span=(0.8, 1.0))
     ink = make_multiscale_noise_uniform(image.shape, span=(0.0, 0.2))
-    blurred = cv.GaussianBlur(selector, (0, 0), sigmaX=blur, borderType=cv.BORDER_REFLECT)
+    blurred = (cv.GaussianBlur(selector, (0, 0), sigmaX=blur, borderType=cv.BORDER_REFLECT) + selector) / 2
     printed = blurred * ink + (1-blurred) * paper
     if inverted:
         return 1 - printed

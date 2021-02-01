@@ -74,7 +74,7 @@ class CenterNormalizer(ImageProcessor):
 
         else:
             # Upsampling: linear interpolation
-            return cv.resize(img * 1.0, (target_width, target_height), interpolation=cv.INTER_AREA)
+            return cv.resize(img * 1.0, (target_width, target_height), interpolation=cv.INTER_LINEAR)
 
     def normalize(self, img, order=1, dtype=np.dtype('f'), cval=0):
         # resize the image to a appropriate height close to the target height to speed up dewarping
