@@ -20,11 +20,19 @@ class ScaleToHeightProcessor(ImageProcessor):
         return x / scale
 
     @staticmethod
-    def scale_to_h(img, target_height, order=1, dtype=np.dtype('f'), cval=0):
+    def scale_to_h(img, target_height):
+        assert img.dtype == np.uint8
+
         h, w = img.shape
+        if h == target_height:
+            return img
+
         scale = target_height * 1.0 / h
-        target_width = np.maximum(int(scale * w), 1)
-        M = np.hstack((np.eye(2, dtype=dtype) * scale, np.zeros((2, 1), dtype=dtype)))
-        out = cv.warpAffine(img.astype(dtype), M, (target_width, target_height),
-                            flags=(cv.INTER_LINEAR), borderMode=cv.BORDER_CONSTANT, borderValue=cval)
-        return out.astype(dtype)
+        target_width = np.maximum(round(scale * w), 1)
+        if scale <= 1:
+            # Downsampling: interpolation "area"
+            return cv.resize(img, (target_width, target_height), interpolation=cv.INTER_AREA)
+
+        else:
+            # Upsampling: linear interpolation
+            return cv.resize(img, (target_width, target_height), interpolation=cv.INTER_LINEAR)
