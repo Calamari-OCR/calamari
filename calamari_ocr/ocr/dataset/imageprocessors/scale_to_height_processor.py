@@ -23,7 +23,7 @@ class ScaleToHeightProcessor(ImageProcessor):
     def scale_to_h(img, target_height):
         assert img.dtype == np.uint8
 
-        h, w = img.shape
+        h, w = img.shape[:2]
         if h == target_height:
             return img
 
