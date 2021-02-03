@@ -57,8 +57,9 @@ class CenterNormalizer(ImageProcessor):
         padded = np.vstack([cval * np.ones((hpadding, w), dtype=img.dtype),
                             img,
                             cval * np.ones((hpadding, w), dtype=img.dtype)])
-        center = center + hpadding
-        dewarped = [padded[c-r:c+r, i] for i, c in enumerate(center)]
+        center = center + hpadding - r
+        new_h = 2*r
+        dewarped = [padded[c:c+new_h, i] for i, c in enumerate(center)]
         dewarped = np.array(dewarped, dtype=padded.dtype).T
         return dewarped
 
