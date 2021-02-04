@@ -1,9 +1,9 @@
 import os
+import math
 import numpy as np
 from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR, TARGETS_PROCESSOR
 from tqdm import tqdm
 from lxml import etree
-from skimage.transform import rotate
 import cv2 as cv
 from typing import List, Generator
 
@@ -27,6 +27,30 @@ def xml_attr(elem, ns, label, default=None):
             raise e
 
         return default
+
+
+def rotate_image(img, angle):
+    height, width = img.shape[:2]
+    image_center = (width / 2, height / 2)
+    rotation_mat = cv.getRotationMatrix2D(image_center, angle, 1)
+    radians = math.radians(angle)
+    sin = abs(math.sin(radians))
+    cos = abs(math.cos(radians))
+    bound_w = int((height * sin) + (width * cos))
+    bound_h = int((height * cos) + (width * sin))
+
+    rotation_mat[0, 2] += ((bound_w / 2) - image_center[0])
+    rotation_mat[1, 2] += ((bound_h / 2) - image_center[1])
+
+    if img.ndim == 2:
+        cval = np.amax(img).item()
+    else:
+        x, y = np.unravel_index(np.argmax(np.mean(img, axis=2)), img.shape[:2])
+        cval = img[x, y, :].tolist()
+
+    rotated = cv.warpAffine(img, rotation_mat, (bound_w, bound_h), flags=cv.INTER_LINEAR,
+                            borderMode=cv.BORDER_CONSTANT, borderValue=cval)
+    return rotated
 
 
 class PageXMLDatasetLoader:
@@ -314,9 +338,8 @@ class PageXMLReader(DataReader):
                 line_img = PageXMLReader.cutout(img, sample['coords'], lx / sample['img_width'])
 
                 # rotate by orientation angle in clockwise direction to correct present skew
-                # (skimage rotates in counter-clockwise direction)
                 if orientation and orientation % 360 != 0:
-                    line_img = rotate(line_img, orientation*-1, resize=True, mode='constant', cval=line_img.max(), preserve_range=True).astype(np.uint8)
+                    line_img = rotate_image(line_img, orientation*-1)
 
                 # add padding as required from normal files
                 if self.args.pad:
