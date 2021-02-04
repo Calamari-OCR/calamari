@@ -44,7 +44,7 @@ class CenterNormalizer(ImageProcessor):
     def dewarp(self, img, cval=0, dtype=np.dtype("f")):
         inverted = (cv.bitwise_not(img)/255).astype(dtype)
         if img.ndim > 2:
-            inverted = cv.cvtColor(inverted, cv.COLOR_BGR2GRAY)
+            inverted = cv.cvtColor(inverted, cv.COLOR_RGB2GRAY)
         center, r = self.measure(inverted)
 
         # The actual image img is embedded into a larger image by

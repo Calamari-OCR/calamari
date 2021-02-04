@@ -47,8 +47,8 @@ def transform_image(image, angle=0.0, scale=1.0, aniso=1.0, translation=(0, 0), 
 
 def random_pad(image, horizontal=(0, 100)):
     l, r = np.random.randint(*horizontal, size=1), np.random.randint(*horizontal, size=1)
-    return np.pad(image, ((l[0], r[0]), (0, 0)), mode="constant")
-
+    return cv.copyMakeBorder(image, l[0], r[0], 0, 0, cv.BORDER_CONSTANT,
+                             value=[0]*(1 if image.ndim == 2 else image.shape[-1]))
 
 #
 # random distortions
@@ -56,7 +56,7 @@ def random_pad(image, horizontal=(0, 100)):
 
 
 def bounded_gaussian_noise(shape, sigma, maxdelta):
-    n, m = shape
+    n, m = shape[:2]
     deltas = np.random.rand(2, n, m)
     for n, d in enumerate(deltas):
         deltas[n] = cv.GaussianBlur(d, (0, 0), sigmaX=sigma, borderType=cv.BORDER_REFLECT)
@@ -68,8 +68,8 @@ def bounded_gaussian_noise(shape, sigma, maxdelta):
 
 def distort_with_noise(image, deltas, order=1):
     assert deltas.shape[0] == 2
-    assert image.shape == deltas.shape[1:], (image.shape, deltas.shape)
-    n, m = image.shape
+    assert image.shape[:2] == deltas.shape[1:], (image.shape, deltas.shape)
+    n, m = image.shape[:2]
     xy = np.transpose(np.array(np.meshgrid(
         range(n), range(m))), axes=[0, 2, 1])
     deltas += xy
@@ -150,7 +150,7 @@ def make_multiscale_noise_uniform(shape, srange=(1.0, 100.0), nscales=4, span=(0
 
 
 def random_blobs(shape, blobdensity, size, roughness=2.0):
-    h, w = shape
+    h, w = shape[:2]
     numblobs = int(blobdensity * w * h)
     mask = np.zeros((h, w), 'i')
     for i in range(numblobs):
@@ -168,8 +168,11 @@ def random_blobs(shape, blobdensity, size, roughness=2.0):
 
 
 def random_blotches(image, fgblobs, bgblobs, fgscale=10, bgscale=10):
-    fg = random_blobs(image.shape, fgblobs, fgscale)
-    bg = random_blobs(image.shape, bgblobs, bgscale)
+    fg = random_blobs(image.shape[:2], fgblobs, fgscale)
+    bg = random_blobs(image.shape[:2], bgblobs, bgscale)
+    if image.ndim > 2:
+        return np.concatenate([np.minimum(np.maximum(image[..., i], fg), 1-bg)[:, :, None]
+                               for i in range(image.shape[-1])], axis=image.ndim-1)
     return np.minimum(np.maximum(image, fg), 1-bg)
 
 
@@ -222,9 +225,13 @@ def printlike_multiscale(image, blur=1.0, blotches=5e-5, inverted=None):
         selector = 1 - image
 
     selector = random_blotches(selector, 3*blotches, blotches)
-    paper = make_multiscale_noise_uniform(image.shape, span=(0.8, 1.0))
-    ink = make_multiscale_noise_uniform(image.shape, span=(0.0, 0.2))
+    paper = make_multiscale_noise_uniform(image.shape[:2], span=(0.8, 1.0))
+    ink = make_multiscale_noise_uniform(image.shape[:2], span=(0.0, 0.2))
     blurred = (cv.GaussianBlur(selector, (0, 0), sigmaX=blur, borderType=cv.BORDER_REFLECT) + selector) / 2
+    if blurred.ndim == 3:
+        ink = np.repeat(ink[:, :, None], 3, 2)
+        paper = np.repeat(paper[:, :, None], 3, 2)
+
     printed = blurred * ink + (1-blurred) * paper
     if inverted:
         return 1 - printed
