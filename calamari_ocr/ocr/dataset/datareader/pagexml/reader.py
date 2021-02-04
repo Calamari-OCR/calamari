@@ -237,10 +237,14 @@ class PageXMLReader(DataReader):
             cut = pageimg[lu[1]:lu[1] + max_d[1] + 1,
                           lu[0]:lu[0] + max_d[0] + 1]
 
-        box = np.ones(cut.shape, dtype=cut.dtype) * 255
-        mask = np.zeros((cut.shape[0], cut.shape[1]))
-        cv.fillPoly(mask, [coords], 1)
-        mask = mask.astype(np.bool)
+        if cut.ndim == 2:
+            cval = np.amax(cut)
+        else:
+            x, y = np.unravel_index(np.argmax(np.mean(cut, axis=2)), cut.shape[:2])
+            cval = cut[x, y, :]
+        box = np.ones(cut.shape, dtype=cut.dtype) * cval
+        mask = np.zeros(cut.shape[:2], dtype=cut.dtype)
+        mask = cv.fillPoly(mask, [coords], color=1).astype(np.bool)
         box[mask] = cut[mask]
         return box
 

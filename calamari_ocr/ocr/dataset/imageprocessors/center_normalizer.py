@@ -42,15 +42,23 @@ class CenterNormalizer(ImageProcessor):
         return center, r
 
     def dewarp(self, img, cval=0, dtype=np.dtype("f")):
-        inverted = (cv.bitwise_not(img)/255).astype(dtype)
         if img.ndim > 2:
-            inverted = cv.cvtColor(inverted, cv.COLOR_RGB2GRAY)
+            temp = (cv.cvtColor(img, cv.COLOR_BGR2GRAY) / 255).astype(dtype)
+        else:
+            temp = (img / 255).astype(dtype)
+        temp = np.amax(temp) - (temp)
+        amax = np.amax(temp)
+        if amax == 0:
+            # white image
+            return temp
+        inverted = temp * 1.0 / np.amax(temp)
+
         center, r = self.measure(inverted)
 
         # The actual image img is embedded into a larger image by
         # adding vertical space on top and at the bottom (padding)
         hpad = r  # this is large enough
-        padded = cv.copyMakeBorder(img, hpad, hpad, 0, 0, cv.BORDER_CONSTANT, value=[cval]*(img.ndim))
+        padded = cv.copyMakeBorder(img, hpad, hpad, 0, 0, cv.BORDER_CONSTANT, value=cval)
 
         center = center + hpad - r
         new_h = 2*r
@@ -67,7 +75,13 @@ class CenterNormalizer(ImageProcessor):
             m1 = intermediate_height / img.shape[0]
             img = ScaleToHeightProcessor.scale_to_h(img, intermediate_height)
 
-        dewarped = self.dewarp(img, cval=np.amax(img).item())
+        if img.ndim == 2:
+            cval = np.amax(img).item()
+        else:
+            x, y = np.unravel_index(np.argmax(np.mean(img, axis=2)), img.shape[:2])
+            cval = img[x, y, :].tolist()
+
+        dewarped = self.dewarp(img, cval=cval, dtype=dtype)
 
         t = dewarped.shape[0] - img.shape[0]
         # scale to target height
