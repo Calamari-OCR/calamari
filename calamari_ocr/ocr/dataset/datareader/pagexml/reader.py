@@ -5,7 +5,7 @@ from tqdm import tqdm
 from lxml import etree
 import cv2 as cv
 from typing import List, Generator
-from Enum import IntEnum
+from enum import IntEnum
 from calamari_ocr.ocr.dataset.params import InputSample, SampleMeta
 from calamari_ocr.ocr.dataset.datareader.base import DataReader
 from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs
