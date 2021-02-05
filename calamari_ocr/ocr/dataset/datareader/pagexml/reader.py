@@ -1,12 +1,11 @@
 import os
-import math
 import numpy as np
 from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR, TARGETS_PROCESSOR
 from tqdm import tqdm
 from lxml import etree
 import cv2 as cv
 from typing import List, Generator
-
+from Enum import IntEnum
 from calamari_ocr.ocr.dataset.params import InputSample, SampleMeta
 from calamari_ocr.ocr.dataset.datareader.base import DataReader
 from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs
@@ -29,28 +28,10 @@ def xml_attr(elem, ns, label, default=None):
         return default
 
 
-def rotate_image(img, angle):
-    height, width = img.shape[:2]
-    image_center = (width / 2, height / 2)
-    rotation_mat = cv.getRotationMatrix2D(image_center, angle, 1)
-    radians = math.radians(angle)
-    sin = abs(math.sin(radians))
-    cos = abs(math.cos(radians))
-    bound_w = int((height * sin) + (width * cos))
-    bound_h = int((height * cos) + (width * sin))
-
-    rotation_mat[0, 2] += ((bound_w / 2) - image_center[0])
-    rotation_mat[1, 2] += ((bound_h / 2) - image_center[1])
-
-    if img.ndim == 2:
-        cval = np.amax(img).item()
-    else:
-        x, y = np.unravel_index(np.argmax(np.mean(img, axis=2)), img.shape[:2])
-        cval = img[x, y, :].tolist()
-
-    rotated = cv.warpAffine(img, rotation_mat, (bound_w, bound_h), flags=cv.INTER_LINEAR,
-                            borderMode=cv.BORDER_CONSTANT, borderValue=cval)
-    return rotated
+class CutMode(IntEnum):
+    BOX = 0
+    POLYGON = 1
+    MBR = 2
 
 
 class PageXMLDatasetLoader:
@@ -231,46 +212,89 @@ class PageXMLReader(DataReader):
         self._last_page_id = None
 
     @staticmethod
-    def cutout(pageimg, coordstring, scale=1, rect=False, rrect=False):
+    def cutout(pageimg: np.array, coordstring: str, mode: CutMode=CutMode.POLYGON, angle=0, cval=None, scale=1):
         """ Cut region from image
         Parameters
         ----------
-        pageimg : image (numpy array)
-        coordstring : coordinates from PAGE as one string
+        pageimg : page image
+        coordstring : coordinates from PAGE in the form "c1_1,c_2 c2_1,c2_2 ..."
+        mode :
+            CutMode.BOX : cut straight rectangle around coordinates
+            CutMode.POLYGON : cut polygon around coordinates
+            CutMode.MBR : cut minimum bounding rectangle around coordinates
+        angle :
+            float : rotate angle in clockwise direction
+            None : calculate angle from minimum bounding rectangle
+        cval :
+            colour : mask and fill empty regions with
+            None : calculate via maximum pixel
         scale : factor to scale the coordinates with
-        rect : cut out rectangle instead of polygons
-        rrect : cut minimum enclosing rectangle instead of polygons
         """
-        coords = [p.split(",") for p in coordstring.split()]
-        coords = [(int(scale*int(c[0])), int(scale*int(c[1]))) for c in coords]
-        coords = np.array(coords, np.int32)
-        min_x, max_x = min(c[1] for c in coords), max(c[1] for c in coords)
-        min_y, max_y = min(c[0] for c in coords), max(c[0] for c in coords)
-        cut = pageimg[min_x:max_x+1, min_y:max_y+1]
-        if rect and not rrect:
-            return cut
-        coords = coords - [min_y, min_x]
-        if rrect:
-            rect_ma = cv.minAreaRect(coords)
-            rect = cv.boxPoints(rect_ma)
-            coords = rect.astype(int)
-            shift = np.clip(np.min(coords, 0), None, 0)
-            coords = coords - shift
-            max_d = np.max(coords, 0)
-            lu = [min_y, min_x] + shift
-            cut = pageimg[lu[1]:lu[1] + max_d[1] + 1,
-                          lu[0]:lu[0] + max_d[0] + 1]
 
-        if cut.ndim == 2:
-            cval = np.amax(cut)
+        coords = [p.split(",") for p in coordstring.split()]
+        coords = [(int(scale*int(c[1])), int(scale*int(c[0]))) for c in coords]
+        coords = np.array(coords, np.int32).reshape(-1, 1, 2)
+        maxX, maxY = np.amax(coords, 0).squeeze()
+        minX, minY = np.amin(coords, 0).squeeze()
+        cut = pageimg[minX:maxX+1, minY:maxY+1]
+        coords -= (minX, minY)
+        maxX, maxY = (maxX-minX, maxY-minY)
+        minX, minY = (0, 0)
+
+        # calculate angle if needed
+        if angle is None:
+            mbr = cv.minAreaRect(coords)
+            angle = mbr[2] if maxX <= maxY else mbr[2] - 90
+
+        # set cval if needed
+        if cval is None:
+            if cut.ndim == 2:
+                cval = np.amax(cut).item()
+            else:
+                x, y = np.unravel_index(np.argmax(np.mean(cut, axis=2)), cut.shape[:2])
+                cval = cut[x, y, :].tolist()
+
+        # rotate cut
+        if angle:
+            (h, w) = cut.shape[:2]
+            (cX, cY) = (w // 2, h // 2)
+            M = cv.getRotationMatrix2D((cX, cY), -angle, 1.0)
+            cos = np.abs(M[0, 0])
+            sin = np.abs(M[0, 1])
+            # compute the new bounding dimensions of the image
+            nW = np.ceil((h * sin) + (w * cos)).astype(int)
+            nH = np.ceil((h * cos) + (w * sin)).astype(int)
+            # adjust the rotation matrix to take into account translation
+            M[0, 2] += (nW / 2) - cX
+            M[1, 2] += (nH / 2) - cY
+            # rotate coords
+            coords = cv.transform(coords[..., ::-1], M)
+            minX, minY = np.amin(coords, 0).squeeze()
+            maxX, maxY = np.amax(coords, 0).squeeze()
+            # rotate image
+            cut = cv.warpAffine(cut, M, (nW, nH), flags=cv.INTER_LINEAR,
+                                borderMode=cv.BORDER_CONSTANT, borderValue=cval)
         else:
-            x, y = np.unravel_index(np.argmax(np.mean(cut, axis=2)), cut.shape[:2])
-            cval = cut[x, y, :]
-        box = np.ones(cut.shape, dtype=cut.dtype) * cval
-        mask = np.zeros(cut.shape[:2], dtype=cut.dtype)
-        mask = cv.fillPoly(mask, [coords], color=1).astype(np.bool)
-        box[mask] = cut[mask]
-        return box
+            coords = coords[..., ::-1]
+            minX, minY = minY, minX
+            maxX, maxY = maxY, maxX
+
+        # simplify coordinates with MBR
+        if mode is CutMode.MBR:
+            mbr = cv.minAreaRect(coords)
+            coords = cv.boxPoints(mbr).astype(int).reshape(-1, 1, 2)
+
+        # mask pixels outside coords
+        if mode in (CutMode.POLYGON, CutMode.MBR):
+            box = (np.ones(cut.shape) * cval).astype(cut.dtype)
+            mask = np.zeros(cut.shape, dtype=np.uint8)
+            mask = cv.fillPoly(mask, [coords], color=[255] * cut.ndim)
+            mask_inv = cv.bitwise_not(mask)
+            fg = cv.bitwise_and(cut, mask)
+            bg = cv.bitwise_and(box, mask_inv)
+            cut = cv.add(fg, bg)
+
+        return cut[minY:maxY+1, minX:maxX+1]
 
     def prepare_store(self):
         self._last_page_id = None
@@ -335,11 +359,14 @@ class PageXMLReader(DataReader):
             if not text_only and self.mode in INPUT_PROCESSOR:
                 ly, lx = img.shape[:2]
 
-                line_img = PageXMLReader.cutout(img, sample['coords'], lx / sample['img_width'])
-
                 # rotate by orientation angle in clockwise direction to correct present skew
-                if orientation and orientation % 360 != 0:
-                    line_img = rotate_image(line_img, orientation*-1)
+                angle = orientation if orientation and orientation % 360 != 0 else 0
+
+                line_img = PageXMLReader.cutout(img, sample['coords'],
+                                                mode=CutMode.POLYGON,
+                                                angle=angle,
+                                                cval=None,
+                                                scale=lx / sample['img_width'])
 
                 # add padding as required from normal files
                 if self.args.pad:
