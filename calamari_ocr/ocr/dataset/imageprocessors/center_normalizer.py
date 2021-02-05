@@ -31,7 +31,7 @@ class CenterNormalizer(ImageProcessor):
                                    borderType=cv.BORDER_CONSTANT)
         smoothed += .001 * cv.blur(smoothed, (w, int(h*.5)), borderType=cv.BORDER_CONSTANT)
 
-        a = np.argmax(smoothed, axis=0)
+        a = np.argmax(smoothed, axis=0).astype(np.uint8)
         kernel = cv.getGaussianKernel(int((8.*h*self.extra)+1), h*self.extra)
         center = cv.filter2D(a, cv.CV_8U, kernel, borderType=cv.BORDER_REFLECT).flatten()
 
