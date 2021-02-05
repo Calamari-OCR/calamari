@@ -1,4 +1,6 @@
 import os
+from random import shuffle
+
 import numpy as np
 from PIL import Image
 from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR, TARGETS_PROCESSOR
@@ -268,7 +270,11 @@ class PageXMLReader(DataReader):
             f.write(etree.tounicode(page.getroottree()))
 
     def _sample_iterator(self):
-        return zip(self.files, self.xmlfiles, range(len(self.files)))
+        all_samples = zip(self.files, self.xmlfiles, range(len(self.files)))
+        if self.mode == PipelineMode.Training:
+            all_samples = list(all_samples)
+            shuffle(all_samples)
+        return all_samples
 
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
         loader = PageXMLDatasetLoader(self.mode, self._non_existing_as_empty, self.text_index, self.skip_invalid)
