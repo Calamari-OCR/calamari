@@ -34,12 +34,14 @@ class Attrs():
         self.output_model_prefix = "uw3_50lines"
         self.bidi_dir = None
         self.weights = None
+        self.ema_weights = False
         self.whitelist_files = []
         self.whitelist = []
         self.gradient_clipping_norm = 5
         self.validation = None
         self.validation_dataset = DataSetType.FILE
         self.validation_extension = None
+        self.validation_split_ratio = None
         self.early_stopping_frequency = -1
         self.early_stopping_nbest = 10
         self.early_stopping_at_accuracy = 0.99
@@ -63,6 +65,10 @@ class Attrs():
         self.no_auto_compute_codec = False
         self.dataset_pad = 0
         self.debug = False
+        self.train_verbose = True
+        self.use_train_as_val = False
+        self.ensemble = -1
+        self.no_masking = 1
 
 
 class TestSimpleTrain(unittest.TestCase):

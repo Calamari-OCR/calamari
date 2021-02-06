@@ -29,13 +29,15 @@ class FinalPreparation(ImageProcessor):
         self.pad_value = pad_value
 
     def _apply_single(self, data, meta):
-        if self.normalize:
-            amax = np.amax(data)
-            if amax > 0:
-                data = data * 1.0 / amax
+        if data.size > 0:
+            # non empty image
+            if self.normalize:
+                amax = np.amax(data)
+                if amax > 0:
+                    data = data * 1.0 / amax
 
-        if self.invert:
-            data = np.amax(data) - data
+            if self.invert:
+                data = np.amax(data) - data
 
         if self.transpose:
             data = data.T

@@ -1,5 +1,5 @@
 {
-  "random_seed": 1,
+  "random_seed": 0,
   "optimizer_params": {
     "optimizer": "Adam",
     "clip_grad": 5.0,
@@ -517,8 +517,11 @@
         ]
       },
       "post_processors_": {
-        "run_parallel": false,
+        "run_parallel": true,
         "sample_processors": [
+          {
+            "name": "ReshapeOutputsProcessor"
+          },
           {
             "name": "CTCDecoderProcessor"
           },

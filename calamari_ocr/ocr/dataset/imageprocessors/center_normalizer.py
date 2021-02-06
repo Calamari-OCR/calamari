@@ -19,7 +19,8 @@ class CenterNormalizer(ImageProcessor):
 
     def _apply_single(self, data, meta):
         data = data / 255.0
-        out, params = self.normalize(data, cval=np.amax(data))
+        cval = np.amax(data) if data.size > 0 else 1
+        out, params = self.normalize(data, cval=cval)
         meta['center'] = params
         return (out * 255).astype('uint8')
 
@@ -40,6 +41,10 @@ class CenterNormalizer(ImageProcessor):
         return center, r
 
     def dewarp(self, img, cval=0, dtype=np.dtype('f')):
+        if img.size == 0:
+            # empty image
+            return img
+
         temp = np.amax(img) - img
         amax = np.amax(temp)
         if amax == 0:
@@ -73,7 +78,10 @@ class CenterNormalizer(ImageProcessor):
         t = dewarped.shape[0] - img.shape[0]
         # scale to target height
         scaled = ScaleToHeightProcessor.scale_to_h(dewarped, self.target_height, order=order, dtype=dtype, cval=cval)
-        m2 = scaled.shape[1] / dewarped.shape[1]
+        if dewarped.shape[1] != 0:
+            m2 = scaled.shape[1] / dewarped.shape[1]
+        else:
+            m2 = -1
         return scaled, (m1, m2, t)
 
     def local_to_global_pos(self, x, params):

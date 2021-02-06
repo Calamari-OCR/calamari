@@ -22,6 +22,10 @@ class ScaleToHeightProcessor(ImageProcessor):
     @staticmethod
     def scale_to_h(img, target_height, order=1, dtype=np.dtype('f'), cval=0):
         h, w = img.shape
+        if h == 0 or img.size == 0:
+            # empty image
+            return np.zeros(shape=(target_height, w), dtype=dtype)
+
         scale = target_height * 1.0 / h
         target_width = np.maximum(int(scale * w), 1)
         output = interpolation.affine_transform(

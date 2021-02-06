@@ -48,13 +48,19 @@ class TestValidationTrain(unittest.TestCase):
         args = PredictionAttrs()
         run(args)
 
+    def test_empty_image_raw_prediction(self):
+        args = PredictionAttrs()
+        predictor = Predictor.from_checkpoint(PredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
+        images = [np.zeros(shape=(0, 0)), np.zeros(shape=(1, 0)), np.zeros(shape=(0, 1))]
+        for result in predictor.predict_raw(images):
+            print(result.outputs.sentence)
+
     def test_raw_prediction(self):
         args = PredictionAttrs()
         predictor = Predictor.from_checkpoint(PredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
         images = [load_image(file) for file in args.files]
-        for file, image in zip(args.files, images):
-            _, prediction, _ = list(predictor.predict_raw([image]))[0]
-            print(file, prediction.sentence)
+        for result in predictor.predict_raw(images):
+            print(result.outputs.sentence)
 
     def test_raw_dataset_prediction(self):
         args = PredictionAttrs()
@@ -63,15 +69,17 @@ class TestValidationTrain(unittest.TestCase):
             type=DataSetType.FILE,
             files=args.files
         )
-        for inputs, outputs, meta in predictor.predict(params):
+        for sample in predictor.predict(params):
             pass
 
     def test_raw_prediction_voted(self):
         args = PredictionAttrs()
         predictor = MultiPredictor.from_paths(checkpoints=args.checkpoint, predictor_params=PredictorParams(progress_bar=False, silent=True))
         images = [load_image(file) for file in args.files]
-        for inputs, (r, voted), meta in predictor.predict_raw(images):
+        for sample in predictor.predict_raw(images):
+            r, voted = sample.outputs
             print([rn.sentence for rn in r])
+            print(voted.sentence)
 
 
 if __name__ == "__main__":
