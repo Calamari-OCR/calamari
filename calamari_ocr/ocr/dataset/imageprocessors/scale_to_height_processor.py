@@ -26,6 +26,10 @@ class ScaleToHeightProcessor(ImageProcessor):
         h, w = img.shape[:2]
         if h == target_height:
             return img
+        if h == 0 or img.size == 0:
+            # empty image
+            return np.zeros(shape=(target_height, w) + img.shape[2:], dtype=img.dtype)
+
 
         scale = target_height * 1.0 / h
         target_width = np.maximum(round(scale * w), 1)

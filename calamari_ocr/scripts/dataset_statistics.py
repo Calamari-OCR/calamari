@@ -35,7 +35,7 @@ def main():
         images=image_files, texts=gt_files, non_existing_as_empty=True)
 
     logger.info(f"Loading {len(image_files)} files")
-    images, texts, metas = list(zip(*tqdm_wrapper(ds.generate(), progress_bar=True, total=len(ds))))
+    images, texts, metas = list(zip(*map(lambda s: (s.inputs, s.targets, s.meta), tqdm_wrapper(ds.generate(), progress_bar=True, total=len(ds)))))
     statistics = {
         "n_lines": len(images),
         "chars": [len(c) for c in texts],
