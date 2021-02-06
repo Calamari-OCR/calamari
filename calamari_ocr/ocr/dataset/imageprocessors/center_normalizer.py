@@ -1,7 +1,7 @@
 import numpy as np
-from scipy.ndimage import filters
-from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
+import cv2 as cv
 from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessor
+from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 
 
 class CenterNormalizer(ImageProcessor):
@@ -18,73 +18,88 @@ class CenterNormalizer(ImageProcessor):
         self.range, self.smoothness, self.extra = extra_params
 
     def _apply_single(self, data, meta):
-        data = data / 255.0
-        cval = np.amax(data) if data.size > 0 else 1
-        out, params = self.normalize(data, cval=cval)
+        out, params = self.normalize(data.astype(np.uint8), dtype=np.dtype("f"))
         meta['center'] = params
-        return (out * 255).astype('uint8')
+        return out
 
     def set_height(self, target_height):
         self.target_height = target_height
 
     def measure(self, line):
         h, w = line.shape
-        smoothed = filters.gaussian_filter(line, (h * 0.5, h * self.smoothness), mode='constant')
-        smoothed += 0.001 * filters.uniform_filter(smoothed, (h * 0.5, w), mode='constant')
-        a = np.argmax(smoothed, axis=0)
-        a = filters.gaussian_filter(a, h * self.extra)
-        center = np.array(a, 'i')
+        smoothed = cv.GaussianBlur(line, (0, 0), sigmaX=h*self.smoothness, sigmaY=h*.5,
+                                   borderType=cv.BORDER_CONSTANT)
+        smoothed += .001 * cv.blur(smoothed, (w, int(h*.5)), borderType=cv.BORDER_CONSTANT)
+
+        a = np.argmax(smoothed, axis=0).astype(np.uint16)
+        kernel = cv.getGaussianKernel(int((8.*h*self.extra)+1), h*self.extra)
+        center = cv.filter2D(a, cv.CV_16U, kernel, borderType=cv.BORDER_REFLECT).flatten()
+
         deltas = abs(np.arange(h)[:, np.newaxis] - center[np.newaxis, :])
         mad = np.mean(deltas[line != 0])
         r = int(1 + self.range * mad)
 
         return center, r
 
-    def dewarp(self, img, cval=0, dtype=np.dtype('f')):
+    def dewarp(self, img, cval=0, dtype=np.dtype("f")):
         if img.size == 0:
-            # empty image
+            # Empty image
             return img
 
-        temp = np.amax(img) - img
+        if img.ndim > 2:
+            temp = (cv.cvtColor(img, cv.COLOR_BGR2GRAY) / 255).astype(dtype)
+        else:
+            temp = (img / 255).astype(dtype)
+        temp = np.amax(temp) - (temp)
         amax = np.amax(temp)
         if amax == 0:
             # white image
             return temp
+        inverted = temp * 1.0 / np.amax(temp)
 
-        temp = temp * 1.0 / np.amax(temp)
-        center, r = self.measure(temp)
-        h, w = img.shape
+        center, r = self.measure(inverted)
+
         # The actual image img is embedded into a larger image by
         # adding vertical space on top and at the bottom (padding)
-        hpadding = r # this is large enough
-        padded = np.vstack([cval * np.ones((hpadding, w)), img, cval * np.ones((hpadding, w))])
-        center = center + hpadding
-        dewarped = [padded[center[i] - r:center[i]+r, i] for i in range(w)]
-        dewarped = np.array(dewarped, dtype=dtype).T
+        hpad = r  # this is large enough
+        padded = cv.copyMakeBorder(img, hpad, hpad, 0, 0, cv.BORDER_CONSTANT, value=cval)
 
+        center = center + hpad - r
+        new_h = 2*r
+        dewarped = [padded[c:c+new_h, i] for i, c in enumerate(center)]
+        dewarped = np.swapaxes(np.array(dewarped, dtype=img.dtype), 1, 0)
         return dewarped
 
-    def normalize(self, img, order=1, dtype=np.dtype('f'), cval=0):
+    def normalize(self, img, order=1, dtype=np.dtype("f")):
         # resize the image to a appropriate height close to the target height to speed up dewarping
         intermediate_height = int(self.target_height * 1.5)
         m1 = 1
+
         if intermediate_height < img.shape[0]:
             m1 = intermediate_height / img.shape[0]
-            img = ScaleToHeightProcessor.scale_to_h(img, intermediate_height, order=order, dtype=dtype, cval=cval)
+            img = ScaleToHeightProcessor.scale_to_h(img, intermediate_height)
 
-        # dewarp
+        if img.size == 0:
+            cval = 1
+        elif img.ndim == 2:
+            cval = np.amax(img).item()
+        else:
+            x, y = np.unravel_index(np.argmax(np.mean(img, axis=2)), img.shape[:2])
+            cval = img[x, y, :].tolist()
+
         dewarped = self.dewarp(img, cval=cval, dtype=dtype)
 
         t = dewarped.shape[0] - img.shape[0]
         # scale to target height
-        scaled = ScaleToHeightProcessor.scale_to_h(dewarped, self.target_height, order=order, dtype=dtype, cval=cval)
-        if dewarped.shape[1] != 0:
-            m2 = scaled.shape[1] / dewarped.shape[1]
+        scaled = ScaleToHeightProcessor.scale_to_h(dewarped, self.target_height)
+
+        if dewarped.size == 0:
+            # Empty image
+            m2 = 1
         else:
-            m2 = -1
+            m2 = scaled.shape[1] / dewarped.shape[1]
         return scaled, (m1, m2, t)
 
     def local_to_global_pos(self, x, params):
         m1, m2, t = params['center']
         return x / m1 / m2
-

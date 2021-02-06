@@ -40,7 +40,7 @@ class FinalPreparation(ImageProcessor):
                 data = np.amax(data) - data
 
         if self.transpose:
-            data = data.T
+            data = np.swapaxes(data, 1, 0)
 
         if self.pad > 0:
             if self.transpose:

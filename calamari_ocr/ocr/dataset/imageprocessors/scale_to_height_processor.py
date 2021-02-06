@@ -1,7 +1,7 @@
 import numpy as np
 
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
-from scipy.ndimage import interpolation
+import cv2 as cv
 
 
 class ScaleToHeightProcessor(ImageProcessor):
@@ -20,21 +20,23 @@ class ScaleToHeightProcessor(ImageProcessor):
         return x / scale
 
     @staticmethod
-    def scale_to_h(img, target_height, order=1, dtype=np.dtype('f'), cval=0):
-        h, w = img.shape
+    def scale_to_h(img, target_height):
+        assert img.dtype == np.uint8
+
+        h, w = img.shape[:2]
+        if h == target_height:
+            return img
         if h == 0 or img.size == 0:
             # empty image
-            return np.zeros(shape=(target_height, w), dtype=dtype)
+            return np.zeros(shape=(target_height, w) + img.shape[2:], dtype=img.dtype)
+
 
         scale = target_height * 1.0 / h
-        target_width = np.maximum(int(scale * w), 1)
-        output = interpolation.affine_transform(
-            1.0 * img,
-            np.eye(2) / scale,
-            order=order,
-            output_shape=(target_height,target_width),
-            mode='constant',
-            cval=cval)
+        target_width = np.maximum(round(scale * w), 1)
+        if scale <= 1:
+            # Downsampling: interpolation "area"
+            return cv.resize(img, (target_width, target_height), interpolation=cv.INTER_AREA)
 
-        output = np.array(output, dtype=dtype)
-        return output
+        else:
+            # Upsampling: linear interpolation
+            return cv.resize(img, (target_width, target_height), interpolation=cv.INTER_LINEAR)
