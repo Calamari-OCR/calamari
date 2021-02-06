@@ -60,7 +60,7 @@ class TestValidationTrain(unittest.TestCase):
         predictor = Predictor.from_checkpoint(PredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
         images = [load_image(file) for file in args.files]
         for result in predictor.predict_raw(images):
-            print(result.outputs.sentence)
+            self.assertGreater(result.outputs.avg_char_probability, 0)
 
     def test_raw_dataset_prediction(self):
         args = PredictionAttrs()

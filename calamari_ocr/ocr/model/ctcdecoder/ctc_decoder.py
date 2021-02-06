@@ -112,6 +112,7 @@ class CTCDecoder(ABC):
         pred.labels[:] = [c for c, _, _ in sentence]
         pred.is_voted_result = False
         pred.logits = probabilities
+        pred.avg_char_probability = 0
         for c, start, end in sentence:
             p = probabilities[start:end]
             p = np.max(p, axis=0)
@@ -131,4 +132,8 @@ class CTCDecoder(ABC):
                         probability=p[label],
                     ))
 
+            if len(pos.chars) > 0:
+                pred.avg_char_probability += pos.chars[0].probability
+
+        pred.avg_char_probability /= len(pred.positions) if len(pred.positions) > 0 else 1
         return pred
