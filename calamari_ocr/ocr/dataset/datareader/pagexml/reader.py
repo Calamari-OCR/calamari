@@ -235,10 +235,12 @@ class PageXMLReader(DataReader):
 
         coords = [p.split(",") for p in coordstring.split()]
         coords = [(int(scale*int(c[1])), int(scale*int(c[0]))) for c in coords]
-        coords = np.array(coords, np.int32).reshape(-1, 1, 2)
+        coords = np.array(coords, np.int32).reshape((-1, 1, 2))
         maxX, maxY = np.amax(coords, 0).squeeze()
         minX, minY = np.amin(coords, 0).squeeze()
         cut = pageimg[minX:maxX+1, minY:maxY+1]
+        if cut.size == 0:
+            return cut  # empty image
         coords -= (minX, minY)
         maxX, maxY = (maxX-minX, maxY-minY)
         minX, minY = (0, 0)
