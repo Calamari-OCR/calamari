@@ -68,7 +68,7 @@ class Attrs():
         self.train_verbose = True
         self.use_train_as_val = False
         self.ensemble = -1
-        self.no_masking = 1
+        self.masking_mode = 1
 
 
 class TestSimpleTrain(unittest.TestCase):

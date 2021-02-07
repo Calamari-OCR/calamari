@@ -5,6 +5,7 @@ import logging
 
 from calamari_ocr import __version__
 from calamari_ocr.ocr.savedmodel.migrations.version0to1 import rename
+from calamari_ocr.utils import split_all_ext
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,8 @@ class SavedCalamariModel:
         self.json_path = os.path.abspath(os.path.expanduser(os.path.expandvars(self.json_path)))
         self.ckpt_path = os.path.splitext(self.json_path)[0]
         self.dry_run = dry_run
+        self.dirname = os.path.dirname(self.ckpt_path)
+        self.basename = os.path.basename(split_all_ext(self.ckpt_path)[0])
 
         # do not parse as proto, since some parameters might have changed
         with open(self.json_path, 'r') as f:
