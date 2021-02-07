@@ -18,7 +18,7 @@ class CenterNormalizer(ImageProcessor):
         self.range, self.smoothness, self.extra = extra_params
 
     def _apply_single(self, data, meta):
-        out, params = self.normalize(data.astype(np.uint8), dtype=np.dtype("f"))
+        out, params = self.normalize(data.astype(np.uint8))
         meta['center'] = params
         return out
 
@@ -41,20 +41,31 @@ class CenterNormalizer(ImageProcessor):
 
         return center, r
 
-    def dewarp(self, img, cval=0, dtype=np.dtype("f")):
+    def dewarp(self, img, cval=0):
+        """
+
+        Parameters
+        ----------
+        img image with dtype=np.uint8
+        cval
+
+        Returns image with dtype=np.uint8
+        -------
+
+        """
         if img.size == 0:
             # Empty image
             return img
 
         if img.ndim > 2:
-            temp = (cv.cvtColor(img, cv.COLOR_BGR2GRAY) / 255).astype(dtype)
+            temp = (cv.cvtColor(img, cv.COLOR_BGR2GRAY) / 255).astype(np.float32)
         else:
-            temp = (img / 255).astype(dtype)
-        temp = np.amax(temp) - (temp)
+            temp = (img / 255).astype(np.float32)
+        temp = np.amax(temp) - temp
         amax = np.amax(temp)
         if amax == 0:
             # white image
-            return temp
+            return (temp * 255).astype(np.uint8)
         inverted = temp * 1.0 / np.amax(temp)
 
         center, r = self.measure(inverted)
@@ -67,10 +78,22 @@ class CenterNormalizer(ImageProcessor):
         center = center + hpad - r
         new_h = 2*r
         dewarped = [padded[c:c+new_h, i] for i, c in enumerate(center)]
-        dewarped = np.swapaxes(np.array(dewarped, dtype=img.dtype), 1, 0)
+
+        # transpose and convert
+        dewarped = np.swapaxes(np.array(dewarped, dtype=np.uint8), 1, 0)
         return dewarped
 
-    def normalize(self, img, order=1, dtype=np.dtype("f")):
+    def normalize(self, img):
+        """
+
+        Parameters
+        ----------
+        img: image of type np.uint8
+
+        Returns image of dtype np.uint8
+        -------
+
+        """
         # resize the image to a appropriate height close to the target height to speed up dewarping
         intermediate_height = int(self.target_height * 1.5)
         m1 = 1
@@ -87,7 +110,7 @@ class CenterNormalizer(ImageProcessor):
             x, y = np.unravel_index(np.argmax(np.mean(img, axis=2)), img.shape[:2])
             cval = img[x, y, :].tolist()
 
-        dewarped = self.dewarp(img, cval=cval, dtype=dtype)
+        dewarped = self.dewarp(img, cval=cval)
 
         t = dewarped.shape[0] - img.shape[0]
         # scale to target height

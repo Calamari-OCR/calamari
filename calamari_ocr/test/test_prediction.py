@@ -55,6 +55,13 @@ class TestValidationTrain(unittest.TestCase):
         for result in predictor.predict_raw(images):
             print(result.outputs.sentence)
 
+    def test_white_image_raw_prediction(self):
+        args = PredictionAttrs()
+        predictor = Predictor.from_checkpoint(PredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
+        images = [np.zeros(shape=(200, 50))]
+        for result in predictor.predict_raw(images):
+            print(result.outputs.sentence)
+
     def test_raw_prediction(self):
         args = PredictionAttrs()
         predictor = Predictor.from_checkpoint(PredictorParams(progress_bar=False, silent=True), checkpoint=args.checkpoint[0])
