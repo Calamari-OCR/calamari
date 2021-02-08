@@ -70,25 +70,29 @@ class Hdf5Reader(DataReader):
         return self.filenames
 
     def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
-        for filename in self.filenames:
-            f = h5py.File(filename, 'r')
-            codec = list(map(chr, f['codec']))
-            if text_only:
-                for i, (text, idx) in enumerate(zip(f['transcripts'], range(len(f['transcripts'])))):
-                    text = "".join([codec[c] for c in text])
-                    fold_id = idx % self.n_folds if self.n_folds > 0 else -1
-                    yield InputSample(None, text, SampleMeta(id=f"{filename}/{i}", fold_id=fold_id))
-            else:
-                gen = zip(f['images'], f['images_dims'], f['transcripts'], range(len(f['images'])))
-                if self.mode == PipelineMode.Training:
-                    gen = list(gen)
-                    shuffle(gen)
+        filenames = list(self.filenames)
+        if self.mode == PipelineMode.Training:
+            shuffle(filenames)
 
-                for i, (image, shape, text, idx) in enumerate(gen):
-                    image = np.reshape(image, shape)
-                    text = "".join([codec[c] for c in text])
-                    fold_id = idx % self.n_folds if self.n_folds > 0 else -1
-                    yield InputSample(image, text, SampleMeta(id=f"{filename}/{i}", fold_id=fold_id))
+        for filename in filenames:
+            with h5py.File(filename, 'r') as f:
+                codec = list(map(chr, f['codec']))
+                if text_only:
+                    for i, (text, idx) in enumerate(zip(f['transcripts'], range(len(f['transcripts'])))):
+                        text = "".join([codec[c] for c in text])
+                        fold_id = idx % self.n_folds if self.n_folds > 0 else -1
+                        yield InputSample(None, text, SampleMeta(id=f"{filename}/{i}", fold_id=fold_id))
+                else:
+                    gen = zip(f['images'], f['images_dims'], f['transcripts'], range(len(f['images'])))
+                    if self.mode == PipelineMode.Training:
+                        gen = list(gen)
+                        shuffle(gen)
+
+                    for i, (image, shape, text, idx) in enumerate(gen):
+                        image = np.reshape(image, shape)
+                        text = "".join([codec[c] for c in text])
+                        fold_id = idx % self.n_folds if self.n_folds > 0 else -1
+                        yield InputSample(image, text, SampleMeta(id=f"{filename}/{i}", fold_id=fold_id))
 
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
         raise NotImplementedError
