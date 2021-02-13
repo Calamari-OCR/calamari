@@ -7,7 +7,7 @@ import cv2 as cv
 class ScaleToHeightProcessor(ImageProcessor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.height = self.params.line_height
+        self.height = self.params.line_height_
 
     def _apply_single(self, data, meta):
         scaled = ScaleToHeightProcessor.scale_to_h(data, self.height)

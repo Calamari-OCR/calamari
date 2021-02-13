@@ -1,15 +1,19 @@
+import os
 import tempfile
 import unittest
-import os
 
 from tensorflow import keras
 
 from calamari_ocr.ocr import DataSetType
+from calamari_ocr.ocr.dataset.imageprocessors.data_range_normalizer import DataRangeNormalizer
 from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
+from calamari_ocr.ocr.dataset.imageprocessors.final_preparation import FinalPreparation
+from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessor
 from calamari_ocr.scripts.train import run
 from calamari_ocr.utils import glob_all
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
+
 
 class Attrs():
     def __init__(self):
@@ -77,6 +81,17 @@ class TestSimpleTrain(unittest.TestCase):
 
     def test_simple_train(self):
         args = Attrs()
+        with tempfile.TemporaryDirectory() as d:
+            args.output_dir = d
+            run(args)
+
+    def test_train_without_center_normalizer(self):
+        args = Attrs()
+        args.data_preprocessing = [
+            DataRangeNormalizer.__name__,
+            ScaleToHeightProcessor.__name__,
+            FinalPreparation.__name__,
+        ]
         with tempfile.TemporaryDirectory() as d:
             args.output_dir = d
             run(args)
