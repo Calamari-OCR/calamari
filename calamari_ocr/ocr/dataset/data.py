@@ -34,7 +34,7 @@ class Data(DataBase[DataParams]):
         return CalamariPipeline
 
     @classmethod
-    def get_default_params(cls) -> DataParams:
+    def default_params(cls) -> DataParams:
         params: DataParams = super(Data, cls).default_params()
         params.pre_proc = SequentialProcessorPipelineParams(
             run_parallel=True,
@@ -55,10 +55,6 @@ class Data(DataBase[DataParams]):
             default_text_pre_processors()
         )
         return params
-
-    @staticmethod
-    def get_params_cls():
-        return DataParams
 
     @typechecked
     def __init__(self, params: DataParams):

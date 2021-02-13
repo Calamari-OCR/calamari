@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Type
 
-from paiargparse import pai_dataclass
+from paiargparse import pai_dataclass, pai_meta
 from tfaip.base.data.pipeline.definitions import Sample
 from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
 
@@ -36,7 +36,7 @@ class Impl(MappingDataProcessor[ReshapeOutputs]):
                     outputs[name] = outputs[name][:outputs[out_len]]
 
         reshape_outputs('')
-        for i in range(self.params.ensemble_):
+        for i in range(self.data_params.ensemble):
             reshape_outputs(f"_{i}")
 
         return sample.new_inputs(inputs).new_outputs(outputs)

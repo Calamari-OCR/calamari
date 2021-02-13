@@ -15,7 +15,6 @@ from calamari_ocr.ocr.model.params import LayerParams, LayerType, LSTMDirection,
 class TrainerParams(AIPTrainerParams):
     version: int = SavedCalamariModel.VERSION
 
-    skip_invalid_gt: bool = True
     data_aug_retrain_on_original: bool = True  # Retrain the model with only the non augmented data in a second run
     current_stage: int = 0  # Current training progress: 0 standard, 1 retraining on non aug.
 

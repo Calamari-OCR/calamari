@@ -18,18 +18,10 @@ K = keras.backend
 KL = keras.layers
 
 
-class Model(ModelBase):
-    @staticmethod
-    def get_params_cls() -> Type[ModelBaseParams]:
-        return ModelParams
-
+class Model(ModelBase[ModelParams]):
     @classmethod
-    def _get_additional_layers(cls) -> List[Type[tf.keras.layers.Layer]]:
+    def _additional_layers(cls) -> List[Type[tf.keras.layers.Layer]]:
         return [Graph, EnsembleGraph]
-
-    def __init__(self, params: ModelParams):
-        super(Model, self).__init__(params)
-        self._params: ModelParams = params
 
     def _best_logging_settings(self) -> Tuple[str, str]:
         return "min", "CER"

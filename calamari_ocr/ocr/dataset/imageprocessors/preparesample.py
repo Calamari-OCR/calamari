@@ -37,6 +37,7 @@ class Impl(MappingDataProcessor[PrepareSample]):
         return required_len <= line_len
 
     def apply(self, sample: Sample) -> Sample:
+        assert(self.data_params.downscale_factor > 0)  # Not instantiated yet
         codec = self.data_params.codec
         # final preparation
         text = np.array(codec.encode(sample.targets) if sample.targets else np.zeros((0,), dtype='int32'))

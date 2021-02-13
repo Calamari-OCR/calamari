@@ -4,7 +4,6 @@ from typing import Dict, Type, List, Union
 from calamari_ocr.ocr.dataset import DataSetType
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset.params import PipelineParams
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator
 
 from calamari_ocr.utils import keep_files_with_same_file_name

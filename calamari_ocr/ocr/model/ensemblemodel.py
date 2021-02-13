@@ -17,20 +17,10 @@ K = keras.backend
 KL = keras.layers
 
 
-class EnsembleModel(ModelBase):
-    @staticmethod
-    def get_params_cls() -> Type[ModelBaseParams]:
-        return ModelParams
-
+class EnsembleModel(ModelBase[ModelParams]):
     @classmethod
-    def _get_additional_layers(cls) -> List[Type[tf.keras.layers.Layer]]:
+    def _additional_layers(cls) -> List[Type[tf.keras.layers.Layer]]:
         return [EnsembleGraph]
-
-    def __init__(self, params: ModelParams):
-        super(EnsembleModel, self).__init__(params)
-        assert(params.ensemble is not None)  # Voter variable not set
-        assert(params.ensemble > 1)  # At least 2 voters required
-        self._params: ModelParams = params
 
     def _best_logging_settings(self) -> Tuple[str, str]:
         return "min", "CER"

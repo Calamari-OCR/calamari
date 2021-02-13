@@ -122,11 +122,8 @@ class CalamariDataGenerator(DataGenerator[T], ABC):
             sample['fold_id'] = -1  # dummy fold ID
         self._samples.append(sample)
 
-    def store_text(self, sentence, sample, output_dir, extension):
-        output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
-        bn = sample.get('base_name', sample['id'])
-        with codecs.open(os.path.join(output_dir, bn + extension), 'w', 'utf-8') as f:
-            f.write(sentence)
+    def store_text_prediction(self, sentence, sample_id, output_dir):
+        raise NotImplementedError
 
     def store_extended_prediction(self, data, sample, output_dir, extension):
         bn = sample.get('base_name', sample['id'])

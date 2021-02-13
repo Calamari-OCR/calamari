@@ -1,30 +1,24 @@
+import argparse
+import json
+import os
 from random import shuffle
 
 import tfaip.util.logging
-import argparse
-import os
-import json
-
+from paiargparse import PAIArgumentParser
 from tfaip.base.data.pipeline.definitions import INPUT_PROCESSOR, \
     TARGETS_PROCESSOR, PipelineMode
-from tfaip.base.data.pipeline.processor.params import DataProcessorPipelineParams, SequentialProcessorPipelineParams
+
 from tfaip.util.logging import setup_log
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 
 from calamari_ocr import __version__
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset import TextGeneratorParams, LineGeneratorParams
-from calamari_ocr.ocr.dataset.params import DataParams, PipelineParams
-from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs
-from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessor
-from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessor
-from calamari_ocr.ocr.dataset.postprocessors.ctcdecoder import CTCDecoderProcessor, CTCDecoder
-from calamari_ocr.ocr.dataset.postprocessors.reshape import ReshapeOutputsProcessor, ReshapeOutputs
+from calamari_ocr.ocr.dataset.params import DataParams
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
-from calamari_ocr.ocr.dataset.textprocessors import TextNormalizer, TextRegularizer, StripTextProcessor, \
-    BidiTextProcessor
 from calamari_ocr.ocr.dataset.textprocessors.text_regularizer import default_text_regularizer_replacements
+from calamari_ocr.ocr.scenario import Scenario
 from calamari_ocr.ocr.training.params import params_from_definition_string, TrainerParams
 from calamari_ocr.utils import glob_all
 from calamari_ocr.ocr.dataset import DataSetType
@@ -32,15 +26,46 @@ from calamari_ocr.ocr.dataset import DataSetType
 
 logger = tfaip.util.logging.logger(__name__)
 
+def run():
+    main(parse_args())
 
-def setup_train_args(parser, omit=None):
+def main(args):
+    trainer_params = args.trainer
+    if trainer_params.checkpoint_dir:
+        setup_log(trainer_params.checkpoint_dir, append=False)
+
+    logger.info("trainer_params=" + trainer_params.to_json(indent=2))
+
+    # create the trainer and run it
+    trainer = Scenario.create_trainer(trainer_params)
+    trainer.train()
+
+
+def parse_args(args=None):
+    parser = PAIArgumentParser()
+
+    default_trainer_params = Scenario.default_trainer_params()
+    parser.add_root_argument('trainer', default_trainer_params.__class__, default=default_trainer_params)
+
+    return parser.parse_args(args)
+
+
+if __name__ == '__main__':
+    run()
+
+
+def setup_train_args(parser: PAIArgumentParser, omit=None):
+    parser.add_root_argument('root', TrainerParams)
+
+    parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
+
+    return
+
     # required params for args
     from calamari_ocr.ocr.dataset.data import Data
 
     if omit is None:
         omit = []
-
-    parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
 
     if "files" not in omit:
         parser.add_argument("--files", nargs="+", default=[],
@@ -180,21 +205,14 @@ def setup_train_args(parser, omit=None):
     parser.add_argument("--train_verbose", default=1)
 
 
-def check_train_args(args):
-    # set defaults
-    if args.validation_dataset is None:
-        args.validation_dataset = args.dataset
-    if args.validation_extension is None:
-        args.validation_extension = args.gt_extension
-
-
 def run(args):
     # local imports (to prevent tensorflow from being imported to early)
     from calamari_ocr.ocr.scenario import Scenario
     from calamari_ocr.ocr.dataset.data import Data
 
     # check if loading a json file
-    if len(args.files) == 1 and args.files[0].endswith("json"):
+    # TODO: support json
+    if False and len(args.files) == 1 and args.files[0].endswith("json"):
         with open(args.files[0], 'r') as f:
             json_args = json.load(f)
             for key, value in json_args.items():
@@ -202,8 +220,6 @@ def run(args):
                     setattr(args, key, DataSetType.from_string(value))
                 else:
                     setattr(args, key, value)
-
-    check_train_args(args)
 
     if args.output_dir is not None:
         args.output_dir = os.path.abspath(args.output_dir)
@@ -313,72 +329,14 @@ def run(args):
                              "e.g. --validation_split_ratio 0.2 to use 20% for validation and 80% for training")
         data_params.val = None
 
-    data_params.pre_proc = SequentialProcessorPipelineParams(run_parallel=True)
-    data_params.post_proc = SequentialProcessorPipelineParams(
-        run_parallel=False, processors=[
-            ReshapeOutputs(),
-            CTCDecoder(),
-        ])
-
-    for p in args.data_preprocessing:
-        p_p = Data.data_processor_factory().processors[p].default_params()
-        if 'pad' in p_p:
-            p_p['pad'] = args.pad
-        data_params.pre_processors_.sample_processors.append(DataProcessorFactoryParams(p, INPUT_PROCESSOR, p_p))
-
-    # Text pre processing (reading)
-    data_params.pre_processors_.sample_processors.extend(
-        [
-            DataProcessorFactoryParams(TextNormalizer.__name__, TARGETS_PROCESSOR, {'unicode_normalization': args.text_normalization}),
-            DataProcessorFactoryParams(TextRegularizer.__name__, TARGETS_PROCESSOR, {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
-            DataProcessorFactoryParams(StripTextProcessor.__name__, TARGETS_PROCESSOR)
-        ])
-
-    # Text post processing (prediction)
-    data_params.post_processors_.sample_processors.extend(
-        [
-            DataProcessorFactoryParams(TextNormalizer.__name__, TARGETS_PROCESSOR,
-                                       {'unicode_normalization': args.text_normalization}),
-            DataProcessorFactoryParams(TextRegularizer.__name__, TARGETS_PROCESSOR,
-                                       {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
-            DataProcessorFactoryParams(StripTextProcessor.__name__, TARGETS_PROCESSOR)
-        ])
-    if args.bidi_dir:
-        data_params.pre_processors_.sample_processors.append(
-            DataProcessorFactoryParams(BidiTextProcessor.__name__, TARGETS_PROCESSOR, {'bidi_direction': args.bidi_dir})
-        )
-        data_params.post_processors_.sample_processors.append(
-            DataProcessorFactoryParams(BidiTextProcessor.__name__, TARGETS_PROCESSOR, {'bidi_direction': args.bidi_dir})
-        )
-
-    data_params.pre_processors_.sample_processors.extend([
-        DataProcessorFactoryParams(AugmentationProcessor.__name__, {PipelineMode.Training}, {'augmenter_type': 'simple'}),
-        DataProcessorFactoryParams(PrepareSampleProcessor.__name__, INPUT_PROCESSOR),
-    ])
-
-    data_params.data_aug_params = DataAugmentationAmount.from_factor(args.n_augmentations)
-    data_params.line_height_ = args.line_height
-
     # =================================================================================================================
     # Trainer Params
-    params.calc_ema = args.ema_weights
-    params.verbose = args.train_verbose
-    params.force_eager = args.debug
-    params.skip_model_load_test = not args.debug
-    params.scenario_params.debug_graph_construction = args.debug
-    params.epochs = args.epochs
     params.samples_per_epoch = int(args.samples_per_epoch) if args.samples_per_epoch >= 1 else -1
     params.scale_epoch_size = abs(args.samples_per_epoch) if args.samples_per_epoch < 1 else 1
-    params.skip_load_model_test = True
-    params.scenario_params.export_frozen = False
     params.checkpoint_save_freq_ = args.checkpoint_frequency if args.checkpoint_frequency >= 0 else args.early_stopping_frequency
     params.checkpoint_dir = args.output_dir
-    params.test_every_n = args.display
-    params.skip_invalid_gt = not args.no_skip_invalid_gt
     params.data_aug_retrain_on_original = not args.only_train_on_augmented
     params.use_training_as_validation = args.use_train_as_val
-    if args.seed > 0:
-        params.random_seed = args.seed
 
     params.optimizer_params.clip_grad = args.gradient_clipping_norm
     params.codec_whitelist = whitelist
@@ -390,33 +348,7 @@ def run(args):
     params.auto_compute_codec = not args.no_auto_compute_codec
     params.progress_bar = not args.no_progress_bars
 
-    params.early_stopping_params.frequency = args.early_stopping_frequency
-    params.early_stopping_params.upper_threshold = 0.9
-    params.early_stopping_params.lower_threshold = 1.0 - args.early_stopping_at_accuracy
-    params.early_stopping_params.n_to_go = args.early_stopping_nbest
     params.early_stopping_params.best_model_name = ''
     params.early_stopping_params.best_model_output_dir = args.early_stopping_best_model_output_dir
     params.scenario_params.default_serve_dir_ = f'{args.early_stopping_best_model_prefix}.ckpt.h5'
     params.scenario_params.trainer_params_filename_ = f'{args.early_stopping_best_model_prefix}.ckpt.json'
-
-    # =================================================================================================================
-    # Model params
-    params_from_definition_string(args.network, params)
-    params.scenario_params.model_params.ensemble = args.ensemble
-    params.scenario_params.model_params.masking_mode = args.masking_mode
-
-    scenario = Scenario(params.scenario_params)
-    trainer = scenario.create_trainer(params)
-    trainer.train()
-
-
-def main(args=None):
-    if args is None:
-        parser = argparse.ArgumentParser()
-        setup_train_args(parser)
-        args = parser.parse_args()
-    run(args)
-
-
-if __name__ == "__main__":
-    main()

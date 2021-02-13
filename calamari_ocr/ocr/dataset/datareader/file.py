@@ -28,7 +28,10 @@ class FileDataParams(CalamariDataGeneratorParams):
     ))
     texts: Optional[List[str]] = field(default=None)
     gt_extension: str = field(default='.gt.txt', metadata=pai_meta(
-        help="Default extension of the gt files (expected to exist in same dir)"
+        help="Extension of the gt files (expected to exist in same dir)"
+    ))
+    pred_extension: str = field(default='.pred.txt', metadata=pai_meta(
+        help="Extension of prediction text files"
     ))
 
     @staticmethod
@@ -175,3 +178,10 @@ class FileDataGenerator(CalamariDataGenerator[FileDataParams]):
             return None
 
         return img
+
+    def store_text_prediction(self, sentence, sample_id, output_dir):
+        sample = self.sample_by_id(sample_id)
+        output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
+        bn = sample.get('base_name', sample['id'])
+        with codecs.open(os.path.join(output_dir, bn + self.params.extension), 'w', 'utf-8') as f:
+            f.write(sentence)

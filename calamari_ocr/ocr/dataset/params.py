@@ -38,62 +38,8 @@ def decoder(t):
     return _decode
 
 
-@dataclass
-class PipelineParams(DataGeneratorParams):
-    type: Union[DataSetType, str] = None  # str if custom dataset
-    skip_invalid: bool = True
-    remove_invalid: bool = True
-    files: List[str] = None
-    text_files: Optional[List[str]] = None
-    gt_extension: Optional[str] = None
-    n_folds: int = -1
-
-    def prepare_for_mode(self, mode: PipelineMode) -> 'PipelineParams':
-        from calamari_ocr.ocr.dataset.datareader.factory import DataReaderFactory
-        assert (self.type is not None)
-        params_out = deepcopy(self)
-        # Training dataset
-        logger.info("Resolving input files")
-        if isinstance(self.type, str):
-            try:
-                self.type = DataSetType.from_string(self.type)
-            except ValueError:
-                # Not a valid type, must be custom
-                if self.type not in DataReaderFactory.CUSTOM_READERS:
-                    raise KeyError(f"DataSetType {self.type} is neither a standard DataSetType or preset as custom "
-                                   f"reader ({list(DataReaderFactory.CUSTOM_READERS.keys())})")
-        if not isinstance(self.type, str) and self.type not in {DataSetType.RAW, DataSetType.GENERATED_LINE}:
-            input_image_files = sorted(glob_all(self.files)) if self.files else None
-
-            if not self.text_files:
-                if self.gt_extension:
-                    gt_txt_files = [split_all_ext(f)[0] + self.gt_extension for f in input_image_files]
-                else:
-                    gt_txt_files = None
-            else:
-                gt_txt_files = sorted(glob_all(self.text_files))
-                if mode in INPUT_PROCESSOR:
-                    input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
-                    for img, gt in zip(input_image_files, gt_txt_files):
-                        if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:
-                            raise Exception("Expected identical basenames of file: {} and {}".format(img, gt))
-                else:
-                    input_image_files = None
-
-            if mode in {PipelineMode.Training, PipelineMode.Evaluation}:
-                if len(set(gt_txt_files)) != len(gt_txt_files):
-                    logger.warning("Some ground truth text files occur more than once in the data set "
-                                   "(ignore this warning, if this was intended).")
-                if len(set(input_image_files)) != len(input_image_files):
-                    logger.warning("Some images occur more than once in the data set. "
-                                   "This warning should usually not be ignored.")
-
-            params_out.files = input_image_files
-            params_out.text_files = gt_txt_files
-        return params_out
-
-
 DATA_GENERATOR_CHOICES = [FileDataParams, PageXML, Abbyy, Hdf5]
+
 
 @pai_dataclass
 @dataclass

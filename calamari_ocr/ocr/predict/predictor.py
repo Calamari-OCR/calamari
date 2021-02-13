@@ -44,7 +44,7 @@ class MultiPredictor(tfaip_cls.MultiModelPredictor):
         if predictor_params is None:
             predictor_params = PredictorParams(silent=True, progress_bar=True)
 
-        DeviceConfig(predictor_params.device_params)
+        DeviceConfig(predictor_params.device)
         checkpoints = [SavedCalamariModel(ckpt, auto_update=auto_update_checkpoints) for ckpt in checkpoints]
         multi_predictor = super(MultiPredictor, cls).from_paths(
             [ckpt.json_path for ckpt in checkpoints],

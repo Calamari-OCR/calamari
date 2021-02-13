@@ -31,7 +31,7 @@ class Impl(MappingDataProcessor[CTCDecoder]):
                  mode: PipelineMode,
                  ):
         super().__init__(params, data_params, mode)
-        self.ctc_decoder = create_ctc_decoder(params.codec, self.params.ctc_decoder_params)
+        self.ctc_decoder = create_ctc_decoder(data_params.codec, self.params.ctc_decoder_params)
 
     def apply(self, sample: Sample) -> Sample:
         if sample.targets and 'gt' in sample.targets:
@@ -45,7 +45,7 @@ class Impl(MappingDataProcessor[CTCDecoder]):
 
             outputs = decode("")
             outputs.voter_predictions = []
-            for i in range(self.params.ensemble_):
+            for i in range(self.data_params.ensemble):
                 outputs.voter_predictions.append(decode(f"_{i}"))
 
             sample = sample.new_outputs(outputs)
