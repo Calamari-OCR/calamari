@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from tfaip.base.data.pipeline.dataprocessor import DataProcessor
 from tfaip.base.data.pipeline.definitions import Sample
+from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, T
 
 
-class ImageProcessor(DataProcessor, ABC):
+class ImageProcessor(MappingDataProcessor[T], ABC):
     def apply(self, sample: Sample) -> Sample:
         return sample.new_inputs(self._apply_single(sample.inputs, sample.meta))
 
@@ -11,10 +11,5 @@ class ImageProcessor(DataProcessor, ABC):
         return x
 
     @abstractmethod
-    def _apply_single(self, data, meta):
-        return data
-
-
-class NoopDataPreprocessor(ImageProcessor):
     def _apply_single(self, data, meta):
         return data

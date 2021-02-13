@@ -1,6 +1,7 @@
 from enum import IntEnum
 
 
+# TODO: REMOVE THIS
 class DataSetType(IntEnum):
     RAW = 0
     FILE = 1

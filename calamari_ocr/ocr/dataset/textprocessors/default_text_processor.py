@@ -1,24 +1,23 @@
 from typing import List
 
-from tfaip.base.data.pipeline.definitions import DataProcessorFactoryParams
+from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
 
-from calamari_ocr.ocr.dataset.textprocessors import BidiTextProcessor, StripTextProcessor, TextNormalizer, \
-    TextRegularizer
+from calamari_ocr.ocr.dataset.textprocessors import BidiText, StripText, TextNormalizer, TextRegularizer
 
 
-def default_text_pre_processors() -> List[DataProcessorFactoryParams]:
+def default_text_pre_processors() -> List[DataProcessorParams]:
     return [
-        DataProcessorFactoryParams(BidiTextProcessor.__name__),
-        DataProcessorFactoryParams(StripTextProcessor.__name__),
-        DataProcessorFactoryParams(TextNormalizer.__name__),
-        DataProcessorFactoryParams(TextRegularizer.__name__),
+        BidiText(),
+        StripText(),
+        TextNormalizer(),
+        TextRegularizer(),
     ]
 
 
-def default_text_post_processors() -> List[DataProcessorFactoryParams]:
+def default_text_post_processors() -> List[DataProcessorParams]:
     return [
-        DataProcessorFactoryParams(TextNormalizer.__name__),
-        DataProcessorFactoryParams(TextRegularizer.__name__),
-        DataProcessorFactoryParams(StripTextProcessor.__name__),
-        DataProcessorFactoryParams(BidiTextProcessor.__name__),
+        TextNormalizer(),
+        TextRegularizer(),
+        StripText(),
+        BidiText(),
     ]

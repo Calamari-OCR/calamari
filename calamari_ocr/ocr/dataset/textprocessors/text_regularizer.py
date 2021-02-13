@@ -1,8 +1,11 @@
 import re
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, field
+from typing import List, Type, Optional, Iterable
 
 from dataclasses_json import dataclass_json
+from paiargparse import pai_dataclass, pai_meta
+from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
+from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 
@@ -77,7 +80,7 @@ class Replacement:
     regex: bool = False
 
 
-def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement]:
+def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -> List[Replacement]:
     r = []
     groups = parse_groups(groups)
 
@@ -347,17 +350,28 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
     return r
 
 
-class TextRegularizer(TextProcessor):
-    @staticmethod
-    def default_params() -> dict:
-        return {'replacements': [r for r in default_text_regularizer_replacements()]}
+@pai_dataclass
+@dataclass
+class TextRegularizer(DataProcessorParams):
+    # TODO: groups as enums
+    replacement_groups: List[str] = field(default_factory=lambda: ["extended"], metadata=pai_meta(
+        help="Text regularization to apply."
+    ))
+    replacements: Optional[List[Replacement]] = field(default=None, metadata=pai_meta(mode='ignore'))
 
-    def __init__(self, replacements: List[Replacement], **kwargs):
-        super().__init__(**kwargs)
-        self.replacements = [(r if isinstance(r, Replacement) else Replacement.from_dict(r)) for r in replacements]
+    @staticmethod
+    def cls() -> Type['TextProcessor']:
+        return Impl
+
+
+class Impl(TextProcessor[TextRegularizer]):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, *kwargs)
+        if self.params.replacements is None:
+            self.params.replacements = default_text_regularizer_replacements(self.params.replacement_groups)
 
     def _apply_single(self, txt, meta):
-        for replacement in self.replacements:
+        for replacement in self.params.replacements:
             if replacement.regex:
                 txt = re.sub(replacement.old, replacement.new, txt)
             else:
@@ -367,6 +381,6 @@ class TextRegularizer(TextProcessor):
 
 
 if __name__ == "__main__":
-    n = TextRegularizer(default_text_regularizer_replacements(groups=["quotes", "spaces"]))
-    assert (n.apply(["“Resolve quotes”"]) == ["''Resolve quotes''"])
-    assert (n.apply(["  “Resolve   spaces  ”   "]) == ["''Resolve spaces ''"])
+    n = TextRegularizer(replacement_groups=["quotes", "spaces"]).create(None, mode=PipelineMode.Training)
+    assert (n(Sample(targets="“Resolve quotes”")).targets == "''Resolve quotes''")
+    assert (n(Sample(targets="  “Resolve   spaces  ”   ")).targets == "''Resolve spaces ''")

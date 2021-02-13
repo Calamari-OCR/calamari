@@ -1,2 +1,2 @@
-from .augmentation import AugmentationProcessor
-from .preparesample import PrepareSampleProcessor
+from .augmentation import Augmentation
+from .preparesample import PrepareSample

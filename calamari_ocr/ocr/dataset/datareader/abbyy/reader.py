@@ -1,58 +1,66 @@
 import os
-import numpy as np
+from dataclasses import dataclass, field
 from typing import List, Generator
-from PIL import Image
-from tfaip.base.data.pipeline.definitions import PipelineMode, TARGETS_PROCESSOR, INPUT_PROCESSOR
 
-from calamari_ocr.ocr.dataset.params import InputSample, SampleMeta
-from calamari_ocr.ocr.dataset.datareader.abbyy.xml import XMLReader, XMLWriter
+import numpy as np
+from paiargparse import pai_dataclass, pai_meta
+from tfaip.base.data.pipeline.definitions import PipelineMode, TARGETS_PROCESSOR, INPUT_PROCESSOR
 from tqdm import tqdm
 
-from calamari_ocr.ocr.dataset.datareader.base import DataReader
-from calamari_ocr.utils import split_all_ext
+from calamari_ocr.ocr.dataset.datareader.abbyy.xml import XMLReader, XMLWriter
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams, InputSample, \
+    SampleMeta
+from calamari_ocr.utils import split_all_ext, glob_all, keep_files_with_same_file_name
 from calamari_ocr.utils.image import load_image
 
 
-class AbbyyReader(DataReader):
+@pai_dataclass
+@dataclass
+class Abbyy(CalamariDataGeneratorParams):
+    images: List[str] = field(default_factory=list, metadata=pai_meta(required=True))
+    xml_files: List[str] = field(default_factory=list)
+    gt_extension: str = field(default='.abbyy.xml', metadata=pai_meta(
+        help="Default extension of the gt files (expected to exist in same dir)"
+    ))
+    binary: bool = False
+
+    @staticmethod
+    def cls():
+        return AbbyyGenerator
+
+    def prepare_for_mode(self, mode: PipelineMode):
+        input_image_files = sorted(glob_all(self.images)) if self.images else None
+
+        if not self.xml_files:
+            gt_txt_files = [split_all_ext(f)[0] + self.gt_extension for f in
+                            input_image_files] if self.gt_extension else None
+        else:
+            gt_txt_files = sorted(glob_all(self.xml_files))
+            if mode in INPUT_PROCESSOR:
+                input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
+                for img, gt in zip(input_image_files, gt_txt_files):
+                    if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:
+                        raise Exception(f"Expected identical basenames of file: {img} and {gt}")
+            else:
+                input_image_files = None
+
+        self.images = input_image_files
+        self.xml_files = gt_txt_files
+        if len(self.xml_files) == 0:
+            self.xml_files = [split_all_ext(p)[0] + self.gt_extension for p in self.xml_files]
+
+        if len(self.images) == 0:
+            self.images = [None] * len(self.xml_files)
+
+
+class AbbyyGenerator(CalamariDataGenerator[Abbyy]):
     def __init__(self,
                  mode: PipelineMode,
-                 files: List[str] = None,
-                 xmlfiles: List[str] = None,
-                 skip_invalid=False,
-                 remove_invalid=True,
-                 binary=False,
-                 non_existing_as_empty=False,
+                 params: Abbyy,
                  ):
+        super().__init__(mode, params)
 
-        """ Create a dataset from a Path as String
-
-        Parameters
-         ----------
-        files : [], required
-            image files
-        skip_invalid : bool, optional
-            skip invalid files
-        remove_invalid : bool, optional
-            remove invalid files
-        """
-
-        super().__init__(
-            mode,
-            skip_invalid, remove_invalid)
-
-        self.xmlfiles = xmlfiles if xmlfiles else []
-        self.files = files if files else []
-
-        self._non_existing_as_empty = non_existing_as_empty
-        if len(self.xmlfiles) == 0:
-            from calamari_ocr.ocr.dataset import DataSetType
-            self.xmlfiles = [split_all_ext(p)[0] + DataSetType.gt_extension(DataSetType.ABBYY) for p in files]
-
-        if len(self.files) == 0:
-            self.files = [None] * len(self.xmlfiles)
-
-        self.book = XMLReader(self.files, self.xmlfiles, skip_invalid, remove_invalid).read()
-        self.binary = binary
+        self.book = XMLReader(self.params.images, self.params.xml_files, self.params.skip_invalid).read()
 
         for p, page in enumerate(self.book.pages):
             for l, line in enumerate(page.getLines()):
@@ -60,7 +68,8 @@ class AbbyyReader(DataReader):
                     self.add_sample({
                         "image_path": page.imgFile,
                         "xml_path": page.xmlFile,
-                        "id": "{}_{}_{}_{}".format(os.path.splitext(page.xmlFile if page.xmlFile else page.imgFile)[0], p, l, f),
+                        "id": "{}_{}_{}_{}".format(os.path.splitext(page.xmlFile if page.xmlFile else page.imgFile)[0],
+                                                   p, l, f),
                         "line": line,
                         "format": fo,
                     })
@@ -74,14 +83,14 @@ class AbbyyReader(DataReader):
             XMLWriter.write(page, split_all_ext(page.xmlFile)[0] + extension)
 
     def _sample_iterator(self):
-        return zip(self.files, self.xmlfiles)
+        return zip(self.params.images, self.params.xml_files)
 
     def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
         fold_id = -1
         for p, page in enumerate(self.book.pages):
             if self.mode in INPUT_PROCESSOR:
                 img = load_image(page.imgFile)
-                if self.binary:
+                if self.params.binary:
                     img = img > 0.9
             else:
                 img = None
@@ -89,7 +98,8 @@ class AbbyyReader(DataReader):
             for l, line in enumerate(page.getLines()):
                 for f, fo in enumerate(line.formats):
                     fold_id += 1
-                    sample_id = "{}_{}_{}_{}".format(os.path.splitext(page.xmlFile if page.xmlFile else page.imgFile)[0], p, l, f)
+                    sample_id = "{}_{}_{}_{}".format(
+                        os.path.splitext(page.xmlFile if page.xmlFile else page.imgFile)[0], p, l, f)
                     text = None
                     if self.mode in TARGETS_PROCESSOR:
                         text = fo.text

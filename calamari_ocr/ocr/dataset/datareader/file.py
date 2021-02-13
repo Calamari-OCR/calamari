@@ -1,45 +1,99 @@
 import codecs
 import os
+from copy import deepcopy
+from dataclasses import dataclass, field
+from typing import List, Optional
+
 import numpy as np
-from PIL import Image
 import logging
-from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset.params import InputSample, SampleMeta
-from calamari_ocr.ocr.dataset.datareader.base import DataReader
+from paiargparse import pai_dataclass, pai_meta
+from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
 
-from calamari_ocr.utils import split_all_ext
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams, InputSample, \
+    SampleMeta
+
+from calamari_ocr.utils import split_all_ext, glob_all, keep_files_with_same_file_name
 from calamari_ocr.utils.image import load_image
 
 logger = logging.getLogger(__name__)
 
 
-class FileDataReader(DataReader):
+@pai_dataclass
+@dataclass
+class FileDataParams(CalamariDataGeneratorParams):
+    images: Optional[List[str]] = field(default=None, metadata=pai_meta(
+        help="List all image files that shall be processed. Ground truth files with the same "
+             "base name but with '.gt.txt' as extension are required at the same location",
+    ))
+    texts: Optional[List[str]] = field(default=None)
+    gt_extension: str = field(default='.gt.txt', metadata=pai_meta(
+        help="Default extension of the gt files (expected to exist in same dir)"
+    ))
+
+    @staticmethod
+    def cls():
+        return FileDataGenerator
+
+    def __post_init__(self):
+        self.images = [] if self.images is None else self.images
+        self.texts = [] if self.texts is None else self.texts
+
+        # when evaluating, only texts are set via --gt argument      --> need dummy [None] imgs
+        # when predicting, only imags are set via --files  argument  --> need dummy [None] texts
+
+    def prepare_for_mode(self, mode: PipelineMode) -> 'CalamariDataGeneratorParams':
+        # Training dataset
+        logger.info("Resolving input files")
+        input_image_files = sorted(glob_all(self.images)) if self.images else None
+
+        if not self.texts:
+            gt_txt_files = [split_all_ext(f)[0] + self.gt_extension for f in input_image_files] if self.gt_extension else None
+        else:
+            gt_txt_files = sorted(glob_all(self.texts))
+            if mode in INPUT_PROCESSOR:
+                input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
+                for img, gt in zip(input_image_files, gt_txt_files):
+                    if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:
+                        raise Exception(f"Expected identical basenames of file: {img} and {gt}")
+            else:
+                input_image_files = None
+
+        if mode in {PipelineMode.Training, PipelineMode.Evaluation}:
+            if len(set(gt_txt_files)) != len(gt_txt_files):
+                logger.warning("Some ground truth text files occur more than once in the data set "
+                               "(ignore this warning, if this was intended).")
+            if len(set(input_image_files)) != len(input_image_files):
+                logger.warning("Some images occur more than once in the data set. "
+                               "This warning should usually not be ignored.")
+
+        self.images = input_image_files
+        self.texts = gt_txt_files
+        return self
+
+
+
+class FileDataGenerator(CalamariDataGenerator[FileDataParams]):
     def __init__(self,
                  mode: PipelineMode,
-                 images=None, texts=None,
+                 params: FileDataParams,
                  skip_invalid=False, remove_invalid=True,
                  non_existing_as_empty=False):
         """ Create a dataset from a list of files
 
         Images or texts may be empty to create a dataset for prediction or evaluation only.
         """
-        super().__init__(mode,
-                         skip_invalid=skip_invalid,
-                         remove_invalid=remove_invalid)
-        self._non_existing_as_empty = non_existing_as_empty
-
-        images = [] if images is None else images
-        texts = [] if texts is None else texts
-
-        # when evaluating, only texts are set via --gt argument      --> need dummy [None] imgs
-        # when predicting, only imags are set via --files  argument  --> need dummy [None] texts
+        super().__init__(mode, params)
 
         if mode == PipelineMode.Prediction:
-            texts = [None] * len(images)
+            texts = [None] * len(params.images)
+        else:
+            texts = params.texts
 
         if mode == PipelineMode.Targets:
-            images = [None] * len(texts)
+            images = [None] * len(params.texts)
+        else:
+            images = params.images
 
         for image, text in zip(images, texts):
             try:
@@ -51,11 +105,11 @@ class FileDataReader(DataReader):
                     img_path, img_fn = os.path.split(image)
                     img_bn, img_ext = split_all_ext(img_fn)
 
-                    if not self._non_existing_as_empty and not os.path.exists(image):
+                    if not self.params.non_existing_as_empty and not os.path.exists(image):
                         raise Exception("Image at '{}' must exist".format(image))
 
                 if text:
-                    if not self._non_existing_as_empty and not os.path.exists(text):
+                    if not self.params.non_existing_as_empty and not os.path.exists(text):
                         raise Exception("Text file at '{}' must exist".format(text))
 
                     text_path, text_fn = os.path.split(text)
@@ -67,7 +121,7 @@ class FileDataReader(DataReader):
                     ))
             except Exception as e:
                 logger.exception(e)
-                if self.skip_invalid:
+                if self.params.skip_invalid:
                     logger.warning("Exception raised. Invalid data. Skipping invalid example.")
                     continue
                 else:
@@ -97,7 +151,7 @@ class FileDataReader(DataReader):
             return None
 
         if not os.path.exists(gt_txt_path):
-            if self._non_existing_as_empty:
+            if self.params.non_existing_as_empty:
                 return ""
             else:
                 raise Exception("Text file at '{}' does not exist".format(gt_txt_path))
@@ -110,7 +164,7 @@ class FileDataReader(DataReader):
             return None
 
         if not os.path.exists(image_path):
-            if self._non_existing_as_empty:
+            if self.params.non_existing_as_empty:
                 return np.zeros((1, 1), dtype=np.uint8)
             else:
                 raise Exception("Image file at '{}' does not exist".format(image_path))

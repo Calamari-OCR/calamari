@@ -1,24 +1,14 @@
 import os
-from typing import Type
 
-from tfaip.base.scenario.scenariobase import ScenarioBase
+from tfaip.base.scenario.scenariobase import SimpleScenarioBase
 
 from calamari_ocr.ocr.model.model import Model
 from calamari_ocr.ocr.dataset.data import Data
-from calamari_ocr.ocr.model.params import ModelParams
 from calamari_ocr.ocr.model.ensemblemodel import EnsembleModel
 from calamari_ocr.ocr.training.trainer import Trainer
 
 
-class Scenario(ScenarioBase):
-    @classmethod
-    def data_cls(cls) -> Type['Data']:
-        return Data
-
-    @classmethod
-    def model_cls(cls):
-        return Model
-
+class Scenario(SimpleScenarioBase[Data, Model]):
     def create_model(self):
         if self._params.model_params.ensemble <= 0:
             return Model(self._params.model_params)
@@ -34,10 +24,10 @@ class Scenario(ScenarioBase):
         scenario_params = super(Scenario, cls).default_params()
         scenario_params.export_serve = True
         scenario_params.export_frozen = False
-        scenario_params.export_net_config_ = False
-        scenario_params.default_serve_dir_ = 'best.ckpt.h5'
-        scenario_params.scenario_params_filename_ = 'scenario_params.json'  # should never be written!
-        scenario_params.trainer_params_filename_ = 'best.ckpt.json'
+        scenario_params.export_net_config = False
+        scenario_params.default_serve_dir = 'best.ckpt.h5'
+        scenario_params.scenario_params_filename = 'scenario_params.json'  # should never be written!
+        scenario_params.trainer_params_filename = 'best.ckpt.json'
         return scenario_params
 
     @classmethod

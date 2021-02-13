@@ -1,61 +1,60 @@
+from dataclasses import dataclass, field
+from typing import Type
+
 import numpy as np
+from paiargparse import pai_dataclass, pai_meta
+from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
+
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 
 
-class FinalPreparation(ImageProcessor):
+@pai_dataclass
+@dataclass
+class FinalPreparation(DataProcessorParams):
+    normalize: bool = True
+    invert: bool = True
+    transpose: bool = True
+    pad: int = field(default=16, metadata=pai_meta(
+        help="Padding (left right) of the line"
+    ))
+    pad_value: int = 0
+
     @staticmethod
-    def default_params() -> dict:
-        return {
-            'normalize': True,
-            'invert': True,
-            'transpose': True,
-            'pad': 0,
-            'pad_value': False,
-        }
+    def cls() -> Type['ImageProcessor']:
+        return Impl
 
-    def __init__(self,
-                 normalize,
-                 invert,
-                 transpose,
-                 pad,
-                 pad_value,
-                 as_uint8=None,  # Deprecated
-                 **kwargs):
-        super().__init__(**kwargs)
-        self.normalize = normalize
-        self.invert = invert
-        self.transpose = transpose
-        self.pad = pad
-        self.pad_value = pad_value
 
+class Impl(ImageProcessor[FinalPreparation]):
     def _apply_single(self, data, meta):
         if data.size > 0:
             # non empty image
-            if self.normalize:
+            if self.params.normalize:
                 amax = np.amax(data)
                 if amax > 0:
                     data = data * 1.0 / amax
 
-            if self.invert:
+            if self.params.invert:
                 data = np.amax(data) - data
 
-        if self.transpose:
+        if self.params.transpose:
             data = np.swapaxes(data, 1, 0)
 
-        if self.pad > 0:
-            if self.transpose:
+        if self.params.pad > 0:
+            if self.params.transpose:
                 w = data.shape[1]
-                data = np.vstack([np.full((self.pad, w), self.pad_value), data, np.full((self.pad, w), self.pad_value)])
+                data = np.vstack([np.full((self.params.pad, w), self.params.pad_value), data,
+                                  np.full((self.params.pad, w), self.params.pad_value)])
             else:
                 w = data.shape[0]
-                data = np.hstack([np.full((w, self.pad), self.pad_value), data, np.full((w, self.pad), self.pad_value)])
+                data = np.hstack([np.full((w, self.params.pad), self.params.pad_value), data,
+                                  np.full((w, self.params.pad), self.params.pad_value)])
 
         data = (data * 255).astype(np.uint8)
 
         return data
 
     def local_to_global_pos(self, x, params):
-        if self.pad > 0 and self.transpose:
-            return x - self.pad
+        if self.params.pad > 0 and self.params.transpose:
+            return x - self.params.pad
         else:
             return x

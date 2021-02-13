@@ -1,13 +1,25 @@
-from tfaip.base.data.pipeline.dataprocessor import DataProcessor
+from dataclasses import dataclass
+from typing import Type
+
+from paiargparse import pai_dataclass
 from tfaip.base.data.pipeline.definitions import Sample
+from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
 
 
-class ReshapeOutputsProcessor(DataProcessor):
+@pai_dataclass
+@dataclass
+class ReshapeOutputs(DataProcessorParams):
+    @staticmethod
+    def cls() -> Type['MappingDataProcessor']:
+        return Impl
+
+
+class Impl(MappingDataProcessor[ReshapeOutputs]):
     def apply(self, sample: Sample) -> Sample:
         inputs = sample.inputs
         outputs = sample.outputs
-        assert(inputs['img_len'].shape == (1,))
-        assert(inputs['meta'].shape == (1,))
+        assert (inputs['img_len'].shape == (1,))
+        assert (inputs['meta'].shape == (1,))
         inputs = inputs.copy()
         outputs = outputs.copy()
         inputs['img_len'] = inputs['img_len'][0]

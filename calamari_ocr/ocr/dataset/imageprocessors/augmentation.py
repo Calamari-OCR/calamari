@@ -1,23 +1,45 @@
 import copy
+from dataclasses import dataclass, field
 from functools import partial
-from typing import List, Iterable
+from typing import List, Iterable, Type
 
 import numpy as np
+from dataclasses_json import config
+from paiargparse import pai_dataclass, pai_meta
+from tfaip.base.data.pipeline.definitions import Sample
+from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
 from tfaip.util.multiprocessing.parallelmap import parallel_map
 
 from calamari_ocr.ocr.augmentation import SimpleDataAugmenter
-from tfaip.base.data.pipeline.dataprocessor import DataProcessor
-from tfaip.base.data.pipeline.definitions import Sample
+from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
+from calamari_ocr.ocr.dataset.params import encoder, decoder
 
 
-class AugmentationProcessor(DataProcessor):
+@pai_dataclass
+@dataclass
+class Augmentation(DataProcessorParams):
+    data_aug_params: DataAugmentationAmount = field(
+        default=DataAugmentationAmount.from_factor(0),
+        metadata={**config(
+            encoder=encoder,
+            decoder=decoder(DataAugmentationAmount),
+        ), **pai_meta(
+            help="Amount of data augmentation per line (done before training). If this number is < 1 "
+                 "the amount is relative.")
+                  }
+    )
+
+    augmenter_type: str = 'simple'
+
     @staticmethod
-    def default_params() -> dict:
-        return {'augmenter_type': 'simple'}
+    def cls() -> Type['MappingDataProcessor']:
+        return Impl
 
-    def __init__(self, augmenter_type, **kwargs):
-        super(AugmentationProcessor, self).__init__(**kwargs)
-        assert(augmenter_type == 'simple')
+
+class Impl(MappingDataProcessor[Augmentation]):
+    def __init__(self, *args, **kwargs):
+        super(Impl, self).__init__(*args, **kwargs)
+        assert (self.params.augmenter_type == 'simple')
         self.data_augmenter = SimpleDataAugmenter()
 
     def preload(self,
@@ -32,7 +54,8 @@ class AugmentationProcessor(DataProcessor):
 
         apply_fn = partial(self.multi_augment, n_augmentations=n_augmentation, include_non_augmented=True)
         augmented_samples = parallel_map(apply_fn, samples,
-                                         desc="Augmenting data", processes=num_processes, progress_bar=progress_bar)
+                                         desc="Augmenting data", processes=num_processes,
+                                         progress_bar=progress_bar)
         augmented_samples = sum(list(augmented_samples), [])  # Flatten
         return augmented_samples
 
@@ -62,4 +85,3 @@ class AugmentationProcessor(DataProcessor):
             out.append(Sample(inputs=l, targets=t, meta=meta))
 
         return out
-

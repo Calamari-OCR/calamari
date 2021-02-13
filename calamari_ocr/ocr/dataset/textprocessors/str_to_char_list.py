@@ -1,27 +1,32 @@
-from typing import List
+from dataclasses import dataclass, field
+from typing import List, Type
+
+from paiargparse import pai_dataclass
+from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 
 
-class StrToCharList(TextProcessor):
+@pai_dataclass
+@dataclass
+class StrToCharList(DataProcessorParams):
+    chars: List[str] = field(default_factory=list)
+
     @staticmethod
-    def default_params() -> dict:
-        return {'chars': []}
+    def cls() -> Type['TextProcessor']:
+        return Impl
 
-    def __init__(self, chars: List[str], **kwargs):
-        super().__init__(**kwargs)
-        # chars are priority ordered and might be words as-well!
-        self.chars = chars
 
+class Impl(TextProcessor[StrToCharList]):
     def _apply_single(self, txt, meta):
         index = 0
         out = []
         while index < len(txt):
             found = False
-            for char in self.chars:
+            for char in self.params.chars:
                 if len(char) == 0:
                     continue  # blank
-                if txt[index:index+len(char)] == char:
+                if txt[index:index + len(char)] == char:
                     out.append(char)
                     index += len(char)
                     found = True
@@ -34,4 +39,3 @@ class StrToCharList(TextProcessor):
                 raise Exception("Could not parse remainder '{}' of '{}'".format(txt[index:], txt))
 
         return out
-

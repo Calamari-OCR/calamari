@@ -1,42 +1,39 @@
+from dataclasses import dataclass, field
 from random import shuffle
-from typing import Generator
+from typing import Generator, List
 
+from paiargparse import pai_dataclass, pai_meta
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset.params import InputSample, SampleMeta
 import numpy as np
 import h5py
 
-from calamari_ocr.ocr.dataset.datareader.base import DataReader
-from calamari_ocr.utils import split_all_ext
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, InputSample, SampleMeta, \
+    CalamariDataGeneratorParams
+from calamari_ocr.utils import split_all_ext, glob_all
 
 
-class Hdf5Reader(DataReader):
-    def __init__(self, mode: PipelineMode,
-                 images=None, texts=None,
-                 ):
-        """ Create a dataset from memory
+@pai_dataclass
+@dataclass
+class Hdf5(CalamariDataGeneratorParams):
+    files: List[str] = field(default_factory=list, metadata=pai_meta(required=True))
 
-        Since this dataset already contains all data in the memory, this dataset may not be loaded
+    @staticmethod
+    def cls():
+        return Hdf5Generator
 
-        Parameters
-        ----------
-        images : list of images
-            the images of the dataset
-        texts : list of str
-            the texts of this dataset
-        """
-        super().__init__(mode)
+    def prepare_for_mode(self, mode: PipelineMode):
+        self.files = sorted(glob_all(self.files))
 
-        images = images if images is not None else []
-        texts = texts if texts is not None else []
-        self.filenames = [i for i in set(images + texts) if i is not None]
 
+class Hdf5Generator(CalamariDataGenerator[Hdf5]):
+    def __init__(self, mode: PipelineMode, params: Hdf5):
+        super(Hdf5Generator, self).__init__(mode, params)
         self.prediction = None
         if mode == PipelineMode.Prediction or mode == PipelineMode.Evaluation:
             self.prediction = {}
 
-        for filename in self.filenames:
+        for filename in self.params.files:
             f = h5py.File(filename, 'r')
             codec = list(map(chr, f['codec']))
             if mode == PipelineMode.Prediction or mode == PipelineMode.Evaluation:
@@ -67,10 +64,10 @@ class Hdf5Reader(DataReader):
                 file.create_dataset('codec', data=list(map(ord, codec)))
 
     def _sample_iterator(self):
-        return self.filenames
+        return self.params.files
 
     def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
-        filenames = list(self.filenames)
+        filenames = list(self.params.files)
         if self.mode == PipelineMode.Training:
             shuffle(filenames)
 
@@ -80,7 +77,7 @@ class Hdf5Reader(DataReader):
                 if text_only:
                     for i, (text, idx) in enumerate(zip(f['transcripts'], range(len(f['transcripts'])))):
                         text = "".join([codec[c] for c in text])
-                        fold_id = idx % self.n_folds if self.n_folds > 0 else -1
+                        fold_id = idx % self.params.n_folds if self.params.n_folds > 0 else -1
                         yield InputSample(None, text, SampleMeta(id=f"{filename}/{i}", fold_id=fold_id))
                 else:
                     gen = zip(f['images'], f['images_dims'], f['transcripts'], range(len(f['images'])))
@@ -91,7 +88,7 @@ class Hdf5Reader(DataReader):
                     for i, (image, shape, text, idx) in enumerate(gen):
                         image = np.reshape(image, shape)
                         text = "".join([codec[c] for c in text])
-                        fold_id = idx % self.n_folds if self.n_folds > 0 else -1
+                        fold_id = idx % self.params.n_folds if self.params.n_folds > 0 else -1
                         yield InputSample(image, text, SampleMeta(id=f"{filename}/{i}", fold_id=fold_id))
 
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:

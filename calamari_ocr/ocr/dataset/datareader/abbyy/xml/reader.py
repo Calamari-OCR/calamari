@@ -14,7 +14,7 @@ class XMLReader:
     This class can read Abbyy documents out of a directory
     """
 
-    def __init__(self, imgfiles: [], abbyfiles: [], skip_invalid: bool, remove_invalid: bool):
+    def __init__(self, imgfiles: [], abbyfiles: [], skip_invalid: bool):
 
         """
         Constructs an XMLReader class with the :param directory
@@ -25,7 +25,6 @@ class XMLReader:
         self.imgfiles = imgfiles
         self.xmlfiles = abbyfiles
         self.skip_invalid = skip_invalid
-        self.remove_invalid = remove_invalid
 
     def read(self) -> Book:
 

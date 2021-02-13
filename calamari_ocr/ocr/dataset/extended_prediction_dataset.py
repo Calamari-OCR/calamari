@@ -2,7 +2,7 @@ import zlib
 
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset.datareader.base import DataReader
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator
 from calamari_ocr.ocr.predict.params import Predictions
 from calamari_ocr.utils import split_all_ext
 
@@ -10,7 +10,7 @@ import codecs
 from typing import List
 
 
-class ExtendedPredictionDataSet(DataReader):
+class ExtendedPredictionDataSet(CalamariDataGenerator):
     def __init__(self, texts: List[str] = None):
         super().__init__(PipelineMode.Evaluation)
 

@@ -1,23 +1,35 @@
+from dataclasses import dataclass, field
+from typing import Type, Tuple
+
 import numpy as np
 import cv2 as cv
-from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessor
+from paiargparse import pai_dataclass
+from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
+
+from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import scale_to_h
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 
 
-class CenterNormalizer(ImageProcessor):
-    @staticmethod
-    def default_params() -> dict:
-        return {
-            'extra_params': (4, 1.0, 0.3),
-        }
+@pai_dataclass
+@dataclass
+class CenterNormalizer(DataProcessorParams):
+    extra_params: Tuple[int, int, int] = (4, 1.0, 0.3)
+    line_height: int = field(default=-1)
 
-    def __init__(self, extra_params=(4, 1.0, 0.3), debug=False, **kwargs):
-        super().__init__(**kwargs)
-        self.debug = debug
-        self.target_height = self.params.line_height_
-        self.range, self.smoothness, self.extra = extra_params
+    @staticmethod
+    def cls() -> Type['ImageProcessor']:
+        return Impl
+
+
+class Impl(ImageProcessor[CenterNormalizer]):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.debug = False
+        self.target_height = self.params.line_height
+        self.range, self.smoothness, self.extra = self.params.extra_params
 
     def _apply_single(self, data, meta):
+        assert (self.target_height > 0)  # Not set yet
         out, params = self.normalize(data.astype(np.uint8))
         meta['center'] = params
         return out
@@ -27,12 +39,12 @@ class CenterNormalizer(ImageProcessor):
 
     def measure(self, line):
         h, w = line.shape
-        smoothed = cv.GaussianBlur(line, (0, 0), sigmaX=h*self.smoothness, sigmaY=h*.5,
+        smoothed = cv.GaussianBlur(line, (0, 0), sigmaX=h * self.smoothness, sigmaY=h * .5,
                                    borderType=cv.BORDER_CONSTANT)
-        smoothed += .001 * cv.blur(smoothed, (w, int(h*.5)), borderType=cv.BORDER_CONSTANT)
+        smoothed += .001 * cv.blur(smoothed, (w, int(h * .5)), borderType=cv.BORDER_CONSTANT)
 
         a = np.argmax(smoothed, axis=0).astype(np.uint16)
-        kernel = cv.getGaussianKernel(int((8.*h*self.extra)+1), h*self.extra)
+        kernel = cv.getGaussianKernel(int((8. * h * self.extra) + 1), h * self.extra)
         center = cv.filter2D(a, cv.CV_16U, kernel, borderType=cv.BORDER_REFLECT).flatten()
 
         deltas = abs(np.arange(h)[:, np.newaxis] - center[np.newaxis, :])
@@ -76,8 +88,8 @@ class CenterNormalizer(ImageProcessor):
         padded = cv.copyMakeBorder(img, hpad, hpad, 0, 0, cv.BORDER_CONSTANT, value=cval)
 
         center = center + hpad - r
-        new_h = 2*r
-        dewarped = [padded[c:c+new_h, i] for i, c in enumerate(center)]
+        new_h = 2 * r
+        dewarped = [padded[c:c + new_h, i] for i, c in enumerate(center)]
 
         # transpose and convert
         dewarped = np.swapaxes(np.array(dewarped, dtype=np.uint8), 1, 0)
@@ -100,7 +112,7 @@ class CenterNormalizer(ImageProcessor):
 
         if intermediate_height < img.shape[0]:
             m1 = intermediate_height / img.shape[0]
-            img = ScaleToHeightProcessor.scale_to_h(img, intermediate_height)
+            img = scale_to_h(img, intermediate_height)
 
         if img.size == 0:
             cval = 1
@@ -114,7 +126,7 @@ class CenterNormalizer(ImageProcessor):
 
         t = dewarped.shape[0] - img.shape[0]
         # scale to target height
-        scaled = ScaleToHeightProcessor.scale_to_h(dewarped, self.target_height)
+        scaled = scale_to_h(dewarped, self.target_height)
 
         if dewarped.size == 0:
             # Empty image

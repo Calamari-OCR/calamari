@@ -1,4 +1,4 @@
-tensorflow~=2.3.0
+tensorflow~=2.4.0
 tfaip==1.0.1
 scikit-image>=0.15.0
 opencv-python-headless

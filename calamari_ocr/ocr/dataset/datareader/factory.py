@@ -4,8 +4,8 @@ from typing import Dict, Type, List, Union
 from calamari_ocr.ocr.dataset import DataSetType
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset.params import PipelineParams, FileDataReaderArgs
-from calamari_ocr.ocr.dataset.datareader.base import DataReader
+from calamari_ocr.ocr.dataset.params import PipelineParams
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator
 
 from calamari_ocr.utils import keep_files_with_same_file_name
 
@@ -13,25 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class DataReaderFactory:
-    CUSTOM_READERS: Dict[str, Type[DataReader]] = {}
-
-    @classmethod
-    def data_reader_from_params(cls, mode: PipelineMode, params: PipelineParams) -> DataReader:
-        params = params.prepare_for_mode(mode)
-
-        dataset = cls.create_data_reader(
-            params.type,
-            mode,
-            images=params.files,
-            texts=params.text_files,
-            skip_invalid=params.skip_invalid,
-            args=params.data_reader_args if params.data_reader_args else FileDataReaderArgs(),
-        )
-        logger.info(f"Found {len(dataset)} files in the dataset")
-        if params.n_folds > 0:
-            logger.info(f"Populating {params.n_folds} folds")
-            dataset.populate_folds(params.n_folds)
-        return dataset
+    CUSTOM_READERS: Dict[str, Type[CalamariDataGenerator]] = {}
 
     @classmethod
     def create_data_reader(cls,
@@ -42,8 +24,7 @@ class DataReaderFactory:
                            skip_invalid=False,
                            remove_invalid=True,
                            non_existing_as_empty=False,
-                           args: FileDataReaderArgs = None,
-                           ) -> DataReader:
+                           ) -> CalamariDataGenerator:
         if images is None:
             images = []
 

@@ -1,6 +1,6 @@
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset.datareader.base import DataReader
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator
 from calamari_ocr.ocr.dataset.params import FileDataReaderArgs, InputSample, SampleMeta
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.line_generator import LineGenerator
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.text_generation.text_generator import TextGenerator
@@ -42,7 +42,7 @@ class LineGeneratorProcess(Process):
             return
 
 
-class GeneratedLineDataset(DataReader):
+class GeneratedLineDataset(CalamariDataGenerator):
     def __init__(self,
                  mode: PipelineMode,
                  args: FileDataReaderArgs,

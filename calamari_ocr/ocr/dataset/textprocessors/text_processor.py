@@ -1,12 +1,12 @@
 from abc import abstractmethod, ABC
 
-from tfaip.base.data.pipeline.dataprocessor import DataProcessor
 from tfaip.base.data.pipeline.definitions import Sample
+from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, T
 
 from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import Prediction
 
 
-class TextProcessor(DataProcessor, ABC):
+class TextProcessor(MappingDataProcessor[T], ABC):
     def apply(self, sample: Sample) -> Sample:
         targets: str = sample.targets
         outputs: str = sample.outputs
@@ -31,8 +31,3 @@ class TextProcessor(DataProcessor, ABC):
     @abstractmethod
     def _apply_single(self, txt: str, meta: dict) -> str:
         raise NotImplementedError
-
-
-class NoopTextProcessor(TextProcessor):
-    def _apply_single(self, txt, meta):
-        return txt

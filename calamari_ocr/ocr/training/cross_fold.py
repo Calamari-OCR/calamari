@@ -6,7 +6,6 @@ from typing import List
 from tfaip.base.data.pipeline.definitions import Sample
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
 
-from calamari_ocr.ocr.dataset.datareader.file import FileDataReader
 from calamari_ocr.ocr.dataset.datareader.hdf5 import Hdf5DatasetWriter
 from calamari_ocr.ocr.dataset import DataSetType
 

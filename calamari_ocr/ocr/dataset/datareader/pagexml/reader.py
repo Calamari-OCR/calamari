@@ -1,17 +1,18 @@
 import os
+from dataclasses import dataclass, field
 from random import shuffle
 
 import numpy as np
+from paiargparse import pai_dataclass, pai_meta
 from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR, TARGETS_PROCESSOR
 from tqdm import tqdm
 from lxml import etree
 import cv2 as cv
 from typing import List, Generator
 from enum import IntEnum
-from calamari_ocr.ocr.dataset.params import InputSample, SampleMeta
-from calamari_ocr.ocr.dataset.datareader.base import DataReader
-from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs
-from calamari_ocr.utils import split_all_ext, filename
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams, InputSample, \
+    SampleMeta
+from calamari_ocr.utils import split_all_ext, filename, glob_all, keep_files_with_same_file_name
 
 import logging
 
@@ -37,7 +38,7 @@ class CutMode(IntEnum):
 
 
 class PageXMLDatasetLoader:
-    def __init__(self, mode: PipelineMode, non_existing_as_empty: bool, text_index: int, skip_invalid: bool=True):
+    def __init__(self, mode: PipelineMode, non_existing_as_empty: bool, text_index: int, skip_invalid: bool = True):
         self.mode = mode
         self._non_existing_as_empty = non_existing_as_empty
         self.root = None
@@ -64,7 +65,8 @@ class PageXMLDatasetLoader:
         ns = {"ns": root.nsmap[None]}
         imgfile = root.xpath('//ns:Page',
                              namespaces=ns)[0].attrib["imageFilename"]
-        if (self.mode in {PipelineMode.Training, PipelineMode.Evaluation}) and not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
+        if (self.mode in {PipelineMode.Training, PipelineMode.Evaluation}) and not split_all_ext(img)[0].endswith(
+                split_all_ext(imgfile)[0]):
             raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
                 img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
 
@@ -157,54 +159,49 @@ class PageXMLDatasetLoader:
             }
 
 
-class PageXMLReader(DataReader):
+@pai_dataclass
+@dataclass
+class PageXML(CalamariDataGeneratorParams):
+    images: List[str] = field(default_factory=list, metadata=pai_meta(required=True))
+    xml_files: List[str] = field(default_factory=list)
+    gt_extension: str = field(default='.xml', metadata=pai_meta(
+        help="Default extension of the gt files (expected to exist in same dir)"
+    ))
+    text_index: int = 0
+
+    @staticmethod
+    def cls():
+        return PageXMLReader
+
+    def prepare_for_mode(self, mode: PipelineMode):
+        input_image_files = sorted(glob_all(self.images)) if self.images else None
+
+        if not self.xml_files:
+            gt_txt_files = [split_all_ext(f)[0] + self.gt_extension for f in input_image_files] if self.gt_extension else None
+        else:
+            gt_txt_files = sorted(glob_all(self.xml_files))
+            if mode in INPUT_PROCESSOR:
+                input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
+                for img, gt in zip(input_image_files, gt_txt_files):
+                    if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:
+                        raise Exception(f"Expected identical basenames of file: {img} and {gt}")
+            else:
+                input_image_files = None
+
+        self.images = input_image_files
+        self.xml_files = gt_txt_files
+
+
+class PageXMLReader(CalamariDataGenerator[PageXML]):
     def __init__(self,
                  mode: PipelineMode,
-                 files,
-                 xmlfiles: List[str] = None,
-                 skip_invalid=False,
-                 remove_invalid=True,
-                 non_existing_as_empty=False,
-                 args: FileDataReaderArgs = None,
+                 params: PageXML,
                  ):
-        """ Create a dataset from a Path as String
-
-        Parameters
-         ----------
-        files : [], required
-            image files
-        skip_invalid : bool, optional
-            skip invalid files
-        remove_invalid : bool, optional
-            remove invalid files
-        """
-        super().__init__(
-            mode,
-            skip_invalid, remove_invalid,
-        )
-
-        if xmlfiles is None:
-            xmlfiles = []
-
-        if args is None:
-            args = {}
-
-        self.args = args
-
-        self.text_index = args.text_index
-
-        self._non_existing_as_empty = non_existing_as_empty
-        if len(xmlfiles) == 0:
-            xmlfiles = [split_all_ext(p)[0] + ".xml" for p in files]
-
-        if len(files) == 0:
-            files = [None] * len(xmlfiles)
-
-        self.files = files
-        self.xmlfiles = xmlfiles
+        super().__init__(mode, params)
         self.pages = []
-        for img, xml in zip(files, xmlfiles):
-            loader = PageXMLDatasetLoader(self.mode, self._non_existing_as_empty, self.text_index, self.skip_invalid)
+        for img, xml in zip(params.images, params.xml_files):
+            loader = PageXMLDatasetLoader(self.mode, params.non_existing_as_empty, params.text_index,
+                                          params.skip_invalid)
             for sample in loader.load(img, xml):
                 self.add_sample(sample)
 
@@ -214,7 +211,7 @@ class PageXMLReader(DataReader):
         self._last_page_id = None
 
     @staticmethod
-    def cutout(pageimg: np.array, coordstring: str, mode: CutMode=CutMode.POLYGON, angle=0, cval=None, scale=1):
+    def cutout(pageimg: np.array, coordstring: str, mode: CutMode = CutMode.POLYGON, angle=0, cval=None, scale=1):
         """ Cut region from image
         Parameters
         ----------
@@ -234,15 +231,15 @@ class PageXMLReader(DataReader):
         """
 
         coords = [p.split(",") for p in coordstring.split()]
-        coords = [(int(scale*int(c[1])), int(scale*int(c[0]))) for c in coords]
+        coords = [(int(scale * int(c[1])), int(scale * int(c[0]))) for c in coords]
         coords = np.array(coords, np.int32).reshape((-1, 1, 2))
         maxX, maxY = np.amax(coords, 0).squeeze()
         minX, minY = np.amin(coords, 0).squeeze()
-        cut = pageimg[minX:maxX+1, minY:maxY+1]
+        cut = pageimg[minX:maxX + 1, minY:maxY + 1]
         if cut.size == 0:
             return cut  # empty image
         coords -= (minX, minY)
-        maxX, maxY = (maxX-minX, maxY-minY)
+        maxX, maxY = (maxX - minX, maxY - minY)
         minX, minY = (0, 0)
 
         # calculate angle if needed
@@ -298,7 +295,7 @@ class PageXMLReader(DataReader):
             bg = cv.bitwise_and(box, mask_inv)
             cut = cv.add(fg, bg)
 
-        return cut[minY:maxY+1, minX:maxX+1]
+        return cut[minY:maxY + 1, minX:maxX + 1]
 
     def prepare_store(self):
         self._last_page_id = None
@@ -306,10 +303,10 @@ class PageXMLReader(DataReader):
     def store_text(self, sentence, sample, output_dir, extension):
         ns = sample['ns']
         line = sample['xml_element']
-        textequivxml = line.find('./ns:TextEquiv[@index="{}"]'.format(self.text_index),
+        textequivxml = line.find('./ns:TextEquiv[@index="{}"]'.format(self.params.text_index),
                                  namespaces=ns)
         if textequivxml is None:
-            textequivxml = etree.SubElement(line, "TextEquiv", attrib={"index": str(self.text_index)})
+            textequivxml = etree.SubElement(line, "TextEquiv", attrib={"index": str(self.params.text_index)})
 
         u_xml = textequivxml.find('./ns:Unicode', namespaces=ns)
         if u_xml is None:
@@ -335,24 +332,26 @@ class PageXMLReader(DataReader):
             self._store_page(extension, self._last_page_id)
             self._last_page_id = None
         else:
-            for xml, page in tqdm(zip(self.xmlfiles, self.pages), desc="Writing PageXML files", total=len(self.xmlfiles)):
+            for xml, page in tqdm(zip(self.params.xmlfiles, self.pages), desc="Writing PageXML files",
+                                  total=len(self.params.xmlfiles)):
                 with open(split_all_ext(xml)[0] + extension, 'w') as f:
                     f.write(etree.tounicode(page.getroottree()))
 
     def _store_page(self, extension, page_id):
-        page = self.pages[self.xmlfiles.index(page_id)]
+        page = self.pages[self.params.xml_files.index(page_id)]
         with open(split_all_ext(page_id)[0] + extension, 'w') as f:
             f.write(etree.tounicode(page.getroottree()))
 
     def _sample_iterator(self):
-        all_samples = zip(self.files, self.xmlfiles, range(len(self.files)))
+        all_samples = zip(self.params.images, self.params.xml_files, range(len(self.params.images)))
         if self.mode == PipelineMode.Training:
             all_samples = list(all_samples)
             shuffle(all_samples)
         return all_samples
 
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
-        loader = PageXMLDatasetLoader(self.mode, self._non_existing_as_empty, self.text_index, self.skip_invalid)
+        loader = PageXMLDatasetLoader(self.mode, self.params.non_existing_as_empty, self.params.text_index,
+                                      self.params.skip_invalid)
         image_path, xml_path, idx = sample
 
         img = None
@@ -360,7 +359,7 @@ class PageXMLReader(DataReader):
             img = load_image(image_path)
 
         for i, sample in enumerate(loader.load(image_path, xml_path)):
-            fold_id = (idx + i) % self.n_folds if self.n_folds > 0 else -1
+            fold_id = (idx + i) % self.params.n_folds if self.params.n_folds > 0 else -1
             text = sample["text"]
             orientation = sample["orientation"]
 
@@ -377,9 +376,10 @@ class PageXMLReader(DataReader):
                                                 scale=lx / sample['img_width'])
 
                 # add padding as required from normal files
-                if self.args.pad:
-                    pad = self.args.pad
-                    img = np.pad(img, pad, mode='constant', constant_values=img.max())
+                # TODO: CHECK IF THIS PADDING IS REQUIRED o.O should usually be performed in prepare_sample
+                # if self.args.pad:
+                #     pad = self.args.pad
+                #    img = np.pad(img, pad, mode='constant', constant_values=img.max())
             else:
                 line_img = None
 
