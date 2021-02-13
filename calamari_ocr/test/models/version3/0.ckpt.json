@@ -1,0 +1,789 @@
+{
+  "random_seed": 0,
+  "optimizer_params": {
+    "optimizer": "Adam",
+    "clip_grad": 5.0,
+    "momentum": 0
+  },
+  "learning_rate_params": {
+    "lr": 0.0010000000474974513
+  },
+  "scenario_params": {
+    "scenario_base_path_": "/home/cwick/Documents/Projects/calamari/calamari_ocr/ocr/scenario.py",
+    "scenario_module_": "calamari_ocr.ocr.scenario",
+    "model_params": {
+      "layers": [
+        {
+          "type": "convolutional",
+          "filters": 40,
+          "kernel_size": {
+            "x": 3,
+            "y": 3
+          },
+          "stride": {
+            "x": 1,
+            "y": 1
+          },
+          "dilated_depth": 0,
+          "concat_indices": [],
+          "hidden_nodes": 0,
+          "peepholes": false,
+          "lstm_direction": "bidirectional"
+        },
+        {
+          "type": "max_pooling",
+          "filters": 0,
+          "kernel_size": {
+            "x": 2,
+            "y": 2
+          },
+          "stride": {
+            "x": 2,
+            "y": 2
+          },
+          "dilated_depth": 0,
+          "concat_indices": [],
+          "hidden_nodes": 0,
+          "peepholes": false,
+          "lstm_direction": "bidirectional"
+        },
+        {
+          "type": "convolutional",
+          "filters": 60,
+          "kernel_size": {
+            "x": 3,
+            "y": 3
+          },
+          "stride": {
+            "x": 1,
+            "y": 1
+          },
+          "dilated_depth": 0,
+          "concat_indices": [],
+          "hidden_nodes": 0,
+          "peepholes": false,
+          "lstm_direction": "bidirectional"
+        },
+        {
+          "type": "max_pooling",
+          "filters": 0,
+          "kernel_size": {
+            "x": 2,
+            "y": 2
+          },
+          "stride": {
+            "x": 2,
+            "y": 2
+          },
+          "dilated_depth": 0,
+          "concat_indices": [],
+          "hidden_nodes": 0,
+          "peepholes": false,
+          "lstm_direction": "bidirectional"
+        },
+        {
+          "type": "lstm",
+          "filters": 0,
+          "kernel_size": {
+            "x": 0,
+            "y": 0
+          },
+          "stride": {
+            "x": 0,
+            "y": 0
+          },
+          "dilated_depth": 0,
+          "concat_indices": [],
+          "hidden_nodes": 200,
+          "peepholes": false,
+          "lstm_direction": "bidirectional"
+        }
+      ],
+      "dropout": 0.5,
+      "classes": 88,
+      "ctc_merge_repeated": true
+    },
+    "data_params": {
+      "preproc_max_tasks_per_child": 250,
+      "resource_base_path_": ".",
+      "skip_invalid_gt_": true,
+      "input_channels": 1,
+      "line_height_": 48,
+      "codec": {
+        "charset": [
+          "",
+          " ",
+          "!",
+          "#",
+          "$",
+          "%",
+          "&",
+          "'",
+          "(",
+          ")",
+          "+",
+          ",",
+          "-",
+          ".",
+          "/",
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          ":",
+          ";",
+          "<",
+          "=",
+          ">",
+          "?",
+          "@",
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G",
+          "H",
+          "I",
+          "J",
+          "K",
+          "L",
+          "M",
+          "N",
+          "O",
+          "P",
+          "Q",
+          "R",
+          "S",
+          "T",
+          "U",
+          "V",
+          "W",
+          "X",
+          "Y",
+          "Z",
+          "[",
+          "]",
+          "a",
+          "b",
+          "c",
+          "d",
+          "e",
+          "f",
+          "g",
+          "h",
+          "i",
+          "j",
+          "k",
+          "l",
+          "m",
+          "n",
+          "o",
+          "p",
+          "q",
+          "r",
+          "s",
+          "t",
+          "u",
+          "v",
+          "w",
+          "x",
+          "y",
+          "z",
+          "{",
+          "}"
+        ]
+      },
+      "pre_processors_": {
+        "run_parallel": true,
+        "sample_processors": [
+          {
+            "name": "DataRangeNormalizer",
+            "modes": [
+              "prediction",
+              "training",
+              "evaluation"
+            ],
+            "args": {}
+          },
+          {
+            "name": "CenterNormalizer",
+            "modes": [
+              "prediction",
+              "training",
+              "evaluation"
+            ],
+            "args": {
+              "extra_params": [
+                4,
+                1.0,
+                0.3
+              ]
+            }
+          },
+          {
+            "name": "FinalPreparation",
+            "modes": [
+              "prediction",
+              "training",
+              "evaluation"
+            ],
+            "args": {
+              "normalize": true,
+              "invert": true,
+              "transpose": true,
+              "pad": 16,
+              "pad_value": false,
+              "as_uint8": true
+            }
+          },
+          {
+            "name": "AugmentationProcessor",
+            "modes": [
+              "training"
+            ],
+            "args": {
+              "augmenter_type": "simple"
+            }
+          },
+          {
+            "name": "TextNormalizer",
+            "modes": [
+              "targets",
+              "training",
+              "evaluation"
+            ],
+            "args": {
+              "unicode_normalization": "NFC"
+            }
+          },
+          {
+            "name": "TextRegularizer",
+            "modes": [
+              "targets",
+              "training",
+              "evaluation"
+            ],
+            "args": {
+              "replacements": [
+                {
+                  "old": "\u00b5",
+                  "new": "\u03bc"
+                },
+                {
+                  "old": "\u2013\u2014\u2014",
+                  "new": "-"
+                },
+                {
+                  "old": "\u2013\u2014",
+                  "new": "-"
+                },
+                {
+                  "old": "\"",
+                  "new": "''"
+                },
+                {
+                  "old": "`",
+                  "new": "'"
+                },
+                {
+                  "old": "\u201c",
+                  "new": "''"
+                },
+                {
+                  "old": "\u201d",
+                  "new": "''"
+                },
+                {
+                  "old": "\u00b4",
+                  "new": "'"
+                },
+                {
+                  "old": "\u2018",
+                  "new": "'"
+                },
+                {
+                  "old": "\u2019",
+                  "new": "'"
+                },
+                {
+                  "old": "\u201c",
+                  "new": "''"
+                },
+                {
+                  "old": "\u201d",
+                  "new": "''"
+                },
+                {
+                  "old": "\u201c",
+                  "new": "''"
+                },
+                {
+                  "old": "\u201e",
+                  "new": ",,"
+                },
+                {
+                  "old": "\u2026",
+                  "new": "..."
+                },
+                {
+                  "old": "\u2032",
+                  "new": "'"
+                },
+                {
+                  "old": "\u2033",
+                  "new": "''"
+                },
+                {
+                  "old": "\u2034",
+                  "new": "'''"
+                },
+                {
+                  "old": "\u3003",
+                  "new": "''"
+                },
+                {
+                  "old": "\u2160",
+                  "new": "I"
+                },
+                {
+                  "old": "\u2161",
+                  "new": "II"
+                },
+                {
+                  "old": "\u2162",
+                  "new": "III"
+                },
+                {
+                  "old": "\u2163",
+                  "new": "IV"
+                },
+                {
+                  "old": "\u2164",
+                  "new": "V"
+                },
+                {
+                  "old": "\u2165",
+                  "new": "VI"
+                },
+                {
+                  "old": "\u2166",
+                  "new": "VII"
+                },
+                {
+                  "old": "\u2167",
+                  "new": "VIII"
+                },
+                {
+                  "old": "\u2168",
+                  "new": "IX"
+                },
+                {
+                  "old": "\u2169",
+                  "new": "X"
+                },
+                {
+                  "old": "\u216a",
+                  "new": "XI"
+                },
+                {
+                  "old": "\u216b",
+                  "new": "XII"
+                },
+                {
+                  "old": "\u216c",
+                  "new": "L"
+                },
+                {
+                  "old": "\u216d",
+                  "new": "C"
+                },
+                {
+                  "old": "\u216e",
+                  "new": "D"
+                },
+                {
+                  "old": "\u216f",
+                  "new": "M"
+                },
+                {
+                  "old": "\u2170",
+                  "new": "i"
+                },
+                {
+                  "old": "\u2171",
+                  "new": "ii"
+                },
+                {
+                  "old": "\u2172",
+                  "new": "iii"
+                },
+                {
+                  "old": "\u2173",
+                  "new": "iv"
+                },
+                {
+                  "old": "\u2174",
+                  "new": "v"
+                },
+                {
+                  "old": "\u2175",
+                  "new": "vi"
+                },
+                {
+                  "old": "\u2176",
+                  "new": "vii"
+                },
+                {
+                  "old": "\u2177",
+                  "new": "viii"
+                },
+                {
+                  "old": "\u2178",
+                  "new": "ix"
+                },
+                {
+                  "old": "\u2179",
+                  "new": "x"
+                },
+                {
+                  "old": "\u217a",
+                  "new": "xi"
+                },
+                {
+                  "old": "\u217b",
+                  "new": "xii"
+                },
+                {
+                  "old": "\u217c",
+                  "new": "l"
+                },
+                {
+                  "old": "\u217d",
+                  "new": "c"
+                },
+                {
+                  "old": "\u217e",
+                  "new": "d"
+                },
+                {
+                  "old": "\u217f",
+                  "new": "m"
+                },
+                {
+                  "old": "\\s+(?u)",
+                  "new": " ",
+                  "regex": true
+                },
+                {
+                  "old": "\\n(?u)",
+                  "regex": true
+                },
+                {
+                  "old": "^\\s+(?u)",
+                  "regex": true
+                },
+                {
+                  "old": "\\s+$(?u)",
+                  "regex": true
+                }
+              ]
+            }
+          },
+          {
+            "name": "StripTextProcessor",
+            "modes": [
+              "targets",
+              "training",
+              "evaluation"
+            ],
+            "args": null
+          },
+          {
+            "name": "PrepareSampleProcessor",
+            "modes": [
+              "prediction",
+              "training",
+              "evaluation"
+            ]
+          }
+        ]
+      },
+      "post_processors_": {
+        "run_parallel": true,
+        "sample_processors": [
+          {
+            "name": "ReshapeOutputsProcessor"
+          },
+          {
+            "name": "CTCDecoderProcessor"
+          },
+          {
+            "name": "TextNormalizer",
+            "modes": [
+              "targets",
+              "training",
+              "evaluation"
+            ],
+            "args": {
+              "unicode_normalization": "NFC"
+            }
+          },
+          {
+            "name": "TextRegularizer",
+            "modes": [
+              "targets",
+              "training",
+              "evaluation"
+            ],
+            "args": {
+              "replacements": [
+                {
+                  "old": "\u00b5",
+                  "new": "\u03bc"
+                },
+                {
+                  "old": "\u2013\u2014\u2014",
+                  "new": "-"
+                },
+                {
+                  "old": "\u2013\u2014",
+                  "new": "-"
+                },
+                {
+                  "old": "\"",
+                  "new": "''"
+                },
+                {
+                  "old": "`",
+                  "new": "'"
+                },
+                {
+                  "old": "\u201c",
+                  "new": "''"
+                },
+                {
+                  "old": "\u201d",
+                  "new": "''"
+                },
+                {
+                  "old": "\u00b4",
+                  "new": "'"
+                },
+                {
+                  "old": "\u2018",
+                  "new": "'"
+                },
+                {
+                  "old": "\u2019",
+                  "new": "'"
+                },
+                {
+                  "old": "\u201c",
+                  "new": "''"
+                },
+                {
+                  "old": "\u201d",
+                  "new": "''"
+                },
+                {
+                  "old": "\u201c",
+                  "new": "''"
+                },
+                {
+                  "old": "\u201e",
+                  "new": ",,"
+                },
+                {
+                  "old": "\u2026",
+                  "new": "..."
+                },
+                {
+                  "old": "\u2032",
+                  "new": "'"
+                },
+                {
+                  "old": "\u2033",
+                  "new": "''"
+                },
+                {
+                  "old": "\u2034",
+                  "new": "'''"
+                },
+                {
+                  "old": "\u3003",
+                  "new": "''"
+                },
+                {
+                  "old": "\u2160",
+                  "new": "I"
+                },
+                {
+                  "old": "\u2161",
+                  "new": "II"
+                },
+                {
+                  "old": "\u2162",
+                  "new": "III"
+                },
+                {
+                  "old": "\u2163",
+                  "new": "IV"
+                },
+                {
+                  "old": "\u2164",
+                  "new": "V"
+                },
+                {
+                  "old": "\u2165",
+                  "new": "VI"
+                },
+                {
+                  "old": "\u2166",
+                  "new": "VII"
+                },
+                {
+                  "old": "\u2167",
+                  "new": "VIII"
+                },
+                {
+                  "old": "\u2168",
+                  "new": "IX"
+                },
+                {
+                  "old": "\u2169",
+                  "new": "X"
+                },
+                {
+                  "old": "\u216a",
+                  "new": "XI"
+                },
+                {
+                  "old": "\u216b",
+                  "new": "XII"
+                },
+                {
+                  "old": "\u216c",
+                  "new": "L"
+                },
+                {
+                  "old": "\u216d",
+                  "new": "C"
+                },
+                {
+                  "old": "\u216e",
+                  "new": "D"
+                },
+                {
+                  "old": "\u216f",
+                  "new": "M"
+                },
+                {
+                  "old": "\u2170",
+                  "new": "i"
+                },
+                {
+                  "old": "\u2171",
+                  "new": "ii"
+                },
+                {
+                  "old": "\u2172",
+                  "new": "iii"
+                },
+                {
+                  "old": "\u2173",
+                  "new": "iv"
+                },
+                {
+                  "old": "\u2174",
+                  "new": "v"
+                },
+                {
+                  "old": "\u2175",
+                  "new": "vi"
+                },
+                {
+                  "old": "\u2176",
+                  "new": "vii"
+                },
+                {
+                  "old": "\u2177",
+                  "new": "viii"
+                },
+                {
+                  "old": "\u2178",
+                  "new": "ix"
+                },
+                {
+                  "old": "\u2179",
+                  "new": "x"
+                },
+                {
+                  "old": "\u217a",
+                  "new": "xi"
+                },
+                {
+                  "old": "\u217b",
+                  "new": "xii"
+                },
+                {
+                  "old": "\u217c",
+                  "new": "l"
+                },
+                {
+                  "old": "\u217d",
+                  "new": "c"
+                },
+                {
+                  "old": "\u217e",
+                  "new": "d"
+                },
+                {
+                  "old": "\u217f",
+                  "new": "m"
+                },
+                {
+                  "old": "\\s+(?u)",
+                  "new": " ",
+                  "regex": true
+                },
+                {
+                  "old": "\\n(?u)",
+                  "regex": true
+                },
+                {
+                  "old": "^\\s+(?u)",
+                  "regex": true
+                },
+                {
+                  "old": "\\s+$(?u)",
+                  "regex": true
+                }
+              ]
+            }
+          },
+          {
+            "name": "StripTextProcessor",
+            "modes": [
+              "targets",
+              "training",
+              "evaluation"
+            ],
+            "args": null
+          }
+        ]
+      },
+      "scenario_module_": "calamari_ocr.ocr.backends.scenario",
+      "tfaip_commit_hash_": "b234c8ce1428b33d6830a7a4a3d7bc13fedd69ba",
+      "tfaip_version_": "1.0.0"
+    }
+  },
+  "version": 3
+}

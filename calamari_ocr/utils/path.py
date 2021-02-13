@@ -13,6 +13,8 @@ def filename(file) -> str:
 def split_all_ext(path):
     path, basename = os.path.split(path)
     pos = basename.find(".")
+    if pos == -1:
+        return os.path.join(path, basename), ''
     return os.path.join(path, basename[:pos]), basename[pos:]
 
 

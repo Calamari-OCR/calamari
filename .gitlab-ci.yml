@@ -6,14 +6,14 @@ before_script:
   - set -e
   - virtualenv -p python3.7 venv
   - source venv/bin/activate
-  - pip install --use-feature 2020-resolver -r requirements.txt
+  - pip install -U pip
+  - pip install -r requirements.txt
   - python setup.py install
 
 cache:
   paths:
     - .cache/pip
     - venv
-    - calamari_models
   policy: pull
 
 stages:
@@ -26,290 +26,130 @@ install_dependencies:
     paths:
       - .cache/pip
       - venv
-      - calamari_models
     policy: pull-push
   before_script:
     - set -e
     - rm -rf venv
-    - rm -rf calamari_models
   script:
     - set -e
     - virtualenv -p python3.7 venv
     - source venv/bin/activate
-    - pip install --use-feature 2020-resolver -r requirements.txt
+    - pip install -U pip
+    - pip install -r requirements.txt
     - python setup.py install
-    - wget -q -O - https://github.com/Calamari-OCR/calamari_models/archive/1.0.tar.gz | tar xz && mv calamari_models-1.0 calamari_models
 
 
-# Non CMD line tests
-test-internal:
+test-augmentation:
   stage: test
   script:
     - set -e
-    - python -m unittest
+    - python -m unittest calamari_ocr.test.test_augmentation
 
-# General training with and without validation or data augmentation
 
-test-cpu:
+test-command-line:
   stage: test
   script:
     - set -e
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10 --use_train_as_val
+    - python -m unittest calamari_ocr.test.test_command_line
 
-test-cpu-resume-training:
+test-cross-fold-train:
   stage: test
   script:
     - set -e
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 5 --samples_per_epoch 10 --checkpoint_frequency 1 --use_train_as_val
-    - calamari-resume-training checkpoint/checkpoint_0003
+    - python -m unittest calamari_ocr.test.test_cross_fold_train
 
-test-cpu-validation:
+test-eval:
   stage: test
   script:
     - set -e
-    - calamari-train --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 10 --samples_per_epoch 1 --early_stopping_frequency 2
-    - calamari-train --validation_split_ratio 0.2 --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 10 --samples_per_epoch 1 --early_stopping_frequency 2
+    - python -m unittest calamari_ocr.test.test_eval
 
-test-cpu-augmentation:
+test-model-zoo:
   stage: test
   script:
     - set -e
-    - calamari-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10 --use_train_as_val
+    - python -m unittest calamari_ocr.test.test_model_zoo
 
-test-cpu-validation-augmentation:
+test-model-migration:
   stage: test
   script:
     - set -e
-    - calamari-train --n_augmentation 5 --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 10 --early_stopping_frequency 1
+    - python -m unittest calamari_ocr.test.test_model_migration
 
-
-# ensemble learning
-test-cpu-ensemble-train:
+test-network-architectures:
   stage: test
   script:
     - set -e
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --ensemble 3 --epochs 1 --samples_per_epoch 10
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --ensemble 3 --epochs 1 --samples_per_epoch 10 --train_data_on_the_fly
+    - python -m unittest calamari_ocr.test.test_network_architectures
 
-
-# cross-fold-training
-
-test-cpu-cross-fold-train:
+test-predict-and-eval:
   stage: test
   script:
     - set -e
-    - calamari-cross-fold-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
+    - python -m unittest calamari_ocr.test.test_predict_and_eval
 
-test-cpu-cross-fold-train-augmentation:
+test-prediction:
   stage: test
   script:
     - set -e
-    - calamari-cross-fold-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
+    - python -m unittest calamari_ocr.test.test_prediction
 
-test-cpu-cross-fold-train-preload:
+test-pretrained:
   stage: test
   script:
     - set -e
-    - calamari-cross-fold-train --weights calamari_models/antiqua_modern/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
+    - python -m unittest calamari_ocr.test.test_pretrained
 
-test-cpu-cross-fold-train-preload5:
+test-resume-training:
   stage: test
   script:
     - set -e
-    - calamari-cross-fold-train --weights calamari_models/antiqua_modern/0.ckpt.json calamari_models/antiqua_modern/1.ckpt.json calamari_models/antiqua_modern/2.ckpt.json calamari_models/antiqua_modern/3.ckpt.json calamari_models/antiqua_modern/4.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 5 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
+    - python -m unittest calamari_ocr.test.test_resume_training
 
-
-# prediction and evaluation
-
-test-cpu-predict-and-eval-script:
+test-scripts:
   stage: test
   script:
     - set -e
-    - calamari-predict-and-eval --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json
+    - python -m unittest calamari_ocr.test.test_scripts
 
-test-cpu-predict-and-eval-with-voting:
+test-train-abbyyxml:
   stage: test
   script:
     - set -e
-    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt --skip_empty_gt
-    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json --batch_size 5
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt --n_worst_lines 10 --xlsx_output text.xlsx
+    - python -m unittest calamari_ocr.test.test_train_abbyyxml
 
-
-# loading pretrained model
-
-test-cpu-pretrained:
+test-train-ensemble:
   stage: test
   script:
     - set -e
-    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --use_train_as_val
+    - python -m unittest calamari_ocr.test.test_train_ensemble
 
-test-cpu-pretrained-keep-loaded-codec:
+test-train-file:
   stage: test
   script:
     - set -e
-    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --keep_loaded_codec --use_train_as_val
+    - python -m unittest calamari_ocr.test.test_train_file
 
-# on-the-fly data loading
-
-test-cpu-data-on-the-fly:
+test-train-generated:
   stage: test
   script:
     - set -e
-    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --use_train_as_val
-    - calamari-train --train_data_on_the_fly --use_train_as_val --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --use_train_as_val
+    - python -m unittest calamari_ocr.test.test_train_generated
 
-test-cpu-data-on-the-fly-with-weights:
+test-train-hdf5:
   stage: test
   script:
     - set -e
-    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --weights calamari_models/antiqua_modern/0.ckpt.json --use_train_as_val
+    - python -m unittest calamari_ocr.test.test_train_hdf5
 
-test-cpu-validation-data-on-the-fly:
+test-train-mixed-data:
   stage: test
   script:
     - set -e
-    - calamari-train --train_data_on_the_fly --validation_data_on_the_fly --validation calamari_ocr/test/data/uw3_50lines/train/*.png --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --early_stopping_frequency 5
+    - python -m unittest calamari_ocr.test.test_train_mixed_data
 
-test-cpu-cross-fold-train-augmentation-data-on-the-fly:
+test-train-pagexml:
   stage: test
   script:
     - set -e
-    - calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
-
-
-# extended prediction data and average prediction confidence computation
-
-test-cpu-predict-and-eval-with-voting-extended-prediction-data-avg-conf:
-  stage: test
-  script:
-    - set -e
-    - calamari-predict --extended_prediction_data --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
-    - python calamari_ocr/scripts/compute_average_prediction_confidence.py --pred calamari_ocr/test/data/uw3_50lines/test/*.json
-    - calamari-predict --extended_prediction_data --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
-    - python calamari_ocr/scripts/compute_average_prediction_confidence.py --pred calamari_ocr/test/data/uw3_50lines/test/*.json
-
-
-# train on generated lines
-
-test-cpu-train-on-generated-lines:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --dataset GENERATED_LINE --use_train_as_val
-      --text_generator_params calamari_ocr/test/data/line_generation_config/text_gen_params.json
-      --line_generator_params calamari_ocr/test/data/line_generation_config/line_gen_params.json
-      --whitelist_files calamari_ocr/test/data/line_generation_config/whitelist.txt
-      --no_auto_compute_codec --checkpoint_frequency 5 --train_data_on_the_fly
-      --num_threads 4 --batch_size 4 --epochs 2 --samples_per_epoch 5
-
-
-# PAGE-XML
-
-test-cpu-train-on-page-xml:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
-      --validation calamari_ocr/test/data/avicanon_pagexml/008.nrm.png --validation_dataset PAGEXML
-      --dataset PAGEXML --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
-    - >
-      calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5
-      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
-      --dataset PAGEXML
-      --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
-    - >
-      calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5
-      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
-      --dataset PAGEXML
-      --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5 --dataset_pad 3 0
-
-test-cpu-train-on-page-xml-validation-on-files:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
-      --validation calamari_ocr/test/data/uw3_50lines/test/*.png
-      --validation_dataset FILE
-      --dataset PAGEXML --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
-
-test-cpu-predict-and-eval-page-xml:
-  stage: test
-  script:
-    - set -e
-    - calamari-predict --files calamari_ocr/test/data/avicanon_pagexml/009.nrm.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset PAGEXML
-    - calamari-eval --gt calamari_ocr/test/data/avicanon_pagexml/009.xml --dataset PAGEXML --pred_ext .pred.xml
-    - calamari-predict --files calamari_ocr/test/data/avicanon_pagexml/009.nrm.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset PAGEXML --dataset_pad 3 3
-
-
-# HDF5
-
-test-cpu-train-on-hdf5:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --files calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5
-      --validation calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5 --validation_dataset HDF5
-      --dataset HDF5 --num_threads 2 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
-      --data_preprocessing NoopDataPreprocessor
-
-test-cpu-predict-and-eval-hdf5:
-  stage: test
-  script:
-    - set -e
-    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5 --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset HDF5
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5 --dataset HDF5 --pred_ext .pred.h5 --n_worst_lines 100
-
-
-# ABBYY-XML
-
-test-cpu-train-on-abbyy-xml:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg
-      --validation calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg --validation_dataset ABBYY
-      --dataset ABBYY --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
-
-test-cpu-train-on-aabbyy-xml-validation-on-page-xml:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg
-      --validation calamari_ocr/test/data/avicanon_pagexml/008.nrm.png --validation_dataset PAGEXML
-      --dataset ABBYY --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
-
-test-cpu-predict-and-eval-abbyy-xml:
-  stage: test
-  script:
-    - set -e
-    - calamari-predict --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset ABBYY
-    - calamari-eval --gt calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.abbyy.xml --dataset ABBYY --pred_ext .pred.abbyy.xml
-
-# NETWORK ARCHITECTURES
-
-test-cpu-network-architectures:
-  stage: test
-  script:
-    - set -
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --use_train_as_val --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,lstm=50,dropout=0.5'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --use_train_as_val --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --use_train_as_val --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --use_train_as_val --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --use_train_as_val --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2,concat=1:-1'
+    - python -m unittest calamari_ocr.test.test_train_pagexml

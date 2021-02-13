@@ -2,9 +2,10 @@ from dataclasses import dataclass, field
 from typing import Callable, List, Optional
 import numpy as np
 
-import tfaip.base as tfaip
+import tfaip as tfaip
 from dataclasses_json import dataclass_json
-from tfaip.base.data.pipeline.definitions import Sample
+from paiargparse import pai_meta
+from tfaip.data.pipeline.definitions import Sample
 
 
 @dataclass_json
@@ -54,9 +55,8 @@ class Predictions:
 @dataclass_json
 @dataclass
 class PredictorParams(tfaip.PredictorParams):
-    with_gt: bool = False
-    ctc_decoder_params = None
-    silent: bool = True
+    # override defaults
+    silent: bool = field(default=True, metadata=pai_meta(mode='ignore'))
 
 
 class PredictionResult:
@@ -79,7 +79,7 @@ class PredictionResult:
         self.codec = codec
         self.text_postproc = text_postproc
         self.chars = codec.decode(prediction.labels)
-        self.sentence = self.text_postproc.apply(Sample(inputs='', outputs="".join(self.chars))).outputs
+        self.sentence = self.text_postproc.apply_on_sample(Sample(inputs='', outputs="".join(self.chars))).outputs
         self.prediction.sentence = self.sentence
         self.out_to_in_trans = out_to_in_trans
         self.ground_truth = ground_truth

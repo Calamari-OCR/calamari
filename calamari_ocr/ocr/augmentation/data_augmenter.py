@@ -1,31 +1,33 @@
 from abc import ABC, abstractmethod
-import numpy as np
+from dataclasses import dataclass
+from typing import Type, TypeVar, Generic
 
-from calamari_ocr.utils.image import load_image
+import numpy as np
+from paiargparse import pai_dataclass
 from tfaip.util.multiprocessing.parallelmap import parallel_map
 
+from calamari_ocr.utils.image import load_image
 
-class DataAugmenter(ABC):
-    augmenters = {}
 
+@pai_dataclass
+@dataclass
+class DataAugmenterParams(ABC):
     @classmethod
-    def register(cls):
-        DataAugmenter.augmenters[cls.__name__] = cls
-
-    @staticmethod
-    def from_dict(d):
-        cls = DataAugmenter.augmenters[d['type']]
-        return cls(**d['params'])
-
-    def to_dict(self):
-        return {'type': self.__class__.__name__, 'params': self._to_dict()}
-
     @abstractmethod
-    def _to_dict(self):
+    def cls(cls) -> Type['DataAugmenterBase']:
         raise NotImplementedError
 
-    def __init__(self):
+    def create(self) -> 'DataAugmenterBase':
+        return self.cls()(self)
+
+
+TDataAugParams = TypeVar('TDataAugParams', bound=DataAugmenterParams)
+
+
+class DataAugmenterBase(Generic[TDataAugParams], ABC):
+    def __init__(self, params: TDataAugParams):
         super().__init__()
+        self.params = params
 
     @abstractmethod
     def augment_single(self, data, gt_txt):
@@ -57,27 +59,15 @@ class DataAugmenter(ABC):
         return datas + out_d, gt_txts + out_t
 
 
-class NoopDataAugmenter(DataAugmenter):
-    def _to_dict(self):
-        return {}
-
-    def __init__(self):
-        super().__init__()
-
-    def augment_single(self, data, gt_txt):
-        return data, gt_txt
-
-    def augment_data(self, data, gt_txt, n_augmentations):
-        return data * n_augmentations, gt_txt * n_augmentations
+@pai_dataclass(alt="Simple")
+@dataclass
+class DefaultDataAugmenterParams(DataAugmenterParams):
+    @classmethod
+    def cls(cls) -> Type['DataAugmenterBase']:
+        return DefaultDataAugmenter
 
 
-class SimpleDataAugmenter(DataAugmenter):
-    def _to_dict(self):
-        return {}
-
-    def __init__(self):
-        super().__init__()
-
+class DefaultDataAugmenter(DataAugmenterBase[DefaultDataAugmenterParams]):
     def augment_single(self, data, gt_txt):
         import calamari_ocr.thirdparty.ocrodeg as ocrodeg
         original_dtype = data.dtype
@@ -95,15 +85,12 @@ class SimpleDataAugmenter(DataAugmenter):
         return data, gt_txt
 
 
-NoopDataAugmenter.register()
-SimpleDataAugmenter.register()
-
-
 if __name__ == '__main__':
-    aug = SimpleDataAugmenter()
+    import matplotlib.pyplot as plt
+
+    aug = DefaultDataAugmenterParams().create()
     img = 255 - np.mean(load_image("../../test/data/uw3_50lines/train/010001.bin.png")[:, :, 0:2], axis=-1)
     aug_img = [aug.augment_single(img.T, '')[0].T for _ in range(4)]
-    import matplotlib.pyplot as plt
     f, ax = plt.subplots(5, 1)
     ax[0].imshow(255 - img, cmap='gray')
     for i, x in enumerate(aug_img):

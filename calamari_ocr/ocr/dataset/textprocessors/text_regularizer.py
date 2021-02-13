@@ -1,8 +1,11 @@
 import re
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, field
+from typing import List, Type, Optional, Iterable
 
 from dataclasses_json import dataclass_json
+from paiargparse import pai_dataclass, pai_meta
+from tfaip.data.pipeline.definitions import PipelineMode, Sample
+from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 
@@ -77,7 +80,7 @@ class Replacement:
     regex: bool = False
 
 
-def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement]:
+def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -> List[Replacement]:
     r = []
     groups = parse_groups(groups)
 
@@ -137,7 +140,6 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("ﬄ", "ffl")
         replacement("ﬂ", "fl")
         replacement("ﬁ", "fi")
-        replacement("ẞ", "ſs")
         replacement("ﬆ", "st")
         replacement("ﬅ", "ſt")
         replacement("Ꜩ", "TZ")
@@ -184,12 +186,12 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("''", "\"")
 
         # replace transcription errors or unwanted symbols:
-        replacement("z", "ʒ")  # in those trancriptions that should not have z, but ʒ (small letter ezh, U+0292)
-        replacement("Z", "Ʒ")  # in those trancriptions that should not have Z, but Ʒ (capital ezh, U+01B7)
+        # replacement("z", "ʒ")  # in those trancriptions that should not have z, but ʒ (small letter ezh, U+0292)
+        # replacement("Z", "Ʒ")  # in those trancriptions that should not have Z, but Ʒ (capital ezh, U+01B7)
         # replacement("¶','")       # if the pilcrow sign is not in the line image
         replacement("ꝛ", "r")  # if you don't want to preserve r rotunda, U+A75B
         replacement("I", "J")  # most Fraktur fonts have only a single glyph for I and J
-        replacement("⸍", "\\")  # U+2E0D -> /, regularize transcription for virgula
+        replacement("⸍", "/")  # U+2E0D -> /, regularize transcription for virgula
         # replacement("⸍','-")      # U+2E0D -> -, may also mean hyphenation at line end
         # use flattened a above instead of similar combining diaeresis, or macron
         replacement("q̈", "qᷓ")  # replace combining diaeresis (U+0308) with flattened a above (U+1DD3, qᷓ = quam)
@@ -347,17 +349,28 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
     return r
 
 
-class TextRegularizer(TextProcessor):
-    @staticmethod
-    def default_params() -> dict:
-        return {'replacements': [r for r in default_text_regularizer_replacements()]}
+@pai_dataclass
+@dataclass
+class TextRegularizerProcessorParams(DataProcessorParams):
+    # TODO: groups as enums
+    replacement_groups: List[str] = field(default_factory=lambda: ["extended"], metadata=pai_meta(
+        help="Text regularization to apply."
+    ))
+    replacements: Optional[List[Replacement]] = field(default=None, metadata=pai_meta(mode='ignore'))
 
-    def __init__(self, replacements: List[Replacement], **kwargs):
-        super().__init__(**kwargs)
-        self.replacements = [(r if isinstance(r, Replacement) else Replacement.from_dict(r)) for r in replacements]
+    @staticmethod
+    def cls() -> Type['TextProcessor']:
+        return TextRegularizerProcessor
+
+
+class TextRegularizerProcessor(TextProcessor[TextRegularizerProcessorParams]):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, *kwargs)
+        if self.params.replacements is None:
+            self.params.replacements = default_text_regularizer_replacements(self.params.replacement_groups)
 
     def _apply_single(self, txt, meta):
-        for replacement in self.replacements:
+        for replacement in self.params.replacements:
             if replacement.regex:
                 txt = re.sub(replacement.old, replacement.new, txt)
             else:
@@ -367,6 +380,6 @@ class TextRegularizer(TextProcessor):
 
 
 if __name__ == "__main__":
-    n = TextRegularizer(default_text_regularizer_replacements(groups=["quotes", "spaces"]))
-    assert (n.apply(["“Resolve quotes”"]) == ["''Resolve quotes''"])
-    assert (n.apply(["  “Resolve   spaces  ”   "]) == ["''Resolve spaces ''"])
+    n = TextRegularizerProcessorParams(replacement_groups=["quotes", "spaces"]).create(None, mode=PipelineMode.TRAINING)
+    assert (n(Sample(targets="“Resolve quotes”")).targets == "''Resolve quotes''")
+    assert (n(Sample(targets="  “Resolve   spaces  ”   ")).targets == "''Resolve spaces ''")

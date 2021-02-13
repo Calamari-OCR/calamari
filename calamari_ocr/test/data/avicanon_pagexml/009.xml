@@ -1,1 +1,851 @@
-<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2017-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2017-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2017-07-15/pagecontent.xsd"><Metadata><Creator>Christian Reul</Creator><Created>2018-06-05T19:16:44</Created><LastChange>2018-06-05T19:16:44</LastChange></Metadata><Page imageFilename="009.nrm.png" imageHeight="2461" imageWidth="1500"><TextRegion id="r0" type="paragraph"><Coords points="139,1918 189,1921 189,1827 593,1829 591,2207 133,2209 133,2209 133,2209"/><TextLine id="r0_l001" comments=""><Coords points="585,1866 585,1836 192,1836 192,1867 528,1868"/><TextEquiv index="1"><Unicode>Lementa sunt corpora, et sunt partes pri//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>Lementa sunt corpora, et sunt partes pri//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>Lementa sunt corpora, et sunt partes pri//</Unicode></TextEquiv></TextLine><TextLine id="r0_l002" comments=""><Coords points="585,1897 585,1867 490,1870 312,1870 191,1868 191,1897 235,1897 273,1899 515,1899"/><TextEquiv index="1"><Unicode>mae corporis humani, et aliorum, quae in</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>mae corporis humani, et aliorum, quae in</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>mae corporis humani, et aliorum, quae in</Unicode></TextEquiv></TextLine><TextLine id="r0_l003" comments=""><Coords points="585,1898 413,1901 178,1898 178,1926 181,1927 585,1928"/><TextEquiv index="1"><Unicode>corpora diuersarum formarum diuidi mi-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>corpora diuersarum formarum diuidi mi-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>corpora diuersarum formarum diuidi mi-</Unicode></TextEquiv></TextLine><TextLine id="r0_l004" comments=""><Coords points="586,1958 586,1929 460,1931 290,1931 146,1927 146,1956 284,1960 528,1960"/><TextEquiv index="1"><Unicode>nìmè possunt: ex quorum commixtione species</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>nìmè possunt: ex quorum commixtione species</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>nìmè possunt: ex quorum commixtione species</Unicode></TextEquiv></TextLine><TextLine id="r0_l005" comments=""><Coords points="544,1989 586,1989 586,1959 528,1961 284,1961 148,1957 148,1986 298,1991 507,1991"/><TextEquiv index="1"><Unicode>diuersae generatorum fiunt. Medicus autem phy//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>diuersae generatorum fiunt. Medicus autem phy//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>diuersae generatorum fiunt. Medicus autem phy//</Unicode></TextEquiv></TextLine><TextLine id="r0_l006" comments=""><Coords points="528,2020 585,2020 585,1990 544,1990 507,1992 298,1992 149,1987 149,2015 152,2016 262,2021 484,2022"/><TextEquiv index="1"><Unicode>sico credere debet, quòd sunt quatuor, et nó plu//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sico credere debet, quòd sunt quatuor, et nó plu//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sico credere debet, quòd sunt quatuor, et nó plu//</Unicode></TextEquiv></TextLine><TextLine id="r0_l007" comments=""><Coords points="493,2050 584,2049 584,2021 528,2021 484,2023 322,2023 262,2022 239,2020 150,2020 150,2045 156,2046 292,2052 484,2052"/><TextEquiv index="1"><Unicode>ra: quorum duo sunt leuia, et duo grauia. leuia</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ra: quorum duo sunt leuia, et duo grauia. leuia</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ra: quorum duo sunt leuia, et duo grauia. leuia</Unicode></TextEquiv></TextLine><TextLine id="r0_l008" comments=""><Coords points="584,2080 584,2050 493,2051 484,2053 428,2054 371,2053 342,2054 228,2051 148,2046 148,2075 152,2076 172,2076 262,2082 502,2082"/><TextEquiv index="1"><Unicode>sunt ignis, et aer: grauia terra, et aqua.Terra est</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sunt ignis, et aer: grauia terra, et aqua.Terra est</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sunt ignis, et aer: grauia terra, et aqua.Terra est</Unicode></TextEquiv></TextLine><TextLine id="r0_l009" comments=""><Coords points="583,2081 436,2084 290,2084 216,2080 145,2080 145,2105 149,2106 180,2106 217,2110 583,2110"/><TextEquiv index="1"><Unicode>corpus simplex, cuius locus naturalis in medio</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>corpus simplex, cuius locus naturalis in medio</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>corpus simplex, cuius locus naturalis in medio</Unicode></TextEquiv></TextLine><TextLine id="r0_l010" comments=""><Coords points="582,2141 582,2111 478,2114 263,2114 217,2111 195,2108 142,2108 142,2136 189,2137 268,2143 503,2143"/><TextEquiv index="1"><Unicode>totius existit, in quo naturaliter manet quieta: et</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>totius existit, in quo naturaliter manet quieta: et</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>totius existit, in quo naturaliter manet quieta: et</Unicode></TextEquiv></TextLine><TextLine id="r0_l011" comments=""><Coords points="582,2142 503,2144 323,2145 268,2144 189,2138 138,2137 138,2167 232,2169 251,2171 257,2173 582,2173"/><TextEquiv index="1"><Unicode>ad ipsum, cum ab eo separata fuerit; naturaliter</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ad ipsum, cum ab eo separata fuerit; naturaliter</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ad ipsum, cum ab eo separata fuerit; naturaliter</Unicode></TextEquiv></TextLine><TextLine id="r0_l012" comments=""><Coords points="581,2174 288,2176 266,2175 232,2170 135,2168 135,2204 581,2204"/><TextEquiv index="1"><Unicode>mouetur. Et haec quidem eius naturalis graui-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>mouetur. Et haec quidem eius naturalis graui-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>mouetur. Et haec quidem eius naturalis graui-</Unicode></TextEquiv></TextLine></TextRegion><TextRegion id="r1" type="caption"><Coords points="143,1825 143,1781 596,1781 596,1825"/><TextLine id="r1_l001" comments=""><Coords points="148,1782 148,1821 587,1821 587,1782"/><TextEquiv index="1"><Unicode>noctriua scunda de elementis: cuius est unum Caput.</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>Doctrina secunda de elementis: cuius est unum Caput.</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>Doctrina secunda de elementis: cuius est unum Caput.</Unicode></TextEquiv></TextLine></TextRegion><TextRegion id="r2" type="drop-capital"><Coords points="143,1919 143,1846 189,1846 189,1919"/><TextLine id="r2_l001" comments=""><Coords points="143,1919 143,1846 189,1846 189,1919"/><TextEquiv index="0" comments="User: andreas.buettner@uni-wuerzburg.de"><Unicode>E</Unicode></TextEquiv><TextEquiv index="1"><Unicode>E</Unicode></TextEquiv><TextEquiv index="40" comments="User: andreas.buettner@uni-wuerzburg.de"><Unicode>E</Unicode></TextEquiv></TextLine></TextRegion><ImageRegion id="r3"><Coords points="142,1840 142,1840 142,1840 142,1840"/></ImageRegion><TextRegion id="r4" type="paragraph"><Coords points="628,172 628,1892 1147,1902 1161,1799 1178,172 1178,172 1178,172"/><TextLine id="r4_l001" comments=""><Coords points="1028,215 1172,211 1172,181 638,181 638,214 740,216 899,216"/><TextEquiv index="1"><Unicode>tas existit: Cuius quidem natura frigida est, et</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>tas existit: Cuius quidem natura frigida est, et</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>tas existit: Cuius quidem natura frigida est, et</Unicode></TextEquiv></TextLine><TextLine id="r4_l002" comments=""><Coords points="1103,243 1171,243 1171,212 1028,216 899,217 740,217 637,215 637,245 1063,245"/><TextEquiv index="1"><Unicode>sicca: ipsa enim talis existit, quòd, si dimissa fue-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sicca: ipsa enim talis existit, quòd, si dimissa fue-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sicca: ipsa enim talis existit, quòd, si dimissa fue-</Unicode></TextEquiv></TextLine><TextLine id="r4_l003" comments=""><Coords points="1106,275 1174,273 1174,244 1103,244 1023,247 815,247 692,245 637,246 637,274 727,278 832,278"/><TextEquiv index="1"><Unicode>rit, neque altera res extrinseca eam</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>rit,  neque altera res extrinseca eam</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>rit,  neque altera res extrinseca eam</Unicode></TextEquiv></TextLine><TextLine id="r4_l004" comments=""><Coords points="1167,304 1167,274 1106,276 832,279 781,278 727,279 634,275 634,305 640,306 1059,307"/><TextEquiv index="1"><Unicode>conuerterit; apparebit ex ea frigiditas sensibi//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>conuerterit; apparebit ex ea frigiditas sensibi//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>conuerterit; apparebit ex ea frigiditas sensibi//</Unicode></TextEquiv></TextLine><TextLine id="r4_l005" comments=""><Coords points="1141,335 1167,336 1167,307 869,309 636,307 636,337 1053,337"/><TextEquiv index="1"><Unicode>lis, et siccitas. Eius verò esse in generatis iuuamé-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>lis, et siccitas. Eius verò esse in generatis iuuamé-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>lis, et siccitas. Eius verò esse in generatis iuuamé-</Unicode></TextEquiv></TextLine><TextLine id="r4_l006" comments=""><Coords points="1166,366 1166,337 1054,337 961,339 635,338 635,367 1120,367"/><TextEquiv index="1"><Unicode>tum praestat ad retentionem faciendam, et fixio-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>tum praestat ad retentionem faciendam, et fixio-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>tum praestat ad retentionem faciendam, et fixio-</Unicode></TextEquiv></TextLine><TextLine id="r4_l007" comments=""><Coords points="1165,397 1165,368 886,370 633,368 633,398 1015,399"/><TextEquiv index="1"><Unicode>nem: et ad conseruádas figuras, et formas. A qua</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>nem: et ad conseruádas figuras, et formas. A qua</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>nem: et ad conseruádas figuras, et formas. A qua</Unicode></TextEquiv></TextLine><TextLine id="r4_l008" comments=""><Coords points="1165,427 1165,398 1016,399 970,401 634,399 634,428 1065,429"/><TextEquiv index="1"><Unicode>autem est corpus simplex, cuius naturalis locus</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>autem est corpus simplex, cuius naturalis locus</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>autem est corpus simplex, cuius naturalis locus</Unicode></TextEquiv></TextLine><TextLine id="r4_l009" comments=""><Coords points="1164,428 991,431 774,431 709,429 635,429 635,455 1164,455"/><TextEquiv index="1"><Unicode>est, ut sit circundans terram, et circundata ab ae-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>est, ut sit circundans terram, et circundata ab ae-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>est, ut sit circundans terram, et circundata ab ae-</Unicode></TextEquiv></TextLine><TextLine id="r4_l010" comments=""><Coords points="1165,489 1165,457 1049,461 636,460 636,489 1112,490"/><TextEquiv index="1"><Unicode>re, quú in suis sitibus naturalibus permáserit. Et</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>re, quú in suis sitibus naturalibus permáserit. Et</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>re, quú in suis sitibus naturalibus permáserit. Et</Unicode></TextEquiv></TextLine><TextLine id="r4_l011" comments=""><Coords points="1161,520 1161,490 1033,492 746,492 636,490 636,519 702,521 971,522"/><TextEquiv index="1"><Unicode>haec quidem est eius grauitas comparatiua, quae</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>haec quidem est eius grauitas comparatiua, quae</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>haec quidem est eius grauitas comparatiua, quae</Unicode></TextEquiv></TextLine><TextLine id="r4_l012" comments=""><Coords points="1164,550 1164,521 824,523 636,520 636,550 704,552 1032,552"/><TextEquiv index="1"><Unicode>frigida est, et humida; scilicet eius natura talis exi//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>frigida est, et humida; scilicet eius natura talis exi//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>frigida est, et humida; scilicet eius natura talis exi//</Unicode></TextEquiv></TextLine><TextLine id="r4_l013" comments="#S q; wurde als qe erkannt"><Coords points="1162,581 1162,551 1032,553 704,553 635,551 635,581 1103,582"/><TextEquiv index="1"><Unicode>stit, quòd, si dimissa fuerit, sicut est, neq; ulla cau//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>stit, quòd, si dimissa fuerit, sicut est, neq; ulla cau//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>stit, quòd, si dimissa fuerit, sicut est, neq; ulla cau//</Unicode></TextEquiv></TextLine><TextLine id="r4_l014" comments=""><Coords points="1102,611 1160,612 1160,582 1104,582 1064,584 739,584 635,582 635,610 641,611 691,611 737,613 1058,613"/><TextEquiv index="1"><Unicode>sa extrinseca ei contraria fuerit; apparebit ex ea</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sa extrinseca ei contraria fuerit; apparebit ex ea</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sa extrinseca ei contraria fuerit; apparebit ex ea</Unicode></TextEquiv></TextLine><TextLine id="r4_l015" comments=""><Coords points="1102,642 1160,642 1160,613 1102,612 1033,615 939,615 888,613 737,614 635,611 635,642 769,644 1057,644"/><TextEquiv index="1"><Unicode>frigiditas sensibilis, et dispositio, quae est humi-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>frigiditas sensibilis, et dispositio, quae est humi-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>frigiditas sensibilis, et dispositio, quae est humi-</Unicode></TextEquiv></TextLine><TextLine id="r4_l016" comments=""><Coords points="1158,673 1158,643 1102,643 1007,646 634,643 634,672 801,675 1026,675"/><TextEquiv index="1"><Unicode>ditas: et ipsa quidem est, cuius generatio in crea//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ditas: et ipsa quidem est, cuius generatio in crea//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ditas: et ipsa quidem est, cuius generatio in crea//</Unicode></TextEquiv></TextLine><TextLine id="r4_l017" comments=""><Coords points="1173,703 1173,674 1026,676 801,676 634,673 634,702 746,705 1100,705"/><TextEquiv index="1"><Unicode>tione sua reddit eá aptam ad spargendú, et exten-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>tione sua reddit eá aptam ad spargendú, et exten-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>tione sua reddit eá aptam ad spargendú, et exten-</Unicode></TextEquiv></TextLine><TextLine id="r4_l018" comments=""><Coords points="1158,734 1158,704 1100,706 929,707 746,706 634,703 634,733 786,736 994,736"/><TextEquiv index="1"><Unicode>dendum pro qualibet re; quamuis sit pauca. et</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>dendum pro qualibet re; quamuis sit pauca. et</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>dendum pro qualibet re; quamuis sit pauca. et</Unicode></TextEquiv></TextLine><TextLine id="r4_l019" comments=""><Coords points="1172,765 1172,735 994,737 786,737 724,735 635,735 635,763 767,766 1097,766"/><TextEquiv index="1"><Unicode>recipit omnem figuram, quae est:sed nó retinet.</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>recipit omnem figuram, quae est:sed nó retinet.</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>recipit omnem figuram, quae est:sed nó retinet.</Unicode></TextEquiv></TextLine><TextLine id="r4_l020" comments=""><Coords points="1172,766 996,768 806,768 766,766 635,764 635,793 752,796 1172,796"/><TextEquiv index="1"><Unicode>Cuius esse in generatis iuuamentum praestat ad</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>Cuius esse in generatis iuuamentum praestat ad</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>Cuius esse in generatis iuuamentum praestat ad</Unicode></TextEquiv></TextLine><TextLine id="r4_l021" comments=""><Coords points="1171,826 1171,797 858,799 635,794 635,825 756,825 835,828 1034,828"/><TextEquiv index="1"><Unicode>figurandas formas, quas in suis diuisionibus</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>figurandas formas, quas in suis diuisionibus</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>figurandas formas, quas in suis diuisionibus</Unicode></TextEquiv></TextLine><TextLine id="r4_l022" comments=""><Coords points="1171,857 1171,827 1034,829 835,829 756,826 635,826 635,854 698,856 988,859"/><TextEquiv index="1"><Unicode>aliqui figurare uolunt, et ad figurandum, et ad li-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>aliqui figurare uolunt, et ad figurandum, et ad li-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>aliqui figurare uolunt, et ad figurandum, et ad li-</Unicode></TextEquiv></TextLine><TextLine id="r4_l023" comments=""><Coords points="1171,858 940,860 635,856 635,885 852,888 1171,888"/><TextEquiv index="1"><Unicode>neandum, et temperandum: humidum enim li-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>neandum, et temperandum: humidum enim li-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>neandum, et temperandum: humidum enim li-</Unicode></TextEquiv></TextLine><TextLine id="r4_l024" comments=""><Coords points="1171,889 852,889 635,886 635,915 637,916 765,916 810,918 1171,918"/><TextEquiv index="1"><Unicode>cet cito formas figurales amittat; cito tamen</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>cet cito formas figurales amittat; cito tamen</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>cet cito formas figurales amittat; cito tamen</Unicode></TextEquiv></TextLine><TextLine id="r4_l025" comments=""><Coords points="1170,919 937,920 810,919 765,917 636,917 636,946 727,946 778,948 1079,948 1170,950"/><TextEquiv index="1"><Unicode>eas recipit: sicut siccum, licet eas, duriter susci//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>eas recipit: sicut siccum, licet eas, duriter susci//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>eas recipit: sicut siccum, licet eas, duriter susci//</Unicode></TextEquiv></TextLine><TextLine id="r4_l026" comments="#S Soll der Strich über dem q auch übernommen werden?"><Coords points="1170,951 1079,949 778,949 727,947 636,947 636,977 1170,978"/><TextEquiv index="1"><Unicode>piat; duriter tamen retinet eas. Quumq; humi-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>piat; duriter tamen retinet eas. Quumq; humi-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>piat; duriter tamen retinet eas. Quumq; humi-</Unicode></TextEquiv></TextLine><TextLine id="r4_l027" comments=""><Coords points="1170,980 963,981 783,978 634,978 634,1007 886,1009 1052,1008 1170,1010"/><TextEquiv index="1"><Unicode>dum, et siccum se ad inuicem temperauerint;adi-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>dum, et siccum se ad inuicem temperauerint;adi-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>dum, et siccum se ad inuicem temperauerint;adi-</Unicode></TextEquiv></TextLine><TextLine id="r4_l028" comments=""><Coords points="1169,1011 1052,1009 886,1010 635,1008 635,1038 1169,1040"/><TextEquiv index="1"><Unicode>piscetur siccum ab humido, ut cito suscipiat té-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>piscetur siccum ab humido, ut cito suscipiat té-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>piscetur siccum ab humido, ut cito suscipiat té-</Unicode></TextEquiv></TextLine><TextLine id="r4_l029" comments=""><Coords points="1169,1041 635,1039 635,1068 798,1070 1169,1070"/><TextEquiv index="1"><Unicode>sionem, et facilè figurari possit: et acquiret hu-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sionem, et facilè figurari possit: et acquiret hu-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sionem, et facilè figurari possit: et acquiret hu-</Unicode></TextEquiv></TextLine><TextLine id="r4_l030" comments=""><Coords points="1169,1099 1169,1071 896,1070 798,1071 635,1069 635,1099 749,1098 791,1100 1120,1100"/><TextEquiv index="1"><Unicode>midum à sicco, ut retineat firmiter, quod in eo//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>midum à sicco, ut retineat firmiter, quod in eo//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>midum à sicco, ut retineat firmiter, quod in eo//</Unicode></TextEquiv></TextLine><TextLine id="r4_l031" comments=""><Coords points="1168,1100 791,1101 749,1099 671,1099 635,1100 635,1130 1089,1130 1168,1132"/><TextEquiv index="1"><Unicode>accidit ex rectificatione et aequatione. Et</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>accidit ex rectificatione et aequatione. Et</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>accidit ex rectificatione et aequatione. Et</Unicode></TextEquiv></TextLine><TextLine id="r4_l032" comments=""><Coords points="1168,1133 1089,1131 925,1132 685,1130 635,1131 635,1160 1168,1160"/><TextEquiv index="1"><Unicode>propter humidum prohibetur siccum à sua se-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>propter humidum prohibetur siccum à sua se-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>propter humidum prohibetur siccum à sua se-</Unicode></TextEquiv></TextLine><TextLine id="r4_l033" comments=""><Coords points="1168,1163 635,1161 635,1191 1036,1191 1168,1193"/><TextEquiv index="1"><Unicode>paratione: et propter siccum prohibetur humi//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>paratione: et propter siccum prohibetur humi//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>paratione: et propter siccum prohibetur humi//</Unicode></TextEquiv></TextLine><TextLine id="r4_l034" comments=""><Coords points="1167,1194 1036,1192 635,1192 635,1221 1167,1223"/><TextEquiv index="1"><Unicode>dum à sua fluxibilitate. Aer autem est corpus.</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>dum à sua fluxibilitate. Aer autem est corpus.</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>dum à sua fluxibilitate. Aer autem est corpus.</Unicode></TextEquiv></TextLine><TextLine id="r4_l035" comments=""><Coords points="1167,1224 635,1222 635,1252 902,1252 1167,1254"/><TextEquiv index="1"><Unicode>simplex, cuius naturalis locus est, ut sit super a-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>simplex, cuius naturalis locus est, ut sit super a-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>simplex, cuius naturalis locus est, ut sit super a-</Unicode></TextEquiv></TextLine><TextLine id="r4_l036" comments=""><Coords points="1167,1255 902,1253 635,1253 635,1283 1167,1283"/><TextEquiv index="1"><Unicode>quam, et sub igne: haec etiá est eius leuitas có-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>quam, et sub igne: haec etiá est eius leuitas có-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>quam, et sub igne: haec etiá est eius leuitas có-</Unicode></TextEquiv></TextLine><TextLine id="r4_l037" comments=""><Coords points="1166,1285 761,1283 635,1284 635,1314 851,1313 1166,1315"/><TextEquiv index="1"><Unicode>paratiua. Ipsius uerò natura calida est, et humi--</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>paratiua. Ipsius uerò natura calida est, et humi-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>paratiua. Ipsius uerò natura calida est, et humi-</Unicode></TextEquiv></TextLine><TextLine id="r4_l038" comments=""><Coords points="1166,1316 851,1314 635,1315 635,1344 738,1343 831,1345 1166,1345"/><TextEquiv index="1"><Unicode>da secundum regulam, quá diximus. Cuius qui-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>da secundum regulam, quá diximus. Cuius qui-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>da secundum regulam, quá diximus. Cuius qui-</Unicode></TextEquiv></TextLine><TextLine id="r4_l039" comments=""><Coords points="1166,1346 968,1345 831,1346 738,1344 634,1345 634,1374 941,1374 1166,1376"/><TextEquiv index="1"><Unicode>dem esse in generatis iuuat, ut rarificentur, et al-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>dem esse in generatis iuuat, ut rarificentur, et al-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>dem esse in generatis iuuat, ut rarificentur, et al-</Unicode></TextEquiv></TextLine><TextLine id="r4_l040" comments=""><Coords points="1165,1377 941,1375 634,1375 634,1405 816,1404 886,1406 1165,1406"/><TextEquiv index="1"><Unicode>leuientur, et subtilientur, et ad superiora eleuen-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>leuientur, et subtilientur, et ad superiora eleuen-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>leuientur, et subtilientur, et ad superiora eleuen-</Unicode></TextEquiv></TextLine><TextLine id="r4_l041" comments=""><Coords points="1165,1407 886,1407 816,1405 635,1406 635,1436 905,1435 979,1437 1165,1437"/><TextEquiv index="1"><Unicode>tur. Ignis uerò est corpus simplex, cuius natura//</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>tur. Ignis uerò est corpus simplex, cuius natura//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>tur. Ignis uerò est corpus simplex, cuius natura//</Unicode></TextEquiv></TextLine><TextLine id="r4_l042" comments=""><Coords points="1165,1438 1067,1437 979,1438 905,1436 635,1437 635,1467 1165,1467"/><TextEquiv index="1"><Unicode>lis locus super omnes elementarias existit par</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>lis locus super omnes elementarias existit par//</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>lis locus super omnes elementarias existit par//</Unicode></TextEquiv></TextLine><TextLine id="r4_l043" comments=""><Coords points="1164,1469 1056,1467 636,1468 636,1497 1164,1497"/><TextEquiv index="1"><Unicode>tes, qui est concaua caeli superficies: ipse nan-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>tes, qui est concaua caeli superficies: ipse nan-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>tes, qui est concaua caeli superficies: ipse nan-</Unicode></TextEquiv></TextLine><TextLine id="r4_l044" comments=""><Coords points="1164,1499 677,1498 636,1499 636,1528 1164,1528"/><TextEquiv index="1"><Unicode>que ad caelum peruenit. Et haec quidem est eius</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>que ad caelum peruenit. Et haec quidem est eius</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>que ad caelum peruenit. Et haec quidem est eius</Unicode></TextEquiv></TextLine><TextLine id="r4_l045" comments=""><Coords points="1164,1529 706,1528 637,1529 637,1558 1164,1558"/><TextEquiv index="1"><Unicode>leuitas absoluta. Cuius natura calida est, et sic-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>leuitas absoluta. Cuius natura calida est, et sic-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>leuitas absoluta. Cuius natura calida est, et sic-</Unicode></TextEquiv></TextLine><TextLine id="r4_l046" comments=""><Coords points="1146,1560 680,1559 636,1560 636,1588 1146,1588"/><TextEquiv index="1"><Unicode>ca. et eius esse in generatis praestat iuuamétum:</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ca. et eius esse in generatis praestat iuuamétum:</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ca. et eius esse in generatis praestat iuuamétum:</Unicode></TextEquiv></TextLine><TextLine id="r4_l047" comments=""><Coords points="1147,1590 757,1589 637,1590 637,1618 1147,1618"/><TextEquiv index="1"><Unicode>ut maturet, et subtiliet, et permisceat: et ut eius</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ut maturet, et subtiliet, et permisceat: et ut eius</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ut maturet, et subtiliet, et permisceat: et ut eius</Unicode></TextEquiv></TextLine><TextLine id="r4_l048" comments=""><Coords points="779,1649 1148,1650 1148,1620 922,1619 781,1621 635,1621 635,1651 663,1651"/><TextEquiv index="1"><Unicode>penetratione currat per ea substantia aerea: et ut</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>penetratione currat per ea substantia aerea: et ut</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>penetratione currat per ea substantia aerea: et ut</Unicode></TextEquiv></TextLine><TextLine id="r4_l049" comments=""><Coords points="1146,1651 1135,1650 779,1650 634,1652 634,1679 1146,1679"/><TextEquiv index="1"><Unicode>duorum elementorum grauium frigidorum pu-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>duorum elementorum grauium frigidorum pu-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>duorum elementorum grauium frigidorum pu-</Unicode></TextEquiv></TextLine><TextLine id="r4_l050" comments=""><Coords points="799,1710 981,1709 1148,1710 1148,1681 806,1680 634,1682 634,1712 754,1712"/><TextEquiv index="1"><Unicode>ram frigiditatem frangat: et ut de elementaria</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ram frigiditatem frangat: et ut de elementaria</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>ram frigiditatem frangat: et ut de elementaria</Unicode></TextEquiv></TextLine><TextLine id="r4_l051" comments=""><Coords points="828,1740 1148,1740 1148,1711 981,1710 799,1711 754,1713 633,1713 633,1742 737,1742"/><TextEquiv index="1"><Unicode>proprietate ad cóplexionalitatem redeat. Duo</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>proprietate ad cóplexionalitatem redeat. Duo</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>proprietate ad cóplexionalitatem redeat. Duo</Unicode></TextEquiv></TextLine><TextLine id="r4_l052" comments=""><Coords points="868,1770 1147,1771 1147,1741 828,1741 634,1744 634,1772 783,1772"/><TextEquiv index="1"><Unicode>autem grauia plus iuuant ad membrorum gene-</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>autem grauia plus iuuant ad membrorum gene-</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>autem grauia plus iuuant ad membrorum gene-</Unicode></TextEquiv></TextLine><TextLine id="r4_l053" comments=""><Coords points="852,1800 1148,1801 1148,1772 868,1771 635,1774 635,1804 657,1804"/><TextEquiv index="1"><Unicode>rationem, et eorum quietem: et duo leuia plus</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>rationem, et eorum quietem: et duo leuia plus</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>rationem, et eorum quietem: et duo leuia plus</Unicode></TextEquiv></TextLine><TextLine id="r4_l054" comments=""><Coords points="1148,1831 1148,1802 852,1801 750,1804 634,1805 634,1832 800,1832"/><TextEquiv index="1"><Unicode>iuuant ad generationem spirituum, et motioné</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>iuuant ad generationem spirituum, et motioné</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>iuuant ad generationem spirituum, et motioné</Unicode></TextEquiv></TextLine><TextLine id="r4_l055" comments=""><Coords points="1148,1832 801,1832 758,1834 634,1835 634,1863 770,1863 815,1861 1148,1863"/><TextEquiv index="1"><Unicode>eorum, et ad mouéda membra: licèt motor nó</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>eorum, et ad mouéda membra: licèt motor nó</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>eorum, et ad mouéda membra: licèt motor nó</Unicode></TextEquiv></TextLine><TextLine id="r4_l056" comments=""><Coords points="999,1863 815,1862 770,1864 634,1865 634,1887 999,1887"/><TextEquiv index="1"><Unicode>sit nisi anima. haec sunt elementa.</Unicode></TextEquiv><TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sit nisi anima. haec sunt elementa.</Unicode></TextEquiv><TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de"><Unicode>sit nisi anima. haec sunt elementa.</Unicode></TextEquiv></TextLine></TextRegion></Page></PcGts>
+<PcGts xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2017-07-15"
+       xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2017-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2017-07-15/pagecontent.xsd">
+    <Metadata>
+        <Creator>Christian Reul</Creator>
+        <Created>2018-06-05T19:16:44</Created>
+        <LastChange>2018-06-05T19:16:44</LastChange>
+    </Metadata>
+    <Page imageFilename="009.nrm.png" imageHeight="2461" imageWidth="1500">
+        <TextRegion id="r0" type="paragraph">
+            <Coords points="139,1918 189,1921 189,1827 593,1829 591,2207 133,2209 133,2209 133,2209"/>
+            <TextLine id="r0_l001" comments="">
+                <Coords points="585,1866 585,1836 192,1836 192,1867 528,1868"/>
+            </TextLine>
+            <TextLine id="r0_l002" comments="">
+                <Coords points="585,1897 585,1867 490,1870 312,1870 191,1868 191,1897 235,1897 273,1899 515,1899"/>
+                <TextEquiv index="1">
+                    <Unicode> </Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r0_l003" comments="">
+                <Coords points="585,1898 413,1901 178,1898 178,1926 181,1927 585,1928"/>
+                <TextEquiv index="1">
+                    <Unicode>corpora diuersarum formarum diuidi mi-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>corpora diuersarum formarum diuidi mi-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>corpora diuersarum formarum diuidi mi-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r0_l004" comments="">
+                <Coords points="586,1958 586,1929 460,1931 290,1931 146,1927 146,1956 284,1960 528,1960"/>
+                <TextEquiv index="1">
+                    <Unicode>nìmè possunt: ex quorum commixtione species</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>nìmè possunt: ex quorum commixtione species</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>nìmè possunt: ex quorum commixtione species</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r0_l005" comments="">
+                <Coords points="544,1989 586,1989 586,1959 528,1961 284,1961 148,1957 148,1986 298,1991 507,1991"/>
+                <TextEquiv index="1">
+                    <Unicode>diuersae generatorum fiunt. Medicus autem phy//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>diuersae generatorum fiunt. Medicus autem phy//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>diuersae generatorum fiunt. Medicus autem phy//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r0_l006" comments="">
+                <Coords points="528,2020 585,2020 585,1990 544,1990 507,1992 298,1992 149,1987 149,2015 152,2016 262,2021 484,2022"/>
+                <TextEquiv index="1">
+                    <Unicode>sico credere debet, quòd sunt quatuor, et nó plu//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sico credere debet, quòd sunt quatuor, et nó plu//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sico credere debet, quòd sunt quatuor, et nó plu//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r0_l007" comments="">
+                <Coords points="493,2050 584,2049 584,2021 528,2021 484,2023 322,2023 262,2022 239,2020 150,2020 150,2045 156,2046 292,2052 484,2052"/>
+                <TextEquiv index="1">
+                    <Unicode>ra: quorum duo sunt leuia, et duo grauia. leuia</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ra: quorum duo sunt leuia, et duo grauia. leuia</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ra: quorum duo sunt leuia, et duo grauia. leuia</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r0_l008" comments="">
+                <Coords points="584,2080 584,2050 493,2051 484,2053 428,2054 371,2053 342,2054 228,2051 148,2046 148,2075 152,2076 172,2076 262,2082 502,2082"/>
+                <TextEquiv index="1">
+                    <Unicode>sunt ignis, et aer: grauia terra, et aqua.Terra est</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sunt ignis, et aer: grauia terra, et aqua.Terra est</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sunt ignis, et aer: grauia terra, et aqua.Terra est</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r0_l009" comments="">
+                <Coords points="583,2081 436,2084 290,2084 216,2080 145,2080 145,2105 149,2106 180,2106 217,2110 583,2110"/>
+                <TextEquiv index="1">
+                    <Unicode>corpus simplex, cuius locus naturalis in medio</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>corpus simplex, cuius locus naturalis in medio</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>corpus simplex, cuius locus naturalis in medio</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r0_l010" comments="">
+                <Coords points="582,2141 582,2111 478,2114 263,2114 217,2111 195,2108 142,2108 142,2136 189,2137 268,2143 503,2143"/>
+                <TextEquiv index="1">
+                    <Unicode>totius existit, in quo naturaliter manet quieta: et</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>totius existit, in quo naturaliter manet quieta: et</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>totius existit, in quo naturaliter manet quieta: et</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r0_l011" comments="">
+                <Coords points="582,2142 503,2144 323,2145 268,2144 189,2138 138,2137 138,2167 232,2169 251,2171 257,2173 582,2173"/>
+                <TextEquiv index="1">
+                    <Unicode>ad ipsum, cum ab eo separata fuerit; naturaliter</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ad ipsum, cum ab eo separata fuerit; naturaliter</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ad ipsum, cum ab eo separata fuerit; naturaliter</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r0_l012" comments="">
+                <Coords points="581,2174 288,2176 266,2175 232,2170 135,2168 135,2204 581,2204"/>
+                <TextEquiv index="1">
+                    <Unicode>mouetur. Et haec quidem eius naturalis graui-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>mouetur. Et haec quidem eius naturalis graui-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>mouetur. Et haec quidem eius naturalis graui-</Unicode>
+                </TextEquiv>
+            </TextLine>
+        </TextRegion>
+        <TextRegion id="r1" type="caption">
+            <Coords points="143,1825 143,1781 596,1781 596,1825"/>
+            <TextLine id="r1_l001" comments="">
+                <Coords points="148,1782 148,1821 587,1821 587,1782"/>
+                <TextEquiv index="1">
+                    <Unicode>noctriua scunda de elementis: cuius est unum Caput.</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>Doctrina secunda de elementis: cuius est unum Caput.</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>Doctrina secunda de elementis: cuius est unum Caput.</Unicode>
+                </TextEquiv>
+            </TextLine>
+        </TextRegion>
+        <TextRegion id="r2" type="drop-capital">
+            <Coords points="143,1919 143,1846 189,1846 189,1919"/>
+            <TextLine id="r2_l001" comments="">
+                <Coords points="143,1919 143,1846 189,1846 189,1919"/>
+                <TextEquiv index="0" comments="User: andreas.buettner@uni-wuerzburg.de">
+                    <Unicode>E</Unicode>
+                </TextEquiv>
+                <TextEquiv index="1">
+                    <Unicode>E</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: andreas.buettner@uni-wuerzburg.de">
+                    <Unicode>E</Unicode>
+                </TextEquiv>
+            </TextLine>
+        </TextRegion>
+        <ImageRegion id="r3">
+            <Coords points="142,1840 142,1840 142,1840 142,1840"/>
+        </ImageRegion>
+        <TextRegion id="r4" type="paragraph">
+            <Coords points="628,172 628,1892 1147,1902 1161,1799 1178,172 1178,172 1178,172"/>
+            <TextLine id="r4_l001" comments="">
+                <Coords points="1028,215 1172,211 1172,181 638,181 638,214 740,216 899,216"/>
+                <TextEquiv index="1">
+                    <Unicode>tas existit: Cuius quidem natura frigida est, et</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>tas existit: Cuius quidem natura frigida est, et</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>tas existit: Cuius quidem natura frigida est, et</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l002" comments="">
+                <Coords points="1103,243 1171,243 1171,212 1028,216 899,217 740,217 637,215 637,245 1063,245"/>
+                <TextEquiv index="1">
+                    <Unicode>sicca: ipsa enim talis existit, quòd, si dimissa fue-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sicca: ipsa enim talis existit, quòd, si dimissa fue-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sicca: ipsa enim talis existit, quòd, si dimissa fue-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l003" comments="">
+                <Coords points="1106,275 1174,273 1174,244 1103,244 1023,247 815,247 692,245 637,246 637,274 727,278 832,278"/>
+                <TextEquiv index="1">
+                    <Unicode>rit, neque altera res extrinseca eam</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>rit, neque altera res extrinseca eam</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>rit, neque altera res extrinseca eam</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l004" comments="">
+                <Coords points="1167,304 1167,274 1106,276 832,279 781,278 727,279 634,275 634,305 640,306 1059,307"/>
+                <TextEquiv index="1">
+                    <Unicode>conuerterit; apparebit ex ea frigiditas sensibi//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>conuerterit; apparebit ex ea frigiditas sensibi//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>conuerterit; apparebit ex ea frigiditas sensibi//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l005" comments="">
+                <Coords points="1141,335 1167,336 1167,307 869,309 636,307 636,337 1053,337"/>
+                <TextEquiv index="1">
+                    <Unicode>lis, et siccitas. Eius verò esse in generatis iuuamé-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>lis, et siccitas. Eius verò esse in generatis iuuamé-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>lis, et siccitas. Eius verò esse in generatis iuuamé-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l006" comments="">
+                <Coords points="1166,366 1166,337 1054,337 961,339 635,338 635,367 1120,367"/>
+                <TextEquiv index="1">
+                    <Unicode>tum praestat ad retentionem faciendam, et fixio-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>tum praestat ad retentionem faciendam, et fixio-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>tum praestat ad retentionem faciendam, et fixio-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l007" comments="">
+                <Coords points="1165,397 1165,368 886,370 633,368 633,398 1015,399"/>
+                <TextEquiv index="1">
+                    <Unicode>nem: et ad conseruádas figuras, et formas. A qua</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>nem: et ad conseruádas figuras, et formas. A qua</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>nem: et ad conseruádas figuras, et formas. A qua</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l008" comments="">
+                <Coords points="1165,427 1165,398 1016,399 970,401 634,399 634,428 1065,429"/>
+                <TextEquiv index="1">
+                    <Unicode>autem est corpus simplex, cuius naturalis locus</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>autem est corpus simplex, cuius naturalis locus</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>autem est corpus simplex, cuius naturalis locus</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l009" comments="">
+                <Coords points="1164,428 991,431 774,431 709,429 635,429 635,455 1164,455"/>
+                <TextEquiv index="1">
+                    <Unicode>est, ut sit circundans terram, et circundata ab ae-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>est, ut sit circundans terram, et circundata ab ae-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>est, ut sit circundans terram, et circundata ab ae-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l010" comments="">
+                <Coords points="1165,489 1165,457 1049,461 636,460 636,489 1112,490"/>
+                <TextEquiv index="1">
+                    <Unicode>re, quú in suis sitibus naturalibus permáserit. Et</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>re, quú in suis sitibus naturalibus permáserit. Et</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>re, quú in suis sitibus naturalibus permáserit. Et</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l011" comments="">
+                <Coords points="1161,520 1161,490 1033,492 746,492 636,490 636,519 702,521 971,522"/>
+                <TextEquiv index="1">
+                    <Unicode>haec quidem est eius grauitas comparatiua, quae</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>haec quidem est eius grauitas comparatiua, quae</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>haec quidem est eius grauitas comparatiua, quae</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l012" comments="">
+                <Coords points="1164,550 1164,521 824,523 636,520 636,550 704,552 1032,552"/>
+                <TextEquiv index="1">
+                    <Unicode>frigida est, et humida; scilicet eius natura talis exi//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>frigida est, et humida; scilicet eius natura talis exi//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>frigida est, et humida; scilicet eius natura talis exi//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l013" comments="#S q; wurde als qe erkannt">
+                <Coords points="1162,581 1162,551 1032,553 704,553 635,551 635,581 1103,582"/>
+                <TextEquiv index="1">
+                    <Unicode>stit, quòd, si dimissa fuerit, sicut est, neq; ulla cau//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>stit, quòd, si dimissa fuerit, sicut est, neq; ulla cau//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>stit, quòd, si dimissa fuerit, sicut est, neq; ulla cau//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l014" comments="">
+                <Coords points="1102,611 1160,612 1160,582 1104,582 1064,584 739,584 635,582 635,610 641,611 691,611 737,613 1058,613"/>
+                <TextEquiv index="1">
+                    <Unicode>sa extrinseca ei contraria fuerit; apparebit ex ea</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sa extrinseca ei contraria fuerit; apparebit ex ea</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sa extrinseca ei contraria fuerit; apparebit ex ea</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l015" comments="">
+                <Coords points="1102,642 1160,642 1160,613 1102,612 1033,615 939,615 888,613 737,614 635,611 635,642 769,644 1057,644"/>
+                <TextEquiv index="1">
+                    <Unicode>frigiditas sensibilis, et dispositio, quae est humi-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>frigiditas sensibilis, et dispositio, quae est humi-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>frigiditas sensibilis, et dispositio, quae est humi-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l016" comments="">
+                <Coords points="1158,673 1158,643 1102,643 1007,646 634,643 634,672 801,675 1026,675"/>
+                <TextEquiv index="1">
+                    <Unicode>ditas: et ipsa quidem est, cuius generatio in crea//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ditas: et ipsa quidem est, cuius generatio in crea//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ditas: et ipsa quidem est, cuius generatio in crea//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l017" comments="">
+                <Coords points="1173,703 1173,674 1026,676 801,676 634,673 634,702 746,705 1100,705"/>
+                <TextEquiv index="1">
+                    <Unicode>tione sua reddit eá aptam ad spargendú, et exten-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>tione sua reddit eá aptam ad spargendú, et exten-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>tione sua reddit eá aptam ad spargendú, et exten-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l018" comments="">
+                <Coords points="1158,734 1158,704 1100,706 929,707 746,706 634,703 634,733 786,736 994,736"/>
+                <TextEquiv index="1">
+                    <Unicode>dendum pro qualibet re; quamuis sit pauca. et</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>dendum pro qualibet re; quamuis sit pauca. et</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>dendum pro qualibet re; quamuis sit pauca. et</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l019" comments="">
+                <Coords points="1172,765 1172,735 994,737 786,737 724,735 635,735 635,763 767,766 1097,766"/>
+                <TextEquiv index="1">
+                    <Unicode>recipit omnem figuram, quae est:sed nó retinet.</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>recipit omnem figuram, quae est:sed nó retinet.</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>recipit omnem figuram, quae est:sed nó retinet.</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l020" comments="">
+                <Coords points="1172,766 996,768 806,768 766,766 635,764 635,793 752,796 1172,796"/>
+                <TextEquiv index="1">
+                    <Unicode>Cuius esse in generatis iuuamentum praestat ad</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>Cuius esse in generatis iuuamentum praestat ad</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>Cuius esse in generatis iuuamentum praestat ad</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l021" comments="">
+                <Coords points="1171,826 1171,797 858,799 635,794 635,825 756,825 835,828 1034,828"/>
+                <TextEquiv index="1">
+                    <Unicode>figurandas formas, quas in suis diuisionibus</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>figurandas formas, quas in suis diuisionibus</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>figurandas formas, quas in suis diuisionibus</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l022" comments="">
+                <Coords points="1171,857 1171,827 1034,829 835,829 756,826 635,826 635,854 698,856 988,859"/>
+                <TextEquiv index="1">
+                    <Unicode>aliqui figurare uolunt, et ad figurandum, et ad li-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>aliqui figurare uolunt, et ad figurandum, et ad li-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>aliqui figurare uolunt, et ad figurandum, et ad li-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l023" comments="">
+                <Coords points="1171,858 940,860 635,856 635,885 852,888 1171,888"/>
+                <TextEquiv index="1">
+                    <Unicode>neandum, et temperandum: humidum enim li-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>neandum, et temperandum: humidum enim li-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>neandum, et temperandum: humidum enim li-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l024" comments="">
+                <Coords points="1171,889 852,889 635,886 635,915 637,916 765,916 810,918 1171,918"/>
+                <TextEquiv index="1">
+                    <Unicode>cet cito formas figurales amittat; cito tamen</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>cet cito formas figurales amittat; cito tamen</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>cet cito formas figurales amittat; cito tamen</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l025" comments="">
+                <Coords points="1170,919 937,920 810,919 765,917 636,917 636,946 727,946 778,948 1079,948 1170,950"/>
+                <TextEquiv index="1">
+                    <Unicode>eas recipit: sicut siccum, licet eas, duriter susci//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>eas recipit: sicut siccum, licet eas, duriter susci//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>eas recipit: sicut siccum, licet eas, duriter susci//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l026" comments="#S Soll der Strich über dem q auch übernommen werden?">
+                <Coords points="1170,951 1079,949 778,949 727,947 636,947 636,977 1170,978"/>
+                <TextEquiv index="1">
+                    <Unicode>piat; duriter tamen retinet eas. Quumq; humi-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>piat; duriter tamen retinet eas. Quumq; humi-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>piat; duriter tamen retinet eas. Quumq; humi-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l027" comments="">
+                <Coords points="1170,980 963,981 783,978 634,978 634,1007 886,1009 1052,1008 1170,1010"/>
+                <TextEquiv index="1">
+                    <Unicode>dum, et siccum se ad inuicem temperauerint;adi-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>dum, et siccum se ad inuicem temperauerint;adi-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>dum, et siccum se ad inuicem temperauerint;adi-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l028" comments="">
+                <Coords points="1169,1011 1052,1009 886,1010 635,1008 635,1038 1169,1040"/>
+                <TextEquiv index="1">
+                    <Unicode>piscetur siccum ab humido, ut cito suscipiat té-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>piscetur siccum ab humido, ut cito suscipiat té-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>piscetur siccum ab humido, ut cito suscipiat té-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l029" comments="">
+                <Coords points="1169,1041 635,1039 635,1068 798,1070 1169,1070"/>
+                <TextEquiv index="1">
+                    <Unicode>sionem, et facilè figurari possit: et acquiret hu-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sionem, et facilè figurari possit: et acquiret hu-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sionem, et facilè figurari possit: et acquiret hu-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l030" comments="">
+                <Coords points="1169,1099 1169,1071 896,1070 798,1071 635,1069 635,1099 749,1098 791,1100 1120,1100"/>
+                <TextEquiv index="1">
+                    <Unicode>midum à sicco, ut retineat firmiter, quod in eo//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>midum à sicco, ut retineat firmiter, quod in eo//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>midum à sicco, ut retineat firmiter, quod in eo//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l031" comments="">
+                <Coords points="1168,1100 791,1101 749,1099 671,1099 635,1100 635,1130 1089,1130 1168,1132"/>
+                <TextEquiv index="1">
+                    <Unicode>accidit ex rectificatione et aequatione. Et</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>accidit ex rectificatione et aequatione. Et</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>accidit ex rectificatione et aequatione. Et</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l032" comments="">
+                <Coords points="1168,1133 1089,1131 925,1132 685,1130 635,1131 635,1160 1168,1160"/>
+                <TextEquiv index="1">
+                    <Unicode>propter humidum prohibetur siccum à sua se-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>propter humidum prohibetur siccum à sua se-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>propter humidum prohibetur siccum à sua se-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l033" comments="">
+                <Coords points="1168,1163 635,1161 635,1191 1036,1191 1168,1193"/>
+                <TextEquiv index="1">
+                    <Unicode>paratione: et propter siccum prohibetur humi//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>paratione: et propter siccum prohibetur humi//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>paratione: et propter siccum prohibetur humi//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l034" comments="">
+                <Coords points="1167,1194 1036,1192 635,1192 635,1221 1167,1223"/>
+                <TextEquiv index="1">
+                    <Unicode>dum à sua fluxibilitate. Aer autem est corpus.</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>dum à sua fluxibilitate. Aer autem est corpus.</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>dum à sua fluxibilitate. Aer autem est corpus.</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l035" comments="">
+                <Coords points="1167,1224 635,1222 635,1252 902,1252 1167,1254"/>
+                <TextEquiv index="1">
+                    <Unicode>simplex, cuius naturalis locus est, ut sit super a-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>simplex, cuius naturalis locus est, ut sit super a-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>simplex, cuius naturalis locus est, ut sit super a-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l036" comments="">
+                <Coords points="1167,1255 902,1253 635,1253 635,1283 1167,1283"/>
+                <TextEquiv index="1">
+                    <Unicode>quam, et sub igne: haec etiá est eius leuitas có-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>quam, et sub igne: haec etiá est eius leuitas có-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>quam, et sub igne: haec etiá est eius leuitas có-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l037" comments="">
+                <Coords points="1166,1285 761,1283 635,1284 635,1314 851,1313 1166,1315"/>
+                <TextEquiv index="1">
+                    <Unicode>paratiua. Ipsius uerò natura calida est, et humi--</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>paratiua. Ipsius uerò natura calida est, et humi-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>paratiua. Ipsius uerò natura calida est, et humi-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l038" comments="">
+                <Coords points="1166,1316 851,1314 635,1315 635,1344 738,1343 831,1345 1166,1345"/>
+                <TextEquiv index="1">
+                    <Unicode>da secundum regulam, quá diximus. Cuius qui-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>da secundum regulam, quá diximus. Cuius qui-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>da secundum regulam, quá diximus. Cuius qui-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l039" comments="">
+                <Coords points="1166,1346 968,1345 831,1346 738,1344 634,1345 634,1374 941,1374 1166,1376"/>
+                <TextEquiv index="1">
+                    <Unicode>dem esse in generatis iuuat, ut rarificentur, et al-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>dem esse in generatis iuuat, ut rarificentur, et al-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>dem esse in generatis iuuat, ut rarificentur, et al-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l040" comments="">
+                <Coords points="1165,1377 941,1375 634,1375 634,1405 816,1404 886,1406 1165,1406"/>
+                <TextEquiv index="1">
+                    <Unicode>leuientur, et subtilientur, et ad superiora eleuen-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>leuientur, et subtilientur, et ad superiora eleuen-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>leuientur, et subtilientur, et ad superiora eleuen-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l041" comments="">
+                <Coords points="1165,1407 886,1407 816,1405 635,1406 635,1436 905,1435 979,1437 1165,1437"/>
+                <TextEquiv index="1">
+                    <Unicode>tur. Ignis uerò est corpus simplex, cuius natura//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>tur. Ignis uerò est corpus simplex, cuius natura//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>tur. Ignis uerò est corpus simplex, cuius natura//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l042" comments="">
+                <Coords points="1165,1438 1067,1437 979,1438 905,1436 635,1437 635,1467 1165,1467"/>
+                <TextEquiv index="1">
+                    <Unicode>lis locus super omnes elementarias existit par</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>lis locus super omnes elementarias existit par//</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>lis locus super omnes elementarias existit par//</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l043" comments="">
+                <Coords points="1164,1469 1056,1467 636,1468 636,1497 1164,1497"/>
+                <TextEquiv index="1">
+                    <Unicode>tes, qui est concaua caeli superficies: ipse nan-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>tes, qui est concaua caeli superficies: ipse nan-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>tes, qui est concaua caeli superficies: ipse nan-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l044" comments="">
+                <Coords points="1164,1499 677,1498 636,1499 636,1528 1164,1528"/>
+                <TextEquiv index="1">
+                    <Unicode>que ad caelum peruenit. Et haec quidem est eius</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>que ad caelum peruenit. Et haec quidem est eius</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>que ad caelum peruenit. Et haec quidem est eius</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l045" comments="">
+                <Coords points="1164,1529 706,1528 637,1529 637,1558 1164,1558"/>
+                <TextEquiv index="1">
+                    <Unicode>leuitas absoluta. Cuius natura calida est, et sic-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>leuitas absoluta. Cuius natura calida est, et sic-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>leuitas absoluta. Cuius natura calida est, et sic-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l046" comments="">
+                <Coords points="1146,1560 680,1559 636,1560 636,1588 1146,1588"/>
+                <TextEquiv index="1">
+                    <Unicode>ca. et eius esse in generatis praestat iuuamétum:</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ca. et eius esse in generatis praestat iuuamétum:</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ca. et eius esse in generatis praestat iuuamétum:</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l047" comments="">
+                <Coords points="1147,1590 757,1589 637,1590 637,1618 1147,1618"/>
+                <TextEquiv index="1">
+                    <Unicode>ut maturet, et subtiliet, et permisceat: et ut eius</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ut maturet, et subtiliet, et permisceat: et ut eius</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ut maturet, et subtiliet, et permisceat: et ut eius</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l048" comments="">
+                <Coords points="779,1649 1148,1650 1148,1620 922,1619 781,1621 635,1621 635,1651 663,1651"/>
+                <TextEquiv index="1">
+                    <Unicode>penetratione currat per ea substantia aerea: et ut</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>penetratione currat per ea substantia aerea: et ut</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>penetratione currat per ea substantia aerea: et ut</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l049" comments="">
+                <Coords points="1146,1651 1135,1650 779,1650 634,1652 634,1679 1146,1679"/>
+                <TextEquiv index="1">
+                    <Unicode>duorum elementorum grauium frigidorum pu-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>duorum elementorum grauium frigidorum pu-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>duorum elementorum grauium frigidorum pu-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l050" comments="">
+                <Coords points="799,1710 981,1709 1148,1710 1148,1681 806,1680 634,1682 634,1712 754,1712"/>
+                <TextEquiv index="1">
+                    <Unicode>ram frigiditatem frangat: et ut de elementaria</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ram frigiditatem frangat: et ut de elementaria</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>ram frigiditatem frangat: et ut de elementaria</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l051" comments="">
+                <Coords points="828,1740 1148,1740 1148,1711 981,1710 799,1711 754,1713 633,1713 633,1742 737,1742"/>
+                <TextEquiv index="1">
+                    <Unicode>proprietate ad cóplexionalitatem redeat. Duo</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>proprietate ad cóplexionalitatem redeat. Duo</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>proprietate ad cóplexionalitatem redeat. Duo</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l052" comments="">
+                <Coords points="868,1770 1147,1771 1147,1741 828,1741 634,1744 634,1772 783,1772"/>
+                <TextEquiv index="1">
+                    <Unicode>autem grauia plus iuuant ad membrorum gene-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>autem grauia plus iuuant ad membrorum gene-</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>autem grauia plus iuuant ad membrorum gene-</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l053" comments="">
+                <Coords points="852,1800 1148,1801 1148,1772 868,1771 635,1774 635,1804 657,1804"/>
+                <TextEquiv index="1">
+                    <Unicode>rationem, et eorum quietem: et duo leuia plus</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>rationem, et eorum quietem: et duo leuia plus</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>rationem, et eorum quietem: et duo leuia plus</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l054" comments="">
+                <Coords points="1148,1831 1148,1802 852,1801 750,1804 634,1805 634,1832 800,1832"/>
+                <TextEquiv index="1">
+                    <Unicode>iuuant ad generationem spirituum, et motioné</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>iuuant ad generationem spirituum, et motioné</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>iuuant ad generationem spirituum, et motioné</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l055" comments="">
+                <Coords points="1148,1832 801,1832 758,1834 634,1835 634,1863 770,1863 815,1861 1148,1863"/>
+                <TextEquiv index="1">
+                    <Unicode>eorum, et ad mouéda membra: licèt motor nó</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>eorum, et ad mouéda membra: licèt motor nó</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>eorum, et ad mouéda membra: licèt motor nó</Unicode>
+                </TextEquiv>
+            </TextLine>
+            <TextLine id="r4_l056" comments="">
+                <Coords points="999,1863 815,1862 770,1864 634,1865 634,1887 999,1887"/>
+                <TextEquiv index="1">
+                    <Unicode>sit nisi anima. haec sunt elementa.</Unicode>
+                </TextEquiv>
+                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sit nisi anima. haec sunt elementa.</Unicode>
+                </TextEquiv>
+                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
+                    <Unicode>sit nisi anima. haec sunt elementa.</Unicode>
+                </TextEquiv>
+            </TextLine>
+        </TextRegion>
+    </Page>
+</PcGts>

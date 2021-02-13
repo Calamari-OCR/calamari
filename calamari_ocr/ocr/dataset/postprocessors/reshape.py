@@ -1,17 +1,27 @@
-from tfaip.base.data.pipeline.dataprocessor import DataProcessor
-from tfaip.base.data.pipeline.definitions import Sample
+from dataclasses import dataclass
+from typing import Type
+
+from paiargparse import pai_dataclass
+from tfaip.data.pipeline.definitions import Sample
+from tfaip.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
 
 
-class ReshapeOutputsProcessor(DataProcessor):
+@pai_dataclass
+@dataclass
+class ReshapeOutputsProcessorParams(DataProcessorParams):
+    @staticmethod
+    def cls() -> Type['MappingDataProcessor']:
+        return ReshapeOutputsProcessor
+
+
+class ReshapeOutputsProcessor(MappingDataProcessor[ReshapeOutputsProcessorParams]):
     def apply(self, sample: Sample) -> Sample:
         inputs = sample.inputs
         outputs = sample.outputs
-        assert(inputs['img_len'].shape == (1,))
-        assert(inputs['meta'].shape == (1,))
+        assert (inputs['img_len'].shape == (1,))
         inputs = inputs.copy()
         outputs = outputs.copy()
         inputs['img_len'] = inputs['img_len'][0]
-        inputs['meta'] = inputs['meta'][0]
 
         def reshape_outputs(suffix):
             out_len = 'out_len' + suffix
@@ -24,7 +34,7 @@ class ReshapeOutputsProcessor(DataProcessor):
                     outputs[name] = outputs[name][:outputs[out_len]]
 
         reshape_outputs('')
-        for i in range(self.params.ensemble_):
+        for i in range(self.data_params.ensemble):
             reshape_outputs(f"_{i}")
 
         return sample.new_inputs(inputs).new_outputs(outputs)

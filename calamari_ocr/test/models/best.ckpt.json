@@ -1,0 +1,1159 @@
+{
+  "epochs": 1,
+  "current_epoch": 1,
+  "samples_per_epoch": 2,
+  "scale_epoch_size": 1,
+  "train_accum_steps": 1,
+  "progress_bar_mode": 1,
+  "progbar_delta_time": 5,
+  "tf_cpp_min_log_level": 2,
+  "force_eager": false,
+  "skip_model_load_test": true,
+  "val_every_n": 1,
+  "lav_every_n": 0,
+  "output_dir": "/tmp/tmpzxfbalca",
+  "write_checkpoints": true,
+  "export_best": true,
+  "export_final": false,
+  "no_train_scope": null,
+  "ema_decay": 0.0,
+  "random_seed": null,
+  "profile": false,
+  "device": {
+    "gpus": [],
+    "gpu_auto_tune": false,
+    "gpu_memory": null,
+    "soft_device_placement": true,
+    "dist_strategy": "default",
+    "__cls__": "tfaip.device.device_config:DeviceConfigParams"
+  },
+  "optimizer": {
+    "clip_norm": null,
+    "clip_value": null,
+    "global_clip_norm": 5,
+    "beta_1": 0.9,
+    "beta_2": 0.999,
+    "epsilon": 1e-07,
+    "weight_decay": 0.0,
+    "__cls__": "tfaip.trainer.optimizer.optimizers:AdamOptimizer"
+  },
+  "learning_rate": {
+    "lr": 0.001,
+    "step_function": true,
+    "offset_epochs": 0,
+    "steps_per_epoch": 2,
+    "epochs": 1,
+    "__cls__": "tfaip.trainer.scheduler.constant_params:Constant"
+  },
+  "scenario": {
+    "debug_graph_construction": false,
+    "debug_graph_n_examples": 1,
+    "print_eval_limit": 10,
+    "tensorboard_logger_history_size": 5,
+    "export_serve": true,
+    "model": {
+      "layers": [
+        {
+          "name": "conv2d_0",
+          "filters": 2,
+          "kernel_size": {
+            "x": 3,
+            "y": 3,
+            "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+          },
+          "strides": {
+            "x": 1,
+            "y": 1,
+            "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+          },
+          "padding": "same",
+          "activation": "relu",
+          "__cls__": "calamari_ocr.ocr.model.layers.conv2d:Conv2DLayerParams"
+        },
+        {
+          "name": "maxpool2d_0",
+          "pool_size": {
+            "x": 4,
+            "y": 4,
+            "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+          },
+          "strides": null,
+          "padding": "same",
+          "__cls__": "calamari_ocr.ocr.model.layers.pool2d:MaxPool2DLayerParams"
+        },
+        {
+          "name": "lstm_0",
+          "hidden_nodes": 2,
+          "merge_mode": "concat",
+          "__cls__": "calamari_ocr.ocr.model.layers.bilstm:BiLSTMLayerParams"
+        },
+        {
+          "name": "dropout_0",
+          "rate": 0.5,
+          "__cls__": "calamari_ocr.ocr.model.layers.dropout:DropoutLayerParams"
+        }
+      ],
+      "classes": 66,
+      "ctc_merge_repeated": true,
+      "ensemble": 0,
+      "masking_mode": false,
+      "__cls__": "calamari_ocr.ocr.model.params:ModelParams"
+    },
+    "data": {
+      "pre_proc": {
+        "run_parallel": false,
+        "num_threads": -1,
+        "max_tasks_per_process": 250,
+        "processors": [
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "training"
+            ],
+            "__cls__": "calamari_ocr.ocr.dataset.imageprocessors.data_range_normalizer:DataRangeProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "training"
+            ],
+            "extra_params": [
+              4,
+              1.0,
+              0.3
+            ],
+            "line_height": 48,
+            "__cls__": "calamari_ocr.ocr.dataset.imageprocessors.center_normalizer:CenterNormalizerProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "training"
+            ],
+            "normalize": true,
+            "invert": true,
+            "transpose": true,
+            "pad": 16,
+            "pad_value": 0,
+            "__cls__": "calamari_ocr.ocr.dataset.imageprocessors.final_preparation:FinalPreparationProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "targets",
+              "training"
+            ],
+            "bidi_direction": "auto",
+            "__cls__": "calamari_ocr.ocr.dataset.textprocessors.basic_text_processors:BidiTextProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "targets",
+              "training"
+            ],
+            "__cls__": "calamari_ocr.ocr.dataset.textprocessors.basic_text_processors:StripTextProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "targets",
+              "training"
+            ],
+            "unicode_normalization": "NFC",
+            "__cls__": "calamari_ocr.ocr.dataset.textprocessors.text_normalizer:TextNormalizerProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "targets",
+              "training"
+            ],
+            "replacement_groups": [
+              "extended"
+            ],
+            "replacements": [
+              {
+                "old": "\u00b5",
+                "new": "\u03bc",
+                "regex": false
+              },
+              {
+                "old": "\u2013",
+                "new": "-",
+                "regex": false
+              },
+              {
+                "old": "\u2014",
+                "new": "-",
+                "regex": false
+              },
+              {
+                "old": "\"",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "`",
+                "new": "'",
+                "regex": false
+              },
+              {
+                "old": "\u201c",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u201d",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u00b4",
+                "new": "'",
+                "regex": false
+              },
+              {
+                "old": "\u2018",
+                "new": "'",
+                "regex": false
+              },
+              {
+                "old": "\u2019",
+                "new": "'",
+                "regex": false
+              },
+              {
+                "old": "\u201c",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u201d",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u201c",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u201e",
+                "new": ",,",
+                "regex": false
+              },
+              {
+                "old": "\u2026",
+                "new": "...",
+                "regex": false
+              },
+              {
+                "old": "\u2032",
+                "new": "'",
+                "regex": false
+              },
+              {
+                "old": "\u2033",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u2034",
+                "new": "'''",
+                "regex": false
+              },
+              {
+                "old": "\u3003",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u2160",
+                "new": "I",
+                "regex": false
+              },
+              {
+                "old": "\u2161",
+                "new": "II",
+                "regex": false
+              },
+              {
+                "old": "\u2162",
+                "new": "III",
+                "regex": false
+              },
+              {
+                "old": "\u2163",
+                "new": "IV",
+                "regex": false
+              },
+              {
+                "old": "\u2164",
+                "new": "V",
+                "regex": false
+              },
+              {
+                "old": "\u2165",
+                "new": "VI",
+                "regex": false
+              },
+              {
+                "old": "\u2166",
+                "new": "VII",
+                "regex": false
+              },
+              {
+                "old": "\u2167",
+                "new": "VIII",
+                "regex": false
+              },
+              {
+                "old": "\u2168",
+                "new": "IX",
+                "regex": false
+              },
+              {
+                "old": "\u2169",
+                "new": "X",
+                "regex": false
+              },
+              {
+                "old": "\u216a",
+                "new": "XI",
+                "regex": false
+              },
+              {
+                "old": "\u216b",
+                "new": "XII",
+                "regex": false
+              },
+              {
+                "old": "\u216c",
+                "new": "L",
+                "regex": false
+              },
+              {
+                "old": "\u216d",
+                "new": "C",
+                "regex": false
+              },
+              {
+                "old": "\u216e",
+                "new": "D",
+                "regex": false
+              },
+              {
+                "old": "\u216f",
+                "new": "M",
+                "regex": false
+              },
+              {
+                "old": "\u2170",
+                "new": "i",
+                "regex": false
+              },
+              {
+                "old": "\u2171",
+                "new": "ii",
+                "regex": false
+              },
+              {
+                "old": "\u2172",
+                "new": "iii",
+                "regex": false
+              },
+              {
+                "old": "\u2173",
+                "new": "iv",
+                "regex": false
+              },
+              {
+                "old": "\u2174",
+                "new": "v",
+                "regex": false
+              },
+              {
+                "old": "\u2175",
+                "new": "vi",
+                "regex": false
+              },
+              {
+                "old": "\u2176",
+                "new": "vii",
+                "regex": false
+              },
+              {
+                "old": "\u2177",
+                "new": "viii",
+                "regex": false
+              },
+              {
+                "old": "\u2178",
+                "new": "ix",
+                "regex": false
+              },
+              {
+                "old": "\u2179",
+                "new": "x",
+                "regex": false
+              },
+              {
+                "old": "\u217a",
+                "new": "xi",
+                "regex": false
+              },
+              {
+                "old": "\u217b",
+                "new": "xii",
+                "regex": false
+              },
+              {
+                "old": "\u217c",
+                "new": "l",
+                "regex": false
+              },
+              {
+                "old": "\u217d",
+                "new": "c",
+                "regex": false
+              },
+              {
+                "old": "\u217e",
+                "new": "d",
+                "regex": false
+              },
+              {
+                "old": "\u217f",
+                "new": "m",
+                "regex": false
+              },
+              {
+                "old": "(?u)\\s+",
+                "new": " ",
+                "regex": true
+              },
+              {
+                "old": "(?u)\\n",
+                "new": "",
+                "regex": true
+              },
+              {
+                "old": "(?u)^\\s+",
+                "new": "",
+                "regex": true
+              },
+              {
+                "old": "(?u)\\s+$",
+                "new": "",
+                "regex": true
+              }
+            ],
+            "__cls__": "calamari_ocr.ocr.dataset.textprocessors.text_regularizer:TextRegularizerProcessorParams"
+          },
+          {
+            "modes": [
+              "training"
+            ],
+            "augmenter": {
+              "__cls__": "calamari_ocr.ocr.augmentation.data_augmenter:DefaultDataAugmenterParams"
+            },
+            "n_augmentations": 0,
+            "__cls__": "calamari_ocr.ocr.dataset.imageprocessors.augmentation:AugmentationProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "training"
+            ],
+            "__cls__": "calamari_ocr.ocr.dataset.imageprocessors.preparesample:PrepareSampleProcessorParams"
+          }
+        ],
+        "__cls__": "tfaip.data.pipeline.processor.params:SequentialProcessorPipelineParams"
+      },
+      "post_proc": {
+        "run_parallel": false,
+        "num_threads": -1,
+        "max_tasks_per_process": 250,
+        "processors": [
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "targets",
+              "training"
+            ],
+            "__cls__": "calamari_ocr.ocr.dataset.postprocessors.reshape:ReshapeOutputsProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "targets",
+              "training"
+            ],
+            "ctc_decoder_params": {
+              "type": "default",
+              "blank_index": 0,
+              "min_p_threshold": 0,
+              "non_word_chars": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "[",
+                "]",
+                "(",
+                ")",
+                "_",
+                ".",
+                ":",
+                ";",
+                "!",
+                "?",
+                "{",
+                "}",
+                "-",
+                "'",
+                "\""
+              ],
+              "dictionary": [],
+              "word_separator": " ",
+              "__cls__": "calamari_ocr.ocr.model.ctcdecoder.ctc_decoder:CTCDecoderParams"
+            },
+            "__cls__": "calamari_ocr.ocr.dataset.postprocessors.ctcdecoder:CTCDecoderProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "targets",
+              "training"
+            ],
+            "bidi_direction": "auto",
+            "__cls__": "calamari_ocr.ocr.dataset.textprocessors.basic_text_processors:BidiTextProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "targets",
+              "training"
+            ],
+            "__cls__": "calamari_ocr.ocr.dataset.textprocessors.basic_text_processors:StripTextProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "targets",
+              "training"
+            ],
+            "unicode_normalization": "NFC",
+            "__cls__": "calamari_ocr.ocr.dataset.textprocessors.text_normalizer:TextNormalizerProcessorParams"
+          },
+          {
+            "modes": [
+              "prediction",
+              "evaluation",
+              "targets",
+              "training"
+            ],
+            "replacement_groups": [
+              "extended"
+            ],
+            "replacements": [
+              {
+                "old": "\u00b5",
+                "new": "\u03bc",
+                "regex": false
+              },
+              {
+                "old": "\u2013",
+                "new": "-",
+                "regex": false
+              },
+              {
+                "old": "\u2014",
+                "new": "-",
+                "regex": false
+              },
+              {
+                "old": "\"",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "`",
+                "new": "'",
+                "regex": false
+              },
+              {
+                "old": "\u201c",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u201d",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u00b4",
+                "new": "'",
+                "regex": false
+              },
+              {
+                "old": "\u2018",
+                "new": "'",
+                "regex": false
+              },
+              {
+                "old": "\u2019",
+                "new": "'",
+                "regex": false
+              },
+              {
+                "old": "\u201c",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u201d",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u201c",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u201e",
+                "new": ",,",
+                "regex": false
+              },
+              {
+                "old": "\u2026",
+                "new": "...",
+                "regex": false
+              },
+              {
+                "old": "\u2032",
+                "new": "'",
+                "regex": false
+              },
+              {
+                "old": "\u2033",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u2034",
+                "new": "'''",
+                "regex": false
+              },
+              {
+                "old": "\u3003",
+                "new": "''",
+                "regex": false
+              },
+              {
+                "old": "\u2160",
+                "new": "I",
+                "regex": false
+              },
+              {
+                "old": "\u2161",
+                "new": "II",
+                "regex": false
+              },
+              {
+                "old": "\u2162",
+                "new": "III",
+                "regex": false
+              },
+              {
+                "old": "\u2163",
+                "new": "IV",
+                "regex": false
+              },
+              {
+                "old": "\u2164",
+                "new": "V",
+                "regex": false
+              },
+              {
+                "old": "\u2165",
+                "new": "VI",
+                "regex": false
+              },
+              {
+                "old": "\u2166",
+                "new": "VII",
+                "regex": false
+              },
+              {
+                "old": "\u2167",
+                "new": "VIII",
+                "regex": false
+              },
+              {
+                "old": "\u2168",
+                "new": "IX",
+                "regex": false
+              },
+              {
+                "old": "\u2169",
+                "new": "X",
+                "regex": false
+              },
+              {
+                "old": "\u216a",
+                "new": "XI",
+                "regex": false
+              },
+              {
+                "old": "\u216b",
+                "new": "XII",
+                "regex": false
+              },
+              {
+                "old": "\u216c",
+                "new": "L",
+                "regex": false
+              },
+              {
+                "old": "\u216d",
+                "new": "C",
+                "regex": false
+              },
+              {
+                "old": "\u216e",
+                "new": "D",
+                "regex": false
+              },
+              {
+                "old": "\u216f",
+                "new": "M",
+                "regex": false
+              },
+              {
+                "old": "\u2170",
+                "new": "i",
+                "regex": false
+              },
+              {
+                "old": "\u2171",
+                "new": "ii",
+                "regex": false
+              },
+              {
+                "old": "\u2172",
+                "new": "iii",
+                "regex": false
+              },
+              {
+                "old": "\u2173",
+                "new": "iv",
+                "regex": false
+              },
+              {
+                "old": "\u2174",
+                "new": "v",
+                "regex": false
+              },
+              {
+                "old": "\u2175",
+                "new": "vi",
+                "regex": false
+              },
+              {
+                "old": "\u2176",
+                "new": "vii",
+                "regex": false
+              },
+              {
+                "old": "\u2177",
+                "new": "viii",
+                "regex": false
+              },
+              {
+                "old": "\u2178",
+                "new": "ix",
+                "regex": false
+              },
+              {
+                "old": "\u2179",
+                "new": "x",
+                "regex": false
+              },
+              {
+                "old": "\u217a",
+                "new": "xi",
+                "regex": false
+              },
+              {
+                "old": "\u217b",
+                "new": "xii",
+                "regex": false
+              },
+              {
+                "old": "\u217c",
+                "new": "l",
+                "regex": false
+              },
+              {
+                "old": "\u217d",
+                "new": "c",
+                "regex": false
+              },
+              {
+                "old": "\u217e",
+                "new": "d",
+                "regex": false
+              },
+              {
+                "old": "\u217f",
+                "new": "m",
+                "regex": false
+              },
+              {
+                "old": "(?u)\\s+",
+                "new": " ",
+                "regex": true
+              },
+              {
+                "old": "(?u)\\n",
+                "new": "",
+                "regex": true
+              },
+              {
+                "old": "(?u)^\\s+",
+                "new": "",
+                "regex": true
+              },
+              {
+                "old": "(?u)\\s+$",
+                "new": "",
+                "regex": true
+              }
+            ],
+            "__cls__": "calamari_ocr.ocr.dataset.textprocessors.text_regularizer:TextRegularizerProcessorParams"
+          }
+        ],
+        "__cls__": "tfaip.data.pipeline.processor.params:SequentialProcessorPipelineParams"
+      },
+      "resource_base_path": ".",
+      "skip_invalid_gt": true,
+      "input_channels": 1,
+      "downscale_factor": 4,
+      "line_height": 48,
+      "ensemble": 0,
+      "codec": {
+        "charset": [
+          "",
+          " ",
+          "'",
+          "(",
+          ")",
+          ",",
+          "-",
+          ".",
+          "0",
+          "1",
+          "2",
+          "4",
+          "7",
+          "9",
+          ":",
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G",
+          "H",
+          "I",
+          "K",
+          "L",
+          "M",
+          "N",
+          "O",
+          "P",
+          "R",
+          "S",
+          "T",
+          "U",
+          "V",
+          "W",
+          "Y",
+          "Z",
+          "[",
+          "]",
+          "a",
+          "b",
+          "c",
+          "d",
+          "e",
+          "f",
+          "g",
+          "h",
+          "i",
+          "j",
+          "k",
+          "l",
+          "m",
+          "n",
+          "o",
+          "p",
+          "q",
+          "r",
+          "s",
+          "t",
+          "u",
+          "v",
+          "w",
+          "x",
+          "y",
+          "z"
+        ],
+        "__cls__": "calamari_ocr.ocr.dataset.codec:Codec"
+      },
+      "__cls__": "calamari_ocr.ocr.dataset.params:DataParams"
+    },
+    "evaluator": {
+      "__cls__": "tfaip.evaluator.params:EvaluatorParams"
+    },
+    "export_net_config": false,
+    "net_config_filename": "net_config.json",
+    "default_serve_dir": "best.ckpt.h5",
+    "additional_serve_dir": "additional",
+    "trainer_params_filename": "best.ckpt.json",
+    "scenario_params_filename": "scenario_params.json",
+    "scenario_base_path": "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/calamari_test_scenario.py",
+    "scenario_id": "calamari_ocr.test.calamari_test_scenario:CalamariTestScenario",
+    "id": "tmpzxfbalca_calamari_ocr.test.calamari_test_scenario:CalamariTestScenario_2021-03-28",
+    "tfaip_commit_hash": "1b5a9a7e03812e88b466cb65651c7d1c05db5c56",
+    "tfaip_version": "1.1.0",
+    "__cls__": "calamari_ocr.ocr.scenario_params:CalamariScenarioParams"
+  },
+  "warmstart": {
+    "model": null,
+    "allow_partial": false,
+    "trim_graph_name": true,
+    "rename": [],
+    "rename_targets": [],
+    "exclude": null,
+    "include": null,
+    "auto_remove_numbers_for": [
+      "lstm_cell"
+    ],
+    "__cls__": "tfaip.trainer.warmstart.warmstart_params:WarmStartParams"
+  },
+  "early_stopping": {
+    "best_model_output_dir": "/tmp/tmpzxfbalca",
+    "best_model_name": "",
+    "frequency": 1,
+    "n_to_go": 5,
+    "lower_threshold": 0.0,
+    "upper_threshold": 0.9,
+    "mode": "min",
+    "current": 1.023820400238037,
+    "monitor": "val_CER",
+    "n": 1,
+    "__cls__": "tfaip.trainer.callbacks.earlystopping.params:EarlyStoppingParams"
+  },
+  "gen": {
+    "setup": {
+      "train": {
+        "batch_size": 1,
+        "limit": -1,
+        "prefetch": 32,
+        "num_processes": 1,
+        "batch_drop_remainder": false,
+        "shuffle_buffer_size": -1,
+        "mode": "training",
+        "bucket_boundaries": [],
+        "bucket_batch_sizes": null,
+        "__cls__": "tfaip.data.databaseparams:DataPipelineParams"
+      },
+      "val": {
+        "batch_size": 1,
+        "limit": -1,
+        "prefetch": 32,
+        "num_processes": 1,
+        "batch_drop_remainder": false,
+        "shuffle_buffer_size": -1,
+        "mode": "evaluation",
+        "bucket_boundaries": [],
+        "bucket_batch_sizes": null,
+        "__cls__": "tfaip.data.databaseparams:DataPipelineParams"
+      },
+      "__cls__": "tfaip.trainer.params:TrainerPipelines"
+    },
+    "train": {
+      "skip_invalid": false,
+      "non_existing_as_empty": false,
+      "n_folds": 0,
+      "preload": true,
+      "images": [
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010048.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010040.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010053.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010042.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010014.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010006.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010025.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010032.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010045.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010051.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010033.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010034.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010039.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010022.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010023.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010021.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010013.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010018.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010005.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010017.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010052.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010009.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010028.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010047.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010029.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010008.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010035.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010007.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010046.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010026.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010001.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010010.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010002.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010003.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010015.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010016.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010030.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010024.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010031.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010041.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010027.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010050.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010037.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010049.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010038.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010012.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010036.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010044.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010011.bin.png",
+        "/home/cwick/Documents/Projects/calamari/calamari_ocr/test/data/uw3_50lines/train/010020.bin.png"
+      ],
+      "texts": [],
+      "gt_extension": ".gt.txt",
+      "pred_extension": ".pred.txt",
+      "__cls__": "calamari_ocr.ocr.dataset.datareader.file:FileDataParams"
+    },
+    "__cls__": "calamari_ocr.ocr.training.pipeline_params:CalamariTrainOnlyPipelineParams"
+  },
+  "saved_checkpoint_sub_dir": "",
+  "checkpoint_sub_dir": "checkpoint/checkpoint_{epoch:04d}",
+  "checkpoint_save_freq": "epoch",
+  "version": 4,
+  "data_aug_retrain_on_original": true,
+  "current_stage": 0,
+  "progress_bar": true,
+  "auto_upgrade_checkpoints": true,
+  "codec": {
+    "keep_loaded": true,
+    "auto_compute": true,
+    "include": [],
+    "include_files": [],
+    "resolved_include_chars": [
+      "U",
+      "k",
+      "2",
+      "K",
+      "O",
+      "4",
+      ")",
+      "g",
+      "N",
+      "'",
+      "0",
+      "r",
+      "t",
+      "f",
+      "q",
+      "B",
+      ".",
+      "z",
+      "s",
+      ",",
+      ":",
+      "1",
+      "F",
+      "]",
+      "c",
+      "E",
+      "W",
+      "T",
+      "p",
+      "V",
+      "-",
+      "Z",
+      "x",
+      "l",
+      "C",
+      "d",
+      "i",
+      "n",
+      "G",
+      "D",
+      "a",
+      "(",
+      "L",
+      "I",
+      "v",
+      "y",
+      "7",
+      "[",
+      "P",
+      "9",
+      "m",
+      " ",
+      "e",
+      "R",
+      "h",
+      "w",
+      "o",
+      "H",
+      "u",
+      "j",
+      "A",
+      "Y",
+      "S",
+      "M",
+      "b"
+    ],
+    "__cls__": "calamari_ocr.ocr.dataset.codec:CodecConstructionParams"
+  },
+  "best_model_prefix": "best",
+  "network": null,
+  "__cls__": "calamari_ocr.ocr.training.params:TrainerParams"
+}

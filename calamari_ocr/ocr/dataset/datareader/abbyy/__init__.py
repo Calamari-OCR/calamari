@@ -1,1 +1,0 @@
-from .reader import AbbyyReader

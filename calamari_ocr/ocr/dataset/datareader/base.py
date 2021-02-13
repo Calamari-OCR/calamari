@@ -1,42 +1,95 @@
-import codecs
+import logging
 import os
 from abc import abstractmethod, ABC
+from copy import deepcopy
+from dataclasses import dataclass, field
 from random import shuffle
-from typing import Generator
+from typing import Generator, Iterable, Optional, List, NoReturn
+
 import numpy as np
-from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
+from dataclasses_json import dataclass_json
+from paiargparse import pai_dataclass, pai_meta
+from tfaip import DataGeneratorParams
+from tfaip.data.pipeline.datagenerator import DataGenerator, T
+from tfaip.data.pipeline.definitions import PipelineMode, Sample
 
-from calamari_ocr.ocr.dataset.params import InputSample
+logger = logging.getLogger(__name__)
 
 
-class DataReader(ABC):
-    def __init__(self, mode: PipelineMode, skip_invalid=False, remove_invalid=True, **kwargs):
-        """ Dataset that stores a list of raw images and corresponding labels.
+@dataclass_json
+@dataclass
+class SampleMeta:
+    id: str
+    augmented: bool = False
+    fold_id: int = -1
 
-        Parameters
-        ----------
-        skip_invalid : bool
-            skip invalid files instead of throwing an Exception
-        remove_invalid : bool
-            remove invalid files, thus dont count them to possible error on this data set
-        """
+
+@dataclass
+class InputSample:
+    image: Optional[np.ndarray]  # dtype uint8
+    gt: Optional[str]
+    meta: Optional[SampleMeta]
+
+    def __post_init__(self):
+        if self.image is not None:
+            assert (self.image.dtype == np.uint8)
+
+        if self.gt:
+            assert (type(self.gt) == str)
+
+        if self.meta:
+            assert (type(self.meta) == SampleMeta)
+        else:
+            self.meta = SampleMeta(None)
+
+    def to_input_target_sample(self) -> Sample:
+        return Sample(inputs=self.image, targets=self.gt, meta=self.meta.to_dict())
+
+
+@pai_dataclass
+@dataclass
+class CalamariDataGeneratorParams(DataGeneratorParams, ABC):
+    skip_invalid: bool = True
+    non_existing_as_empty: bool = False
+    n_folds: int = field(default=-1, metadata=pai_meta(mode='ignore'))
+    preload: bool = field(default=True, metadata=pai_meta(
+        help='Instead of preloading all data, load the data on the fly. '
+             'This is slower, but might be required for limited RAM or large dataset'
+    ))
+
+    def __len__(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def to_prediction(self):
+        raise NotImplementedError
+
+    def select(self, indices: List[int]):
+        raise NotImplementedError
+
+    def prepare_for_mode(self, mode: PipelineMode) -> NoReturn:
+        pass
+
+    def create(self, mode: PipelineMode) -> 'CalamariDataGenerator':
+        params = deepcopy(self)  # always copy of params
+        params.prepare_for_mode(mode)
+        gen: CalamariDataGenerator = self.cls()(mode, params)
+        gen.post_init()
+        return gen
+
+
+class CalamariDataGenerator(DataGenerator[T], ABC):
+    def __init__(self, mode: PipelineMode, params: T):
+        super(CalamariDataGenerator, self).__init__(mode, params)
         self._samples = []
-        self.loaded = False
-        self.mode = mode
-        self.auto_repeat = False
 
-        self.skip_invalid = skip_invalid
-        self.remove_invalid = remove_invalid
-
-        self.n_folds = -1
-
-    def populate_folds(self, n_folds):
-        self.n_folds = n_folds
-
-        sample_idx = list(range(len(self._samples)))
-        shuffle(sample_idx)
-        for i, idx in enumerate(sample_idx):
-            self._samples[i]['fold_id'] = i % n_folds
+    def post_init(self):
+        if self.params.n_folds > 0:
+            logger.info(f"Populating {self.params.n_folds} folds")
+            sample_idx = list(range(len(self._samples)))
+            shuffle(sample_idx)
+            for i, idx in enumerate(sample_idx):
+                self._samples[i]['fold_id'] = i % self.params.n_folds
 
     def __len__(self):
         """ Number of samples
@@ -51,7 +104,7 @@ class DataReader(ABC):
     def sample_by_id(self, id_) -> dict:
         return next(sample for sample in self._samples if sample['id'] == id_)
 
-    def samples(self):
+    def samples(self) -> List[dict]:
         """ List of all samples
 
         Returns
@@ -76,24 +129,12 @@ class DataReader(ABC):
         if "id" not in sample:
             raise Exception("A sample needs an id")
 
-        self.loaded = False
         if 'fold_id' not in sample:
             sample['fold_id'] = -1  # dummy fold ID
         self._samples.append(sample)
 
-    def is_sample_valid(self, sample, line, text):
-        if self.mode == PipelineMode.Prediction or self.mode == PipelineMode.Training or self.mode == PipelineMode.Evaluation:
-            # skip invalid imanges (e. g. corrupted or empty files)
-            if line is None or (line.size == 0 or np.amax(line) == np.amin(line)):
-                return False
-
-        return True
-
-    def store_text(self, sentence, sample, output_dir, extension):
-        output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
-        bn = sample.get('base_name', sample['id'])
-        with codecs.open(os.path.join(output_dir, bn + extension), 'w', 'utf-8') as f:
-            f.write(sentence)
+    def store_text_prediction(self, sentence, sample_id, output_dir):
+        raise NotImplementedError
 
     def store_extended_prediction(self, data, sample, output_dir, extension):
         bn = sample.get('base_name', sample['id'])
@@ -109,21 +150,16 @@ class DataReader(ABC):
     def prepare_store(self):
         pass
 
-    def store(self, extension):
+    def store(self):
         # either store text or store (e. g. if all predictions must be written at the same time
         pass
 
-    def generate(self, epochs=1) -> Generator[Sample, None, None]:
-        if self.auto_repeat:
-            epochs = -1
-
-        while epochs != 0:
-            epochs -= 1
-            if self.mode == PipelineMode.Training:
-                # no pred_and_eval bc it's shuffle
-                shuffle(self._samples)
-            for sample in self._generate_epoch(text_only=self.mode == PipelineMode.Targets):
-                yield sample.to_input_target_sample()
+    def generate(self) -> Iterable[Sample]:
+        if self.mode == PipelineMode.TRAINING:
+            # no pred_and_eval bc it's shuffle
+            shuffle(self._samples)
+        for sample in self._generate_epoch(text_only=self.mode == PipelineMode.TARGETS):
+            yield sample.to_input_target_sample()
 
     def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
         for sample in self._sample_iterator():
@@ -137,5 +173,3 @@ class DataReader(ABC):
     @abstractmethod
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
         raise NotImplementedError
-
-

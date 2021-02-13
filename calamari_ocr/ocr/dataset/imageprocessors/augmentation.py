@@ -1,24 +1,42 @@
 import copy
+from dataclasses import dataclass, field
 from functools import partial
-from typing import List, Iterable
+from typing import List, Iterable, Type
 
 import numpy as np
+from paiargparse import pai_dataclass, pai_meta
+from tfaip.data.pipeline.definitions import Sample
+from tfaip.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
 from tfaip.util.multiprocessing.parallelmap import parallel_map
 
-from calamari_ocr.ocr.augmentation import SimpleDataAugmenter
-from tfaip.base.data.pipeline.dataprocessor import DataProcessor
-from tfaip.base.data.pipeline.definitions import Sample
+from calamari_ocr.ocr.augmentation.data_augmenter import DataAugmenterParams, DefaultDataAugmenterParams
+from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 
 
-class AugmentationProcessor(DataProcessor):
+@pai_dataclass(alt="Augmentation")
+@dataclass
+class AugmentationProcessorParams(DataProcessorParams):
+    augmenter: DataAugmenterParams = field(default_factory=DefaultDataAugmenterParams, metadata=pai_meta(
+        mode='flat',
+        help="Augmenter to use for augmentation",
+        choices=[DefaultDataAugmenterParams],
+    ))
+    n_augmentations: float = field(default=0, metadata=pai_meta(
+        mode='flat',
+        help="Amount of data augmentation per line (done before training). If this number is < 1 "
+             "the amount is relative."
+    ))
+
     @staticmethod
-    def default_params() -> dict:
-        return {'augmenter_type': 'simple'}
+    def cls() -> Type['MappingDataProcessor']:
+        return AugmentationProcessor
 
-    def __init__(self, augmenter_type, **kwargs):
-        super(AugmentationProcessor, self).__init__(**kwargs)
-        assert(augmenter_type == 'simple')
-        self.data_augmenter = SimpleDataAugmenter()
+
+class AugmentationProcessor(MappingDataProcessor[AugmentationProcessorParams]):
+    def __init__(self, *args, **kwargs):
+        super(AugmentationProcessor, self).__init__(*args, **kwargs)
+        self.data_aug_params = DataAugmentationAmount.from_factor(self.params.n_augmentations)
+        self.data_augmenter = self.params.augmenter.create()
 
     def preload(self,
                 samples: List[Sample],
@@ -26,22 +44,23 @@ class AugmentationProcessor(DataProcessor):
                 drop_invalid=True,
                 progress_bar=False,
                 ) -> Iterable[Sample]:
-        n_augmentation = self.params.data_aug_params.to_abs()  # real number of augmentations
+        n_augmentation = self.data_aug_params.to_abs()  # real number of augmentations
         if n_augmentation == 0:
             return samples
 
         apply_fn = partial(self.multi_augment, n_augmentations=n_augmentation, include_non_augmented=True)
         augmented_samples = parallel_map(apply_fn, samples,
-                                         desc="Augmenting data", processes=num_processes, progress_bar=progress_bar)
+                                         desc="Augmenting data", processes=num_processes,
+                                         progress_bar=progress_bar)
         augmented_samples = sum(list(augmented_samples), [])  # Flatten
         return augmented_samples
 
     def apply(self, sample: Sample) -> Sample:
         # data augmentation
-        if not self.params.data_aug_params.no_augs() \
+        if not self.data_aug_params.no_augs() \
                 and sample.inputs is not None \
                 and self.data_augmenter \
-                and np.random.rand() <= self.params.data_aug_params.to_rel():
+                and np.random.rand() <= self.data_aug_params.to_rel():
             line, text = self.augment(sample.inputs, sample.targets, sample.meta)
             return sample.new_inputs(line).new_targets(text)
         return sample
@@ -62,4 +81,3 @@ class AugmentationProcessor(DataProcessor):
             out.append(Sample(inputs=l, targets=t, meta=meta))
 
         return out
-

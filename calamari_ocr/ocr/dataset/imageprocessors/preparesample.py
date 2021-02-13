@@ -1,17 +1,28 @@
 import json
 import logging
+from dataclasses import dataclass
+from typing import Type
 
 import numpy as np
-
-from tfaip.base.data.pipeline.dataprocessor import DataProcessor
-from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
+from paiargparse import pai_dataclass
+from tfaip.data.pipeline.definitions import PipelineMode, Sample
+from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams, MappingDataProcessor
 
 logger = logging.getLogger(__name__)
 
 
-class PrepareSampleProcessor(DataProcessor):
+@pai_dataclass(alt="PrepareSample")
+@dataclass
+class PrepareSampleProcessorParams(DataProcessorParams):
+
+    @staticmethod
+    def cls() -> Type['MappingDataProcessor']:
+        return PrepareSample
+
+
+class PrepareSample(MappingDataProcessor[PrepareSampleProcessorParams]):
     def supports_preload(self):
-        return self.params.codec is not None
+        return self.data_params.codec is not None
 
     @staticmethod
     def is_valid_line(text, line_len):
@@ -26,7 +37,8 @@ class PrepareSampleProcessor(DataProcessor):
         return required_len <= line_len
 
     def apply(self, sample: Sample) -> Sample:
-        codec = self.params.codec
+        assert(self.data_params.downscale_factor > 0)  # Not instantiated yet
+        codec = self.data_params.codec
         # final preparation
         text = np.array(codec.encode(sample.targets) if sample.targets else np.zeros((0,), dtype='int32'))
         line = sample.inputs
@@ -35,19 +47,21 @@ class PrepareSampleProcessor(DataProcessor):
         if len(line.shape) == 2:
             line = np.expand_dims(line, axis=-1)
 
-        if line.shape[-1] != self.params.input_channels:
-            raise ValueError(f"Expected {self.params.input_channels} channels but got {line.shape[-1]}. Shape of input {line.shape}")
+        if line.shape[-1] != self.data_params.input_channels:
+            raise ValueError(
+                f"Expected {self.data_params.input_channels} channels but got {line.shape[-1]}. Shape of input {line.shape}")
 
-        if self.mode in {PipelineMode.Training, PipelineMode.Evaluation} and not self.is_valid_line(text, len(line) // self.params.downscale_factor_):
+        if self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION} and not self.is_valid_line(text, len(
+                line) // self.data_params.downscale_factor):
             # skip longer outputs than inputs (also in evaluation due to loss computation)
             logger.warning(f"Skipping line with longer outputs than inputs (id={sample.meta['id']})")
             return sample.new_invalid()
 
-        if self.mode in {PipelineMode.Training, PipelineMode.Evaluation} and len(text) == 0:
+        if self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION} and len(text) == 0:
             logger.warning(f"Skipping empty line with empty GT (id={sample.meta['id']})")
             return sample.new_invalid()
 
         return sample.new_inputs(
-            {'img': line.astype(np.uint8), 'img_len': [len(line)], 'meta': [json.dumps(sample.meta)]}).new_targets(
+            {'img': line.astype(np.uint8), 'img_len': [len(line)]}).new_targets(
             {'gt': text, 'gt_len': [len(text)], 'fold_id': [sample.meta.get('fold_id', -1)]}
         )

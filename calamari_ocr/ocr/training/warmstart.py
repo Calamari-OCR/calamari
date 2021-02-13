@@ -1,26 +1,34 @@
 from typing import List
 import numpy as np
 
-from tfaip.base.trainer.warmstart.warmstarter import Warmstarter
+from tfaip.trainer.warmstart.warmstarter import WarmStarter
 
 
-class WarmstarterWithCodecAdaption(Warmstarter):
+class WarmStarterWithCodecAdaption(WarmStarter):
     def __init__(self, params, codec_changes):
-        super(WarmstarterWithCodecAdaption, self).__init__(params)
+        super().__init__(params)
         self.codec_changes = codec_changes
 
     def _trim(self, names: List[str]):
-        names = super(WarmstarterWithCodecAdaption, self)._trim(names)
+        names = super()._trim(names)
 
         # Manually trim to support older checkpoints
         to_trim = ['CalamariGraph/', 'keras_debug_model/CalamariGraph/']
         for tt in to_trim:
             names = [name[len(tt):] if name.startswith(tt) else name for name in names]
+
+        def convert(name: str):
+            if name.startswith('bi_lstm_layer_1/'):
+                name = name.replace('bi_lstm_layer_1/', 'bi_lstm_layer/')
+            return name
+
+        names = [convert(name) for name in names]
+
         return names
 
     def apply_weights(self, target_model, new_weights):
         if self.codec_changes is None:
-            super(WarmstarterWithCodecAdaption, self).apply_weights(target_model, new_weights)
+            super().apply_weights(target_model, new_weights)
         else:
             self.copy_weights_from_model(target_model, new_weights, *self.codec_changes)
 
@@ -46,5 +54,3 @@ class WarmstarterWithCodecAdaption(Warmstarter):
                 target_weight.assign(b_val)
             else:
                 raise NotImplementedError("logits layer is expected to have kernel and bias and nothing else")
-
-

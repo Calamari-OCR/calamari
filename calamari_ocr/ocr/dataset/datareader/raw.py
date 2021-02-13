@@ -1,12 +1,12 @@
 from typing import Generator
 
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr.dataset.params import SampleMeta, InputSample
-from calamari_ocr.ocr.dataset.datareader.base import DataReader
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator
 
 
-class RawDataReader(DataReader):
+class RawDataReader(CalamariDataGenerator):
     def __init__(self, mode: PipelineMode, images=None, texts=None, meta=None):
         """ Create a dataset from memory
 

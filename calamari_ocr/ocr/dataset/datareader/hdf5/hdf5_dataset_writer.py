@@ -1,8 +1,6 @@
 import numpy as np
 import h5py
 
-from calamari_ocr.ocr.dataset import DataSetType
-
 
 class Hdf5DatasetWriter:
     def __init__(self, output_filename, n_max=10000):
@@ -32,7 +30,7 @@ class Hdf5DatasetWriter:
 
         codec = self.compute_codec()
 
-        filename = "{}_{:03d}{}".format(self.output_filename, self.current_chunk, DataSetType.gt_extension(DataSetType.HDF5))
+        filename = "{}_{:03d}{}".format(self.output_filename, self.current_chunk, '.h5')
         self.files.append(filename)
         file = h5py.File(filename, 'w')
         dti32 = h5py.special_dtype(vlen=np.dtype('int32'))

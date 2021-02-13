@@ -4,6 +4,7 @@ from typing import List
 
 import numpy as np
 from dataclasses_json import dataclass_json
+from paiargparse import pai_dataclass
 from tfaip.util.enum import StrEnum
 
 from calamari_ocr.ocr.predict.params import Prediction, PredictionPosition, PredictionCharacter
@@ -15,7 +16,7 @@ class CTCDecoderType(StrEnum):
     WordBeamSearch = 'word_beam_search'
 
 
-@dataclass_json
+@pai_dataclass
 @dataclass
 class CTCDecoderParams:
     type: CTCDecoderType = CTCDecoderType.Default

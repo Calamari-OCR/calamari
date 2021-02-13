@@ -1,34 +1,77 @@
+import logging
 import re
 from dataclasses import dataclass, field
-from typing import List
+from typing import Optional, List
 
-from dataclasses_json import dataclass_json
-
-from tfaip.base import TrainerParams as AIPTrainerParams
+from paiargparse import pai_meta, pai_dataclass
+from tfaip import TrainerParams as AIPTrainerParams, TrainerPipelineParamsBase
 
 from calamari_ocr.ocr import SavedCalamariModel
-from calamari_ocr.ocr.model.params import LayerParams, LayerType, LSTMDirection, ModelParams, IntVec2D
+from calamari_ocr.ocr.dataset.codec import CodecConstructionParams
+from calamari_ocr.ocr.model.layers.bilstm import BiLSTMLayerParams
+from calamari_ocr.ocr.model.layers.concat import ConcatLayerParams
+from calamari_ocr.ocr.model.layers.conv2d import Conv2DLayerParams
+from calamari_ocr.ocr.model.layers.dilatedblock import DilatedBlockLayerParams
+from calamari_ocr.ocr.model.layers.dropout import DropoutLayerParams
+from calamari_ocr.ocr.model.layers.pool2d import MaxPool2DLayerParams
+from calamari_ocr.ocr.model.layers.transposedconv2d import TransposedConv2DLayerParams
+from calamari_ocr.ocr.model.params import LayerParams, IntVec2D
+from calamari_ocr.ocr.scenario import CalamariScenarioParams
+from calamari_ocr.ocr.training.pipeline_params import CalamariDefaultTrainerPipelineParams, \
+    CalamariTrainOnlyPipelineParams, CalamariSplitTrainerPipelineParams
+
+logger = logging.getLogger(__name__)
 
 
-@dataclass_json
+@pai_dataclass
 @dataclass
-class TrainerParams(AIPTrainerParams):
+class TrainerParams(AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrainerPipelineParams]):
     version: int = SavedCalamariModel.VERSION
 
-    skip_invalid_gt: bool = True
-    data_aug_retrain_on_original: bool = True  # Retrain the model with only the non augmented data in a second run
-    current_stage: int = 0  # Current training progress: 0 standard, 1 retraining on non aug.
+    data_aug_retrain_on_original: bool = field(default=True, metadata=pai_meta(
+        help="When training with augmentations usually the model is retrained in a second run with "
+             "only the non augmented data. This will take longer. Use this flag to disable this "
+             "behavior."))
 
-    codec_whitelist: List[str] = field(default_factory=list)
-    keep_loaded_codec: bool = True
-    preload_training: bool = True
-    preload_validation: bool = True
-    use_training_as_validation: bool = False
+    # Current training progress: 0 standard, 1 retraining on non aug.
+    current_stage: int = field(default=0, metadata=pai_meta(mode='ignore'))
 
-    auto_compute_codec: bool = True
     progress_bar: bool = True
 
-    auto_upgrade_checkpoints: bool = True
+    auto_upgrade_checkpoints: bool = field(default=True, metadata=pai_meta(
+        help='Automatically update older checkpoints for warm start.'))
+
+    codec: CodecConstructionParams = field(default_factory=CodecConstructionParams, metadata=pai_meta(
+        help="Parameters defining how to construct the codec.", mode='flat'  # The actual codec is stored in data
+    ))
+
+    gen: TrainerPipelineParamsBase = field(default_factory=CalamariDefaultTrainerPipelineParams, metadata=pai_meta(
+        help="Parameters that setup the data generators (i.e. the input data).",
+        disable_subclass_check=False,
+        choices=[CalamariDefaultTrainerPipelineParams, CalamariTrainOnlyPipelineParams,
+                 CalamariSplitTrainerPipelineParams]
+    ))
+
+    best_model_prefix: str = field(default="best", metadata=pai_meta(
+        help="The prefix of the best model using early stopping"))
+
+    network: Optional[str] = field(default=None, metadata=pai_meta(
+        mode='flat',
+        help='Pass a network configuration to construct a simple graph. '
+             'Defaults to: --network=cnn=40:3x3,pool=2x2,cnn=60:3x3,pool=2x2,lstm=200,dropout=0.5'
+    ))
+
+    def __post_init__(self):
+        self.scenario.default_serve_dir = f'{self.best_model_prefix}.ckpt.h5'
+        self.scenario.trainer_params_filename = f'{self.best_model_prefix}.ckpt.json'
+        self.early_stopping.best_model_name = ''
+
+        self.gen.train_gen().n_folds = self.scenario.model.ensemble
+        if self.gen.val_gen() is not None:
+            self.gen.val_gen().n_folds = self.scenario.model.ensemble
+
+        if self.network:
+            self.scenario.model.layers = graph_params_from_definition_string(self.network)
 
 
 def set_default_network_params(params: TrainerParams):
@@ -38,33 +81,21 @@ def set_default_network_params(params: TrainerParams):
     params.learning_rate_params.lr = 1e-3
 
 
-def params_from_definition_string(s: str, trainer_params: TrainerParams):
-    model_params: ModelParams = trainer_params.scenario_params.model_params
+def graph_params_from_definition_string(s: str) -> List[LayerParams]:
+    layers = []
     cnn_matcher = re.compile(r"^([\d]+)(:([\d]+)(x([\d]+))?)?$")
     db_matcher = re.compile(r"^([\d]+):([\d]+)(:([\d]+)(x([\d]+))?)?$")
     concat_matcher = re.compile(r"^([\-\d]+):([\-\d]+)$")
     pool_matcher = re.compile(r"^([\d]+)(x([\d]+))?(:([\d]+)x([\d]+))?$")
     str_params = s.split(",")
     lstm_appeared = False
-    set_default_network_params(trainer_params)
     for param in str_params:
         label, value = tuple(param.split("="))
-        model_flags = ["ctc_merge_repeated"]
-        if label in model_flags:
-            setattr(trainer_params.scenario_params.model_params, label, value.lower() == "true")
-        elif label == "l_rate" or label == 'learning_rate':
-            trainer_params.learning_rate_params.lr = float(value)
-        elif label == "momentum":
-            trainer_params.optimizer_params.momentum = float(value)
-        elif label == 'dropout':
-            trainer_params.scenario_params.model_params.dropout = float(value)
-        elif label == "solver":
-            trainer_params.optimizer_params.optimizer = value
+        if label == 'dropout':
+            layers.append(DropoutLayerParams(rate=float(value)))
         elif label == "lstm":
             lstm_appeared = True
-            model_params.layers.append(LayerParams(
-                type=LayerType.LSTM,
-                lstm_direction=LSTMDirection.Bidirectional,
+            layers.append(BiLSTMLayerParams(
                 hidden_nodes=int(value)
             ))
         elif label == 'concat':
@@ -76,12 +107,7 @@ def params_from_definition_string(s: str, trainer_params: TrainerParams):
                 raise Exception("Concat structure needs: concat=[index0]:[index1] but got concat={}".format(value))
 
             match = match.groups()
-            model_params.layers.append(
-                LayerParams(
-                    type=LayerType.Concat,
-                    concat_indices=list(map(int, match))
-                )
-            )
+            layers.append(ConcatLayerParams(concat_indices=list(map(int, match))))
         elif label == "db":
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
@@ -97,14 +123,13 @@ def params_from_definition_string(s: str, trainer_params: TrainerParams):
             if match[4] is not None:
                 kernel_size = [int(match[3]), int(match[5])]
 
-            model_params.layers.append(LayerParams(
-                type=LayerType.DilatedBlock,
+            layers.append(DilatedBlockLayerParams(
                 filters=int(match[0]),
                 dilated_depth=int(match[1]),
                 kernel_size=IntVec2D(*kernel_size),
-                stride=IntVec2D(1, 1),
+                strides=IntVec2D(1, 1),
             ))
-        elif label == "cnn":
+        elif label in {"cnn", "conv", 'conv2d'}:
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
 
@@ -119,13 +144,12 @@ def params_from_definition_string(s: str, trainer_params: TrainerParams):
             if match[3] is not None:
                 kernel_size = [int(match[2]), int(match[4])]
 
-            model_params.layers.append(LayerParams(
-                type=LayerType.Convolutional,
+            layers.append(Conv2DLayerParams(
                 filters=int(match[0]),
                 kernel_size=IntVec2D(*kernel_size),
-                stride=IntVec2D(1, 1),
+                strides=IntVec2D(1, 1),
             ))
-        elif label == "tcnn":
+        elif label in {"tcnn", "tconv", 'tconv2d'}:
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
 
@@ -141,13 +165,12 @@ def params_from_definition_string(s: str, trainer_params: TrainerParams):
             if match[3] is not None:
                 stride = [int(match[2]), int(match[4])]
 
-            model_params.layers.append(LayerParams(
-                type=LayerType.TransposedConv,
+            layers.append(TransposedConv2DLayerParams(
                 filters=int(match[0]),
                 kernel_size=IntVec2D(*kernel_size),
-                stride=IntVec2D(*stride),
+                strides=IntVec2D(*stride),
             ))
-        elif label == "pool":
+        elif label in {"pool", 'max_pool', 'pool2d'}:
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
             match = pool_matcher.match(value)
@@ -164,10 +187,11 @@ def params_from_definition_string(s: str, trainer_params: TrainerParams):
             else:
                 stride = kernel_size
 
-            model_params.layers.append(LayerParams(
-                type=LayerType.MaxPooling,
-                kernel_size=IntVec2D(*kernel_size),
-                stride=IntVec2D(*stride),
+            layers.append(MaxPool2DLayerParams(
+                pool_size=IntVec2D(*kernel_size),
+                strides=IntVec2D(*stride),
             ))
         else:
             raise Exception("Unknown layer with name: {}".format(label))
+
+    return layers
