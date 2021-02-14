@@ -1,23 +1,54 @@
-from typing import List, TYPE_CHECKING, Iterator
+from dataclasses import dataclass, field
+from typing import List, TYPE_CHECKING, Iterator, Set
 
+from paiargparse import pai_dataclass, pai_meta
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
 from tfaip.base.data.pipeline.definitions import PipelineMode
+
+from calamari_ocr.utils import glob_all
 
 if TYPE_CHECKING:
     from tfaip.base.data.pipeline.datapipeline import DataPipeline
 
 
+@pai_dataclass
+@dataclass
+class CodecConstructionParams:
+    keep_loaded: bool = field(default=True, metadata=pai_meta(
+        help="Fully include the codec of the loaded model to the new codec"))
+    auto_compute: bool = field(default=True, metadata=pai_meta(
+        help="Compute the codec automatically. See also include."))
+    include: List[str] = field(default_factory=list, metadata=pai_meta(
+        help="Whitelist of characters that may not be removed on restoring a model. "
+             "For large dataset you can use this to skip the automatic codec computation "
+             "(see auto_compute)"))
+    include_files: List[str] = field(default_factory=list, metadata=pai_meta(
+        help="Whitelist of txt files that may not be removed on restoring a model"))
+
+    resolved_include_chars: Set[str] = field(default_factory=set, metadata=pai_meta(mode='ignore'))
+
+    def __post_init__(self):
+        # parse whitelist
+        if len(self.include) == 1:
+            include = set(self.include[0])
+        else:
+            include = set(self.include)
+
+        for f in glob_all(self.include_files):
+            with open(f) as txt:
+                include = include.union(txt.read())
+
+        self.resolved_include_chars = include
+
+
+@pai_dataclass
+@dataclass
 class Codec:
-    def to_dict(self):
-        return {'charset': self.charset}
+    charset: List[str]  # this filed will be used to store and load a the Codec from json
 
     @staticmethod
-    def from_dict(d: dict):
-        return Codec(d['charset'])
-
-    @staticmethod
-    def from_input_dataset(data_pipelines: Iterator['DataPipeline'], whitelist=None, progress_bar=False):
-        chars = set() if whitelist is None else set(whitelist)
+    def from_input_dataset(data_pipelines: Iterator['DataPipeline'], codec_construction_params: CodecConstructionParams, progress_bar=False):
+        chars = codec_construction_params.resolved_include_chars
 
         for pipeline in data_pipelines:
             pipeline = pipeline.to_mode(PipelineMode.Targets)
@@ -31,7 +62,7 @@ class Codec:
         return Codec(sorted(list(chars)))
 
     @staticmethod
-    def from_texts(texts: List[str], whitelist=None):
+    def from_texts(texts: List[str], codec_construction_params: CodecConstructionParams):
         """Compute a codec from given text
 
         First computes a set of all available characters.
@@ -55,7 +86,7 @@ class Codec:
 
         return Codec(sorted(list(chars)))
 
-    def __init__(self, charset: List[str]):
+    def __post_init__(self):
         """ Construct a codec based on a given charset (symbols)
 
         A symbol is typically a character (e.g. a, b, c, d, ...) in OCR, in OMR this might be
@@ -68,13 +99,8 @@ class Codec:
 
 
         As first index a __blank__ (empty string) will be added as required for the CTC algorithm.
-
-        Parameters
-        ----------
-        charset : obj:`list` of :obj:`str`
-            a list of characters
         """
-        charset = list(charset)
+        charset = list(self.charset)
         if len(charset) == 0:
             raise Exception("Got empty charset")
 
@@ -148,7 +174,7 @@ class Codec:
         return [self.code2char[c] for c in l]
 
     def extend(self, codec):
-        """ extend the codec by the given characeters
+        """ extend the codec by the given characters
 
         If a character is already present it will be skipped.
         The new characters will be added at the end of the codec (highest label numbers)
@@ -156,7 +182,7 @@ class Codec:
         Parameters
         ----------
         codec : list of str
-            the characeters to add
+            the characters to add
         Returns
         -------
         list of int

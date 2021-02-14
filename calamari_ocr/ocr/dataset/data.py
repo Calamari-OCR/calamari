@@ -36,6 +36,10 @@ class Data(DataBase[DataParams]):
     @classmethod
     def default_params(cls) -> DataParams:
         params: DataParams = super(Data, cls).default_params()
+        params.train.num_processes = 1
+        params.val.num_processes = 1
+        params.train.batch_size = 1
+        params.val.batch_size = 1
         params.pre_proc = SequentialProcessorPipelineParams(
             run_parallel=True,
             processors=default_image_processors() +

@@ -1,12 +1,13 @@
 import re
 from dataclasses import dataclass, field
-from typing import List
 
 from dataclasses_json import dataclass_json
+from paiargparse import pai_meta
 
 from tfaip.base import TrainerParams as AIPTrainerParams
 
 from calamari_ocr.ocr import SavedCalamariModel
+from calamari_ocr.ocr.dataset.codec import CodecConstructionParams
 from calamari_ocr.ocr.model.params import LayerParams, LayerType, LSTMDirection, ModelParams, IntVec2D
 
 
@@ -15,19 +16,29 @@ from calamari_ocr.ocr.model.params import LayerParams, LayerType, LSTMDirection,
 class TrainerParams(AIPTrainerParams):
     version: int = SavedCalamariModel.VERSION
 
-    data_aug_retrain_on_original: bool = True  # Retrain the model with only the non augmented data in a second run
+    data_aug_retrain_on_original: bool = field(default=True, metadata=pai_meta(
+        help="When training with augmentations usually the model is retrained in a second run with "
+             "only the non augmented data. This will take longer. Use this flag to disable this "
+             "behavior."))
     current_stage: int = 0  # Current training progress: 0 standard, 1 retraining on non aug.
 
-    codec_whitelist: List[str] = field(default_factory=list)
-    keep_loaded_codec: bool = True
-    preload_training: bool = True
-    preload_validation: bool = True
     use_training_as_validation: bool = False
 
-    auto_compute_codec: bool = True
     progress_bar: bool = True
 
     auto_upgrade_checkpoints: bool = True
+
+    codec: CodecConstructionParams = field(default_factory=CodecConstructionParams, metadata=pai_meta(
+        help="Parameters defining how to construct the codec.", mode='flat'  # The actual codec is stored in data
+    ))
+
+    best_model_prefix: str = field(default="best", metadata=pai_meta(
+        help="The prefix of the best model using early stopping"))
+
+    def __post_init__(self):
+        self.scenario.default_serve_dir = f'{self.best_model_prefix}.ckpt.h5'
+        self.scenario.trainer_params_filename = f'{self.best_model_prefix}.ckpt.json'
+        self.early_stopping.best_model_name = ''
 
 
 def set_default_network_params(params: TrainerParams):

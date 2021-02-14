@@ -2,7 +2,6 @@ import os
 
 from tfaip.base.scenario.scenariobase import SimpleScenarioBase
 
-from calamari_ocr.ocr.dataset.postprocessors.reshape import ReshapeOutputs
 from calamari_ocr.ocr.model.model import Model
 from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.model.ensemblemodel import EnsembleModel
@@ -39,11 +38,15 @@ class Scenario(SimpleScenarioBase[Data, Model]):
         trainer_params.checkpoint_save_freq_ = None
         trainer_params.early_stopping.upper_threshold = 0.9
         trainer_params.early_stopping.lower_threshold = 0.0
+        trainer_params.early_stopping.frequency = 1
+        trainer_params.early_stopping.n_to_go = 5
         trainer_params.skip_model_load_test = True
+        trainer_params.optimizer.clip_grad = 5
         return trainer_params
 
     def __init__(self, params):
         super(Scenario, self).__init__(params)
         params.data.train.n_folds = params.model.ensemble
-        params.data.val.n_folds = params.model.ensemble
+        if params.data.val:
+            params.data.val.n_folds = params.model.ensemble
         params.data.ensemble = params.model.ensemble

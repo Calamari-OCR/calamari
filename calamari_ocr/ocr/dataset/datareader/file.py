@@ -22,11 +22,11 @@ logger = logging.getLogger(__name__)
 @pai_dataclass
 @dataclass
 class FileDataParams(CalamariDataGeneratorParams):
-    images: Optional[List[str]] = field(default=None, metadata=pai_meta(
+    images: List[str] = field(default_factory=list, metadata=pai_meta(
         help="List all image files that shall be processed. Ground truth files with the same "
              "base name but with '.gt.txt' as extension are required at the same location",
     ))
-    texts: Optional[List[str]] = field(default=None)
+    texts: List[str] = field(default_factory=list)
     gt_extension: str = field(default='.gt.txt', metadata=pai_meta(
         help="Extension of the gt files (expected to exist in same dir)"
     ))
@@ -38,20 +38,12 @@ class FileDataParams(CalamariDataGeneratorParams):
     def cls():
         return FileDataGenerator
 
-    def __post_init__(self):
-        self.images = [] if self.images is None else self.images
-        self.texts = [] if self.texts is None else self.texts
-
-        # when evaluating, only texts are set via --gt argument      --> need dummy [None] imgs
-        # when predicting, only imags are set via --files  argument  --> need dummy [None] texts
-
-    def prepare_for_mode(self, mode: PipelineMode) -> 'CalamariDataGeneratorParams':
-        # Training dataset
+    def prepare_for_mode(self, mode: PipelineMode):
         logger.info("Resolving input files")
-        input_image_files = sorted(glob_all(self.images)) if self.images else None
+        input_image_files = sorted(glob_all(self.images))
 
         if not self.texts:
-            gt_txt_files = [split_all_ext(f)[0] + self.gt_extension for f in input_image_files] if self.gt_extension else None
+            gt_txt_files = [split_all_ext(f)[0] + self.gt_extension for f in input_image_files]
         else:
             gt_txt_files = sorted(glob_all(self.texts))
             if mode in INPUT_PROCESSOR:
@@ -72,8 +64,6 @@ class FileDataParams(CalamariDataGeneratorParams):
 
         self.images = input_image_files
         self.texts = gt_txt_files
-        return self
-
 
 
 class FileDataGenerator(CalamariDataGenerator[FileDataParams]):

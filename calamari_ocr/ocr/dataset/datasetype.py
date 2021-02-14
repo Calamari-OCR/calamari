@@ -11,30 +11,6 @@ class DataSetType(IntEnum):
     EXTENDED_PREDICTION = 5
     GENERATED_LINE = 6
 
-    def __str__(self):
-        return self.name
-
-    @staticmethod
-    def from_string(s):
-        try:
-            return DataSetType[s]
-        except KeyError:
-            raise ValueError()
-
-    @staticmethod
-    def files(type):
-        files_meta = {
-            DataSetType.RAW: False,
-            DataSetType.FILE: True,
-            DataSetType.ABBYY: True,
-            DataSetType.PAGEXML: True,
-            DataSetType.EXTENDED_PREDICTION: True,
-            DataSetType.HDF5: False,
-            DataSetType.GENERATED_LINE: False,
-        }
-
-        return files_meta[type]
-
     @staticmethod
     def gt_extension(type):
         return {

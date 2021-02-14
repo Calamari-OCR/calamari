@@ -1,19 +1,17 @@
-import codecs
+import logging
 import os
 from abc import abstractmethod, ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from random import shuffle
 from typing import Generator, Iterable, Optional
-import numpy as np
 
+import numpy as np
 from dataclasses_json import dataclass_json
 from paiargparse import pai_dataclass, pai_meta
 from tfaip.base import DataGeneratorParams
 from tfaip.base.data.pipeline.datagenerator import DataGenerator, T
 from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
-import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +52,12 @@ class CalamariDataGeneratorParams(DataGeneratorParams, ABC):
     skip_invalid: bool = False
     non_existing_as_empty: bool = False
     n_folds: int = field(default=-1, metadata=pai_meta(mode='ignore'))
+    preload: bool = field(default=True, metadata=pai_meta(
+        help='Instead of preloading all data, load the data on the fly. '
+             'This is slower, but might be required for limited RAM or large dataset'
+    ))
 
-    def prepare_for_mode(self, mode: PipelineMode):
+    def prepare_for_mode(self, mode: PipelineMode) -> DataGeneratorParams:
         pass
 
     def create(self, mode: PipelineMode) -> 'DataGenerator':
@@ -162,5 +164,3 @@ class CalamariDataGenerator(DataGenerator[T], ABC):
     @abstractmethod
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
         raise NotImplementedError
-
-
