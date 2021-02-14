@@ -47,11 +47,23 @@ test-train-file:
     - set -e
     - python -m unittest calamari_ocr.test.test_train_file
 
-test-train-file-no-preload:
+test-train-pagexml:
   stage: test
   script:
     - set -e
-    - python -m unittest calamari_ocr.test.test_train_file_no_preload
+    - python -m unittest calamari_ocr.test.test_train_pagexml
+
+test-train-abbyyxml:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_abbyyxml
+
+test-train-hdf5:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_hdf5
 
 test-augmentation:
   stage: test
@@ -59,14 +71,11 @@ test-augmentation:
     - set -e
     - python -m unittest calamari_ocr.test.test_augmentation
 
-# Command line tests
-
-test-cpu-resume-training:
+test-resume-training:
   stage: test
   script:
     - set -e
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 5 --samples_per_epoch 10 --checkpoint_frequency 1
-    - calamari-resume-training checkpoint/checkpoint_0003
+    - python -m unittest calamari_ocr.test.test_resume_training
 
 
 # ensemble learning
@@ -186,26 +195,6 @@ test-cpu-train-on-generated-lines:
 
 # PAGE-XML
 
-test-cpu-train-on-page-xml:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
-      --validation calamari_ocr/test/data/avicanon_pagexml/008.nrm.png --validation_dataset PAGEXML
-      --dataset PAGEXML --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
-    - >
-      calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5
-      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
-      --dataset PAGEXML
-      --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
-    - >
-      calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5
-      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
-      --dataset PAGEXML
-      --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5 --dataset_pad 3 0
-
 test-cpu-train-on-page-xml-validation-on-files:
   stage: test
   script:
@@ -228,17 +217,6 @@ test-cpu-predict-and-eval-page-xml:
 
 # HDF5
 
-test-cpu-train-on-hdf5:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --files calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5
-      --validation calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5 --validation_dataset HDF5
-      --dataset HDF5 --num_threads 2 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
-      --data_preprocessing NoopDataPreprocessor
-
 test-cpu-predict-and-eval-hdf5:
   stage: test
   script:
@@ -248,16 +226,6 @@ test-cpu-predict-and-eval-hdf5:
 
 
 # ABBYY-XML
-
-test-cpu-train-on-abbyy-xml:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg
-      --validation calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg --validation_dataset ABBYY
-      --dataset ABBYY --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
 
 test-cpu-train-on-aabbyy-xml-validation-on-page-xml:
   stage: test

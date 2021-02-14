@@ -3,15 +3,16 @@ import json
 from contextlib import ExitStack
 from typing import List
 
-from tfaip.base.data.pipeline.definitions import Sample
+from tfaip.base.data.pipeline.definitions import Sample, PipelineMode
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
 
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
+from calamari_ocr.ocr.dataset.datareader.file import FileDataGenerator, FileDataParams
 from calamari_ocr.ocr.dataset.datareader.hdf5 import Hdf5DatasetWriter
-from calamari_ocr.ocr.dataset import DataSetType
 
 
 class CrossFold:
-    def __init__(self, n_folds: int, data_reader, output_dir: str, progress_bar=True,
+    def __init__(self, n_folds: int, data_generator_params: CalamariDataGeneratorParams, output_dir: str, progress_bar=True,
                  ):
         """ Prepare cross fold training
 
@@ -21,13 +22,13 @@ class CrossFold:
         The file with index i will be assigned to fold i % n_folds (not randomly!)
         """
         self.n_folds = n_folds
-        self.data_reader = data_reader
+        self.data_generator_params = data_generator_params
         self.output_dir = os.path.abspath(output_dir)
 
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        if len(self.data_reader) == 0:
+        if len(self.data_generator_params) == 0:
             raise Exception("Empty dataset")
 
         if self.n_folds <= 1:
@@ -36,19 +37,20 @@ class CrossFold:
         # fill single fold files
 
         # if a FileDataSet, we can just use the paths of the images
-        if isinstance(self.data_reader, FileDataReader):
-            self.dataset_type = DataSetType.FILE
+        if isinstance(self.data_generator_params, FileDataParams):
+            self.is_h5_dataset = False
             self.folds = [[] for _ in range(self.n_folds)]
-            for i, sample in enumerate(self.data_reader.samples()):
+            file_data_gen: FileDataGenerator = self.data_generator_params.create(PipelineMode.Evaluation)
+            for i, sample in enumerate(file_data_gen.samples()):
                 self.folds[i % n_folds].append(sample['image_path'])
         else:
-            self.dataset_type = DataSetType.HDF5
+            self.is_h5_dataset = True
             # else load the data of each fold and write it to hd5 data files
             with ExitStack() as stack:
                 folds = [stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, 'fold{}'.format(i)))) for i in range(self.n_folds)]
-
-                for i, sample in tqdm_wrapper(enumerate(self.data_reader.generate(epochs=1)), progress_bar=progress_bar,
-                                              total=len(self.data_reader), desc="Creating hdf5 files"):
+                data_generator = self.data_generator_params.create(PipelineMode.Evaluation)
+                for i, sample in tqdm_wrapper(enumerate(data_generator.generate()), progress_bar=progress_bar,
+                                              total=len(data_generator), desc="Creating hdf5 files"):
                     sample: Sample = sample
                     folds[i % self.n_folds].write(sample.inputs, sample.targets)
 
@@ -88,7 +90,7 @@ class CrossFold:
         """
         with open(filepath, 'w') as f:
             json.dump({
-                "type": self.dataset_type.name,
+                "isH5": self.is_h5_dataset,
                 "folds": self.folds,
             }, f, indent=4)
 

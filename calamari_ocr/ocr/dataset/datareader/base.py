@@ -4,7 +4,7 @@ from abc import abstractmethod, ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from random import shuffle
-from typing import Generator, Iterable, Optional
+from typing import Generator, Iterable, Optional, List
 
 import numpy as np
 from dataclasses_json import dataclass_json
@@ -57,6 +57,12 @@ class CalamariDataGeneratorParams(DataGeneratorParams, ABC):
              'This is slower, but might be required for limited RAM or large dataset'
     ))
 
+    def __len__(self):
+        raise NotImplementedError
+
+    def select(self, indices: List[int]):
+        raise NotImplementedError
+
     def prepare_for_mode(self, mode: PipelineMode) -> DataGeneratorParams:
         pass
 
@@ -95,7 +101,7 @@ class CalamariDataGenerator(DataGenerator[T], ABC):
     def sample_by_id(self, id_) -> dict:
         return next(sample for sample in self._samples if sample['id'] == id_)
 
-    def samples(self):
+    def samples(self) -> List[dict]:
         """ List of all samples
 
         Returns

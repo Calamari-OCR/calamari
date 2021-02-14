@@ -8,7 +8,7 @@ from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR, 
 from tqdm import tqdm
 from lxml import etree
 import cv2 as cv
-from typing import List, Generator
+from typing import List, Generator, Optional
 from enum import IntEnum
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams, InputSample, \
     SampleMeta
@@ -168,28 +168,27 @@ class PageXML(CalamariDataGeneratorParams):
         help="Default extension of the gt files (expected to exist in same dir)"
     ))
     text_index: int = 0
+    pad: Optional[List[int]] = field(default=None, metadata=pai_meta(
+        help="Additional padding after lines were cut out."
+    ))
+
+    def __len__(self):
+        return len(self.images)
+
+    def select(self, indices: List[int]):
+        if self.images:
+            self.images = [self.images[i] for i in indices]
+        if self.xml_files:
+            self.xml_files = [self.xml_files[i] for i in indices]
 
     @staticmethod
     def cls():
         return PageXMLReader
 
     def prepare_for_mode(self, mode: PipelineMode):
-        input_image_files = sorted(glob_all(self.images)) if self.images else None
-
+        self.images = sorted(glob_all(self.images))
         if not self.xml_files:
-            gt_txt_files = [split_all_ext(f)[0] + self.gt_extension for f in input_image_files] if self.gt_extension else None
-        else:
-            gt_txt_files = sorted(glob_all(self.xml_files))
-            if mode in INPUT_PROCESSOR:
-                input_image_files, gt_txt_files = keep_files_with_same_file_name(input_image_files, gt_txt_files)
-                for img, gt in zip(input_image_files, gt_txt_files):
-                    if split_all_ext(os.path.basename(img))[0] != split_all_ext(os.path.basename(gt))[0]:
-                        raise Exception(f"Expected identical basenames of file: {img} and {gt}")
-            else:
-                input_image_files = None
-
-        self.images = input_image_files
-        self.xml_files = gt_txt_files
+            self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
 
 
 class PageXMLReader(CalamariDataGenerator[PageXML]):
@@ -376,10 +375,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                                                 scale=lx / sample['img_width'])
 
                 # add padding as required from normal files
-                # TODO: CHECK IF THIS PADDING IS REQUIRED o.O should usually be performed in prepare_sample
-                # if self.args.pad:
-                #     pad = self.args.pad
-                #    img = np.pad(img, pad, mode='constant', constant_values=img.max())
+                if self.params.pad:
+                    img = np.pad(img, self.params.pad, mode='constant', constant_values=img.max(initial=0))
             else:
                 line_img = None
 

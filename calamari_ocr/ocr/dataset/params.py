@@ -1,4 +1,5 @@
 import logging
+from copy import deepcopy
 from dataclasses import dataclass, field
 from random import shuffle
 from typing import Optional
@@ -62,13 +63,13 @@ class CalamariTrainOnlyGeneratorParams(TrainValGeneratorParamsBase):
 @pai_dataclass
 @dataclass
 class CalamariSplitTrainValGeneratorParams(TrainValGeneratorParams):
-    train: FileDataParams = field(default_factory=FileDataParams, metadata=pai_meta(
-        choices=[FileDataParams], enforce_choices=True,
+    train: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
+        choices=[FileDataParams, PageXML], enforce_choices=True,
     ))
     validation_split_ratio: float = field(default=0.2, metadata=pai_meta(
         help="Use factor of n of the training dataset for validation."))
 
-    val: Optional[FileDataParams] = field(default=None, metadata=pai_meta(mode="ignore"))
+    val: Optional[CalamariDataGeneratorParams] = field(default=None, metadata=pai_meta(mode="ignore"))
 
     def __post_init__(self):
         if self.val is not None:
@@ -80,22 +81,20 @@ class CalamariSplitTrainValGeneratorParams(TrainValGeneratorParams):
 
         # resolve all files so we can split them
         self.train.prepare_for_mode(PipelineMode.Training)
-        params: FileDataParams = self.train
-        n = int(self.validation_split_ratio * len(params.images))
+        self.val = deepcopy(self.train)
+        samples = len(self.train)
+        n = int(self.validation_split_ratio * samples)
+        if n == 0:
+            raise ValueError(f"Ratio is to small since {self.validation_split_ratio} * {samples} = {n}. "
+                             f"Increase the amount of data or the split ratio.")
         logger.info(f"Splitting training and validation files with ratio {self.validation_split_ratio}: "
-                    f"{n}/{len(params.images) - n} for validation/training.")
-        indices = list(range(len(params.images)))
+                    f"{n}/{samples - n} for validation/training.")
+        indices = list(range(samples))
         shuffle(indices)
-        all_files = params.images
-        all_text_files = params.texts
 
         # split train and val img/gt files. Use train settings
-        params.images = [all_files[i] for i in indices[:n]]
-        if all_text_files is not None:
-            assert (len(all_text_files) == len(all_files))
-            params.text_files = [all_text_files[i] for i in indices[:n]]
-
-        self.val = params
+        self.train.select(indices[n:])
+        self.val.select(indices[:n])
 
 
 @pai_dataclass

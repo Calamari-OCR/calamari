@@ -18,6 +18,9 @@ from calamari_ocr.utils import split_all_ext, glob_all
 class Hdf5(CalamariDataGeneratorParams):
     files: List[str] = field(default_factory=list, metadata=pai_meta(required=True))
 
+    def __len__(self):
+        return len(self.files)
+
     @staticmethod
     def cls():
         return Hdf5Generator

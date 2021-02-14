@@ -34,8 +34,7 @@ class Scenario(SimpleScenarioBase[Data, Model]):
     def default_trainer_params(cls) -> 'TrainerParams':
         trainer_params = super(Scenario, cls).default_trainer_params()
         trainer_params.export_final = False
-        trainer_params.checkpoint_sub_dir_ = os.path.join('checkpoint', 'checkpoint_{epoch:04d}')
-        trainer_params.checkpoint_save_freq_ = None
+        trainer_params.checkpoint_sub_dir = os.path.join('checkpoint', 'checkpoint_{epoch:04d}')
         trainer_params.early_stopping.upper_threshold = 0.9
         trainer_params.early_stopping.lower_threshold = 0.0
         trainer_params.early_stopping.frequency = 1

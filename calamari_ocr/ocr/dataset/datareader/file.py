@@ -38,6 +38,15 @@ class FileDataParams(CalamariDataGeneratorParams):
     def cls():
         return FileDataGenerator
 
+    def __len__(self):
+        return len(self.images) if self.images else len(self.texts)
+
+    def select(self, indices: List[int]):
+        if self.images:
+            self.images = [self.images[i] for i in indices]
+        if self.texts:
+            self.texts = [self.texts[i] for i in indices]
+
     def prepare_for_mode(self, mode: PipelineMode):
         logger.info("Resolving input files")
         input_image_files = sorted(glob_all(self.images))

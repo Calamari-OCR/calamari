@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, field
 
 from dataclasses_json import dataclass_json
-from paiargparse import pai_meta
+from paiargparse import pai_meta, pai_dataclass
 
 from tfaip.base import TrainerParams as AIPTrainerParams
 
@@ -11,7 +11,7 @@ from calamari_ocr.ocr.dataset.codec import CodecConstructionParams
 from calamari_ocr.ocr.model.params import LayerParams, LayerType, LSTMDirection, ModelParams, IntVec2D
 
 
-@dataclass_json
+@pai_dataclass
 @dataclass
 class TrainerParams(AIPTrainerParams):
     version: int = SavedCalamariModel.VERSION
