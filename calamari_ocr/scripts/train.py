@@ -305,6 +305,11 @@ def run(args):
             num_processes=args.num_threads,
         )
     else:
+        if not args.use_train_as_val and args.ensemble <= 0:
+            raise ValueError("No validation data provided. "
+                             "Either specify to use the training data using the --use_train_as_val flag or "
+                             "define a fraction of training data that will be used for validation, "
+                             "e.g. --validation_split_ratio 0.2 to use 20% for training and 80% for validation")
         data_params.val = None
 
     data_params.pre_processors_ = SamplePipelineParams(run_parallel=True)

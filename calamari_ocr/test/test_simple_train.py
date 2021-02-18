@@ -81,12 +81,14 @@ class TestSimpleTrain(unittest.TestCase):
 
     def test_simple_train(self):
         args = Attrs()
+        args.use_train_as_val = True
         with tempfile.TemporaryDirectory() as d:
             args.output_dir = d
             run(args)
 
     def test_train_without_center_normalizer(self):
         args = Attrs()
+        args.use_train_as_val = True
         args.data_preprocessing = [
             DataRangeNormalizer.__name__,
             ScaleToHeightProcessor.__name__,

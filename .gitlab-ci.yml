@@ -54,13 +54,13 @@ test-cpu:
   stage: test
   script:
     - set -e
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10 --use_train_as_val
 
 test-cpu-resume-training:
   stage: test
   script:
     - set -e
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 5 --samples_per_epoch 10 --checkpoint_frequency 1
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 5 --samples_per_epoch 10 --checkpoint_frequency 1 --use_train_as_val
     - calamari-resume-training checkpoint/checkpoint_0003
 
 test-cpu-validation:
@@ -74,7 +74,7 @@ test-cpu-augmentation:
   stage: test
   script:
     - set -e
-    - calamari-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10
+    - calamari-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 1 --samples_per_epoch 10 --use_train_as_val
 
 test-cpu-validation-augmentation:
   stage: test
@@ -144,13 +144,13 @@ test-cpu-pretrained:
   stage: test
   script:
     - set -e
-    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5
+    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --use_train_as_val
 
 test-cpu-pretrained-keep-loaded-codec:
   stage: test
   script:
     - set -e
-    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --keep_loaded_codec
+    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --keep_loaded_codec --use_train_as_val
 
 # on-the-fly data loading
 
@@ -158,14 +158,14 @@ test-cpu-data-on-the-fly:
   stage: test
   script:
     - set -e
-    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5
-    - calamari-train --train_data_on_the_fly --use_train_as_val --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5
+    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --use_train_as_val
+    - calamari-train --train_data_on_the_fly --use_train_as_val --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --use_train_as_val
 
 test-cpu-data-on-the-fly-with-weights:
   stage: test
   script:
     - set -e
-    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --weights calamari_models/antiqua_modern/0.ckpt.json
+    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --weights calamari_models/antiqua_modern/0.ckpt.json --use_train_as_val
 
 test-cpu-validation-data-on-the-fly:
   stage: test
@@ -202,7 +202,7 @@ test-cpu-train-on-generated-lines:
     - set -e
     - >
       calamari-train
-      --dataset GENERATED_LINE
+      --dataset GENERATED_LINE --use_train_as_val
       --text_generator_params calamari_ocr/test/data/line_generation_config/text_gen_params.json
       --line_generator_params calamari_ocr/test/data/line_generation_config/line_gen_params.json
       --whitelist_files calamari_ocr/test/data/line_generation_config/whitelist.txt
@@ -308,8 +308,8 @@ test-cpu-network-architectures:
   stage: test
   script:
     - set -
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,lstm=50,dropout=0.5'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2,concat=1:-1'
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --use_train_as_val --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,lstm=50,dropout=0.5'
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --use_train_as_val --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2'
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --use_train_as_val --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3'
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --use_train_as_val --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2'
+    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --use_train_as_val --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2,concat=1:-1'
