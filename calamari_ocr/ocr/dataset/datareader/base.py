@@ -146,7 +146,7 @@ class CalamariDataGenerator(DataGenerator[T], ABC):
     def prepare_store(self):
         pass
 
-    def store(self, extension):
+    def store(self):
         # either store text or store (e. g. if all predictions must be written at the same time
         pass
 

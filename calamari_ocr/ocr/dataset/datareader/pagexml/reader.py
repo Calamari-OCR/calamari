@@ -171,6 +171,9 @@ class PageXML(CalamariDataGeneratorParams):
     pad: Optional[List[int]] = field(default=None, metadata=pai_meta(
         help="Additional padding after lines were cut out."
     ))
+    pred_extension: str = field(default='.pred.xml', metadata=pai_meta(
+        help="Default extension of the prediction files"
+    ))
 
     def __len__(self):
         return len(self.images)
@@ -326,7 +329,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         super().store_extended_prediction(data, sample, output_dir, extension)
 
-    def store(self, extension):
+    def store(self):
+        extension = self.params.pred_extension
         if self._last_page_id:
             self._store_page(extension, self._last_page_id)
             self._last_page_id = None

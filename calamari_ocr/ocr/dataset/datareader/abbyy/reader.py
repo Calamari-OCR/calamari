@@ -23,6 +23,9 @@ class Abbyy(CalamariDataGeneratorParams):
         help="Default extension of the gt files (expected to exist in same dir)"
     ))
     binary: bool = False
+    pred_extension: str = field(default='.pred.abbyy.xml', metadata=pai_meta(
+        help="Default extension of the prediction files"
+    ))
 
     def __len__(self):
         return len(self.images)
@@ -64,13 +67,14 @@ class AbbyyGenerator(CalamariDataGenerator[Abbyy]):
                         "format": fo,
                     })
 
-    def store_text(self, sentence, sample, output_dir, extension):
+    def store_text_prediction(self, sentence, sample_id, output_dir):
         # an Abbyy dataset stores the prediction in one XML file
+        sample = self.sample_by_id(sample_id)
         sample["format"].text = sentence
 
-    def store(self, extension):
+    def store(self):
         for page in tqdm(self.book.pages, desc="Writing Abbyy files", total=len(self.book.pages)):
-            XMLWriter.write(page, split_all_ext(page.xmlFile)[0] + extension)
+            XMLWriter.write(page, split_all_ext(page.xmlFile)[0] + self.params.pred_extension)
 
     def _sample_iterator(self):
         return zip(self.params.images, self.params.xml_files)

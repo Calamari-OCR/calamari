@@ -1,11 +1,12 @@
 import os
 import zlib
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 import tfaip.util.logging
 from bidi.algorithm import get_base_level
 from paiargparse import PAIArgumentParser, pai_meta, pai_dataclass
+from tfaip.base import PipelineMode
 
 from calamari_ocr import __version__
 from calamari_ocr.ocr.dataset import DataSetType
@@ -31,6 +32,10 @@ class PredictArgs:
         help="Path to the checkpoint without file extension"))
     data: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
         mode='flat', choices=DATA_GENERATOR_CHOICES))
+    verbose: bool = field(default=True, metadata=pai_meta(
+        mode='flat',
+        help='Print the prediction result to the log',
+    ))
     extended_prediction_data: bool = field(default=False, metadata=pai_meta(
         mode='flat',
         help="Write: Predicted string, labels; position, probabilities and alternatives of chars to a .pred file"))
@@ -42,6 +47,10 @@ class PredictArgs:
         help="Do not show any progress bars"))
     ctc_decoder: CTCDecoderParams = field(default_factory=CTCDecoderParams)
     voter: VoterParams = field(default_factory=VoterParams)
+    output_dir: Optional[str] = field(default=None, metadata=pai_meta(
+        mode='flat',
+        help="By default the prediction files will be written to the same directory as the given files. "
+             "You can use this argument to specify a specific output dir for the prediction files."))
 
 
 def prepare_ctc_decoder_params(ctc_decoder: CTCDecoderParams):
@@ -87,8 +96,8 @@ def run(args: PredictArgs):
     predictor = MultiPredictor.from_paths(checkpoints=args.checkpoint, voter_params=args.voter,
                                           predictor_params=PredictorParams(silent=True,
                                                                            progress_bar=not args.no_progress_bars))
-    do_prediction = predictor.predict(predict_params)
-    pipeline: CalamariPipeline = predictor.data.get_predict_data(predict_params)
+    do_prediction = predictor.predict(args.data)
+    pipeline: CalamariPipeline = predictor.data.get_or_create_pipeline(predictor.params.pipeline, args.data)
     reader = pipeline.reader()
     if len(reader) == 0:
         raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
@@ -110,9 +119,9 @@ def run(args: PredictArgs):
             lr = "\u202A\u202B"
             logger.info("{}: '{}{}{}'".format(meta['id'], lr[get_base_level(sentence)], sentence, "\u202C"))
 
-        output_dir = args.output_dir
+        output_dir = args.output_dir if args.output_dir else os.path.dirname(prediction.line_path)
 
-        reader.store_text_prediction(sentence, sample, output_dir=output_dir)
+        reader.store_text_prediction(sentence, meta['id'], output_dir=output_dir)
 
         if args.extended_prediction_data:
             ps = Predictions()
@@ -138,7 +147,7 @@ def run(args: PredictArgs):
 
     logger.info("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
 
-    reader.store(args.extension)
+    reader.store()
     logger.info("All prediction files written")
 
 

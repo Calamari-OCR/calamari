@@ -17,6 +17,9 @@ from calamari_ocr.utils import split_all_ext, glob_all
 @dataclass
 class Hdf5(CalamariDataGeneratorParams):
     files: List[str] = field(default_factory=list, metadata=pai_meta(required=True))
+    pred_extension: str = field(default='.pred.h5', metadata=pai_meta(
+        help="Default extension of the prediction files"
+    ))
 
     def __len__(self):
         return len(self.files)
@@ -51,11 +54,14 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
                     "filename": filename,
                 })
 
-    def store_text(self, sentence, sample, output_dir, extension):
+    def store_text_prediction(self, sentence, sample_id, output_dir):
+        sample = self.sample_by_id(sample_id)
         codec = self.prediction[sample['filename']]['codec']
         self.prediction[sample['filename']]['transcripts'].append(list(map(codec.index, sentence)))
 
-    def store(self, extension):
+    def store(self):
+        extension = self.params.pred_extension
+
         for filename, data in self.prediction.items():
             texts = data['transcripts']
             codec = data['codec']

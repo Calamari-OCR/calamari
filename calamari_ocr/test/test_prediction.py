@@ -8,7 +8,7 @@ from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.predict.predictor import Predictor, PredictorParams, MultiPredictor
 from calamari_ocr.utils import glob_all
 
-from calamari_ocr.scripts.predict import run
+from calamari_ocr.scripts.predict import run, PredictArgs
 from calamari_ocr.utils.image import load_image
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -61,18 +61,23 @@ def create_multi_model_predictor():
     return predictor
 
 
+def predict_args(n_models=1) -> PredictArgs:
+    p = PredictArgs(
+        checkpoint=[os.path.join(this_dir, "models", "0.ckpt")] * n_models,
+        data=file_dataset(),
+    )
+    return p
+
+
 class TestValidationTrain(unittest.TestCase):
     def tearDown(self) -> None:
         keras.backend.clear_session()
 
     def test_prediction(self):
-        args = PredictionAttrs()
-        args.checkpoint = args.checkpoint[0:1]
-        run(args)
+        run(predict_args())
 
     def test_prediction_voter(self):
-        args = PredictionAttrs()
-        run(args)
+        run(predict_args(n_models=3))
 
     def test_empty_image_raw_prediction(self):
         predictor = create_single_model_predictor()

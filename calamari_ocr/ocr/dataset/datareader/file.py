@@ -182,5 +182,5 @@ class FileDataGenerator(CalamariDataGenerator[FileDataParams]):
         sample = self.sample_by_id(sample_id)
         output_dir = output_dir if output_dir else os.path.dirname(sample['image_path'])
         bn = sample.get('base_name', sample['id'])
-        with codecs.open(os.path.join(output_dir, bn + self.params.extension), 'w', 'utf-8') as f:
+        with codecs.open(os.path.join(output_dir, bn + self.params.pred_extension), 'w', 'utf-8') as f:
             f.write(sentence)
