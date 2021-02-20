@@ -14,7 +14,7 @@ from calamari_ocr.ocr import Codec, SavedCalamariModel
 from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.imageprocessors.augmentation import AugmentationProcessorParams
 from calamari_ocr.ocr.model.params import ModelParams
-from calamari_ocr.ocr.training.params import TrainerParams
+from calamari_ocr.ocr.training.params import TrainerParams, CalamariTrainOnlyGeneratorParams
 from calamari_ocr.ocr.training.warmstart import WarmstarterWithCodecAdaption
 from calamari_ocr.utils import checkpoint_path
 
@@ -67,8 +67,7 @@ class Trainer(AIPTrainer):
         data: Data = self._data
         model: ModelParams = self.scenario.params.model
 
-        if model.ensemble > 0:
-            self._params.use_training_as_validation = True
+        use_training_as_validation = model.ensemble > 0 or isinstance(self.params.gen, CalamariTrainOnlyGeneratorParams)
 
         # Setup train pipeline
         train_pipeline = self.params.gen.train_data(data)
@@ -139,17 +138,18 @@ class Trainer(AIPTrainer):
             data.preload(progress_bar=self._params.progress_bar)
             train_pipeline = self.params.gen.train_data(data)
 
-        if self._params.use_training_as_validation:
+        if use_training_as_validation:
+            logger.info("Using training data for validation.")
             assert (val_pipeline is None)
-            if self._params.preload_training:
+            if self._params.gen.train.preload:
                 data._pipelines[PipelineMode.Evaluation] = RawDataPipeline(
                     [s for s in train_pipeline.samples if not s.meta['augmented']],
-                    mode=PipelineMode.Evaluation,
+                    pipeline_params=self._params.gen.setup.train,
                     data_base=data,
                     generator_params=train_pipeline.generator_params,
                     input_processors=train_pipeline._input_processors,
                     output_processors=train_pipeline._output_processors,
-                )
+                ).to_mode(PipelineMode.Evaluation)
             else:
                 data._pipelines[PipelineMode.Evaluation] = train_pipeline.to_mode(PipelineMode.Evaluation)
 

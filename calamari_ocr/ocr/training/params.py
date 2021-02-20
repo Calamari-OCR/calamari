@@ -94,8 +94,6 @@ class TrainerParams(AIPTrainerParams[ScenarioParams, CalamariDefaultTrainValGene
              "behavior."))
     current_stage: int = 0  # Current training progress: 0 standard, 1 retraining on non aug.
 
-    use_training_as_validation: bool = False
-
     progress_bar: bool = True
 
     auto_upgrade_checkpoints: bool = True
