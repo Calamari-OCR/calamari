@@ -14,7 +14,7 @@ from calamari_ocr.ocr import Codec, SavedCalamariModel
 from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.imageprocessors.augmentation import AugmentationProcessorParams
 from calamari_ocr.ocr.model.params import ModelParams
-from calamari_ocr.ocr.training.params import TrainerParams, CalamariTrainOnlyGeneratorParams
+from calamari_ocr.ocr.training.params import TrainerParams, CalamariTrainOnlyPipelineParams
 from calamari_ocr.ocr.training.warmstart import WarmstarterWithCodecAdaption
 from calamari_ocr.utils import checkpoint_path
 
@@ -67,7 +67,7 @@ class Trainer(AIPTrainer):
         data: Data = self._data
         model: ModelParams = self.scenario.params.model
 
-        use_training_as_validation = model.ensemble > 0 or isinstance(self.params.gen, CalamariTrainOnlyGeneratorParams)
+        use_training_as_validation = model.ensemble > 0 or isinstance(self.params.gen, CalamariTrainOnlyPipelineParams)
 
         # Setup train pipeline
         train_pipeline = self.params.gen.train_data(data)

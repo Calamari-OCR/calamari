@@ -10,7 +10,7 @@ from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.dataset.imageprocessors.center_normalizer import CenterNormalizerProcessorParams
 from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessorParams
 from calamari_ocr.ocr.scenario import CalamariScenario
-from calamari_ocr.ocr.training.params import CalamariSplitTrainValGeneratorParams, CalamariTrainOnlyGeneratorParams
+from calamari_ocr.ocr.training.params import CalamariSplitTrainerPipelineParams, CalamariTrainOnlyPipelineParams
 from calamari_ocr.scripts.train import main
 from calamari_ocr.utils import glob_all
 
@@ -27,14 +27,14 @@ def make_test_scenario(with_validation=False, with_split=False, preload=True) ->
                 preload=preload,
             )
             if with_split:
-                p.gen = CalamariSplitTrainValGeneratorParams(validation_split_ratio=0.2, train=train)
+                p.gen = CalamariSplitTrainerPipelineParams(validation_split_ratio=0.2, train=train)
             elif with_validation:
                 p.gen.val.images = glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")])
                 p.gen.val.preload = preload
                 p.gen.train = train
                 p.gen.__post_init__()
             else:
-                p.gen = CalamariTrainOnlyGeneratorParams(train=train)
+                p.gen = CalamariTrainOnlyPipelineParams(train=train)
 
             p.gen.setup.val.batch_size = 1
             p.gen.setup.val.num_processes = 1

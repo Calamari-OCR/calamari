@@ -8,7 +8,7 @@ from tfaip.base.data.pipeline.processor.params import SequentialProcessorPipelin
 from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
 from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessorParams
 from calamari_ocr.ocr.scenario import CalamariScenario
-from calamari_ocr.ocr.training.params import CalamariTrainOnlyGeneratorParams
+from calamari_ocr.ocr.training.params import CalamariTrainOnlyPipelineParams
 from calamari_ocr.scripts.train import main
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -31,7 +31,7 @@ def make_test_scenario(with_validation=False, preload=True):
                 p.gen.train = train
                 p.gen.__post_init__()
             else:
-                p.gen = CalamariTrainOnlyGeneratorParams(train=train)
+                p.gen = CalamariTrainOnlyPipelineParams(train=train)
 
             p.gen.setup.val.batch_size = 1
             p.gen.setup.val.num_processes = 1

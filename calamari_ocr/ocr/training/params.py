@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 @pai_dataclass
 @dataclass
-class CalamariDefaultTrainValGeneratorParams(TrainerPipelineParams[CalamariDataGeneratorParams,
-                                                                   CalamariDataGeneratorParams]):
+class CalamariDefaultTrainerPipelineParams(TrainerPipelineParams[CalamariDataGeneratorParams,
+                                                                 CalamariDataGeneratorParams]):
     train: CalamariDataGeneratorParams = field(default_factory=FileDataParams,
                                                metadata=pai_meta(choices=DATA_GENERATOR_CHOICES, mode='flat'))
     val: CalamariDataGeneratorParams = field(default_factory=FileDataParams,
@@ -33,7 +33,7 @@ class CalamariDefaultTrainValGeneratorParams(TrainerPipelineParams[CalamariDataG
 
 @pai_dataclass
 @dataclass
-class CalamariTrainOnlyGeneratorParams(
+class CalamariTrainOnlyPipelineParams(
     TrainerPipelineParamsBase[CalamariDataGeneratorParams, CalamariDataGeneratorParams]):
     def train_gen(self) -> CalamariDataGeneratorParams:
         return self.train
@@ -47,8 +47,8 @@ class CalamariTrainOnlyGeneratorParams(
 
 @pai_dataclass
 @dataclass
-class CalamariSplitTrainValGeneratorParams(TrainerPipelineParams[CalamariDataGeneratorParams,
-                                                                 CalamariDataGeneratorParams]):
+class CalamariSplitTrainerPipelineParams(TrainerPipelineParams[CalamariDataGeneratorParams,
+                                                               CalamariDataGeneratorParams]):
     train: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
         choices=[FileDataParams, PageXML], enforce_choices=True, mode='flat',
     ))
@@ -85,7 +85,7 @@ class CalamariSplitTrainValGeneratorParams(TrainerPipelineParams[CalamariDataGen
 
 @pai_dataclass
 @dataclass
-class TrainerParams(AIPTrainerParams[ScenarioParams, CalamariDefaultTrainValGeneratorParams]):
+class TrainerParams(AIPTrainerParams[ScenarioParams, CalamariDefaultTrainerPipelineParams]):
     version: int = SavedCalamariModel.VERSION
 
     data_aug_retrain_on_original: bool = field(default=True, metadata=pai_meta(

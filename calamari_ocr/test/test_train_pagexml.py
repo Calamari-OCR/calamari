@@ -6,7 +6,7 @@ from tensorflow import keras
 
 from calamari_ocr.ocr.dataset.datareader.pagexml.reader import PageXML
 from calamari_ocr.ocr.scenario import CalamariScenario
-from calamari_ocr.ocr.training.params import CalamariSplitTrainValGeneratorParams, CalamariTrainOnlyGeneratorParams
+from calamari_ocr.ocr.training.params import CalamariSplitTrainerPipelineParams, CalamariTrainOnlyPipelineParams
 from calamari_ocr.scripts.train import main
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -25,7 +25,7 @@ def make_test_scenario(*, with_validation=False, with_split=False, preload=True)
                 preload=preload,
             )
             if with_split:
-                p.gen = CalamariSplitTrainValGeneratorParams(validation_split_ratio=0.5, train=train)
+                p.gen = CalamariSplitTrainerPipelineParams(validation_split_ratio=0.5, train=train)
             elif with_validation:
                 p.gen.val = PageXML(
                     images=[os.path.join(this_dir, "data", "avicanon_pagexml", "008.nrm.png")],
@@ -34,7 +34,7 @@ def make_test_scenario(*, with_validation=False, with_split=False, preload=True)
                 p.gen.train = train
                 p.gen.__post_init__()
             else:
-                p.gen = CalamariTrainOnlyGeneratorParams(train=train)
+                p.gen = CalamariTrainOnlyPipelineParams(train=train)
 
             p.gen.setup.val.batch_size = 1
             p.gen.setup.val.num_processes = 1

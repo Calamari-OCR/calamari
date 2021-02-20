@@ -7,11 +7,11 @@ from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.model.ensemblemodel import EnsembleModel
 from calamari_ocr.ocr.model.model import Model
 from calamari_ocr.ocr.scenario_params import ScenarioParams
-from calamari_ocr.ocr.training.params import CalamariDefaultTrainValGeneratorParams, TrainerParams
+from calamari_ocr.ocr.training.params import CalamariDefaultTrainerPipelineParams, TrainerParams
 from calamari_ocr.ocr.training.trainer import Trainer
 
 
-class CalamariScenario(ScenarioBase[Data, Model, ScenarioParams, CalamariDefaultTrainValGeneratorParams]):
+class CalamariScenario(ScenarioBase[Data, Model, ScenarioParams, CalamariDefaultTrainerPipelineParams]):
     def create_model(self):
         if self._params.model.ensemble <= 0:
             return Model(self._params.model)

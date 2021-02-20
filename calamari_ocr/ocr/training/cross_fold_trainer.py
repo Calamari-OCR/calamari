@@ -14,7 +14,7 @@ from paiargparse import pai_dataclass, pai_meta
 from calamari_ocr.ocr import CrossFold, SavedCalamariModel
 from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
 from calamari_ocr.ocr.scenario import CalamariScenario
-from calamari_ocr.ocr.training.params import TrainerParams, CalamariDefaultTrainValGeneratorParams
+from calamari_ocr.ocr.training.params import TrainerParams, CalamariDefaultTrainerPipelineParams
 from calamari_ocr.utils.multiprocessing import prefix_run_command, run
 
 logger = logging.getLogger(__name__)
@@ -151,7 +151,7 @@ class CrossFoldTrainer:
             path = os.path.join(temporary_dir, "fold_{}.json".format(fold))
             with open(path, 'w') as f:
                 trainer_params = deepcopy(self.params.trainer)
-                trainer_params.gen = CalamariDefaultTrainValGeneratorParams(
+                trainer_params.gen = CalamariDefaultTrainerPipelineParams(
                     train=trainer_params.gen.train,
                     val=deepcopy(trainer_params.gen.train),
                     setup=trainer_params.gen.setup,
