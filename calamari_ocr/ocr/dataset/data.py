@@ -10,13 +10,13 @@ from tfaip.base.data.pipeline.processor.params import SequentialProcessorPipelin
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
-from calamari_ocr.ocr.dataset.imageprocessors.augmentation import AugmentationParams
+from calamari_ocr.ocr.dataset.imageprocessors.augmentation import AugmentationProcessorParams
 from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
 from calamari_ocr.ocr.dataset.imageprocessors.preparesample import PrepareSampleProcessorParams
 from calamari_ocr.ocr.dataset.params import DataParams
 from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
-from calamari_ocr.ocr.dataset.postprocessors.ctcdecoder import CTCDecoder
-from calamari_ocr.ocr.dataset.postprocessors.reshape import ReshapeOutputs
+from calamari_ocr.ocr.dataset.postprocessors.ctcdecoder import CTCDecoderProcessorParams
+from calamari_ocr.ocr.dataset.postprocessors.reshape import ReshapeOutputsProcessorParams
 from calamari_ocr.ocr.dataset.textprocessors.default_text_processor import default_text_pre_processors
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class Data(DataBase[DataParams]):
             processors=default_image_processors() +
                        default_text_pre_processors() +
                        [
-                           AugmentationParams(modes={PipelineMode.Training}),
+                           AugmentationProcessorParams(modes={PipelineMode.Training}),
                            PrepareSampleProcessorParams(modes=INPUT_PROCESSOR),
                        ],
         )
@@ -48,8 +48,8 @@ class Data(DataBase[DataParams]):
             run_parallel=True,
             processors=
             [
-                ReshapeOutputs(),
-                CTCDecoder(),
+                ReshapeOutputsProcessorParams(),
+                CTCDecoderProcessorParams(),
             ] +
             default_text_pre_processors()
         )
@@ -91,9 +91,9 @@ if __name__ == '__main__':
             processors=default_image_processors() +
                        default_text_pre_processors() +
                        [
-                           AugmentationParams(modes={PipelineMode.Training},
-                                              data_aug_params=DataAugmentationAmount(amount=2),
-                                              ),
+                           AugmentationProcessorParams(modes={PipelineMode.Training},
+                                                       data_aug_params=DataAugmentationAmount(amount=2),
+                                                       ),
                            PrepareSampleProcessorParams(modes=INPUT_PROCESSOR),
                        ],
         ),

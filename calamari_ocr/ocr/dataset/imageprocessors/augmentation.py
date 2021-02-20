@@ -4,43 +4,39 @@ from functools import partial
 from typing import List, Iterable, Type
 
 import numpy as np
-from dataclasses_json import config
 from paiargparse import pai_dataclass, pai_meta
 from tfaip.base.data.pipeline.definitions import Sample
 from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
 from tfaip.util.multiprocessing.parallelmap import parallel_map
 
-from calamari_ocr.ocr.augmentation import SimpleDataAugmenter
+from calamari_ocr.ocr.augmentation.data_augmenter import DataAugmenterParams, DefaultDataAugmenterParams
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
-from calamari_ocr.ocr.dataset.params import encoder, decoder
 
 
 @pai_dataclass(alt="Augmentation")
 @dataclass
-class AugmentationParams(DataProcessorParams):
-    data_aug_params: DataAugmentationAmount = field(
-        default=DataAugmentationAmount.from_factor(0),
-        metadata={**config(
-            encoder=encoder,
-            decoder=decoder(DataAugmentationAmount),
-        ), **pai_meta(
-            help="Amount of data augmentation per line (done before training). If this number is < 1 "
-                 "the amount is relative.")
-                  }
-    )
-
-    augmenter_type: str = 'simple'
+class AugmentationProcessorParams(DataProcessorParams):
+    augmenter: DataAugmenterParams = field(default_factory=DefaultDataAugmenterParams, metadata=pai_meta(
+        mode='flat',
+        help="Augmenter to use for augmentation",
+        choices=[DefaultDataAugmenterParams],
+    ))
+    n_augmentations: float = field(default=0, metadata=pai_meta(
+        mode='flat',
+        help="Amount of data augmentation per line (done before training). If this number is < 1 "
+             "the amount is relative."
+    ))
 
     @staticmethod
     def cls() -> Type['MappingDataProcessor']:
-        return Augmentation
+        return AugmentationProcessor
 
 
-class Augmentation(MappingDataProcessor[AugmentationParams]):
+class AugmentationProcessor(MappingDataProcessor[AugmentationProcessorParams]):
     def __init__(self, *args, **kwargs):
-        super(Augmentation, self).__init__(*args, **kwargs)
-        assert (self.params.augmenter_type == 'simple')
-        self.data_augmenter = SimpleDataAugmenter()
+        super(AugmentationProcessor, self).__init__(*args, **kwargs)
+        self.data_aug_params = DataAugmentationAmount.from_factor(self.params.n_augmentations)
+        self.data_augmenter = self.params.augmenter.create()
 
     def preload(self,
                 samples: List[Sample],
@@ -48,7 +44,7 @@ class Augmentation(MappingDataProcessor[AugmentationParams]):
                 drop_invalid=True,
                 progress_bar=False,
                 ) -> Iterable[Sample]:
-        n_augmentation = self.params.data_aug_params.to_abs()  # real number of augmentations
+        n_augmentation = self.data_aug_params.to_abs()  # real number of augmentations
         if n_augmentation == 0:
             return samples
 
@@ -61,10 +57,10 @@ class Augmentation(MappingDataProcessor[AugmentationParams]):
 
     def apply(self, sample: Sample) -> Sample:
         # data augmentation
-        if not self.params.data_aug_params.no_augs() \
+        if not self.data_aug_params.no_augs() \
                 and sample.inputs is not None \
                 and self.data_augmenter \
-                and np.random.rand() <= self.params.data_aug_params.to_rel():
+                and np.random.rand() <= self.data_aug_params.to_rel():
             line, text = self.augment(sample.inputs, sample.targets, sample.meta)
             return sample.new_inputs(line).new_targets(text)
         return sample

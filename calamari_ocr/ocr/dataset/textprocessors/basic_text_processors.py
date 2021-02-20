@@ -11,13 +11,13 @@ from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 
 @pai_dataclass
 @dataclass
-class StripText(DataProcessorParams):
+class StripTextProcessorParams(DataProcessorParams):
     @staticmethod
     def cls() -> Type['TextProcessor']:
-        return StripTextImpl
+        return StripTextProcessor
 
 
-class StripTextImpl(TextProcessor[StripText]):
+class StripTextProcessor(TextProcessor[StripTextProcessorParams]):
     def _apply_single(self, txt, meta):
         if isinstance(txt, str):
             return txt.strip()
@@ -43,7 +43,7 @@ class BidiDirection(StrEnum):
 
 @pai_dataclass
 @dataclass
-class BidiText(DataProcessorParams):
+class BidiTextProcessorParams(DataProcessorParams):
     bidi_direction: BidiDirection = field(default=BidiDirection.AUTO, metadata=pai_meta(
         help="The default text direction when preprocessing bidirectional text. Supported values "
              "are 'auto' to automatically detect the direction, 'ltr' and 'rtl' for left-to-right and "
@@ -52,10 +52,10 @@ class BidiText(DataProcessorParams):
 
     @staticmethod
     def cls() -> Type['TextProcessor']:
-        return BidiTextImpl
+        return BidiTextProcessor
 
 
-class BidiTextImpl(TextProcessor[BidiText]):
+class BidiTextProcessor(TextProcessor[BidiTextProcessorParams]):
     def _apply_single(self, txt, meta):
         # To support arabic text
         return bidi_algorithm.get_display(txt,

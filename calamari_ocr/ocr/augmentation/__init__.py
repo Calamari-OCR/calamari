@@ -1,1 +1,1 @@
-from .data_augmenter import DataAugmenter, SimpleDataAugmenter, NoopDataAugmenter
+from .data_augmenter import DataAugmenterBase, DataAugmenterParams, DefaultDataAugmenterParams

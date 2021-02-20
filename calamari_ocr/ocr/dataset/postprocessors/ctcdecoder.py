@@ -10,15 +10,15 @@ from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import create_ctc_decoder, CT
 
 @pai_dataclass
 @dataclass
-class CTCDecoder(DataProcessorParams):
+class CTCDecoderProcessorParams(DataProcessorParams):
     ctc_decoder_params: CTCDecoderParams = field(default_factory=CTCDecoderParams)
 
     @staticmethod
     def cls() -> Type['MappingDataProcessor']:
-        return Impl
+        return CTCDecoderProcessor
 
 
-class Impl(MappingDataProcessor[CTCDecoder]):
+class CTCDecoderProcessor(MappingDataProcessor[CTCDecoderProcessorParams]):
     @staticmethod
     def default_params() -> dict:
         return {

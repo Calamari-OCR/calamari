@@ -1,2 +1,2 @@
-from .augmentation import AugmentationParams
+from .augmentation import AugmentationProcessorParams
 from .preparesample import PrepareSampleProcessorParams

@@ -18,11 +18,11 @@ from calamari_ocr.ocr.dataset.params import DataParams, PipelineParams
 from calamari_ocr.ocr.dataset.datareader.factory import FileDataReaderArgs
 from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessor
 from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessor
-from calamari_ocr.ocr.dataset.postprocessors.ctcdecoder import CTCDecoderProcessor, CTCDecoder
-from calamari_ocr.ocr.dataset.postprocessors.reshape import ReshapeOutputsProcessor, ReshapeOutputs
+from calamari_ocr.ocr.dataset.postprocessors.ctcdecoder import CTCDecoderProcessor, CTCDecoderProcessorParams
+from calamari_ocr.ocr.dataset.postprocessors.reshape import ReshapeOutputsProcessor, ReshapeOutputsProcessorParams
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
-from calamari_ocr.ocr.dataset.textprocessors import TextNormalizer, TextRegularizer, StripTextProcessor, \
+from calamari_ocr.ocr.dataset.textprocessors import TextNormalizerProcessorParams, TextRegularizerProcessorParams, StripTextProcessor, \
     BidiTextProcessor
 from calamari_ocr.ocr.dataset.textprocessors.text_regularizer import default_text_regularizer_replacements
 from calamari_ocr.ocr.training.params import params_from_definition_string, TrainerParams
@@ -310,8 +310,8 @@ def run(args):
     data_params.pre_proc = SequentialProcessorPipelineParams(run_parallel=True)
     data_params.post_proc = SequentialProcessorPipelineParams(
         run_parallel=False, processors=[
-            ReshapeOutputs(),
-            CTCDecoder(),
+            ReshapeOutputsProcessorParams(),
+            CTCDecoderProcessorParams(),
         ])
 
     for p in args.data_preprocessing:
@@ -323,17 +323,17 @@ def run(args):
     # Text pre processing (reading)
     data_params.pre_processors_.sample_processors.extend(
         [
-            DataProcessorFactoryParams(TextNormalizer.__name__, TARGETS_PROCESSOR, {'unicode_normalization': args.text_normalization}),
-            DataProcessorFactoryParams(TextRegularizer.__name__, TARGETS_PROCESSOR, {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
+            DataProcessorFactoryParams(TextNormalizerProcessorParams.__name__, TARGETS_PROCESSOR, {'unicode_normalization': args.text_normalization}),
+            DataProcessorFactoryParams(TextRegularizerProcessorParams.__name__, TARGETS_PROCESSOR, {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
             DataProcessorFactoryParams(StripTextProcessor.__name__, TARGETS_PROCESSOR)
         ])
 
     # Text post processing (prediction)
     data_params.post_processors_.sample_processors.extend(
         [
-            DataProcessorFactoryParams(TextNormalizer.__name__, TARGETS_PROCESSOR,
+            DataProcessorFactoryParams(TextNormalizerProcessorParams.__name__, TARGETS_PROCESSOR,
                                        {'unicode_normalization': args.text_normalization}),
-            DataProcessorFactoryParams(TextRegularizer.__name__, TARGETS_PROCESSOR,
+            DataProcessorFactoryParams(TextRegularizerProcessorParams.__name__, TARGETS_PROCESSOR,
                                        {'replacements': default_text_regularizer_replacements(args.text_regularization)}),
             DataProcessorFactoryParams(StripTextProcessor.__name__, TARGETS_PROCESSOR)
         ])

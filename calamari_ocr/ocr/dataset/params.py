@@ -39,14 +39,13 @@ class DataParams(DataBaseParams):
     downscale_factor: int = field(default=-1, metadata=pai_meta(mode='ignore'))  # Set based on model
     line_height: int = field(default=48, metadata=pai_meta(help="The line height"))
     ensemble: int = field(default=0, metadata=pai_meta(mode='ignore'))  # Set based on model
-    raw_dataset: bool = False
     codec: Optional[Codec] = field(default=None, metadata=pai_meta(mode='ignore'))
 
     def __post_init__(self):
-        from calamari_ocr.ocr.dataset.imageprocessors.center_normalizer import CenterNormalizerParams
+        from calamari_ocr.ocr.dataset.imageprocessors.center_normalizer import CenterNormalizerProcessorParams
         from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessorParams
         for p in self.post_proc.processors + self.pre_proc.processors:
             if isinstance(p, ScaleToHeightProcessorParams):
                 p.height = self.line_height
-            elif isinstance(p, CenterNormalizerParams):
+            elif isinstance(p, CenterNormalizerProcessorParams):
                 p.line_height = self.line_height

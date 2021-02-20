@@ -4,16 +4,16 @@ from calamari_ocr.ocr.scenario import CalamariScenario
 
 def migrate(trainer_params: dict) -> dict:
     convert_processor_name = {
-        "CenterNormalizer": "calamari_ocr.ocr.dataset.imageprocessors.center_normalizer:CenterNormalizerParams",
+        "CenterNormalizer": "calamari_ocr.ocr.dataset.imageprocessors.center_normalizer:CenterNormalizerProcessorParams",
         "DataRangeNormalizer": "calamari_ocr.ocr.dataset.imageprocessors.data_range_normalizer:DataRangeProcessorParams",
         "FinalPreparation": "calamari_ocr.ocr.dataset.imageprocessors.final_preparation:FinalPreparationProcessorParams",
-        "AugmentationProcessor": "calamari_ocr.ocr.dataset.imageprocessors.augmentation:AugmentationParams",
-        "StripTextProcessor": "calamari_ocr.ocr.dataset.textprocessors.basic_text_processors:StripText",
-        "TextNormalizer": "calamari_ocr.ocr.dataset.textprocessors.text_normalizer:TextNormalizer",
-        "TextRegularizer": "calamari_ocr.ocr.dataset.textprocessors.text_regularizer:TextRegularizer",
+        "AugmentationProcessor": "calamari_ocr.ocr.dataset.imageprocessors.augmentation:AugmentationProcessorParams",
+        "StripTextProcessor": "calamari_ocr.ocr.dataset.textprocessors.basic_text_processors:StripTextProcessorParams",
+        "TextNormalizer": "calamari_ocr.ocr.dataset.textprocessors.text_normalizer:TextNormalizerProcessorParams",
+        "TextRegularizer": "calamari_ocr.ocr.dataset.textprocessors.text_regularizer:TextRegularizerProcessorParams",
         "PrepareSampleProcessor": "calamari_ocr.ocr.dataset.imageprocessors.preparesample:PrepareSampleProcessorParams",
-        "ReshapeOutputsProcessor": "calamari_ocr.ocr.dataset.postprocessors.reshape:ReshapeOutputs",
-        "CTCDecoderProcessor": "calamari_ocr.ocr.dataset.postprocessors.ctcdecoder:CTCDecoder",
+        "ReshapeOutputsProcessor": "calamari_ocr.ocr.dataset.postprocessors.reshape:ReshapeOutputsProcessorParams",
+        "CTCDecoderProcessor": "calamari_ocr.ocr.dataset.postprocessors.ctcdecoder:CTCDecoderProcessorParams",
     }
 
     def rename(d, f, t):

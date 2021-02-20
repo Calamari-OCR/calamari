@@ -352,7 +352,7 @@ def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -
 
 @pai_dataclass
 @dataclass
-class TextRegularizer(DataProcessorParams):
+class TextRegularizerProcessorParams(DataProcessorParams):
     # TODO: groups as enums
     replacement_groups: List[str] = field(default_factory=lambda: ["extended"], metadata=pai_meta(
         help="Text regularization to apply."
@@ -361,10 +361,10 @@ class TextRegularizer(DataProcessorParams):
 
     @staticmethod
     def cls() -> Type['TextProcessor']:
-        return Impl
+        return TextRegularizerProcessor
 
 
-class Impl(TextProcessor[TextRegularizer]):
+class TextRegularizerProcessor(TextProcessor[TextRegularizerProcessorParams]):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, *kwargs)
         if self.params.replacements is None:
@@ -381,6 +381,6 @@ class Impl(TextProcessor[TextRegularizer]):
 
 
 if __name__ == "__main__":
-    n = TextRegularizer(replacement_groups=["quotes", "spaces"]).create(None, mode=PipelineMode.Training)
+    n = TextRegularizerProcessorParams(replacement_groups=["quotes", "spaces"]).create(None, mode=PipelineMode.Training)
     assert (n(Sample(targets="“Resolve quotes”")).targets == "''Resolve quotes''")
     assert (n(Sample(targets="  “Resolve   spaces  ”   ")).targets == "''Resolve spaces ''")

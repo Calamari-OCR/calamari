@@ -9,15 +9,15 @@ from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 
 @pai_dataclass
 @dataclass
-class StrToCharList(DataProcessorParams):
+class StrToCharListProcessorParams(DataProcessorParams):
     chars: List[str] = field(default_factory=list)
 
     @staticmethod
     def cls() -> Type['TextProcessor']:
-        return Impl
+        return StrToCharListProcessor
 
 
-class Impl(TextProcessor[StrToCharList]):
+class StrToCharListProcessor(TextProcessor[StrToCharListProcessorParams]):
     def _apply_single(self, txt, meta):
         index = 0
         out = []

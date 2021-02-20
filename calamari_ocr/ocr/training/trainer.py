@@ -12,7 +12,7 @@ from tfaip.base.trainer.warmstart.warmstarter import Warmstarter
 
 from calamari_ocr.ocr import Codec, SavedCalamariModel
 from calamari_ocr.ocr.dataset.data import Data
-from calamari_ocr.ocr.dataset.imageprocessors.augmentation import AugmentationParams
+from calamari_ocr.ocr.dataset.imageprocessors.augmentation import AugmentationProcessorParams
 from calamari_ocr.ocr.model.params import ModelParams
 from calamari_ocr.ocr.training.params import TrainerParams
 from calamari_ocr.ocr.training.warmstart import WarmstarterWithCodecAdaption
@@ -134,7 +134,7 @@ class Trainer(AIPTrainer):
         data.params.codec = codec
         logger.info(f"CODEC: {codec.charset}")
 
-        if self.params.gen.train_data(data).pipeline_params.prefetch:
+        if self.params.gen.train_data(data).generator_params.preload:
             # preload after codec was created
             data.preload(progress_bar=self._params.progress_bar)
             train_pipeline = self.params.gen.train_data(data)
@@ -159,9 +159,9 @@ class Trainer(AIPTrainer):
                 warmstart_fn=partial(WarmstarterWithCodecAdaption, codec_changes=codec_changes),
             )
 
-        data_aug = self._data.params.pre_proc.processors_of_type(AugmentationParams)
+        data_aug = self._data.params.pre_proc.processors_of_type(AugmentationProcessorParams)
         if self._params.data_aug_retrain_on_original and len(data_aug) > 0 and any(
-                p.data_aug_params.to_abs() > 0 for p in data_aug):
+                p.n_augmentations != 0 for p in data_aug):
             logger.info("Starting training on original data only")
             if self._params.current_stage == 0:
                 self._params.current_epoch = 0
@@ -170,7 +170,7 @@ class Trainer(AIPTrainer):
                 self._params.early_stopping.n_ = 0
 
             # Remove data augmenter
-            self._data.params.pre_proc.erase_all(AugmentationParams)
+            self._data.params.pre_proc.erase_all(AugmentationProcessorParams)
             # Remove augmented samples if 'preloaded"
             if isinstance(train_pipeline, RawDataPipeline):
                 train_pipeline.samples = [s for s in train_pipeline.samples if not s.meta.get('augmented', False)]

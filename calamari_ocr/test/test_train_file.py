@@ -1,12 +1,13 @@
 import os
 import tempfile
 import unittest
+from typing import Type
 
 from tensorflow import keras
 from tfaip.base import INPUT_PROCESSOR
 
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
-from calamari_ocr.ocr.dataset.imageprocessors.center_normalizer import CenterNormalizerParams
+from calamari_ocr.ocr.dataset.imageprocessors.center_normalizer import CenterNormalizerProcessorParams
 from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessorParams
 from calamari_ocr.ocr.scenario import CalamariScenario
 from calamari_ocr.ocr.training.params import CalamariSplitTrainValGeneratorParams, CalamariTrainOnlyGeneratorParams
@@ -16,7 +17,7 @@ from calamari_ocr.utils import glob_all
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-def make_test_scenario(with_validation=False, with_split=False, preload=True):
+def make_test_scenario(with_validation=False, with_split=False, preload=True) -> Type[CalamariScenario]:
     class CalamariUW3ScenarioTest(CalamariScenario):
         @classmethod
         def default_trainer_params(cls):
@@ -61,7 +62,7 @@ class TestTrainFile(unittest.TestCase):
 
     def test_train_without_center_normalizer(self):
         trainer_params = make_test_scenario(with_validation=False).default_trainer_params()
-        trainer_params.scenario.data.pre_proc.replace_all(CenterNormalizerParams, ScaleToHeightProcessorParams())
+        trainer_params.scenario.data.pre_proc.replace_all(CenterNormalizerProcessorParams, ScaleToHeightProcessorParams())
         trainer_params.scenario.data.__post_init__()
         with tempfile.TemporaryDirectory() as d:
             trainer_params.checkpoint_dir = d
@@ -92,7 +93,7 @@ class TestTrainFileNoPreload(unittest.TestCase):
 
     def test_train_without_center_normalizer(self):
         trainer_params = make_test_scenario(with_validation=False, preload=False).default_trainer_params()
-        trainer_params.scenario.data.pre_proc.replace_all(CenterNormalizerParams, ScaleToHeightProcessorParams(modes=INPUT_PROCESSOR))
+        trainer_params.scenario.data.pre_proc.replace_all(CenterNormalizerProcessorParams, ScaleToHeightProcessorParams(modes=INPUT_PROCESSOR))
         trainer_params.scenario.data.__post_init__()
         with tempfile.TemporaryDirectory() as d:
             trainer_params.checkpoint_dir = d

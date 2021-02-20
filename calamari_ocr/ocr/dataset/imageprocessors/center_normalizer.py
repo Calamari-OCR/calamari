@@ -12,16 +12,16 @@ from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProc
 
 @pai_dataclass(alt="CenterNormalizer")
 @dataclass
-class CenterNormalizerParams(DataProcessorParams):
+class CenterNormalizerProcessorParams(DataProcessorParams):
     extra_params: Tuple[int, int, int] = (4, 1.0, 0.3)
     line_height: int = field(default=-1)
 
     @staticmethod
     def cls() -> Type['ImageProcessor']:
-        return CenterNormalizer
+        return CenterNormalizerProcessor
 
 
-class CenterNormalizer(ImageProcessor[CenterNormalizerParams]):
+class CenterNormalizerProcessor(ImageProcessor[CenterNormalizerProcessorParams]):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.debug = False

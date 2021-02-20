@@ -1,20 +1,20 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Type
 
-from paiargparse import pai_dataclass, pai_meta
+from paiargparse import pai_dataclass
 from tfaip.base.data.pipeline.definitions import Sample
 from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
 
 
 @pai_dataclass
 @dataclass
-class ReshapeOutputs(DataProcessorParams):
+class ReshapeOutputsProcessorParams(DataProcessorParams):
     @staticmethod
     def cls() -> Type['MappingDataProcessor']:
-        return Impl
+        return ReshapeOutputsProcessor
 
 
-class Impl(MappingDataProcessor[ReshapeOutputs]):
+class ReshapeOutputsProcessor(MappingDataProcessor[ReshapeOutputsProcessorParams]):
     def apply(self, sample: Sample) -> Sample:
         inputs = sample.inputs
         outputs = sample.outputs
