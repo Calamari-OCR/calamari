@@ -48,7 +48,6 @@ class Trainer(AIPTrainer):
         """
         super(Trainer, self).__init__(params, scenario, restore)
         self._params: TrainerParams = params
-        self._params.learning_rate_params = Constant
         if not isinstance(self._params.checkpoint_save_freq, str) and self._params.checkpoint_save_freq < 0:
             self._params.checkpoint_save_freq = self._params.early_stopping_params.frequency
         self._params.warmstart.model = checkpoint_path(
@@ -72,28 +71,28 @@ class Trainer(AIPTrainer):
             self._params.use_training_as_validation = True
 
         # Setup train pipeline
-        train_pipeline = data.train_data()
+        train_pipeline = self.params.gen.train_data(data)
         if len(train_pipeline.create_data_generator()) == 0:
             raise ValueError("Training dataset is empty.")
 
         # Setup validation pipeline
         val_pipeline = None
-        if data.params.val:
+        if self.params.gen.val_gen():
             if model.ensemble > 0:
                 logger.warning("A validation dataset can not be used when training and ensemble. "
                                "Only a training set is required. Ignoring validation data!")
             else:
-                val_pipeline = data.val_data()
+                val_pipeline = self.params.gen.val_data(data)
                 if len(val_pipeline.create_data_generator()) == 0:
                     raise ValueError("Validation dataset is empty. Provide valid validation data for early stopping. "
                                      "Alternative select train only data generator mode.")
 
-        if data.params.train.preload:
+        if self.params.gen.train_data(data).generator_params.preload:
             # preload before codec was created (not all processors can be applied, yet)
             data.preload(progress_bar=self._params.progress_bar)
-            train_pipeline = data.train_data()
+            train_pipeline = self.params.gen.train_data(data)
             if val_pipeline:
-                val_pipeline = data.val_data()
+                val_pipeline = self.params.gen.val_data(data)
 
         # compute the codec
         codec = data.params.codec
@@ -136,10 +135,10 @@ class Trainer(AIPTrainer):
         data.params.codec = codec
         logger.info(f"CODEC: {codec.charset}")
 
-        if data.params.train.preload:
+        if self.params.gen.train_data(data).pipeline_params.prefetch:
             # preload after codec was created
             data.preload(progress_bar=self._params.progress_bar)
-            train_pipeline = data.train_data()
+            train_pipeline = self.params.gen.train_data(data)
 
         if self._params.use_training_as_validation:
             assert (val_pipeline is None)

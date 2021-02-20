@@ -1,5 +1,6 @@
 tensorflow~=2.4.0
-tfaip==1.0.1
+tfaip==1.1.0
+paiargparse
 scikit-image>=0.15.0
 opencv-python-headless
 python-bidi

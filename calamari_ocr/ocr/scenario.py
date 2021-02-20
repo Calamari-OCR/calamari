@@ -1,14 +1,17 @@
 import os
 
-from tfaip.base.scenario.scenariobase import SimpleScenarioBase
+from tfaip.base.scenario.scenariobase import ScenarioBase
+from tfaip.base.trainer.scheduler import Constant
 
-from calamari_ocr.ocr.model.model import Model
 from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.model.ensemblemodel import EnsembleModel
+from calamari_ocr.ocr.model.model import Model
+from calamari_ocr.ocr.scenario_params import ScenarioParams
+from calamari_ocr.ocr.training.params import CalamariDefaultTrainValGeneratorParams, TrainerParams
 from calamari_ocr.ocr.training.trainer import Trainer
 
 
-class Scenario(SimpleScenarioBase[Data, Model]):
+class Scenario(ScenarioBase[Data, Model, ScenarioParams, CalamariDefaultTrainValGeneratorParams]):
     def create_model(self):
         if self._params.model.ensemble <= 0:
             return Model(self._params.model)
@@ -23,7 +26,6 @@ class Scenario(SimpleScenarioBase[Data, Model]):
     def default_params(cls):
         scenario_params = super(Scenario, cls).default_params()
         scenario_params.export_serve = True
-        scenario_params.export_frozen = False
         scenario_params.export_net_config = False
         scenario_params.default_serve_dir = 'best.ckpt.h5'
         scenario_params.scenario_params_filename = 'scenario_params.json'  # should never be written!
@@ -41,11 +43,8 @@ class Scenario(SimpleScenarioBase[Data, Model]):
         trainer_params.early_stopping.n_to_go = 5
         trainer_params.skip_model_load_test = True
         trainer_params.optimizer.clip_grad = 5
+        trainer_params.learning_rate = Constant()
         return trainer_params
 
     def __init__(self, params):
         super(Scenario, self).__init__(params)
-        params.data.train.n_folds = params.model.ensemble
-        if params.data.val:
-            params.data.val.n_folds = params.model.ensemble
-        params.data.ensemble = params.model.ensemble

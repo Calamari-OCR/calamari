@@ -41,7 +41,7 @@ class CodecConstructionParams:
         self.resolved_include_chars = include
 
 
-@pai_dataclass
+@pai_dataclass(no_assign_to_unknown=False)
 @dataclass
 class Codec:
     charset: List[str]  # this filed will be used to store and load a the Codec from json
