@@ -11,7 +11,7 @@ from calamari_ocr.ocr.training.params import CalamariDefaultTrainValGeneratorPar
 from calamari_ocr.ocr.training.trainer import Trainer
 
 
-class Scenario(ScenarioBase[Data, Model, ScenarioParams, CalamariDefaultTrainValGeneratorParams]):
+class CalamariScenario(ScenarioBase[Data, Model, ScenarioParams, CalamariDefaultTrainValGeneratorParams]):
     def create_model(self):
         if self._params.model.ensemble <= 0:
             return Model(self._params.model)
@@ -24,7 +24,7 @@ class Scenario(ScenarioBase[Data, Model, ScenarioParams, CalamariDefaultTrainVal
 
     @classmethod
     def default_params(cls):
-        scenario_params = super(Scenario, cls).default_params()
+        scenario_params = super(CalamariScenario, cls).default_params()
         scenario_params.export_serve = True
         scenario_params.export_net_config = False
         scenario_params.default_serve_dir = 'best.ckpt.h5'
@@ -34,7 +34,7 @@ class Scenario(ScenarioBase[Data, Model, ScenarioParams, CalamariDefaultTrainVal
 
     @classmethod
     def default_trainer_params(cls) -> 'TrainerParams':
-        trainer_params = super(Scenario, cls).default_trainer_params()
+        trainer_params = super(CalamariScenario, cls).default_trainer_params()
         trainer_params.export_final = False
         trainer_params.checkpoint_sub_dir = os.path.join('checkpoint', 'checkpoint_{epoch:04d}')
         trainer_params.early_stopping.upper_threshold = 0.9
@@ -47,4 +47,4 @@ class Scenario(ScenarioBase[Data, Model, ScenarioParams, CalamariDefaultTrainVal
         return trainer_params
 
     def __init__(self, params):
-        super(Scenario, self).__init__(params)
+        super(CalamariScenario, self).__init__(params)

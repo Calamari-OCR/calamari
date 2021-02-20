@@ -6,7 +6,7 @@ from paiargparse import PAIArgumentParser
 from calamari_ocr import __version__
 from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator
-from calamari_ocr.ocr.dataset.imageprocessors import PrepareSample
+from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessorParams
 from calamari_ocr.ocr.dataset.params import DataParams
 
 
@@ -25,7 +25,7 @@ def main():
     args = parser.parse_args()
 
     data_params: DataParams = args.data
-    data_params.pre_proc.processors = list(p for p in data_params.pre_proc.processors if not isinstance(p, PrepareSample))  # NO PREPARE SAMPLE
+    data_params.pre_proc.processors = list(p for p in data_params.pre_proc.processors if not isinstance(p, PrepareSampleProcessorParams))  # NO PREPARE SAMPLE
     data_params.__post_init__()
 
     data = Data(data_params)

@@ -11,16 +11,16 @@ from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
 logger = logging.getLogger(__name__)
 
 
-@pai_dataclass
+@pai_dataclass(alt="PrepareSample")
 @dataclass
-class PrepareSample(DataProcessorParams):
+class PrepareSampleProcessorParams(DataProcessorParams):
 
     @staticmethod
     def cls() -> Type['MappingDataProcessor']:
-        return Impl
+        return PrepareSample
 
 
-class Impl(MappingDataProcessor[PrepareSample]):
+class PrepareSample(MappingDataProcessor[PrepareSampleProcessorParams]):
     def supports_preload(self):
         return self.data_params.codec is not None
 

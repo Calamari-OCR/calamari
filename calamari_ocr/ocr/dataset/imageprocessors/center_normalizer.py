@@ -10,18 +10,18 @@ from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import s
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 
 
-@pai_dataclass
+@pai_dataclass(alt="CenterNormalizer")
 @dataclass
-class CenterNormalizer(DataProcessorParams):
+class CenterNormalizerParams(DataProcessorParams):
     extra_params: Tuple[int, int, int] = (4, 1.0, 0.3)
     line_height: int = field(default=-1)
 
     @staticmethod
     def cls() -> Type['ImageProcessor']:
-        return Impl
+        return CenterNormalizer
 
 
-class Impl(ImageProcessor[CenterNormalizer]):
+class CenterNormalizer(ImageProcessor[CenterNormalizerParams]):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.debug = False

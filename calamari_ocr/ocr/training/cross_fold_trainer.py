@@ -14,7 +14,7 @@ from paiargparse import pai_dataclass, pai_meta
 from calamari_ocr.ocr import CrossFold, SavedCalamariModel, DataSetType
 from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
 from calamari_ocr.ocr.dataset.params import CalamariDefaultTrainValGeneratorParams
-from calamari_ocr.ocr.scenario import Scenario
+from calamari_ocr.ocr.scenario import CalamariScenario
 from calamari_ocr.ocr.training.params import TrainerParams
 from calamari_ocr.utils.multiprocessing import prefix_run_command, run
 
@@ -53,8 +53,8 @@ def train_individual_model(run_args):
 @pai_dataclass
 @dataclass
 class CrossFoldTrainerParams:
-    trainer: TrainerParams = field(default_factory=Scenario.default_trainer_params, metadata=pai_meta(mode='flat',
-                                                                                                      help="The actual trainer params"))
+    trainer: TrainerParams = field(default_factory=CalamariScenario.default_trainer_params, metadata=pai_meta(mode='flat',
+                                                                                                              help="The actual trainer params"))
     n_folds: int = field(default=5, metadata=pai_meta(mode='flat',
                                                       help="The number of fold, that is the number of models to train"))
     keep_temporary_files: bool = field(default=False, metadata=pai_meta(mode='flat',

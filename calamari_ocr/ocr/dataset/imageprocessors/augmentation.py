@@ -15,9 +15,9 @@ from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentatio
 from calamari_ocr.ocr.dataset.params import encoder, decoder
 
 
-@pai_dataclass
+@pai_dataclass(alt="Augmentation")
 @dataclass
-class Augmentation(DataProcessorParams):
+class AugmentationParams(DataProcessorParams):
     data_aug_params: DataAugmentationAmount = field(
         default=DataAugmentationAmount.from_factor(0),
         metadata={**config(
@@ -33,12 +33,12 @@ class Augmentation(DataProcessorParams):
 
     @staticmethod
     def cls() -> Type['MappingDataProcessor']:
-        return Impl
+        return Augmentation
 
 
-class Impl(MappingDataProcessor[Augmentation]):
+class Augmentation(MappingDataProcessor[AugmentationParams]):
     def __init__(self, *args, **kwargs):
-        super(Impl, self).__init__(*args, **kwargs)
+        super(Augmentation, self).__init__(*args, **kwargs)
         assert (self.params.augmenter_type == 'simple')
         self.data_augmenter = SimpleDataAugmenter()
 

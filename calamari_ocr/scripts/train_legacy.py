@@ -190,7 +190,7 @@ def check_train_args(args):
 
 def run(args):
     # local imports (to prevent tensorflow from being imported to early)
-    from calamari_ocr.ocr.scenario import Scenario
+    from calamari_ocr.ocr.scenario import CalamariScenario
     from calamari_ocr.ocr.dataset.data import Data
 
     # check if loading a json file
@@ -245,7 +245,7 @@ def run(args):
         text_index=args.pagexml_text_index,
     )
 
-    params: TrainerParams = Scenario.default_trainer_params()
+    params: TrainerParams = CalamariScenario.default_trainer_params()
 
     # =================================================================================================================
     # Data Params
@@ -399,7 +399,7 @@ def run(args):
     params.scenario_params.model_params.ensemble = args.ensemble
     params.scenario_params.model_params.masking_mode = args.masking_mode
 
-    scenario = Scenario(params.scenario_params)
+    scenario = CalamariScenario(params.scenario_params)
     trainer = scenario.create_trainer(params)
     trainer.train()
 

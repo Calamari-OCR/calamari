@@ -121,7 +121,7 @@ def write_xlsx(xlsx_file, eval_datas):
 
 def main():
     # Local imports (imports that require tensorflow)
-    from calamari_ocr.ocr.scenario import Scenario
+    from calamari_ocr.ocr.scenario import CalamariScenario
     from calamari_ocr.ocr.dataset.data import Data
     from calamari_ocr.ocr.evaluator import Evaluator
 
@@ -188,7 +188,7 @@ def main():
     data_params = Data.get_default_params()
     if args.checkpoint:
         saved_model = SavedCalamariModel(args.checkpoint, auto_update=True)
-        trainer_params = Scenario.trainer_params_from_dict(saved_model.dict)
+        trainer_params = CalamariScenario.trainer_params_from_dict(saved_model.dict)
         data_params = trainer_params.scenario_params.data_params
 
     data = Data(data_params)

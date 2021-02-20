@@ -8,9 +8,9 @@ from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 
 
-@pai_dataclass
+@pai_dataclass(alt="FinalPreparation")
 @dataclass
-class FinalPreparation(DataProcessorParams):
+class FinalPreparationProcessorParams(DataProcessorParams):
     normalize: bool = True
     invert: bool = True
     transpose: bool = True
@@ -21,10 +21,10 @@ class FinalPreparation(DataProcessorParams):
 
     @staticmethod
     def cls() -> Type['ImageProcessor']:
-        return Impl
+        return FinalPreparation
 
 
-class Impl(ImageProcessor[FinalPreparation]):
+class FinalPreparation(ImageProcessor[FinalPreparationProcessorParams]):
     def _apply_single(self, data, meta):
         if data.size > 0:
             # non empty image

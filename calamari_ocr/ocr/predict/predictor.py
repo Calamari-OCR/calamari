@@ -8,7 +8,7 @@ import tfaip.base.imports as tfaip_cls
 from tfaip.base.predict.multimodelpredictor import MultiModelVoter
 
 from calamari_ocr.ocr.predict.params import PredictorParams
-from calamari_ocr.ocr.scenario import Scenario
+from calamari_ocr.ocr.scenario import CalamariScenario
 from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.voting import VoterParams
 from calamari_ocr.ocr import SavedCalamariModel, DataParams
@@ -20,13 +20,13 @@ class Predictor(tfaip_cls.Predictor):
     @staticmethod
     def from_checkpoint(params: PredictorParams, checkpoint: str, auto_update_checkpoints=True):
         ckpt = SavedCalamariModel(checkpoint, auto_update=False)
-        trainer_params = Scenario.trainer_params_from_dict(ckpt.dict)
+        trainer_params = CalamariScenario.trainer_params_from_dict(ckpt.dict)
         trainer_params.scenario_params.data_params.pre_processors_.run_parallel = False
         trainer_params.scenario_params.data_params.post_processors_.run_parallel = False
-        scenario = Scenario(trainer_params.scenario_params)
+        scenario = CalamariScenario(trainer_params.scenario_params)
         predictor = Predictor(params, scenario.create_data())
         ckpt = SavedCalamariModel(checkpoint, auto_update=auto_update_checkpoints)  # Device params must be specified first
-        predictor.set_model(keras.models.load_model(ckpt.ckpt_path + '.h5', custom_objects=Scenario.model_cls().get_all_custom_objects()))
+        predictor.set_model(keras.models.load_model(ckpt.ckpt_path + '.h5', custom_objects=CalamariScenario.model_cls().get_all_custom_objects()))
         return predictor
 
 
@@ -49,7 +49,7 @@ class MultiPredictor(tfaip_cls.MultiModelPredictor):
         multi_predictor = super(MultiPredictor, cls).from_paths(
             [ckpt.json_path for ckpt in checkpoints],
             predictor_params,
-            Scenario,
+            CalamariScenario,
             model_paths=[ckpt.ckpt_path + '.h5' for ckpt in checkpoints],
             predictor_args={'voter_params': voter_params},
         )

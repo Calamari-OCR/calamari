@@ -9,17 +9,17 @@ from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 
 
-@pai_dataclass
+@pai_dataclass(alt="ScaleToHeight")
 @dataclass
-class ScaleToHeight(DataProcessorParams):
+class ScaleToHeightProcessorParams(DataProcessorParams):
     height: int = field(default=-1)
 
     @staticmethod
     def cls() -> Type['ImageProcessor']:
-        return Impl
+        return ScaleToHeightProcessor
 
 
-class Impl(ImageProcessor[ScaleToHeight]):
+class ScaleToHeightProcessor(ImageProcessor[ScaleToHeightProcessorParams]):
     def _apply_single(self, data, meta):
         assert (self.params.height > 0)  # Not initialized
         scaled = scale_to_h(data, self.params.height)

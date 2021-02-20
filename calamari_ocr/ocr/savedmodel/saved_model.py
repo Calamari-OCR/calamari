@@ -37,11 +37,11 @@ class SavedCalamariModel:
         else:
             logger.info(f"Checkpoint version {self.version} is up-to-date.")
 
-        from calamari_ocr.ocr.scenario import Scenario
+        from calamari_ocr.ocr.scenario import CalamariScenario
         if 'scenario_params' in self.dict:
-            self.trainer_params = Scenario.trainer_params_from_dict(self.dict)
+            self.trainer_params = CalamariScenario.trainer_params_from_dict(self.dict)
         else:
-            self.trainer_params = Scenario.trainer_params_from_dict({'scenario_params': self.dict})
+            self.trainer_params = CalamariScenario.trainer_params_from_dict({'scenario_params': self.dict})
         self.scenario_params = self.trainer_params.scenario_params
 
     def update_checkpoint(self):

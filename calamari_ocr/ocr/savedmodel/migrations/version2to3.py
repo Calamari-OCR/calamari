@@ -11,7 +11,7 @@ from tensorflow.python.ops import ctc_ops
 import tensorflow.keras.backend as K
 
 from calamari_ocr.ocr.model.graph import Graph
-from calamari_ocr.ocr.scenario import Scenario
+from calamari_ocr.ocr.scenario import CalamariScenario
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def update_model(params: dict, path: str):
     logger.info(f"Updateing model at {path}")
-    trainer_params = Scenario.trainer_params_from_dict(params)
+    trainer_params = CalamariScenario.trainer_params_from_dict(params)
     scenario_params = trainer_params.scenario_params
     try:
         model = keras.models.load_model(path + '.h5', compile=False)
@@ -56,7 +56,7 @@ def update_model(params: dict, path: str):
     except ValueError as e:
         logger.exception(e)
         logger.warning("Could not load due to an error. Attempting to create a new model and load weights instead")
-        scenario = Scenario(scenario_params)
+        scenario = CalamariScenario(scenario_params)
         scenario.setup()
         input_layers = scenario.data.create_input_layers()
         outputs = scenario.model.build(input_layers)
@@ -224,8 +224,8 @@ def migrate(d: dict):
             "lr": network.get('learningRate', 0),
         },
         "scenario_params": {
-            "scenario_base_path_": inspect.getfile(Scenario),
-            "scenario_module_": Scenario.__module__,
+            "scenario_base_path_": inspect.getfile(CalamariScenario),
+            "scenario_module_": CalamariScenario.__module__,
             "model_params": {
                 "layers": [convert_layer(l) for l in network.get('layers', [])],
                 "dropout": network.get('dropout', 0),

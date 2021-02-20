@@ -43,10 +43,10 @@ class DataParams(DataBaseParams):
     codec: Optional[Codec] = field(default=None, metadata=pai_meta(mode='ignore'))
 
     def __post_init__(self):
-        from calamari_ocr.ocr.dataset.imageprocessors.center_normalizer import CenterNormalizer
-        from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeight
+        from calamari_ocr.ocr.dataset.imageprocessors.center_normalizer import CenterNormalizerParams
+        from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessorParams
         for p in self.post_proc.processors + self.pre_proc.processors:
-            if isinstance(p, ScaleToHeight):
+            if isinstance(p, ScaleToHeightProcessorParams):
                 p.height = self.line_height
-            elif isinstance(p, CenterNormalizer):
+            elif isinstance(p, CenterNormalizerParams):
                 p.line_height = self.line_height

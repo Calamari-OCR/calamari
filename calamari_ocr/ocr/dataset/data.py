@@ -11,9 +11,9 @@ from typeguard import typechecked
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
-from calamari_ocr.ocr.dataset.imageprocessors.augmentation import Augmentation
+from calamari_ocr.ocr.dataset.imageprocessors.augmentation import AugmentationParams
 from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
-from calamari_ocr.ocr.dataset.imageprocessors.preparesample import PrepareSample
+from calamari_ocr.ocr.dataset.imageprocessors.preparesample import PrepareSampleProcessorParams
 from calamari_ocr.ocr.dataset.params import DataParams
 from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
 from calamari_ocr.ocr.dataset.postprocessors.ctcdecoder import CTCDecoder
@@ -41,8 +41,8 @@ class Data(DataBase[DataParams]):
             processors=default_image_processors() +
                        default_text_pre_processors() +
                        [
-                           Augmentation(modes={PipelineMode.Training}),
-                           PrepareSample(modes=INPUT_PROCESSOR),
+                           AugmentationParams(modes={PipelineMode.Training}),
+                           PrepareSampleProcessorParams(modes=INPUT_PROCESSOR),
                        ],
         )
         params.post_proc = SequentialProcessorPipelineParams(
@@ -92,10 +92,10 @@ if __name__ == '__main__':
             processors=default_image_processors() +
                        default_text_pre_processors() +
                        [
-                           Augmentation(modes={PipelineMode.Training},
-                                        data_aug_params=DataAugmentationAmount(amount=2),
-                                        ),
-                           PrepareSample(modes=INPUT_PROCESSOR),
+                           AugmentationParams(modes={PipelineMode.Training},
+                                              data_aug_params=DataAugmentationAmount(amount=2),
+                                              ),
+                           PrepareSampleProcessorParams(modes=INPUT_PROCESSOR),
                        ],
         ),
         post_proc=SequentialProcessorPipelineParams(run_parallel=False),

@@ -9,15 +9,15 @@ from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProc
 from calamari_ocr.utils.image import to_uint8
 
 
-@pai_dataclass
+@pai_dataclass(alt="DataRange")
 @dataclass
-class DataRange(DataProcessorParams):
+class DataRangeProcessorParams(DataProcessorParams):
     @staticmethod
     def cls() -> Type['ImageProcessor']:
-        return Impl
+        return DataRangeProcessor
 
 
-class Impl(ImageProcessor[DataRange]):
+class DataRangeProcessor(ImageProcessor[DataRangeProcessorParams]):
     def _apply_single(self, data: np.ndarray, meta):
         data = to_uint8(data)
 
