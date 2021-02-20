@@ -7,7 +7,6 @@ from tfaip.base.data.data import DataBase
 from tfaip.base.data.pipeline.datapipeline import DataPipeline
 from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
 from tfaip.base.data.pipeline.processor.params import SequentialProcessorPipelineParams
-from typeguard import typechecked
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams

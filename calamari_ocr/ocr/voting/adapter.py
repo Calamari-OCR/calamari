@@ -27,7 +27,7 @@ class CalamariMultiModelVoter(MultiModelVoter):
         for i, (prediction, m, data, post_) in enumerate(zip(outputs, meta, self.datas, self.post_proc)):
             prediction.id = "fold_{}".format(i)
             prediction_results.append(PredictionResult(prediction,
-                                                       codec=data.params().codec,
+                                                       codec=data.params.codec,
                                                        text_postproc=post_,
                                                        out_to_in_trans=out_to_in,
                                                        ))

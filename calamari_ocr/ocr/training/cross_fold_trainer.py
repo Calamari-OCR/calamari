@@ -11,11 +11,10 @@ from typing import Optional, List
 
 from paiargparse import pai_dataclass, pai_meta
 
-from calamari_ocr.ocr import CrossFold, SavedCalamariModel, DataSetType
+from calamari_ocr.ocr import CrossFold, SavedCalamariModel
 from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
-from calamari_ocr.ocr.dataset.params import CalamariDefaultTrainValGeneratorParams
 from calamari_ocr.ocr.scenario import CalamariScenario
-from calamari_ocr.ocr.training.params import TrainerParams
+from calamari_ocr.ocr.training.params import TrainerParams, CalamariDefaultTrainValGeneratorParams
 from calamari_ocr.utils.multiprocessing import prefix_run_command, run
 
 logger = logging.getLogger(__name__)
@@ -136,7 +135,7 @@ class CrossFoldTrainer:
         # Compute the files in the cross fold (create a CrossFold)
         fold_file = os.path.join(temporary_dir, "folds.json")
         cross_fold = CrossFold(n_folds=self.params.n_folds,
-                               data_generator_params=self.params.trainer.scenario.data.train,
+                               data_generator_params=self.params.trainer.gen.train,
                                output_dir=temporary_dir,
                                progress_bar=self.params.trainer.progress_bar
                                )
@@ -152,21 +151,22 @@ class CrossFoldTrainer:
             path = os.path.join(temporary_dir, "fold_{}.json".format(fold))
             with open(path, 'w') as f:
                 trainer_params = deepcopy(self.params.trainer)
-                trainer_params.scenario.data.gen = CalamariDefaultTrainValGeneratorParams(
-                    train=trainer_params.scenario.data.train,
-                    val=deepcopy(trainer_params.scenario.data.train),
+                trainer_params.gen = CalamariDefaultTrainValGeneratorParams(
+                    train=trainer_params.gen.train,
+                    val=deepcopy(trainer_params.gen.train),
+                    setup=trainer_params.gen.setup,
                 )
                 if cross_fold.is_h5_dataset:
-                    tp = trainer_params.scenario.data.train.to_dict()
+                    tp = trainer_params.gen.train.to_dict()
                     tp["files"] = train_files
-                    trainer_params.scenario.data.gen.train = Hdf5.from_dict(tp)
-                    vp = trainer_params.scenario.data.val.to_dict()
+                    trainer_params.gen.train = Hdf5.from_dict(tp)
+                    vp = trainer_params.gen.val.to_dict()
                     vp['files'] = test_files
-                    trainer_params.scenario.data.gen.val = Hdf5.from_dict(vp)
+                    trainer_params.gen.val = Hdf5.from_dict(vp)
                 else:
-                    trainer_params.scenario.data.train.images = train_files
-                    trainer_params.scenario.data.val.images = test_files
-                    trainer_params.scenario.data.val.gt_extension = trainer_params.scenario.data.train.gt_extension
+                    trainer_params.gen.train.images = train_files
+                    trainer_params.gen.val.images = test_files
+                    trainer_params.gen.val.gt_extension = trainer_params.gen.train.gt_extension
 
                 trainer_params.scenario.id = fold
                 trainer_params.verbose = 2

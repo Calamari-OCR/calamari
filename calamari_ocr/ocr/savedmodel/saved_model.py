@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class SavedCalamariModel:
-    VERSION = 3
+    VERSION = 4
 
     def __init__(self, json_path: str, auto_update=True, dry_run=False):
         self.json_path = json_path if json_path.endswith('.json') else json_path + '.json'
@@ -38,11 +38,11 @@ class SavedCalamariModel:
             logger.info(f"Checkpoint version {self.version} is up-to-date.")
 
         from calamari_ocr.ocr.scenario import CalamariScenario
-        if 'scenario_params' in self.dict:
+        if 'scenario' in self.dict:
             self.trainer_params = CalamariScenario.trainer_params_from_dict(self.dict)
         else:
-            self.trainer_params = CalamariScenario.trainer_params_from_dict({'scenario_params': self.dict})
-        self.scenario_params = self.trainer_params.scenario_params
+            self.trainer_params = CalamariScenario.trainer_params_from_dict({'scenario': self.dict})
+        self.scenario_params = self.trainer_params.scenario
 
     def update_checkpoint(self):
         while self.version != SavedCalamariModel.VERSION:
@@ -70,6 +70,9 @@ class SavedCalamariModel:
             # Calamari 1.3 -> Calamari 2.0
             self.dict = migrate(self.dict)
             update_model(self.dict, self.ckpt_path)
+        elif self.version == 3:
+            from calamari_ocr.ocr.savedmodel.migrations.version3to4 import migrate
+            self.dict = migrate(self.dict)
 
         self.version += 1
         self._update_json_version()

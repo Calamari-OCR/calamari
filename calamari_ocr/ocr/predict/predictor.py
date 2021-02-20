@@ -1,8 +1,11 @@
 from typing import List
 
 from tensorflow import keras
+from tfaip.base import DataGeneratorParams
 
 from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.base.data.pipeline.processor.dataprocessor import SequenceProcessorParams
+from tfaip.base.data.pipeline.processor.params import SequentialProcessorPipelineParams
 from tfaip.base.device_config import DeviceConfig
 import tfaip.base.imports as tfaip_cls
 from tfaip.base.predict.multimodelpredictor import MultiModelVoter
@@ -19,14 +22,12 @@ from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransfor
 class Predictor(tfaip_cls.Predictor):
     @staticmethod
     def from_checkpoint(params: PredictorParams, checkpoint: str, auto_update_checkpoints=True):
-        ckpt = SavedCalamariModel(checkpoint, auto_update=False)
-        trainer_params = CalamariScenario.trainer_params_from_dict(ckpt.dict)
-        trainer_params.scenario_params.data_params.pre_processors_.run_parallel = False
-        trainer_params.scenario_params.data_params.post_processors_.run_parallel = False
-        scenario = CalamariScenario(trainer_params.scenario_params)
+        ckpt = SavedCalamariModel(checkpoint, auto_update=auto_update_checkpoints)
+        scenario_params = CalamariScenario.params_from_dict(ckpt.dict)
+        scenario = CalamariScenario(scenario_params)
         predictor = Predictor(params, scenario.create_data())
         ckpt = SavedCalamariModel(checkpoint, auto_update=auto_update_checkpoints)  # Device params must be specified first
-        predictor.set_model(keras.models.load_model(ckpt.ckpt_path + '.h5', custom_objects=CalamariScenario.model_cls().get_all_custom_objects()))
+        predictor.set_model(keras.models.load_model(ckpt.ckpt_path + '.h5', custom_objects=CalamariScenario.model_cls().all_custom_objects()))
         return predictor
 
 
@@ -62,11 +63,9 @@ class MultiPredictor(tfaip_cls.MultiModelPredictor):
 
     def create_voter(self, data_params: 'DataParams') -> MultiModelVoter:
         # Cut non text processors (first two)
-        post_proc = [Data.data_processor_factory().create_sequence(
-            data.params().post_processors_.sample_processors[2:], data.params(), PipelineMode.Prediction) for
-            data in self.datas]
-        pre_proc = Data.data_processor_factory().create_sequence(
-            self.data.params().pre_processors_.sample_processors, self.data.params(),
-            PipelineMode.Prediction)
+        pipeline = self.data.create_pipeline(self.params.pipeline, None)
+        post_proc_params = [SequentialProcessorPipelineParams(run_parallel=data_params.pre_proc.run_parallel, processors=data.params.post_proc.processors[2:]) for data in self.datas]
+        post_proc = [p.create(pipeline) for p in post_proc_params]
+        pre_proc = self.data.params.pre_proc.create(pipeline)
         out_to_in_transformer = OutputToInputTransformer(pre_proc)
         return CalamariMultiModelVoter(self.voter_params, self.datas, post_proc, out_to_in_transformer)

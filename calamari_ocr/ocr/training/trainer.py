@@ -105,7 +105,6 @@ class Trainer(AIPTrainer):
                 codec = Codec(list(self._params.codec.resolved_include_chars))
 
         data.params.codec = codec
-        data.params.downscale_factor = model.compute_downscale_factor()
         model.classes = codec.size()
 
         if self.checkpoint:
