@@ -6,16 +6,14 @@ from typing import TYPE_CHECKING, List, Optional
 import tfaip.util.logging
 from bidi.algorithm import get_base_level
 from paiargparse import PAIArgumentParser, pai_meta, pai_dataclass
-from tfaip.base import PipelineMode
 
 from calamari_ocr import __version__
-from calamari_ocr.ocr.dataset import DataSetType
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.dataset.params import DATA_GENERATOR_CHOICES
 from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import CTCDecoderParams, CTCDecoderType
 from calamari_ocr.ocr.predict.params import Predictions, PredictorParams
-from calamari_ocr.ocr.voting import VoterParams, VoterType
+from calamari_ocr.ocr.voting import VoterParams
 from calamari_ocr.utils.glob import glob_all
 
 if TYPE_CHECKING:

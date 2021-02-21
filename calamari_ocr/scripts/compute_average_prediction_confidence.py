@@ -1,10 +1,8 @@
 from argparse import ArgumentParser
 import logging
 
-from calamari_ocr.ocr.dataset import DataSetType
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset.datareader.factory import DataReaderFactory
 from calamari_ocr.utils import glob_all
 
 import numpy as np

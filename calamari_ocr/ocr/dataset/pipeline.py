@@ -4,7 +4,6 @@ from tfaip.base.data.pipeline.datapipeline import DataPipeline, DataGenerator
 from tfaip.base.data.pipeline.definitions import Sample, PipelineMode
 
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
-from calamari_ocr.ocr.dataset.datareader.factory import DataReaderFactory
 
 
 class CalamariPipeline(DataPipeline):

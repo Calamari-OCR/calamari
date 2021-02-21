@@ -110,33 +110,6 @@ test-cpu-ensemble-train:
     - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --ensemble 3 --epochs 1 --samples_per_epoch 10 --train_data_on_the_fly
 
 
-# cross-fold-training
-
-test-cpu-cross-fold-train:
-  stage: test
-  script:
-    - set -e
-    - calamari-cross-fold-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
-
-test-cpu-cross-fold-train-augmentation:
-  stage: test
-  script:
-    - set -e
-    - calamari-cross-fold-train --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
-
-test-cpu-cross-fold-train-preload:
-  stage: test
-  script:
-    - set -e
-    - calamari-cross-fold-train --weights calamari_models/antiqua_modern/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
-
-test-cpu-cross-fold-train-preload5:
-  stage: test
-  script:
-    - set -e
-    - calamari-cross-fold-train --weights calamari_models/antiqua_modern/0.ckpt.json calamari_models/antiqua_modern/1.ckpt.json calamari_models/antiqua_modern/2.ckpt.json calamari_models/antiqua_modern/3.ckpt.json calamari_models/antiqua_modern/4.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 5 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
-
-
 # prediction and evaluation
 
 test-cpu-predict-and-eval-script:
