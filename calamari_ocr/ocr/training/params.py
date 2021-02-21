@@ -114,7 +114,7 @@ class TrainerParams(AIPTrainerParams[ScenarioParams, CalamariDefaultTrainerPipel
         self.early_stopping.best_model_name = ''
 
         self.gen.train_gen().n_folds = self.scenario.model.ensemble
-        if self.gen.val_gen():
+        if self.gen.val_gen() is not None:
             self.gen.val_gen().n_folds = self.scenario.model.ensemble
 
 

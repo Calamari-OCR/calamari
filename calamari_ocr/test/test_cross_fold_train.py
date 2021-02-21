@@ -12,6 +12,8 @@ from calamari_ocr.test.test_train_file import make_test_scenario as make_files_t
 class FilesTestScenario(make_files_test_scenario(with_validation=False, with_split=False)):
     pass
 
+class FilesNoPreloadTestScenario(make_files_test_scenario(with_validation=False, with_split=False, preload=False)):
+    pass
 
 class Hdf5TestScenario(make_hdf5_test_scenario(with_validation=False, with_split=False)):
     pass
@@ -31,6 +33,12 @@ class TestCrossFoldTrain(unittest.TestCase):
 
     def test_on_files(self):
         cfp = default_cross_fold_params(FilesTestScenario.default_trainer_params())
+        with tempfile.TemporaryDirectory() as d:
+            cfp.best_models_dir = d
+            main(cfp)
+
+    def test_on_files_no_preload(self):
+        cfp = default_cross_fold_params(FilesNoPreloadTestScenario.default_trainer_params())
         with tempfile.TemporaryDirectory() as d:
             cfp.best_models_dir = d
             main(cfp)

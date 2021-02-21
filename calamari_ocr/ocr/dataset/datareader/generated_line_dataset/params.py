@@ -1,7 +1,10 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Type
 
 from dataclasses_json import dataclass_json
+from paiargparse import pai_dataclass
+
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 
 
 @dataclass_json
@@ -35,3 +38,22 @@ class TextGeneratorParams:
     letter_spacing_p: float = 0.5
     letter_spacing_mean: float = 1
     letter_spacing_sigma: float = 0.1
+
+
+@pai_dataclass
+@dataclass
+class GeneratedLineDatasetParams(CalamariDataGeneratorParams):
+    lines_per_epoch: int = 100
+    text_generator: TextGeneratorParams = field(default_factory=TextGeneratorParams)
+    line_generator: LineGeneratorParams = field(default_factory=LineGeneratorParams)
+
+    def __len__(self):
+        return self.lines_per_epoch
+
+    def select(self, indices: List[int]):
+        pass
+
+    @staticmethod
+    def cls() -> Type['DataGenerator']:
+        from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.dataset import GeneratedLineDataset
+        return GeneratedLineDataset

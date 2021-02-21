@@ -65,6 +65,18 @@ test-train-hdf5:
     - set -e
     - python -m unittest calamari_ocr.test.test_train_hdf5
 
+test-train-generated:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_generated
+
+test-train-mixed-data:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_mixed_data
+
 test-augmentation:
   stage: test
   script:
@@ -143,21 +155,6 @@ test-cpu-predict-and-eval-with-voting:
     - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json --batch_size 5
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt --n_worst_lines 10 --xlsx_output text.xlsx
 
-# on-the-fly data loading
-
-test-cpu-data-on-the-fly-with-weights:
-  stage: test
-  script:
-    - set -e
-    - calamari-train --train_data_on_the_fly --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --weights calamari_models/antiqua_modern/0.ckpt.json
-
-
-test-cpu-cross-fold-train-augmentation-data-on-the-fly:
-  stage: test
-  script:
-    - set -e
-    - calamari-cross-fold-train --train_data_on_the_fly --validation_data_on_the_fly --n_augmentation 5 --files calamari_ocr/test/data/uw3_50lines/train/*.png --n_folds 3 --best_models_dir tmp_best_models --epochs 2 --samples_per_epoch 5
-
 
 # extended prediction data and average prediction confidence computation
 
@@ -173,34 +170,7 @@ test-cpu-predict-and-eval-with-voting-extended-prediction-data-avg-conf:
     - python calamari_ocr/scripts/compute_average_prediction_confidence.py --pred calamari_ocr/test/data/uw3_50lines/test/*.json
 
 
-# train on generated lines
-
-test-cpu-train-on-generated-lines:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --dataset GENERATED_LINE
-      --text_generator_params calamari_ocr/test/data/line_generation_config/text_gen_params.json
-      --line_generator_params calamari_ocr/test/data/line_generation_config/line_gen_params.json
-      --whitelist_files calamari_ocr/test/data/line_generation_config/whitelist.txt
-      --no_auto_compute_codec --checkpoint_frequency 5 --train_data_on_the_fly
-      --num_threads 4 --batch_size 4 --epochs 2 --samples_per_epoch 5
-
-
 # PAGE-XML
-
-test-cpu-train-on-page-xml-validation-on-files:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --files calamari_ocr/test/data/avicanon_pagexml/006.nrm.png calamari_ocr/test/data/avicanon_pagexml/007.nrm.png
-      --validation calamari_ocr/test/data/uw3_50lines/test/*.png
-      --validation_dataset FILE
-      --dataset PAGEXML --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
 
 test-cpu-predict-and-eval-page-xml:
   stage: test
@@ -222,16 +192,6 @@ test-cpu-predict-and-eval-hdf5:
 
 
 # ABBYY-XML
-
-test-cpu-train-on-aabbyy-xml-validation-on-page-xml:
-  stage: test
-  script:
-    - set -e
-    - >
-      calamari-train
-      --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg
-      --validation calamari_ocr/test/data/avicanon_pagexml/008.nrm.png --validation_dataset PAGEXML
-      --dataset ABBYY --num_threads 1 --early_stopping_frequency 5 --epochs 2 --samples_per_epoch 5
 
 test-cpu-predict-and-eval-abbyy-xml:
   stage: test
