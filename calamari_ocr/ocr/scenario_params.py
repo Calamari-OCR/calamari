@@ -12,4 +12,4 @@ from calamari_ocr.ocr.model.params import ModelParams
 class ScenarioParams(ScenarioBaseParams[DataParams, ModelParams]):
     def __post_init__(self):
         self.data.ensemble = self.model.ensemble
-        self.data.downscale_factor = self.model.compute_downscale_factor()
+        self.data.downscale_factor = self.model.compute_downscale_factor().x

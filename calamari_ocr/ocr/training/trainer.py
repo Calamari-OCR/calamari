@@ -67,7 +67,7 @@ class Trainer(AIPTrainer):
         data: Data = self._data
         model: ModelParams = self.scenario.params.model
 
-        use_training_as_validation = model.ensemble > 0 or isinstance(self.params.gen, CalamariTrainOnlyPipelineParams)
+        use_training_as_validation = model.ensemble > 0 or self.params.gen.__class__ == CalamariTrainOnlyPipelineParams
 
         # Setup train pipeline
         train_pipeline = self.params.gen.train_data(data)

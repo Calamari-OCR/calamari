@@ -6,6 +6,7 @@ from random import shuffle
 from typing import Optional
 
 from paiargparse import pai_meta, pai_dataclass
+from tensorflow.python.ops.gen_nn_ops import Conv2D
 from tfaip.base import TrainerParams as AIPTrainerParams, TrainerPipelineParams, TrainerPipelineParamsBase, \
     PipelineMode
 
@@ -15,7 +16,9 @@ from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.dataset.datareader.pagexml.reader import PageXML
 from calamari_ocr.ocr.dataset.params import DATA_GENERATOR_CHOICES
-from calamari_ocr.ocr.model.params import LayerParams, LayerType, LSTMDirection, ModelParams, IntVec2D
+from calamari_ocr.ocr.model.layers.bilstm import BiLSTMLayerParams
+from calamari_ocr.ocr.model.layers.pool2d import MaxPool2DLayerParams
+from calamari_ocr.ocr.model.params import LayerParams, ModelParams, IntVec2D
 from calamari_ocr.ocr.scenario import ScenarioParams
 
 logger = logging.getLogger(__name__)
@@ -146,9 +149,7 @@ def params_from_definition_string(s: str, trainer_params: TrainerParams):
             trainer_params.optimizer_params.optimizer = value
         elif label == "lstm":
             lstm_appeared = True
-            model_params.layers.append(LayerParams(
-                type=LayerType.LSTM,
-                lstm_direction=LSTMDirection.Bidirectional,
+            model_params.layers.append(BiLSTMLayerParams(
                 hidden_nodes=int(value)
             ))
         elif label == 'concat':
@@ -188,7 +189,7 @@ def params_from_definition_string(s: str, trainer_params: TrainerParams):
                 kernel_size=IntVec2D(*kernel_size),
                 stride=IntVec2D(1, 1),
             ))
-        elif label == "cnn":
+        elif label in {"cnn", "conv", 'conv2d'}:
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
 
@@ -203,8 +204,7 @@ def params_from_definition_string(s: str, trainer_params: TrainerParams):
             if match[3] is not None:
                 kernel_size = [int(match[2]), int(match[4])]
 
-            model_params.layers.append(LayerParams(
-                type=LayerType.Convolutional,
+            model_params.layers.append(Conv2D(
                 filters=int(match[0]),
                 kernel_size=IntVec2D(*kernel_size),
                 stride=IntVec2D(1, 1),
@@ -231,7 +231,7 @@ def params_from_definition_string(s: str, trainer_params: TrainerParams):
                 kernel_size=IntVec2D(*kernel_size),
                 stride=IntVec2D(*stride),
             ))
-        elif label == "pool":
+        elif label in {"pool", 'max_pool', 'pool2d'}:
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
             match = pool_matcher.match(value)
@@ -248,8 +248,7 @@ def params_from_definition_string(s: str, trainer_params: TrainerParams):
             else:
                 stride = kernel_size
 
-            model_params.layers.append(LayerParams(
-                type=LayerType.MaxPooling,
+            model_params.layers.append(MaxPool2DLayerParams(
                 kernel_size=IntVec2D(*kernel_size),
                 stride=IntVec2D(*stride),
             ))

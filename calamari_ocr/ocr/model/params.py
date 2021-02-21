@@ -1,77 +1,51 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Tuple, Any, Union
 
-from dataclasses_json import dataclass_json
+from paiargparse import pai_dataclass
 from tfaip.base.model.modelbaseparams import ModelBaseParams
 
-from tfaip.util.enum import StrEnum
+from calamari_ocr.ocr.model.layers.layer import LayerParams, IntVec2D
 
 
-@dataclass_json
-@dataclass
-class IntVec2D:
-    x: int = 0
-    y: int = 0
+def default_layers():
+    from calamari_ocr.ocr.model.layers.conv2d import Conv2DLayerParams
+    from calamari_ocr.ocr.model.layers.pool2d import MaxPool2DLayerParams
+    from calamari_ocr.ocr.model.layers.bilstm import BiLSTMLayerParams
+    from calamari_ocr.ocr.model.layers.dropout import DropoutLayerParams
+    return [
+        Conv2DLayerParams(filters=40),
+        MaxPool2DLayerParams(),
+        Conv2DLayerParams(filters=60),
+        MaxPool2DLayerParams(),
+        BiLSTMLayerParams(),
+        DropoutLayerParams(0.5),
+    ]
 
 
-class LayerType(StrEnum):
-    Convolutional = 'convolutional'
-    MaxPooling = 'max_pooling'
-    LSTM = 'lstm'
-    TransposedConv = 'transposed_conv'
-    DilatedBlock = 'dilated_block'
-    Concat = 'concat'
-
-
-class LSTMDirection(StrEnum):
-    Bidirectional = 'bidirectional'
-
-
-@dataclass_json
-@dataclass
-class LayerParams:
-    type: LayerType
-
-    # conv/pool
-    filters: int = 0
-    kernel_size: IntVec2D = field(default_factory=IntVec2D)
-    stride: IntVec2D = field(default_factory=IntVec2D)
-
-    # dilated block
-    dilated_depth: int = 0
-
-    # concat
-    concat_indices: List[int] = field(default_factory=list)
-
-    # lstm
-    hidden_nodes: int = 0
-    peepholes: bool = False
-    lstm_direction: LSTMDirection = LSTMDirection.Bidirectional
-
-
-@dataclass_json
+@pai_dataclass
 @dataclass
 class ModelParams(ModelBaseParams):
-    layers: List[LayerParams] = field(default_factory=list)
-    dropout: float = 0
+    layers: List[LayerParams] = field(default_factory=default_layers)
     classes: int = -1
     ctc_merge_repeated: bool = True
     ensemble: int = 0  # For usage with the ensemble-model graph
     masking_mode: int = False  # This parameter is for evaluation only and should not be used in production
 
-    def compute_downscale_factor(self):
-        factor = 1
+    def compute_downscale_factor(self) -> IntVec2D:
+        factor = IntVec2D(1, 1)
         for layer in self.layers:
-            if layer.type == LayerType.TransposedConv:
-                factor //= layer.stride.x
-            elif layer.type == LayerType.MaxPooling:
-                factor *= layer.stride.x
+            factor = layer.downscale_factor(factor)
         return factor
 
-    def compute_downscaled(self, length):
-        for layer in self.layers:
-            if layer.type == LayerType.TransposedConv:
-                length = length * layer.stride.x
-            elif layer.type == LayerType.MaxPooling:
-                length = (length + layer.stride.x - 1) // layer.stride.x
-        return length
+    def compute_downscaled(self, size: Union[int, IntVec2D, Tuple[Any, Any]]):
+        if isinstance(size, int):
+            for layer in self.layers:
+                size = layer.downscale(IntVec2D(size, 1)).x
+        elif isinstance(size, IntVec2D):
+            for layer in self.layers:
+                size = layer.downscale(size)
+        elif isinstance(size, tuple):
+            for layer in self.layers:
+                size = layer.downscale(IntVec2D(size[0], size[1]))
+                size = size.x, size.y
+        return size
