@@ -77,6 +77,11 @@ test-resume-training:
     - set -e
     - python -m unittest calamari_ocr.test.test_resume_training
 
+test-network-architectures:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_network_architectures
 
 # ensemble learning
 test-cpu-ensemble-train:
@@ -243,15 +248,3 @@ test-cpu-predict-and-eval-abbyy-xml:
     - set -e
     - calamari-predict --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset ABBYY
     - calamari-eval --gt calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.abbyy.xml --dataset ABBYY --pred_ext .pred.abbyy.xml
-
-# NETWORK ARCHITECTURES
-
-test-cpu-network-architectures:
-  stage: test
-  script:
-    - set -
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,lstm=50,dropout=0.5'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2'
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --network 'cnn=40:3x3,pool=2x2,db=40:4:3x3,tcnn=40:2x2,concat=1:-1'

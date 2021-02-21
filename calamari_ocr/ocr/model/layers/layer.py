@@ -47,7 +47,7 @@ class Layer(Generic[TLayerParams], keras.layers.Layer, ABC):
         raise NotImplementedError
 
     def call(self, inputs, **kwargs):
-        if self.input_dims() != len(inputs.shape):
+        if self.input_dims() != -1 and self.input_dims() != len(inputs.shape):
             if self.input_dims() == 3:
                 # lstm like, TxBxF
                 ds = keras.backend.shape(inputs)
@@ -56,8 +56,6 @@ class Layer(Generic[TLayerParams], keras.layers.Layer, ABC):
             elif self.input_dims() == 4:
                 # cnn like, BxTxHxW
                 raise NotImplementedError
-            elif self.input_dims() == -1:
-                pass  # arbitrary
             else:
                 raise NotImplementedError
         return self._call(inputs, **kwargs)

@@ -1,3 +1,5 @@
+from functools import partial
+
 import tensorflow as tf
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import ctc_ops as ctc
@@ -24,14 +26,19 @@ def calculate_padding(input, scaling_factor):
     return px, py
 
 
-def pad(input_tensors):
+def pad(input_tensors, x_only=False):
     input, padding = input_tensors[0], input_tensors[1]
     px, py = padding
     shape = K.shape(input)
     static_shape = input.shape
-    output = tf.image.pad_to_bounding_box(input, 0, 0,
-                                          static_shape[1] or K.gather(shape, 1) + px,
-                                          static_shape[2] or K.gather(shape, 2) + py)
+    if x_only:
+        output = tf.image.pad_to_bounding_box(input, 0, 0,
+                                              (static_shape[1] or K.gather(shape, 1)) + px,
+                                              static_shape[2])
+    else:
+        output = tf.image.pad_to_bounding_box(input, 0, 0,
+                                              (static_shape[1] or K.gather(shape, 1)) + px,
+                                              (static_shape[2] or K.gather(shape, 2)) + py)
     return output
 
 
@@ -55,9 +62,9 @@ class Graph(GraphBase[ModelParams]):
         # up-sampling layers work properly
         require_padding = any([isinstance(l, (ConcatLayerParams, TransposedConv2DLayerParams)) for l in params.layers])
         if require_padding:
-            s = self._params.compute_downscale_factor()
+            s = self._params.compute_max_downscale_factor()
             padding = calculate_padding(input_data, s.to_tuple())
-            padded = KL.Lambda(pad, name='padded_input')([input_data, padding])
+            padded = KL.Lambda(partial(pad, x_only=True), name='padded_input')([input_data, padding])
             last_layer_output = padded
         else:
             last_layer_output = input_data
@@ -65,7 +72,10 @@ class Graph(GraphBase[ModelParams]):
         layers_outputs_by_index = []
         for layer in self.layer_instances:
             layers_outputs_by_index.append(last_layer_output)
-            last_layer_output = layer(last_layer_output)
+            if isinstance(layer.params, ConcatLayerParams):
+                last_layer_output = layer(layers_outputs_by_index)
+            else:
+                last_layer_output = layer(last_layer_output)
 
         lstm_seq_len, lstm_num_features = self._params.compute_downscaled(shape)
         lstm_seq_len = K.cast(lstm_seq_len, 'int32')

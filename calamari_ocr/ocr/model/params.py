@@ -37,6 +37,15 @@ class ModelParams(ModelBaseParams):
             factor = layer.downscale_factor(factor)
         return factor
 
+    def compute_max_downscale_factor(self) -> IntVec2D:
+        factor = IntVec2D(1, 1)
+        max_factor = IntVec2D(1, 1)
+        for layer in self.layers:
+            factor = layer.downscale_factor(factor)
+            max_factor.x = max(max_factor.x, factor.x)
+            max_factor.y = max(max_factor.y, factor.y)
+        return max_factor
+
     def compute_downscaled(self, size: Union[int, IntVec2D, Tuple[Any, Any]]):
         if isinstance(size, int):
             for layer in self.layers:

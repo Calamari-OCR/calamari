@@ -12,7 +12,7 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 class ConcatLayerParams(LayerParams):
     @classmethod
     def cls(cls) -> Type['Layer']:
-        ConcatLayer
+        return ConcatLayer
 
     concat_indices: List[int]
 

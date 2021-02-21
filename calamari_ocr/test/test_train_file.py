@@ -17,11 +17,14 @@ from calamari_ocr.utils import glob_all
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-def make_test_scenario(with_validation=False, with_split=False, preload=True) -> Type[CalamariScenario]:
+def make_test_scenario(with_validation=False, with_split=False, preload=True, debug=False) -> Type[CalamariScenario]:
     class CalamariUW3ScenarioTest(CalamariScenario):
         @classmethod
         def default_trainer_params(cls):
             p = super().default_trainer_params()
+            p.scenario.debug_graph_construction = debug
+            p.force_eager = debug
+
             train = FileDataParams(
                 images=glob_all([os.path.join(this_dir, "data", "uw3_50lines", "train", "*.png")]),
                 preload=preload,
