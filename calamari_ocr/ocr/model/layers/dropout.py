@@ -11,10 +11,14 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 @dataclass
 class DropoutLayerParams(LayerParams):
     @classmethod
+    def name_prefix(cls) -> str:
+        return 'dropout'
+
+    @classmethod
     def cls(cls) -> Type['Layer']:
         return DropoutLayer
 
-    rate: float
+    rate: float = 0.5
 
 
 class DropoutLayer(Layer[DropoutLayerParams]):

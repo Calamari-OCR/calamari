@@ -31,6 +31,13 @@ class ModelParams(ModelBaseParams):
     ensemble: int = 0  # For usage with the ensemble-model graph
     masking_mode: int = False  # This parameter is for evaluation only and should not be used in production
 
+    def __post_init__(self):
+        # setup layer names
+        counts = {}
+        for layer in self.layers:
+            counts[layer.name_prefix()] = counts.get(layer.name_prefix(), -1) + 1
+            layer.name = f'{layer.name_prefix()}_{counts[layer.name_prefix()]}'
+
     def compute_downscale_factor(self) -> IntVec2D:
         factor = IntVec2D(1, 1)
         for layer in self.layers:

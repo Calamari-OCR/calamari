@@ -77,6 +77,12 @@ test-resume-training:
     - set -e
     - python -m unittest calamari_ocr.test.test_resume_training
 
+test-pretrained:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_pretrained
+
 test-network-architectures:
   stage: test
   script:
@@ -136,21 +142,6 @@ test-cpu-predict-and-eval-with-voting:
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt --skip_empty_gt
     - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json --batch_size 5
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt --n_worst_lines 10 --xlsx_output text.xlsx
-
-
-# loading pretrained model
-
-test-cpu-pretrained:
-  stage: test
-  script:
-    - set -e
-    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5
-
-test-cpu-pretrained-keep-loaded-codec:
-  stage: test
-  script:
-    - set -e
-    - calamari-train --weights calamari_models/antiqua_historical/0.ckpt.json --files calamari_ocr/test/data/uw3_50lines/train/*.png --epochs 2 --samples_per_epoch 5 --keep_loaded_codec
 
 # on-the-fly data loading
 

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Type, TypeVar, Generic, Tuple
+from typing import Type, TypeVar, Generic, Tuple, Optional
 
 from paiargparse import pai_dataclass
 from tensorflow import keras
@@ -19,9 +19,16 @@ class IntVec2D:
 @pai_dataclass
 @dataclass
 class LayerParams(ABC):
+    name: Optional[str] = None
+
     @classmethod
     @abstractmethod
     def cls(cls) -> Type['Layer']:
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
+    def name_prefix(cls) -> str:
         raise NotImplementedError
 
     def create(self) -> 'Layer':
@@ -39,7 +46,7 @@ TLayerParams = TypeVar("TLayerParams", bound=LayerParams)
 
 class Layer(Generic[TLayerParams], keras.layers.Layer, ABC):
     def __init__(self, params: TLayerParams, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(name=params.name, **kwargs)
         self.params = params
 
     @abstractmethod

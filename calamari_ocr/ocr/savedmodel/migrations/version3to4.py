@@ -1,6 +1,47 @@
 from calamari_ocr.ocr.scenario import CalamariScenario
 
 
+def rename(d, f, t):
+    d[t] = d[f]
+    del d[f]
+
+
+def migrate_model_params(model: dict):
+    convert_layer_name = {
+        'convolutional': "calamari_ocr.ocr.model.layers.conv2d:Conv2DLayerParams",
+        'concat': "calamari_ocr.ocr.model.layers.concat:ConcatLayerParams",
+        'max_pooling': "calamari_ocr.ocr.model.layers.pool2d:MaxPool2DLayerParams",
+        'lstm': "calamari_ocr.ocr.model.layers.bilstm:BiLSTMLayerParams",
+        'transposed_conv': "calamari_ocr.ocr.model.layers.transposedconv2d:TransposedConv2DLayerParams",
+        'dilated_block': "calamari_ocr.ocr.model.layers.dilatedblock:DilatedBlockLayerParams",
+        'dropout': "calamari_ocr.ocr.model.layers.dropout:DropoutLayerParams",
+    }
+    for layer in model['layers']:
+        del layer['lstm_direction']
+        if layer['type'] != 'lstm':
+            del layer['peepholes']
+            del layer['hidden_nodes']
+        if layer['type'] != 'dilated_block':
+            del layer['dilated_depth']
+        if layer['type'] != 'concat':
+            del layer['concat_indices']
+        if layer['type'] not in {'convolutional', 'max_pooling', 'dilated_block', 'transposed_conv'}:
+            del layer['stride']
+            del layer['filters']
+            del layer['kernel_size']
+        if layer['type'] == 'max_pooling':
+            del layer['filters']
+            rename(layer, 'kernel_size', 'pool_size')
+
+        layer['__cls__'] = convert_layer_name[layer['type']]
+        del layer['type']
+
+    model['layers'].append({
+        '__cls__': convert_layer_name['dropout'],
+        'rate': model['dropout']
+    })
+    del model['dropout']
+
 
 def migrate(trainer_params: dict) -> dict:
     convert_processor_name = {
@@ -15,10 +56,6 @@ def migrate(trainer_params: dict) -> dict:
         "ReshapeOutputsProcessor": "calamari_ocr.ocr.dataset.postprocessors.reshape:ReshapeOutputsProcessorParams",
         "CTCDecoderProcessor": "calamari_ocr.ocr.dataset.postprocessors.ctcdecoder:CTCDecoderProcessorParams",
     }
-
-    def rename(d, f, t):
-        d[t] = d[f]
-        del d[f]
 
     for name in ['scenario']:
         rename(trainer_params, name + '_params', name)
@@ -51,5 +88,7 @@ def migrate(trainer_params: dict) -> dict:
         del proc['name']
         proc['__cls__'] = convert_processor_name[name]
 
+    migrate_model_params(scenario['model'])
+
     CalamariScenario.params_from_dict(scenario)
-    return scenario
+    return {'scenario': scenario}

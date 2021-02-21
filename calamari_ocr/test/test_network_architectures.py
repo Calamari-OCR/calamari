@@ -1,6 +1,8 @@
 import tempfile
 import unittest
 
+from tensorflow.python.keras.backend import clear_session
+
 from calamari_ocr.ocr.model.layers.bilstm import BiLSTMLayerParams
 from calamari_ocr.ocr.model.layers.concat import ConcatLayerParams
 from calamari_ocr.ocr.model.layers.conv2d import Conv2DLayerParams
@@ -14,6 +16,9 @@ from calamari_ocr.test.test_train_file import make_test_scenario
 
 
 class TestNetworkArchitectures(unittest.TestCase):
+    def tearDown(self) -> None:
+        clear_session()
+
     def test_default_architecture(self):
         trainer_params = make_test_scenario().default_trainer_params()
         trainer_params.scenario.model.layers = default_layers()

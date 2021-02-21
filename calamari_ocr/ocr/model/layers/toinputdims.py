@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Type
 
-from paiargparse import pai_dataclass
+from paiargparse import pai_dataclass, pai_meta
 
 from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 
@@ -10,10 +10,14 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 @dataclass
 class ToInputDimsLayerParams(LayerParams):
     @classmethod
+    def name_prefix(cls) -> str:
+        return 'to_input_dims'
+
+    @classmethod
     def cls(cls) -> Type['Layer']:
         return ToInputDimsLayer
 
-    dims: int
+    dims: int = field(default=-1, metadata=pai_meta(required=True))
 
 
 class ToInputDimsLayer(Layer[ToInputDimsLayerParams]):

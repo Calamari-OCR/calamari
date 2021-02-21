@@ -99,3 +99,13 @@ class Graph(GraphBase[ModelParams]):
             'softmax': softmax,
             'decoded': tf.sparse.to_dense(greedy_decoded, default_value=-1) + 1
         }
+
+    @classmethod
+    def from_config(cls, config):
+        try:
+            return super().from_config(config)
+        except TypeError:
+            # convert old format?
+            from calamari_ocr.ocr.savedmodel.migrations.version3to4 import migrate_model_params
+            migrate_model_params(config['params'])
+            return super().from_config(config)

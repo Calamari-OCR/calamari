@@ -11,6 +11,10 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, IntVec2D, Layer
 @dataclass
 class DilatedBlockLayerParams(LayerParams):
     @classmethod
+    def name_prefix(cls) -> str:
+        return 'dilated_block'
+
+    @classmethod
     def cls(cls) -> Type['Layer']:
         return DilatedBlockLayer
 
@@ -36,7 +40,7 @@ class DilatedBlockLayer(Layer[DilatedBlockLayerParams]):
         assert(self.params.filters % depth == 0)
         self.dilated_layers = [
             keras.layers.Conv2D(
-                name='dilated_{}'.format(i),
+                name='conv2d_{}'.format(i),
                 filters=self.params.filters // depth,
                 kernel_size=self.params.kernel_size.to_tuple(),
                 strides=self.params.strides.to_tuple(),

@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Type, List
 
-from paiargparse import pai_dataclass
+from paiargparse import pai_dataclass, pai_meta
 from tensorflow import keras
 
 from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
@@ -11,10 +11,14 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 @dataclass
 class ConcatLayerParams(LayerParams):
     @classmethod
+    def name_prefix(cls) -> str:
+        return 'concat'
+
+    @classmethod
     def cls(cls) -> Type['Layer']:
         return ConcatLayer
 
-    concat_indices: List[int]
+    concat_indices: List[int] = field(default_factory=list, metadata=pai_meta(required=True))
 
 
 class ConcatLayer(Layer[ConcatLayerParams]):

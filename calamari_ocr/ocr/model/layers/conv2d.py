@@ -11,6 +11,10 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, IntVec2D, Layer
 @dataclass
 class Conv2DLayerParams(LayerParams):
     @classmethod
+    def name_prefix(cls) -> str:
+        return 'conv2d'
+
+    @classmethod
     def cls(cls) -> Type['Layer']:
         return Conv2DLayer
 

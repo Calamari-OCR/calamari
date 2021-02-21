@@ -55,7 +55,7 @@ class Trainer(AIPTrainer):
         self.checkpoint = None
         if self._params.warmstart.model:
             # Manually handle loading
-            self.checkpoint = SavedCalamariModel(self._params.warmstart_params.model,
+            self.checkpoint = SavedCalamariModel(self._params.warmstart.model,
                                                  auto_update=self._params.auto_upgrade_checkpoints)
             self._params.warmstart.model = self.checkpoint.ckpt_path + '.h5'
             self._params.warmstart.trim_graph_name = False
@@ -109,18 +109,18 @@ class Trainer(AIPTrainer):
         if self.checkpoint:
             # if we load the weights, take care of codec changes as-well
             restore_checkpoint_params = self.checkpoint.dict
-            restore_data_params = restore_checkpoint_params['scenario_params']['data_params']
+            restore_data_params = restore_checkpoint_params['scenario']['data']
 
             # checks
-            if data.params.line_height_ != restore_data_params['line_height_']:
-                raise ValueError(f"The model to restore has a line height of {restore_data_params.line_height_}"
-                                 f" but a line height of {data.params.line_height_} is requested")
+            if data.params.line_height != restore_data_params['line_height']:
+                raise ValueError(f"The model to restore has a line height of {restore_data_params.line_height}"
+                                 f" but a line height of {data.params.line_height} is requested")
 
             # create codec of the same type
             restore_codec = codec.__class__(restore_data_params['codec']['charset'])
 
             # the codec changes as tuple (deletions/insertions), and the new codec is the changed old one
-            codec_changes = restore_codec.align(codec, shrink=not self._params.keep_loaded_codec)
+            codec_changes = restore_codec.align(codec, shrink=not self._params.codec.keep_loaded)
             codec = restore_codec
             logger.info(f"Codec changes: {len(codec_changes[0])} deletions, {len(codec_changes[1])} appends")
             # The actual weight/bias matrix will be changed after loading the old weights

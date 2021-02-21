@@ -16,6 +16,14 @@ class WarmstarterWithCodecAdaption(Warmstarter):
         to_trim = ['CalamariGraph/', 'keras_debug_model/CalamariGraph/']
         for tt in to_trim:
             names = [name[len(tt):] if name.startswith(tt) else name for name in names]
+
+        def convert(name: str):
+            if name.startswith('bi_lstm_layer_1/'):
+                name = name.replace('bi_lstm_layer_1/', 'bi_lstm_layer/')
+            return name
+
+        names = [convert(name) for name in names]
+
         return names
 
     def apply_weights(self, target_model, new_weights):
@@ -46,5 +54,3 @@ class WarmstarterWithCodecAdaption(Warmstarter):
                 target_weight.assign(b_val)
             else:
                 raise NotImplementedError("logits layer is expected to have kernel and bias and nothing else")
-
-

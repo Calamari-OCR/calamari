@@ -11,6 +11,10 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 @dataclass
 class BiLSTMLayerParams(LayerParams):
     @classmethod
+    def name_prefix(cls) -> str:
+        return 'lstm'
+
+    @classmethod
     def cls(cls) -> Type['Layer']:
         return BiLSTMLayer
 
