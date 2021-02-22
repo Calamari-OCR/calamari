@@ -7,21 +7,11 @@ from tensorflow import keras
 from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessorParams
 from calamari_ocr.ocr.training.cross_fold_trainer import CrossFoldTrainerParams
 from calamari_ocr.scripts.cross_fold_train import main
-from calamari_ocr.test.test_train_file import make_test_scenario as make_files_test_scenario
-from calamari_ocr.test.test_train_pagexml import make_test_scenario as make_hdf5_test_scenario
+from calamari_ocr.test.test_train_file import uw3_trainer_params as default_files_trainer_params
+from calamari_ocr.test.test_train_pagexml import default_trainer_params as default_hdf5_trainer_params
 
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
-class FilesTestScenario(make_files_test_scenario(with_validation=False, with_split=False)):
-    pass
-
-
-class FilesNoPreloadTestScenario(make_files_test_scenario(with_validation=False, with_split=False, preload=False)):
-    pass
-
-
-class Hdf5TestScenario(make_hdf5_test_scenario(with_validation=False, with_split=False)):
-    pass
 
 
 def default_cross_fold_params(trainer_params, pretrained='none', with_augmentation=False):
@@ -50,37 +40,37 @@ class TestCrossFoldTrain(unittest.TestCase):
         keras.backend.clear_session()
 
     def test_on_files(self):
-        cfp = default_cross_fold_params(FilesTestScenario.default_trainer_params())
+        cfp = default_cross_fold_params(default_files_trainer_params())
         with tempfile.TemporaryDirectory() as d:
             cfp.best_models_dir = d
             main(cfp)
 
     def test_on_files_augmentation(self):
-        cfp = default_cross_fold_params(FilesTestScenario.default_trainer_params(), with_augmentation=True)
+        cfp = default_cross_fold_params(default_files_trainer_params(), with_augmentation=True)
         with tempfile.TemporaryDirectory() as d:
             cfp.best_models_dir = d
             main(cfp)
 
     def test_on_files_one_pretrained(self):
-        cfp = default_cross_fold_params(FilesTestScenario.default_trainer_params(), pretrained='one')
+        cfp = default_cross_fold_params(default_files_trainer_params(), pretrained='one')
         with tempfile.TemporaryDirectory() as d:
             cfp.best_models_dir = d
             main(cfp)
 
     def test_on_files_all_pretrained(self):
-        cfp = default_cross_fold_params(FilesTestScenario.default_trainer_params(), pretrained='all')
+        cfp = default_cross_fold_params(default_files_trainer_params(), pretrained='all')
         with tempfile.TemporaryDirectory() as d:
             cfp.best_models_dir = d
             main(cfp)
 
     def test_on_files_no_preload(self):
-        cfp = default_cross_fold_params(FilesNoPreloadTestScenario.default_trainer_params())
+        cfp = default_cross_fold_params(default_files_trainer_params(preload=False))
         with tempfile.TemporaryDirectory() as d:
             cfp.best_models_dir = d
             main(cfp)
 
     def test_on_pagexml(self):
-        cfp = default_cross_fold_params(Hdf5TestScenario.default_trainer_params())
+        cfp = default_cross_fold_params(default_hdf5_trainer_params())
         with tempfile.TemporaryDirectory() as d:
             cfp.best_models_dir = d
             main(cfp)

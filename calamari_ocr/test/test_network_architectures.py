@@ -12,7 +12,7 @@ from calamari_ocr.ocr.model.layers.pool2d import MaxPool2DLayerParams
 from calamari_ocr.ocr.model.layers.transposedconv2d import TransposedConv2DLayerParams
 from calamari_ocr.ocr.model.params import default_layers
 from calamari_ocr.scripts.train import main
-from calamari_ocr.test.test_train_file import make_test_scenario
+from calamari_ocr.test.test_train_file import uw3_trainer_params
 
 
 class TestNetworkArchitectures(unittest.TestCase):
@@ -20,14 +20,14 @@ class TestNetworkArchitectures(unittest.TestCase):
         clear_session()
 
     def test_default_architecture(self):
-        trainer_params = make_test_scenario().default_trainer_params()
+        trainer_params = uw3_trainer_params()
         trainer_params.scenario.model.layers = default_layers()
         with tempfile.TemporaryDirectory() as d:
             trainer_params.checkpoint_dir = d
             main(trainer_params)
 
     def test_pure_lstm_architecture(self):
-        trainer_params = make_test_scenario().default_trainer_params()
+        trainer_params = uw3_trainer_params()
         trainer_params.scenario.model.layers = [
             BiLSTMLayerParams(hidden_nodes=10),
             BiLSTMLayerParams(hidden_nodes=20),
@@ -37,7 +37,7 @@ class TestNetworkArchitectures(unittest.TestCase):
             main(trainer_params)
 
     def test_pure_cnn_architecture(self):
-        trainer_params = make_test_scenario().default_trainer_params()
+        trainer_params = uw3_trainer_params()
         trainer_params.scenario.model.layers = [
             Conv2DLayerParams(filters=10),
             MaxPool2DLayerParams(),
@@ -49,7 +49,7 @@ class TestNetworkArchitectures(unittest.TestCase):
             main(trainer_params)
 
     def test_dilated_block_architecture(self):
-        trainer_params = make_test_scenario().default_trainer_params()
+        trainer_params = uw3_trainer_params()
         trainer_params.scenario.model.layers = [
             Conv2DLayerParams(filters=10),
             MaxPool2DLayerParams(),
@@ -62,7 +62,7 @@ class TestNetworkArchitectures(unittest.TestCase):
             main(trainer_params)
 
     def test_transposed_conv_architecture(self):
-        trainer_params = make_test_scenario().default_trainer_params()
+        trainer_params = uw3_trainer_params()
         trainer_params.scenario.model.layers = [
             Conv2DLayerParams(filters=10),
             MaxPool2DLayerParams(),
@@ -76,7 +76,7 @@ class TestNetworkArchitectures(unittest.TestCase):
             main(trainer_params)
 
     def test_concat_cnn_architecture(self):
-        trainer_params = make_test_scenario().default_trainer_params()
+        trainer_params = uw3_trainer_params()
         trainer_params.scenario.model.layers = [
             Conv2DLayerParams(filters=10),
             MaxPool2DLayerParams(),

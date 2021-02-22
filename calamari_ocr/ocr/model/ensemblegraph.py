@@ -26,7 +26,7 @@ class Intermediate(tf.keras.layers.Layer):
             training = K.learning_phase()
 
         batch_size = tf.shape(inputs['img_len'])[0]
-        max_lstm_seq_len = self._params.compute_downscaled(tf.shape(inputs['img'])[1])
+        max_lstm_seq_len = self._params.compute_downscaled((tf.shape(inputs['img'])[1], 1))[0]
         # only pass folds to selected folds
         if 'fold_id' in inputs:
             # Training/Validation graph

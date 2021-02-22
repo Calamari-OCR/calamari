@@ -12,22 +12,6 @@ from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
 from calamari_ocr.ocr.dataset.datareader.pagexml.reader import PageXML
 
 
-
-def encoder(value):
-    if value is None:
-        return None
-    return value.to_dict()
-
-
-def decoder(t):
-    def _decode(value):
-        if value is None:
-            return None
-        return t.from_dict(value)
-
-    return _decode
-
-
 DATA_GENERATOR_CHOICES = [FileDataParams, PageXML, Abbyy, Hdf5]
 
 

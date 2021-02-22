@@ -64,4 +64,6 @@ class ModelParams(ModelBaseParams):
             for layer in self.layers:
                 size = layer.downscale(IntVec2D(size[0], size[1]))
                 size = size.x, size.y
+        else:
+            raise NotImplementedError
         return size

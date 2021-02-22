@@ -1,94 +1,25 @@
 import logging
 import re
-from copy import deepcopy
 from dataclasses import dataclass, field
-from random import shuffle
-from typing import Optional
 
 from paiargparse import pai_meta, pai_dataclass
 from tensorflow.python.ops.gen_nn_ops import Conv2D
-from tfaip.base import TrainerParams as AIPTrainerParams, TrainerPipelineParams, TrainerPipelineParamsBase, \
-    PipelineMode
+from tfaip.base import TrainerParams as AIPTrainerParams
 
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.dataset.codec import CodecConstructionParams
-from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
-from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
-from calamari_ocr.ocr.dataset.datareader.pagexml.reader import PageXML
-from calamari_ocr.ocr.dataset.params import DATA_GENERATOR_CHOICES
 from calamari_ocr.ocr.model.layers.bilstm import BiLSTMLayerParams
 from calamari_ocr.ocr.model.layers.pool2d import MaxPool2DLayerParams
 from calamari_ocr.ocr.model.params import LayerParams, ModelParams, IntVec2D
-from calamari_ocr.ocr.scenario import ScenarioParams
+from calamari_ocr.ocr.scenario import CalamariScenarioParams
+from calamari_ocr.ocr.training.pipeline_params import CalamariDefaultTrainerPipelineParams
 
 logger = logging.getLogger(__name__)
 
 
 @pai_dataclass
 @dataclass
-class CalamariDefaultTrainerPipelineParams(TrainerPipelineParams[CalamariDataGeneratorParams,
-                                                                 CalamariDataGeneratorParams]):
-    train: CalamariDataGeneratorParams = field(default_factory=FileDataParams,
-                                               metadata=pai_meta(choices=DATA_GENERATOR_CHOICES, mode='flat'))
-    val: CalamariDataGeneratorParams = field(default_factory=FileDataParams,
-                                             metadata=pai_meta(choices=DATA_GENERATOR_CHOICES, mode='flat'))
-
-
-@pai_dataclass
-@dataclass
-class CalamariTrainOnlyPipelineParams(
-    TrainerPipelineParamsBase[CalamariDataGeneratorParams, CalamariDataGeneratorParams]):
-    def train_gen(self) -> CalamariDataGeneratorParams:
-        return self.train
-
-    def val_gen(self) -> Optional[CalamariDataGeneratorParams]:
-        return None
-
-    train: CalamariDataGeneratorParams = field(default_factory=FileDataParams,
-                                               metadata=pai_meta(choices=DATA_GENERATOR_CHOICES, mode='flat'))
-
-
-@pai_dataclass
-@dataclass
-class CalamariSplitTrainerPipelineParams(TrainerPipelineParams[CalamariDataGeneratorParams,
-                                                               CalamariDataGeneratorParams]):
-    train: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
-        choices=[FileDataParams, PageXML], enforce_choices=True, mode='flat',
-    ))
-    validation_split_ratio: float = field(default=0.2, metadata=pai_meta(
-        help="Use factor of n of the training dataset for validation."))
-
-    val: Optional[CalamariDataGeneratorParams] = field(default=None, metadata=pai_meta(mode="ignore"))
-
-    def __post_init__(self):
-        if self.val is not None:
-            # Already initialized
-            return
-
-        if not 0 < self.validation_split_ratio < 1:
-            raise ValueError("validation_split_ratio must be in (0, 1)")
-
-        # resolve all files so we can split them
-        self.train.prepare_for_mode(PipelineMode.Training)
-        self.val = deepcopy(self.train)
-        samples = len(self.train)
-        n = int(self.validation_split_ratio * samples)
-        if n == 0:
-            raise ValueError(f"Ratio is to small since {self.validation_split_ratio} * {samples} = {n}. "
-                             f"Increase the amount of data or the split ratio.")
-        logger.info(f"Splitting training and validation files with ratio {self.validation_split_ratio}: "
-                    f"{n}/{samples - n} for validation/training.")
-        indices = list(range(samples))
-        shuffle(indices)
-
-        # split train and val img/gt files. Use train settings
-        self.train.select(indices[n:])
-        self.val.select(indices[:n])
-
-
-@pai_dataclass
-@dataclass
-class TrainerParams(AIPTrainerParams[ScenarioParams, CalamariDefaultTrainerPipelineParams]):
+class TrainerParams(AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrainerPipelineParams]):
     version: int = SavedCalamariModel.VERSION
 
     data_aug_retrain_on_original: bool = field(default=True, metadata=pai_meta(

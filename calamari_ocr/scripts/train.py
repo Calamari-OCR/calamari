@@ -1,5 +1,3 @@
-import os
-
 from paiargparse import PAIArgumentParser
 from tfaip.util.logging import setup_log, logger
 
@@ -14,14 +12,14 @@ def run():
     main(parse_args())
 
 
-def main(trainer_params):
+def main(trainer_params: TrainerParams):
     if trainer_params.checkpoint_dir:
         setup_log(trainer_params.checkpoint_dir, append=False)
 
     logger.info("trainer_params=" + trainer_params.to_json(indent=2))
 
     # create the trainer and run it
-    trainer = CalamariScenario.create_trainer(trainer_params)
+    trainer = trainer_params.scenario.cls().create_trainer(trainer_params)
     trainer.train()
 
 
@@ -76,13 +74,3 @@ def setup_train_args(parser: PAIArgumentParser, omit=None):
 
     # additional dataset args
     parser.add_argument("--debug", action='store_true')
-
-
-def run(args):
-    if args.output_dir is not None:
-        args.output_dir = os.path.abspath(args.output_dir)
-        setup_log(args.output_dir, append=False)
-
-    # =================================================================================================================
-    # Trainer Params
-    params.use_training_as_validation = args.use_train_as_val

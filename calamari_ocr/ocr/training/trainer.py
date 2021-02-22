@@ -1,12 +1,10 @@
 import logging
-from functools import partial
 from typing import Type
 
 from tfaip.base.data.pipeline.datapipeline import RawDataPipeline
 from tfaip.base.data.pipeline.definitions import PipelineMode
 from tfaip.base.trainer.callbacks.tensor_board_callback import TensorBoardCallback
 from tfaip.base.trainer.callbacks.train_params_logger import TrainParamsLoggerCallback
-from tfaip.base.trainer.scheduler import Constant
 from tfaip.base.trainer.trainer import Trainer as AIPTrainer
 from tfaip.base.trainer.warmstart.warmstarter import Warmstarter
 
@@ -14,7 +12,8 @@ from calamari_ocr.ocr import Codec, SavedCalamariModel
 from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.imageprocessors.augmentation import AugmentationProcessorParams
 from calamari_ocr.ocr.model.params import ModelParams
-from calamari_ocr.ocr.training.params import TrainerParams, CalamariTrainOnlyPipelineParams
+from calamari_ocr.ocr.training.params import TrainerParams
+from calamari_ocr.ocr.training.pipeline_params import CalamariTrainOnlyPipelineParams
 from calamari_ocr.ocr.training.warmstart import WarmstarterWithCodecAdaption
 from calamari_ocr.utils import checkpoint_path
 
@@ -59,6 +58,8 @@ class Trainer(AIPTrainer):
                                                  auto_update=self._params.auto_upgrade_checkpoints)
             self._params.warmstart.model = self.checkpoint.ckpt_path + '.h5'
             self._params.warmstart.trim_graph_name = False
+
+        self._codec_changes = None
 
     def train(self, callbacks=None, **kwargs):
         callbacks = callbacks if callbacks else []
@@ -126,8 +127,8 @@ class Trainer(AIPTrainer):
             # The actual weight/bias matrix will be changed after loading the old weights
             if not any(codec_changes):
                 codec_changes = None  # No codec changes
-        else:
-            codec_changes = None
+
+            self._codec_changes = codec_changes
 
         model.classes = codec.size()
         data.params.codec = codec
@@ -156,7 +157,6 @@ class Trainer(AIPTrainer):
         if self._params.current_stage == 0:
             super(Trainer, self).train(
                 callbacks=callbacks,
-                warmstart_fn=partial(WarmstarterWithCodecAdaption, codec_changes=codec_changes),
             )
 
         data_aug = self._data.params.pre_proc.processors_of_type(AugmentationProcessorParams)
@@ -197,3 +197,6 @@ class Trainer(AIPTrainer):
             super(Trainer, self).fit()
 
         logger.info("Training finished")
+
+    def create_warmstarter(self) -> Warmstarter:
+        return WarmstarterWithCodecAdaption(self.params.warmstart, codec_changes=self._codec_changes)

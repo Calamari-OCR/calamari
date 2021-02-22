@@ -169,7 +169,7 @@ class CrossFoldTrainer:
                     trainer_params.gen.val.gt_extension = trainer_params.gen.train.gt_extension
 
                 trainer_params.scenario.id = fold
-                trainer_params.verbose = 2
+                trainer_params.progress_bar_mode = 2
                 trainer_params.checkpoint_dir = os.path.join(temporary_dir, "fold_{}".format(fold))
                 trainer_params.early_stopping.best_model_output_dir = self.params.best_models_dir
                 trainer_params.early_stopping.best_model_name = ''
