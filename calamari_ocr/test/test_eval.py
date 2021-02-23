@@ -22,9 +22,10 @@ def predict_args(data) -> PredictArgs:
     return p
 
 
-def eval_args(gt_data) -> EvalArgs:
+def eval_args(gt_data, pred_data=None) -> EvalArgs:
     return EvalArgs(
-        gt=gt_data
+        gt=gt_data,
+        pred=pred_data,
     )
 
 
@@ -38,6 +39,27 @@ class TestValidationTrain(unittest.TestCase):
         )))
         run_eval(eval_args(gt_data=FileDataParams(
             texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.gt.txt")]))
+        )))
+
+    def test_prediction_files_with_different_extension(self):
+        run_predict(predict_args(data=FileDataParams(
+            pred_extension='.ext-pred.txt',
+            images=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")]))
+        )))
+        run_eval(eval_args(gt_data=FileDataParams(
+            pred_extension='.ext-pred.txt',
+            texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.gt.txt")]))
+        )))
+
+    def test_prediction_files_with_different_sources(self):
+        run_predict(predict_args(data=FileDataParams(
+            pred_extension='.ext-pred.txt',
+            images=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")]))
+        )))
+        run_eval(eval_args(gt_data=FileDataParams(
+            texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.gt.txt")]))
+        ), pred_data=FileDataParams(
+            texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.ext-pred.txt")]))
         )))
 
     def test_prediction_pagexml(self):
