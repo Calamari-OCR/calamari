@@ -1,15 +1,18 @@
+from dataclasses import dataclass, field
+from typing import Optional
+
 import tfaip.util.logging
 from argparse import ArgumentParser
 import os
 import json
 import numpy as np
+from paiargparse import PAIArgumentParser, pai_dataclass, pai_meta
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset import DataSetType
-from calamari_ocr.ocr.dataset.params import FileDataReaderArgs
-from calamari_ocr.ocr import PipelineParams, SavedCalamariModel
+from calamari_ocr.ocr import SavedCalamariModel
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
+from calamari_ocr.ocr.evaluator import EvaluatorParams
 from calamari_ocr.utils import glob_all, split_all_ext
-
 
 logger = tfaip.util.logging.logger(__name__)
 
@@ -62,7 +65,8 @@ def write_xlsx(xlsx_file, eval_datas):
         # all files
         ws = workbook.add_worksheet("{} - per line".format(prefix))
 
-        for i, heading in enumerate(["GT FILE", "GT", "PRED", "LEN", "ERR", "CER", "REL. ERR", "SYNC ERR", "CONFUSIONS"]):
+        for i, heading in enumerate(
+                ["GT FILE", "GT", "PRED", "LEN", "ERR", "CER", "REL. ERR", "SYNC ERR", "CONFUSIONS"]):
             ws.write(0, i, heading)
 
         sorted_lines = sorted(zip(r["single"], gt_files), key=lambda a: -a[0][1])
@@ -119,102 +123,63 @@ def write_xlsx(xlsx_file, eval_datas):
     workbook.close()
 
 
-def main():
+@pai_dataclass
+@dataclass
+class EvalArgs:
+    gt: CalamariDataGeneratorParams = field(metadata=pai_meta(
+        help="GT", mode='flat'))
+    pred: Optional[CalamariDataGeneratorParams] = field(default=None, metadata=pai_meta(
+        help='Optional prediction dataset', mode='flat'))
+    n_confusions: int = field(default=10, metadata=pai_meta(
+        help="Only print n most common confusions. Defaults to 10, use -1 for all.", mode='flat'))
+    n_worst_lines: int = field(default=0, metadata=pai_meta(
+        help="Print the n worst recognized text lines with its error", mode='flat'))
+    xlsx_output: Optional[str] = field(default=None, metadata=pai_meta(
+        help="Optionally write a xlsx file with the evaluation results", mode='flat'))
+    non_existing_file_handling_mode: str = field(default="error", metadata=pai_meta(
+        mode='flat', choices=['error', 'skip', 'empty'],
+        help="How to handle non existing .pred.txt files. Possible modes: skip, empty, error. "
+             "'Skip' will simply skip the evaluation of that file (not counting it to errors). "
+             "'Empty' will handle this file as would it be empty (fully checking for errors)."
+             "'Error' will throw an exception if a file is not existing. This is the default behaviour."))
+    skip_empty_gt: bool = field(default=False, metadata=pai_meta(
+        help="Ignore lines of the gt that are empty.", mode='flat'))
+    checkpoint: Optional[str] = field(default=None, metadata=pai_meta(
+        help="Specify an optional checkpoint to parse the text preprocessor (for the gt txt files)", mode='flat'))
+    evaluator: EvaluatorParams = field(default_factory=EvaluatorParams, metadata=pai_meta(
+        mode='flat', fix_dc=True,
+    ))
+
+
+def run():
+    main(parse_args())
+
+
+def parse_args(args=None):
+    parser = PAIArgumentParser()
+    parser.add_root_argument('root', EvalArgs, ignore=['gt.images', 'pred.images'])
+    return parser.parse_args(args=args).args
+
+
+def main(args: EvalArgs):
     # Local imports (imports that require tensorflow)
     from calamari_ocr.ocr.scenario import CalamariScenario
     from calamari_ocr.ocr.dataset.data import Data
     from calamari_ocr.ocr.evaluator import Evaluator
 
-    parser = ArgumentParser()
-    parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
-    parser.add_argument("--gt", nargs="+", required=True,
-                        help="Ground truth files (.gt.txt extension). "
-                             "Optionally, you can pass a single json file defining all parameters.")
-    parser.add_argument("--pred", nargs="+", default=None,
-                        help="Prediction files if provided. Else files with .pred.txt are expected at the same "
-                             "location as the gt.")
-    parser.add_argument("--pred_dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
-    parser.add_argument("--pred_ext", type=str, default=".pred.txt",
-                        help="Extension of the predicted text files")
-    parser.add_argument("--n_confusions", type=int, default=10,
-                        help="Only print n most common confusions. Defaults to 10, use -1 for all.")
-    parser.add_argument("--n_worst_lines", type=int, default=0,
-                        help="Print the n worst recognized text lines with its error")
-    parser.add_argument("--xlsx_output", type=str,
-                        help="Optionally write a xlsx file with the evaluation results")
-    parser.add_argument("--num_threads", type=int, default=1,
-                        help="Number of threads to use for evaluation")
-    parser.add_argument("--non_existing_file_handling_mode", type=str, default="error",
-                        help="How to handle non existing .pred.txt files. Possible modes: skip, empty, error. "
-                             "'Skip' will simply skip the evaluation of that file (not counting it to errors). "
-                             "'Empty' will handle this file as would it be empty (fully checking for errors)."
-                             "'Error' will throw an exception if a file is not existing. This is the default behaviour.")
-    parser.add_argument("--skip_empty_gt", action="store_true", default=False,
-                        help="Ignore lines of the gt that are empty.")
-    parser.add_argument("--no_progress_bars", action="store_true",
-                        help="Do not show any progress bars")
-    parser.add_argument("--checkpoint", type=str, default=None,
-                        help="Specify an optional checkpoint to parse the text preprocessor (for the gt txt files)")
-
-    # page xml specific args
-    parser.add_argument("--pagexml_gt_text_index", default=0)
-    parser.add_argument("--pagexml_pred_text_index", default=1)
-
-    args = parser.parse_args()
-
-    # check if loading a json file
-    if len(args.gt) == 1 and args.gt[0].endswith("json"):
-        with open(args.gt[0], 'r') as f:
-            json_args = json.load(f)
-            for key, value in json_args.items():
-                setattr(args, key, value)
-
-    logger.info("Resolving files")
-    gt_files = sorted(glob_all(args.gt))
-
-    if args.pred:
-        pred_files = sorted(glob_all(args.pred))
-    else:
-        pred_files = [split_all_ext(gt)[0] + args.pred_ext for gt in gt_files]
-        args.pred_dataset = args.dataset
-
-    if args.non_existing_file_handling_mode.lower() == "skip":
-        non_existing_pred = [p for p in pred_files if not os.path.exists(p)]
-        for f in non_existing_pred:
-            idx = pred_files.index(f)
-            del pred_files[idx]
-            del gt_files[idx]
-
-    data_params = Data.get_default_params()
     if args.checkpoint:
         saved_model = SavedCalamariModel(args.checkpoint, auto_update=True)
         trainer_params = CalamariScenario.trainer_params_from_dict(saved_model.dict)
         data_params = trainer_params.scenario_params.data_params
+    else:
+        data_params = Data.default_params()
 
     data = Data(data_params)
 
-    gt_reader_args = FileDataReaderArgs(
-        text_index=args.pagexml_gt_text_index
-    )
-    pred_reader_args = FileDataReaderArgs(
-        text_index=args.pagexml_pred_text_index
-    )
-    gt_data_set = PipelineParams(
-        type=args.dataset,
-        text_files=gt_files,
-        data_reader_args=gt_reader_args,
-        skip_invalid=args.skip_empty_gt,
-    )
-    pred_data_set = PipelineParams(
-        type=args.pred_dataset,
-        text_files=pred_files,
-        data_reader_args=pred_reader_args,
-    )
-
-    evaluator = Evaluator(data=data)
-    evaluator.preload_gt(gt_dataset=gt_data_set)
-    r = evaluator.run(gt_dataset=gt_data_set, pred_dataset=pred_data_set, processes=args.num_threads,
-                      progress_bar=not args.no_progress_bars)
+    pred_data = args.pred if args.pred else args.gt.to_prediction()
+    evaluator = Evaluator(args.evaluator, data=data)
+    evaluator.preload_gt(gt_dataset=args.gt)
+    r = evaluator.run(gt_dataset=args.gt, pred_dataset=pred_data)
 
     # TODO: More output
     print("Evaluation result")
@@ -226,16 +191,16 @@ def main():
     # sort descending
     print_confusions(r, args.n_confusions)
 
-    print_worst_lines(r, data.create_pipeline(PipelineMode.Targets, gt_data_set).reader().samples(), args.n_worst_lines)
+    print_worst_lines(r, data.create_pipeline(evaluator.params.setup, args.gt).reader().samples(), args.n_worst_lines)
 
     if args.xlsx_output:
         write_xlsx(args.xlsx_output,
                    [{
                        "prefix": "evaluation",
                        "results": r,
-                       "gt_files": gt_files,
+                       "gt_files": args.gt,
                    }])
 
 
 if __name__ == '__main__':
-    main()
+    run()

@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from dataclasses import dataclass, field
 from random import shuffle
 
@@ -12,7 +13,7 @@ from typing import List, Generator, Optional
 from enum import IntEnum
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams, InputSample, \
     SampleMeta
-from calamari_ocr.utils import split_all_ext, filename, glob_all, keep_files_with_same_file_name
+from calamari_ocr.utils import split_all_ext, filename, glob_all
 
 import logging
 
@@ -38,14 +39,16 @@ class CutMode(IntEnum):
 
 
 class PageXMLDatasetLoader:
-    def __init__(self, mode: PipelineMode, non_existing_as_empty: bool, text_index: int, skip_invalid: bool = True):
+    def __init__(self, mode: PipelineMode, non_existing_as_empty: bool, text_index: int, skip_invalid: bool = True,
+                 skip_commented=True):
         self.mode = mode
         self._non_existing_as_empty = non_existing_as_empty
         self.root = None
         self.text_index = text_index
         self.skip_invalid = skip_invalid
+        self.skip_commented = skip_commented
 
-    def load(self, img, xml, skip_commented=True):
+    def load(self, img, xml):
         if not os.path.exists(xml):
             if self._non_existing_as_empty:
                 return None
@@ -56,12 +59,11 @@ class PageXMLDatasetLoader:
         self.root = root
 
         if self.mode in TARGETS_PROCESSOR:
-            return self._samples_gt_from_book(root, img, xml, skip_commented)
+            return self._samples_gt_from_book(root, img, xml)
         else:
             return self._samples_from_book(root, img, xml)
 
-    def _samples_gt_from_book(self, root, img, page_id,
-                              skipcommented=True):
+    def _samples_gt_from_book(self, root, img, page_id):
         ns = {"ns": root.nsmap[None]}
         imgfile = root.xpath('//ns:Page',
                              namespaces=ns)[0].attrib["imageFilename"]
@@ -85,7 +87,7 @@ class PageXMLDatasetLoader:
                 logger.warning("PageXML is invalid: TextLine includes TextEquivs with non unique ids")
 
             parat = textline.attrib
-            if skipcommented and "comments" in parat and parat["comments"]:
+            if self.skip_commented and "comments" in parat and parat["comments"]:
                 continue
 
             if tequivs is not None and len(tequivs) > 0:
@@ -140,6 +142,9 @@ class PageXMLDatasetLoader:
         img_w = int(root.xpath('//ns:Page',
                                namespaces=ns)[0].attrib["imageWidth"])
         for l in root.xpath('//ns:TextLine', namespaces=ns):
+            parat = l.attrib
+            if self.skip_commented and "comments" in parat and parat["comments"]:
+                continue
             try:
                 orientation = float(l.xpath('../@orientation', namespaces=ns).pop())
             except (ValueError, IndexError):
@@ -174,6 +179,7 @@ class PageXML(CalamariDataGeneratorParams):
     pred_extension: str = field(default='.pred.xml', metadata=pai_meta(
         help="Default extension of the prediction files"
     ))
+    skip_commented: bool = field(default=True)
 
     def __len__(self):
         return len(self.images)
@@ -184,6 +190,11 @@ class PageXML(CalamariDataGeneratorParams):
         if self.xml_files:
             self.xml_files = [self.xml_files[i] for i in indices]
 
+    def to_prediction(self):
+        pred = deepcopy(self)
+        pred.xml_files = [split_all_ext(f)[0] + self.pred_extension for f in self.xml_files]
+        return pred
+
     @staticmethod
     def cls():
         return PageXMLReader
@@ -192,6 +203,8 @@ class PageXML(CalamariDataGeneratorParams):
         self.images = sorted(glob_all(self.images))
         if not self.xml_files:
             self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
+        if not self.images:
+            self.images = [None] * len(self.xml_files)
 
 
 class PageXMLReader(CalamariDataGenerator[PageXML]):
@@ -203,7 +216,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         self.pages = []
         for img, xml in zip(params.images, params.xml_files):
             loader = PageXMLDatasetLoader(self.mode, params.non_existing_as_empty, params.text_index,
-                                          params.skip_invalid)
+                                          params.skip_invalid, params.skip_commented)
             for sample in loader.load(img, xml):
                 self.add_sample(sample)
 
@@ -302,7 +315,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
     def prepare_store(self):
         self._last_page_id = None
 
-    def store_text(self, sentence, sample, output_dir, extension):
+    def store_text_prediction(self, sentence, sample_id, output_dir):
+        sample = self.sample_by_id(sample_id)
         ns = sample['ns']
         line = sample['xml_element']
         textequivxml = line.find('./ns:TextEquiv[@index="{}"]'.format(self.params.text_index),
@@ -319,7 +333,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         # check if page can be stored, this requires that (standard in prediction) the pages are passed sequentially
         if self._last_page_id != sample['page_id']:
             if self._last_page_id:
-                self._store_page(extension, self._last_page_id)
+                self._store_page(self.params.pred_extension, self._last_page_id)
             self._last_page_id = sample['page_id']
 
     def store_extended_prediction(self, data, sample, output_dir, extension):
@@ -354,7 +368,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
         loader = PageXMLDatasetLoader(self.mode, self.params.non_existing_as_empty, self.params.text_index,
-                                      self.params.skip_invalid)
+                                      self.params.skip_invalid, self.params.skip_commented)
         image_path, xml_path, idx = sample
 
         img = None

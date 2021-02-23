@@ -60,6 +60,10 @@ class CalamariDataGeneratorParams(DataGeneratorParams, ABC):
     def __len__(self):
         raise NotImplementedError
 
+    @abstractmethod
+    def to_prediction(self):
+        raise NotImplementedError
+
     def select(self, indices: List[int]):
         raise NotImplementedError
 

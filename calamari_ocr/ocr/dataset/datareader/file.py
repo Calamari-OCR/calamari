@@ -12,6 +12,7 @@ from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
 
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams, InputSample, \
     SampleMeta
+from calamari_ocr.scripts.ensemble import split
 
 from calamari_ocr.utils import split_all_ext, glob_all, keep_files_with_same_file_name
 from calamari_ocr.utils.image import load_image
@@ -26,7 +27,9 @@ class FileDataParams(CalamariDataGeneratorParams):
         help="List all image files that shall be processed. Ground truth files with the same "
              "base name but with '.gt.txt' as extension are required at the same location",
     ))
-    texts: List[str] = field(default_factory=list)
+    texts: List[str] = field(default_factory=list, metadata=pai_meta(
+        help="List the text files"
+    ))
     gt_extension: str = field(default='.gt.txt', metadata=pai_meta(
         help="Extension of the gt files (expected to exist in same dir)"
     ))
@@ -40,6 +43,11 @@ class FileDataParams(CalamariDataGeneratorParams):
 
     def __len__(self):
         return len(self.images) if self.images else len(self.texts)
+
+    def to_prediction(self):
+        pred = deepcopy(self)
+        pred.texts = [split_all_ext(t)[0] + self.pred_extension for t in self.texts]
+        return pred
 
     def select(self, indices: List[int]):
         if self.images:

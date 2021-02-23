@@ -167,7 +167,7 @@
       "skip_invalid_gt": true,
       "resource_base_path": ".",
       "pre_proc": {
-        "run_parallel": true,
+        "run_parallel": false,
         "processors": [
           {
             "modes": [
@@ -471,7 +471,7 @@
         "__cls__": "tfaip.base.data.pipeline.processor.params:SequentialProcessorPipelineParams"
       },
       "post_proc": {
-        "run_parallel": true,
+        "run_parallel": false,
         "processors": [
           {
             "__cls__": "calamari_ocr.ocr.dataset.postprocessors.reshape:ReshapeOutputsProcessorParams"

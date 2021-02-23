@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import List, Generator
 
@@ -23,7 +24,7 @@ class Abbyy(CalamariDataGeneratorParams):
         help="Default extension of the gt files (expected to exist in same dir)"
     ))
     binary: bool = False
-    pred_extension: str = field(default='.pred.abbyy.xml', metadata=pai_meta(
+    pred_extension: str = field(default='.abbyy.pred.xml', metadata=pai_meta(
         help="Default extension of the prediction files"
     ))
 
@@ -36,14 +37,22 @@ class Abbyy(CalamariDataGeneratorParams):
         if self.xml_files:
             self.xml_files = [self.xml_files[i] for i in indices]
 
+    def to_prediction(self):
+        pred = deepcopy(self)
+        pred.xml_files = [split_all_ext(f)[0] + self.pred_extension for f in self.xml_files]
+        return pred
+
     @staticmethod
     def cls():
         return AbbyyGenerator
 
     def prepare_for_mode(self, mode: PipelineMode):
         self.images = sorted(glob_all(self.images))
+        self.xml_files = sorted(glob_all(self.xml_files))
         if not self.xml_files:
             self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
+        if not self.images:
+            self.images = [None] * len(self.xml_files)
 
 
 class AbbyyGenerator(CalamariDataGenerator[Abbyy]):

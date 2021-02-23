@@ -4,7 +4,11 @@ import unittest
 import numpy as np
 from tensorflow import keras
 
+from calamari_ocr.ocr.dataset.datareader.abbyy.reader import Abbyy
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
+from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
+from calamari_ocr.ocr.dataset.datareader.pagexml.reader import PageXML
 from calamari_ocr.ocr.predict.predictor import Predictor, PredictorParams, MultiPredictor
 from calamari_ocr.scripts.predict import run, PredictArgs
 from calamari_ocr.utils import glob_all
@@ -42,10 +46,10 @@ def create_multi_model_predictor():
     return predictor
 
 
-def predict_args(n_models=1) -> PredictArgs:
+def predict_args(n_models=1, data: CalamariDataGeneratorParams = file_dataset()) -> PredictArgs:
     p = PredictArgs(
         checkpoint=[os.path.join(this_dir, "models", "0.ckpt")] * n_models,
-        data=file_dataset(),
+        data=data,
     )
     return p
 
@@ -54,11 +58,26 @@ class TestValidationTrain(unittest.TestCase):
     def tearDown(self) -> None:
         keras.backend.clear_session()
 
-    def test_prediction(self):
+    def test_prediction_files(self):
         run(predict_args())
 
-    def test_prediction_voter(self):
+    def test_prediction_voter_files(self):
         run(predict_args(n_models=3))
+
+    def test_prediction_pagexml(self):
+        run(predict_args(data=PageXML(
+            images=[os.path.join(this_dir, "data", "avicanon_pagexml", "008.nrm.png")],
+        )))
+
+    def test_prediction_abbyy(self):
+        run(predict_args(data=Abbyy(
+            images=[os.path.join(this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg")],
+        )))
+
+    def test_prediction_hdf5(self):
+        run(predict_args(data=Hdf5(
+            files=[os.path.join(this_dir, "data", "uw3_50lines", "uw3-50lines.h5")],
+        )))
 
     def test_empty_image_raw_prediction(self):
         predictor = create_single_model_predictor()

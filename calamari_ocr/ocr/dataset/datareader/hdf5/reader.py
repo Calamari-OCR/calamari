@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass, field
 from random import shuffle
 from typing import Generator, List
@@ -23,6 +24,11 @@ class Hdf5(CalamariDataGeneratorParams):
 
     def __len__(self):
         return len(self.files)
+
+    def to_prediction(self):
+        pred = deepcopy(self)
+        pred.files = [split_all_ext(f)[0] + self.pred_extension for f in self.files]
+        return pred
 
     @staticmethod
     def cls():

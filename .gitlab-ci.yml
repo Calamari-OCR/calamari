@@ -101,22 +101,14 @@ test-network-architectures:
     - set -e
     - python -m unittest calamari_ocr.test.test_network_architectures
 
-# ensemble learning
-test-cpu-ensemble-train:
+test-train-ensemble:
   stage: test
   script:
     - set -e
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --ensemble 3 --epochs 1 --samples_per_epoch 10
-    - calamari-train --files calamari_ocr/test/data/uw3_50lines/train/*.png --ensemble 3 --epochs 1 --samples_per_epoch 10 --train_data_on_the_fly
+    - python -m unittest calamari_ocr.test.test_train_ensemble
 
 
 # prediction and evaluation
-
-test-cpu-predict-and-eval-script:
-  stage: test
-  script:
-    - set -e
-    - calamari-predict-and-eval --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json
 
 test-cpu-predict-and-eval-with-voting:
   stage: test
