@@ -12,7 +12,8 @@ def default_groups():
         "quotes": False,
         "spaces": False,
         "roman_digits": False,
-        "ligatures": False,
+        "ligatures-vocal": False,
+        "ligatures-consonantal": False,
         "various": False,
         "uvius": False,
         "punctuation": False,
@@ -27,31 +28,36 @@ def parse_groups(string_list):
             groups["quotes"] = False
             groups["spaces"] = False
             groups["roman_digits"] = False
-            groups["ligatures"] = False
+            groups["ligatures-consonantal"] = False
+            groups["ligatures-vocal"] = False
             groups["various"] = False
         elif s == "simple":
             groups["quotes"] = False
             groups["spaces"] = True
             groups["roman_digits"] = False
-            groups["ligatures"] = False
+            groups["ligatures-consonantal"] = False
+            groups["ligatures-vocal"] = False
             groups["various"] = True
         elif s == "extended":
             groups["quotes"] = True
             groups["spaces"] = True
             groups["roman_digits"] = True
-            groups["ligatures"] = False
+            groups["ligatures-consonantal"] = False
+            groups["ligatures-vocal"] = False
             groups["various"] = True
         elif s == "all":
             groups["quotes"] = True
             groups["spaces"] = True
             groups["roman_digits"] = True
-            groups["ligatures"] = True
+            groups["ligatures-consonantal"] = True
+            groups["ligatures-vocal"] = True
             groups["various"] = True
         elif s == "zpd":  # work in progress
             groups["quotes"] = True
             groups["spaces"] = True
             groups["roman_digits"] = True
-            groups["ligatures"] = True
+            groups["ligatures-consonantal"] = True
+            groups["ligatures-vocal"] = False
             groups["various"] = True
             groups["punctuation"] = True
             groups["uvius"] = True
@@ -79,29 +85,29 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         r.append(Replacement(old, new, regex))
 
     if groups["various"]:
-        replacement("µ", "μ")    # replace micro unit with greek character
+        replacement("µ", "μ")  # replace micro unit with greek character
         replacement("–", "-")  # variant length hyphens
-        replacement("—", "-")   # variant length hyphens
+        replacement("—", "-")  # variant length hyphens
 
     if groups["quotes"]:
-        replacement('"', "''")   # typewriter double quote
-        replacement("`", "'")    # grave accent
-        replacement('“', "''")   # fancy quotes
-        replacement('”', "''")   # fancy quotes
-        replacement("´", "'")    # acute accent
-        replacement("‘", "'")    # single quotation mark
-        replacement("’", "'")    # single quotation mark
-        replacement("“", "''")   # double quotation mark
-        replacement("”", "''")   # double quotation mark
-        replacement("“", "''")   # German quotes
-        replacement("„", ",,")   # German quotes
+        replacement('"', "''")  # typewriter double quote
+        replacement("`", "'")  # grave accent
+        replacement('“', "''")  # fancy quotes
+        replacement('”', "''")  # fancy quotes
+        replacement("´", "'")  # acute accent
+        replacement("‘", "'")  # single quotation mark
+        replacement("’", "'")  # single quotation mark
+        replacement("“", "''")  # double quotation mark
+        replacement("”", "''")  # double quotation mark
+        replacement("“", "''")  # German quotes
+        replacement("„", ",,")  # German quotes
         replacement("…", "...")  # ellipsis
-        replacement("′", "'")    # prime
-        replacement("″", "''")   # double prime
+        replacement("′", "'")  # prime
+        replacement("″", "''")  # double prime
         replacement("‴", "'''")  # triple prime
         replacement("〃", "''")  # ditto mark
 
-    if groups["ligatures"]:
+    if groups["ligatures-vocal"]:
         # compare https://en.wikipedia.org/wiki/Typographic_ligature#Ligatures_in_Unicode_(Latin_alphabets)
         replacement("Ꜳ", "AA")
         replacement("ꜳ", "aa")
@@ -111,6 +117,14 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("ꜵ", "ao")
         replacement("Ꜷ", "AU")
         replacement("ꜷ", "au")
+        replacement("Œ", "OE")
+        replacement("œ", "oe")
+        replacement("Ꝏ", "OO")
+        replacement("ꝏ", "oo")
+        replacement("ᵫ", "ue")
+
+    if groups["ligatures-consonantal"]:
+        # compare https://en.wikipedia.org/wiki/Typographic_ligature#Ligatures_in_Unicode_(Latin_alphabets)
         replacement("Ꜹ", "AV")
         replacement("ꜹ", "av")
         replacement("Ꜻ", "AV")
@@ -123,54 +137,50 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("ﬄ", "ffl")
         replacement("ﬂ", "fl")
         replacement("ﬁ", "fi")
-        replacement("Œ", "OE")
-        replacement("œ", "oe")
-        replacement("Ꝏ", "OO")
-        replacement("ꝏ", "oo")
         replacement("ẞ", "ſs")
         replacement("ﬆ", "st")
         replacement("ﬅ", "ſt")
         replacement("Ꜩ", "TZ")
         replacement("ꜩ", "tz")
-        replacement("ᵫ", "ue")
         replacement("Ꝡ", "VY")
         replacement("ꝡ", "vy")
 
     if groups["roman_digits"]:
-        replacement("Ⅰ", "I")     # expand unicode roman digits
-        replacement("Ⅱ", "II")   # expand unicode roman digits
-        replacement("Ⅲ", "III")   # expand unicode roman digits
-        replacement("Ⅳ", "IV")   # expand unicode roman digits
-        replacement("Ⅴ", "V")   # expand unicode roman digits
-        replacement("Ⅵ", "VI")   # expand unicode roman digits
-        replacement("Ⅶ", "VII")   # expand unicode roman digits
-        replacement("Ⅷ", "VIII")   # expand unicode roman digits
-        replacement("Ⅸ", "IX")   # expand unicode roman digits
-        replacement("Ⅹ", "X")   # expand unicode roman digits
-        replacement("Ⅺ", "XI")   # expand unicode roman digits
-        replacement("Ⅻ", "XII")   # expand unicode roman digits
-        replacement("Ⅼ", "L")   # expand unicode roman digits
-        replacement("Ⅽ", "C")   # expand unicode roman digits
-        replacement("Ⅾ", "D")   # expand unicode roman digits
-        replacement("Ⅿ", "M")   # expand unicode roman digits
-        replacement("ⅰ", "i")     # expand unicode roman digits
-        replacement("ⅱ", "ii")   # expand unicode roman digits
-        replacement("ⅲ", "iii")   # expand unicode roman digits
-        replacement("ⅳ", "iv")   # expand unicode roman digits
-        replacement("ⅴ", "v")   # expand unicode roman digits
-        replacement("ⅵ", "vi")   # expand unicode roman digits
-        replacement("ⅶ", "vii")   # expand unicode roman digits
-        replacement("ⅷ", "viii")   # expand unicode roman digits
-        replacement("ⅸ", "ix")   # expand unicode roman digits
-        replacement("ⅹ", "x")   # expand unicode roman digits
-        replacement("ⅺ", "xi")   # expand unicode roman digits
-        replacement("ⅻ", "xii")   # expand unicode roman digits
-        replacement("ⅼ", "l")   # expand unicode roman digits
-        replacement("ⅽ", "c")   # expand unicode roman digits
-        replacement("ⅾ", "d")   # expand unicode roman digits
-        replacement("ⅿ", "m")   # expand unicode roman digits
+        replacement("Ⅰ", "I")  # expand unicode roman digits
+        replacement("Ⅱ", "II")  # expand unicode roman digits
+        replacement("Ⅲ", "III")  # expand unicode roman digits
+        replacement("Ⅳ", "IV")  # expand unicode roman digits
+        replacement("Ⅴ", "V")  # expand unicode roman digits
+        replacement("Ⅵ", "VI")  # expand unicode roman digits
+        replacement("Ⅶ", "VII")  # expand unicode roman digits
+        replacement("Ⅷ", "VIII")  # expand unicode roman digits
+        replacement("Ⅸ", "IX")  # expand unicode roman digits
+        replacement("Ⅹ", "X")  # expand unicode roman digits
+        replacement("Ⅺ", "XI")  # expand unicode roman digits
+        replacement("Ⅻ", "XII")  # expand unicode roman digits
+        replacement("Ⅼ", "L")  # expand unicode roman digits
+        replacement("Ⅽ", "C")  # expand unicode roman digits
+        replacement("Ⅾ", "D")  # expand unicode roman digits
+        replacement("Ⅿ", "M")  # expand unicode roman digits
+        replacement("ⅰ", "i")  # expand unicode roman digits
+        replacement("ⅱ", "ii")  # expand unicode roman digits
+        replacement("ⅲ", "iii")  # expand unicode roman digits
+        replacement("ⅳ", "iv")  # expand unicode roman digits
+        replacement("ⅴ", "v")  # expand unicode roman digits
+        replacement("ⅵ", "vi")  # expand unicode roman digits
+        replacement("ⅶ", "vii")  # expand unicode roman digits
+        replacement("ⅷ", "viii")  # expand unicode roman digits
+        replacement("ⅸ", "ix")  # expand unicode roman digits
+        replacement("ⅹ", "x")  # expand unicode roman digits
+        replacement("ⅺ", "xi")  # expand unicode roman digits
+        replacement("ⅻ", "xii")  # expand unicode roman digits
+        replacement("ⅼ", "l")  # expand unicode roman digits
+        replacement("ⅽ", "c")  # expand unicode roman digits
+        replacement("ⅾ", "d")  # expand unicode roman digits
+        replacement("ⅿ", "m")  # expand unicode roman digits
 
-    if groups["uvius"]: # work in progress; based on Uwe Springmann's work for the GT4HistOCR corpus (https://zenodo.org/record/1344132)
+    if groups[
+        "uvius"]:  # work in progress; based on Uwe Springmann's work for the GT4HistOCR corpus (https://zenodo.org/record/1344132)
         replacement("''", "\"")
 
         # replace transcription errors or unwanted symbols:
@@ -207,27 +217,32 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("", "đ")  # PUA E491    	LATIN SMALL LETTER D WITH MEDIUM-HIGH OVERLINE (ACROSS ASCENDER) -> U+0111
         replacement("", "eͣ")  # PUA E4E1 	LATIN SMALL LETTER E WITH LATIN SMALL LETTER A ABOVE -> e + U+0363
         replacement("", "m̃")  # PUA E5B8 	LATIN SMALL LETTER M WITH MEDIUM-HIGH MACRON (ABOVE CHARACTER) -> m + U+0303
-        replacement("", "m̃")  # PUA E5D2 	LATIN SMALL LETTER M WITH MEDIUM-HIGH OVERLINE (ABOVE CHARACTER) -> m + U+0303
+        replacement("",
+                    "m̃")  # PUA E5D2 	LATIN SMALL LETTER M WITH MEDIUM-HIGH OVERLINE (ABOVE CHARACTER) -> m + U+0303
         replacement("", "ñ")  # PUA E5DC 	LATIN SMALL LETTER N WITH MEDIUM-HIGH MACRON (ABOVE CHARACTER) -> ñ
         replacement("", "oͤ")  # PUA E644 	LATIN SMALL LETTER O WITH LATIN SMALL LETTER E ABOVE -> o + U+0364
         replacement("", "p̃")  # PUA E665 	LATIN SMALL LETTER P WITH MACRON -> p + combining tilde
         replacement("", "q̃")  # PUA E681 	LATIN SMALL LETTER Q WITH MACRON -> q + U+0307
-        replacement("", "ꝗ̃")  # PUA E68B 	LATIN SMALL LETTER Q WITH STROKE THROUGH DESCENDER AND TILDE -> U+A757 + U+0303
+        replacement("",
+                    "ꝗ̃")  # PUA E68B 	LATIN SMALL LETTER Q WITH STROKE THROUGH DESCENDER AND TILDE -> U+A757 + U+0303
         replacement("", "t́")  # PUA E6E2 	LATIN SMALL LETTER T WITH ACUTE -> t + U+0301
         replacement("", "uͤ")  # PUA E72B 	LATIN SMALL LETTER U WITH LATIN SMALL LETTER E ABOVE -> u + U+0364
         replacement("", "ů")  # PUA E72D 	LATIN SMALL LETTER U WITH LATIN SMALL LETTER O ABOVE -> U+016F
         replacement("", "v́")  # PUA E73A 	LATIN SMALL LETTER V WITH ACUTE -> v + U0301
         replacement("", "yͤ")  # PUA E781 	LATIN SMALL LETTER Y WITH LATIN SMALL LETTER E ABOVE -> y + U+0364
-        replacement("","ß")  # PUA E8B7 	LATIN SMALL LETTER LONG S WITH FLOURISH -> ß (check; proper replacement in some German printings)
+        replacement("",
+                    "ß")  # PUA E8B7 	LATIN SMALL LETTER LONG S WITH FLOURISH -> ß (check; proper replacement in some German printings)
         replacement("", "ꝟ")  # PUA E8BA 	LATIN SMALL LETTER V WITH SHORT SLASH -> U+A75F
-        replacement("", "q;")  # PUA E8BF 	LATIN SMALL LETTER Q LIGATED WITH FINAL ET -> q; (or qʒ, or que, as you like)
+        replacement("",
+                    "q;")  # PUA E8BF 	LATIN SMALL LETTER Q LIGATED WITH FINAL ET -> q; (or qʒ, or que, as you like)
         replacement("", "ſt")  # PUA EADA 	LATIN SMALL LIGATURE LONG S DESCENDING T -> ſt
         replacement("", "ſi")  # PUA EBA2 	LATIN SMALL LIGATURE LONG S I -> ſi
         replacement("", "ſl")  # PUA EBA3 	LATIN SMALL LIGATURE LONG S L -> ſl
         replacement("", "ſp")  # PUA EBA5 	LATIN SMALL LIGATURE LONG S P -> ſp
         replacement("", "ſſ")  # PUA EBA6 	LATIN SMALL LIGATURE LONG S LONG S -> ſſ
         replacement("", "ſſi")  # PUA EBA7 	LATIN SMALL LIGATURE LONG S LONG S I -> ſſi
-        replacement("","ß")  # PUA EBAC 	LATIN SMALL LIGATURE LONG S INSULAR V -> ß (check for correct meaning; could also be ſ + r rotunda)
+        replacement("",
+                    "ß")  # PUA EBAC 	LATIN SMALL LIGATURE LONG S INSULAR V -> ß (check for correct meaning; could also be ſ + r rotunda)
         replacement("", "j̈")  # PUA EBE3 	LATIN SMALL LETTER J WITH DIAERESIS
         replacement("", "ck")  # PUA EEC4 	LATIN SMALL LIGATURE CK
         replacement("", "ct")  # PUA EEC5 	LATIN SMALL LIGATURE CT
@@ -236,7 +251,7 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("", "ꝓp")  # PUA EED7 	LATIN SMALL LIGATURE PP WITH FLOURISH -> U+A753 + p
         replacement("", "tz")  # PUA EEDC 	LATIN SMALL LIGATURE TZ -> tz
         replacement("", "æ")  # PUA EFA1 	LATIN SMALL LIGATURE NECKLESS A E
-#        replacement("/̃")  # PUA F00A	COMBINING HIGH MACRON WITH FIXED HEIGHT (PART-WIDTH) -> U+0303
+        # replacement("/̃")  # PUA F00A	COMBINING HIGH MACRON WITH FIXED HEIGHT (PART-WIDTH) -> U+0303
         replacement("q", "qͥ")  # PUA F02F 	COMBINING LATIN SMALL LETTER DOTLESS I -> small letter i above (U+0365)
         replacement("", "⁊")  # PUA F158 	LATIN ABBREVIATION SIGN SMALL ET WITH STROKE -> U+204A, Tironian et
         replacement("", "ð")  # PUA F159 	LATIN ABBREVIATION SIGN SMALL DE -> eth, U+00F0
@@ -264,8 +279,10 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("", "q̃;")  # PUA F509 	(Latin small letter q ligated with final et with overline) -> q+ U+0303 + ;
         replacement("", "d\'")  # PUA F50A 	(Latin small letter d with apostrophe)
         replacement("", "l\'")  # PUA F50B 	(Latin small letter l with apostrophe)
-        replacement("","q́;")  # PUA F50C 	(Latin small letter q with acute accent above and semicolon on the right) -> q + U+0301 + ;
-        replacement("", "q́;")  # PUA F50D 	(Latin small letter q ligated with final et and acute accent) -> q + U+0301 + ;
+        replacement("",
+                    "q́;")  # PUA F50C 	(Latin small letter q with acute accent above and semicolon on the right) -> q + U+0301 + ;
+        replacement("",
+                    "q́;")  # PUA F50D 	(Latin small letter q ligated with final et and acute accent) -> q + U+0301 + ;
         replacement("", "q́")  # PUA F50E 	(Latin small letter q with acute accent) -> q + U+0301
         replacement("", "q̃")  # PUA F50F 	(Latin small letter q with tilde) -> q + U+0303
         replacement("", "r̃")  # PUA F510 	(Latin small letter r with macron above) -> r + U+0303
@@ -278,7 +295,8 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("", "c̃")  # PUA F517 	(Latin small letter c with tilde) -> c + U+0303
         replacement("", "r̃")  # PUA F518 	(Latin small letter r with tilde) -> r + U+0303
         replacement("", "m̃")  # PUA F519 	(Latin small letter m with tilde) -> m + U+0303
-        replacement("", "ꝙᷓ")  # PUA F51A 	(Latin small letter q with diagonal stroke and diaeresis) -> U+A759 + U+1DD3 (flattened a above)
+        replacement("",
+                    "ꝙᷓ")  # PUA F51A 	(Latin small letter q with diagonal stroke and diaeresis) -> U+A759 + U+1DD3 (flattened a above)
         replacement("", "ð")  # PUA F51B 	(Abbreviation sign "der") -> U+00F0 (eth)
         replacement("", "zᷣ")  # PUA F51D 	(Latin small letter z with hook above) -> z + U+1DE3 (combining r rotunda)
         replacement("", "ſł")  # PUA F51E 	(Latin small ligature long s l with stroke) -> ſ + ł (U+0142; ALT-GR l)
@@ -294,7 +312,8 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("", "yͭ")  # PUA F52B 	(Latin small letter y with latin small letter t above) -> t + U+036D
         replacement("", "sp")  # PUA F52C 	(Latin small ligature sp)
         replacement("", "℔")  # PUA F52D 	(Old English libra) -> U+2114
-        replacement("", "qᷓ;")  # PUA F52F 	(Latin small letter q ligated with final et with diaeresis) -> q + U+1DD3 + ;
+        replacement("",
+                    "qᷓ;")  # PUA F52F 	(Latin small letter q ligated with final et with diaeresis) -> q + U+1DD3 + ;
         replacement("", "sᷓ")  # PUA F530 	(Latin small letter s with diaeresis) -> s + U+1DD3
         replacement("", "Ca")  # PUA F531 	(Latin ligature capital C with small a)
         replacement("", "as")  # PUA F532 	(Latin small ligature as)
@@ -316,13 +335,14 @@ def default_text_regularizer_replacements(groups=["simple"]) -> List[Replacement
         replacement("r̄", "r̃")
 
     if groups["punctuation"]:
-        replacement(r"(\S)(\s*)([.,:;?!\/⸗])(\s*)(\S)", r"\1\3 \5", True)  # add spaces after punctuation
+        replacement(r"(\S)(\s*)([.,:;?!])(\s*)(\S)", r"\1\3 \5",
+                    True)  # remove spaces before punctuation and add one after
 
     if groups["spaces"]:
-        replacement(r"(?u)\s+", ' ', True)   # Multiple spaces to one
-        replacement(r"(?u)\n", '', True)     # Remove line breaks
-        replacement(r"(?u)^\s+", '', True)   # strip left
-        replacement(r"(?u)\s+$", '', True)   # strip right0
+        replacement(r"(?u)\s+", ' ', True)  # Multiple spaces to one
+        replacement(r"(?u)\n", '', True)  # Remove line breaks
+        replacement(r"(?u)^\s+", '', True)  # strip left
+        replacement(r"(?u)\s+$", '', True)  # strip right
 
     return r
 
@@ -348,5 +368,5 @@ class TextRegularizer(TextProcessor):
 
 if __name__ == "__main__":
     n = TextRegularizer(default_text_regularizer_replacements(groups=["quotes", "spaces"]))
-    assert(n.apply(["“Resolve quotes”"]) == ["''Resolve quotes''"])
-    assert(n.apply(["  “Resolve   spaces  ”   "]) == ["''Resolve spaces ''"])
+    assert (n.apply(["“Resolve quotes”"]) == ["''Resolve quotes''"])
+    assert (n.apply(["  “Resolve   spaces  ”   "]) == ["''Resolve spaces ''"])
