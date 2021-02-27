@@ -1,34 +1,29 @@
-from argparse import ArgumentParser
 import logging
 
+import numpy as np
+from paiargparse import PAIArgumentParser
 from tfaip.base.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.utils import glob_all
-
-import numpy as np
-
+from calamari_ocr.ocr.dataset.datareader.extended_prediction import ExtendedPredictionDataParams
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def main():
-    parser = ArgumentParser()
-    parser.add_argument("--pred", nargs="+", required=True,
-                        help="Extended prediction files (.json extension)")
+def parse_args(args=None) -> ExtendedPredictionDataParams:
+    parser = PAIArgumentParser()
+    parser.add_root_argument('data', ExtendedPredictionDataParams)
+    return parser.parse_args(args=args).data
 
-    args = parser.parse_args()
 
+def run(data: ExtendedPredictionDataParams):
     logger.info("Resolving files")
-    pred_files = sorted(glob_all(args.pred))
+    logger.info('Average confidence: {:.2%}'.format(
+        np.mean([s['best_prediction'].avg_char_probability for s in data.create(PipelineMode.Evaluation).samples()])))
 
-    reader = DataReaderFactory.create_data_reader(
-        DataSetType.EXTENDED_PREDICTION,
-        PipelineMode.Evaluation,
-        texts=pred_files
-    )
 
-    logger.info('Average confidence: {:.2%}'.format(np.mean([s['best_prediction'].avg_char_probability for s in reader.samples()])))
+def main():
+    run(parse_args())
 
 
 if __name__ == '__main__':

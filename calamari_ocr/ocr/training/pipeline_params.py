@@ -25,7 +25,7 @@ class CalamariDefaultTrainerPipelineParams(TrainerPipelineParams[CalamariDataGen
                                              metadata=pai_meta(choices=DATA_GENERATOR_CHOICES, mode='flat'))
 
 
-@pai_dataclass
+@pai_dataclass(alt="TrainOnly")
 @dataclass
 class CalamariTrainOnlyPipelineParams(
     TrainerPipelineParamsBase[CalamariDataGeneratorParams, CalamariDataGeneratorParams]):
@@ -39,7 +39,7 @@ class CalamariTrainOnlyPipelineParams(
                                                metadata=pai_meta(choices=DATA_GENERATOR_CHOICES, mode='flat'))
 
 
-@pai_dataclass
+@pai_dataclass(alt="SplitTrain")
 @dataclass
 class CalamariSplitTrainerPipelineParams(TrainerPipelineParams[CalamariDataGeneratorParams,
                                                                CalamariDataGeneratorParams]):

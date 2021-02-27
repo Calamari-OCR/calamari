@@ -107,60 +107,28 @@ test-train-ensemble:
     - set -e
     - python -m unittest calamari_ocr.test.test_train_ensemble
 
-
-# prediction and evaluation
-
-test-cpu-predict-and-eval-with-voting:
+test-prediction:
   stage: test
   script:
     - set -e
-    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json
+    - python -m unittest calamari_ocr.test.test_prediction
+
+test-predict-and-eval:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_predict_and_eval
+
+test-eval:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_eval
+
+test-scripts:
+  stage: test
+  script:
+    - set -e
+    - calamari-train --train.images calamari_ocr/test/data/uw3_50lines/train/*.bin.png --trainer.epochs 1 --trainer.samples_per_epoch 16 --trainer.output_dir tmp_output --n_augmentations 2 --trainer.gen SplitTrain --network=cnn=40:3x3,pool=2x2,cnn=60:3x3,pool=2x2,lstm=200,dropout=0.5
+    - calamari-predict --data.images calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint tmp_output/best.ckpt.json
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt --skip_empty_gt
-    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json --batch_size 5
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt --n_worst_lines 10 --xlsx_output text.xlsx
-
-
-# extended prediction data and average prediction confidence computation
-
-test-cpu-predict-and-eval-with-voting-extended-prediction-data-avg-conf:
-  stage: test
-  script:
-    - set -e
-    - calamari-predict --extended_prediction_data --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
-    - python calamari_ocr/scripts/compute_average_prediction_confidence.py --pred calamari_ocr/test/data/uw3_50lines/test/*.json
-    - calamari-predict --extended_prediction_data --files calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint calamari_models/antiqua_modern/*.ckpt.json
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
-    - python calamari_ocr/scripts/compute_average_prediction_confidence.py --pred calamari_ocr/test/data/uw3_50lines/test/*.json
-
-
-# PAGE-XML
-
-test-cpu-predict-and-eval-page-xml:
-  stage: test
-  script:
-    - set -e
-    - calamari-predict --files calamari_ocr/test/data/avicanon_pagexml/009.nrm.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset PAGEXML
-    - calamari-eval --gt calamari_ocr/test/data/avicanon_pagexml/009.xml --dataset PAGEXML --pred_ext .pred.xml
-    - calamari-predict --files calamari_ocr/test/data/avicanon_pagexml/009.nrm.png --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset PAGEXML --dataset_pad 3 3
-
-
-# HDF5
-
-test-cpu-predict-and-eval-hdf5:
-  stage: test
-  script:
-    - set -e
-    - calamari-predict --files calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5 --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset HDF5
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5 --dataset HDF5 --pred_ext .pred.h5 --n_worst_lines 100
-
-
-# ABBYY-XML
-
-test-cpu-predict-and-eval-abbyy-xml:
-  stage: test
-  script:
-    - set -e
-    - calamari-predict --files calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.jpg --checkpoint calamari_models/antiqua_modern/0.ckpt.json --dataset ABBYY
-    - calamari-eval --gt calamari_ocr/test/data/hiltl_die_bank_des_verderbens_abbyyxml/*.abbyy.xml --dataset ABBYY --pred_ext .pred.abbyy.xml

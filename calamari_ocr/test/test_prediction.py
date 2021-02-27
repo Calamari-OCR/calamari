@@ -6,10 +6,12 @@ from tensorflow import keras
 
 from calamari_ocr.ocr.dataset.datareader.abbyy.reader import Abbyy
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
+from calamari_ocr.ocr.dataset.datareader.extended_prediction import ExtendedPredictionDataParams
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
 from calamari_ocr.ocr.dataset.datareader.pagexml.reader import PageXML
 from calamari_ocr.ocr.predict.predictor import Predictor, PredictorParams, MultiPredictor
+from calamari_ocr.scripts.compute_average_prediction_confidence import run as run_compute_avg_pred
 from calamari_ocr.scripts.predict import run, PredictArgs
 from calamari_ocr.utils import glob_all
 from calamari_ocr.utils.image import load_image
@@ -60,6 +62,13 @@ class TestValidationTrain(unittest.TestCase):
 
     def test_prediction_files(self):
         run(predict_args())
+
+    def test_prediction_extended(self):
+        args = predict_args()
+        args.extended_prediction_data = True
+        run(args)
+        jsons = [os.path.join(this_dir, "data", "uw3_50lines", "test", "*.json")]
+        run_compute_avg_pred(ExtendedPredictionDataParams(files=jsons))
 
     def test_prediction_voter_files(self):
         run(predict_args(n_models=3))

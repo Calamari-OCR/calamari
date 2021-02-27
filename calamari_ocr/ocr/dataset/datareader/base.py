@@ -70,7 +70,7 @@ class CalamariDataGeneratorParams(DataGeneratorParams, ABC):
     def prepare_for_mode(self, mode: PipelineMode) -> DataGeneratorParams:
         pass
 
-    def create(self, mode: PipelineMode) -> 'DataGenerator':
+    def create(self, mode: PipelineMode) -> 'CalamariDataGenerator':
         params = deepcopy(self)  # always copy of params
         params.prepare_for_mode(mode)
         gen: CalamariDataGenerator = self.cls()(mode, params)

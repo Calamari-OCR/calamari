@@ -1,4 +1,5 @@
 import os
+import tempfile
 import unittest
 
 from tensorflow import keras
@@ -40,6 +41,12 @@ class TestValidationTrain(unittest.TestCase):
         run_eval(eval_args(gt_data=FileDataParams(
             texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.gt.txt")]))
         )))
+        args = eval_args(gt_data=FileDataParams(
+            texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.gt.txt")]))
+        ))
+        with tempfile.NamedTemporaryFile() as f:
+            args.xlsx_output = f.name
+            run_eval(args)
 
     def test_prediction_files_with_different_extension(self):
         run_predict(predict_args(data=FileDataParams(

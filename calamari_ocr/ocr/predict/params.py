@@ -79,7 +79,7 @@ class PredictionResult:
         self.codec = codec
         self.text_postproc = text_postproc
         self.chars = codec.decode(prediction.labels)
-        self.sentence = self.text_postproc.apply(Sample(inputs='', outputs="".join(self.chars))).outputs
+        self.sentence = self.text_postproc.apply_on_sample(Sample(inputs='', outputs="".join(self.chars))).outputs
         self.prediction.sentence = self.sentence
         self.out_to_in_trans = out_to_in_trans
         self.ground_truth = ground_truth

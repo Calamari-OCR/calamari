@@ -153,6 +153,14 @@ class Trainer(AIPTrainer):
                 ).to_mode(PipelineMode.Evaluation)
             else:
                 data._pipelines[PipelineMode.Evaluation] = train_pipeline.to_mode(PipelineMode.Evaluation)
+        else:
+            if val_pipeline is None:
+                raise ValueError("No validation data provided."
+                                 "Set 'trainer.gen TrainOnly' to pass only training data."
+                                 "Validation will be performed on the training data in this case."
+                                 "Alternatively, set 'trainer.gen SplitTrain' and to use by "
+                                 "default 20% of the training data for validation")
+
 
         if self._params.current_stage == 0:
             super(Trainer, self).train(

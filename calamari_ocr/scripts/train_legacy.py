@@ -25,7 +25,7 @@ from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import de
 from calamari_ocr.ocr.dataset.textprocessors import TextNormalizerProcessorParams, TextRegularizerProcessorParams, StripTextProcessor, \
     BidiTextProcessor
 from calamari_ocr.ocr.dataset.textprocessors.text_regularizer import default_text_regularizer_replacements
-from calamari_ocr.ocr.training.params import params_from_definition_string, TrainerParams
+from calamari_ocr.ocr.training.params import graph_params_from_definition_string, TrainerParams
 from calamari_ocr.utils import glob_all
 from calamari_ocr.ocr.dataset import DataSetType
 
@@ -395,7 +395,7 @@ def run(args):
 
     # =================================================================================================================
     # Model params
-    params_from_definition_string(args.network, params)
+    graph_params_from_definition_string(args.network, params)
     params.scenario_params.model_params.ensemble = args.ensemble
     params.scenario_params.model_params.masking_mode = args.masking_mode
 

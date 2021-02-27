@@ -16,10 +16,10 @@ setup(
     download_url='https://github.com/Calamari-OCR/calamari/archive/v{}.tar.gz'.format(__version__),
     entry_points={
         'console_scripts': [
-            'calamari-eval=calamari_ocr.scripts.eval:main',
+            'calamari-eval=calamari_ocr.scripts.eval:run',
             'calamari-predict=calamari_ocr.scripts.predict:main',
             'calamari-resume-training=calamari_ocr.scripts.resume_training:main',
-            'calamari-train=calamari_ocr.scripts.train:main',
+            'calamari-train=calamari_ocr.scripts.train:run',
             'calamari-cross-fold-train=calamari_ocr.scripts.cross_fold_train:main',
             'calamari-predict-and-eval=calamari_ocr.scripts.predict_and_eval:main',
             'calamari-tensorflow-rename-variables=calamari_ocr.scripts.tensorflow_rename_variables:main',

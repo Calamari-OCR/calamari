@@ -1,23 +1,41 @@
-import zlib
-
-from tfaip.base.data.pipeline.definitions import PipelineMode
-
-from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator
-from calamari_ocr.ocr.predict.params import Predictions
-from calamari_ocr.utils import split_all_ext
-
 import codecs
-from typing import List
+import zlib
+from dataclasses import dataclass, field
+from typing import List, Type
+
+from paiargparse import pai_dataclass
+
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams
+from calamari_ocr.ocr.predict.params import Predictions
+from calamari_ocr.utils import split_all_ext, glob_all
 
 
-class ExtendedPredictionDataSet(CalamariDataGenerator):
-    def __init__(self, texts: List[str] = None):
-        super().__init__(PipelineMode.Evaluation)
+@pai_dataclass
+@dataclass
+class ExtendedPredictionDataParams(CalamariDataGeneratorParams):
+    files: List[str] = field(default_factory=list)
 
-        if texts is None:
-            texts = []
+    def __len__(self):
+        return len(self.files)
 
-        for text in texts:
+    def to_prediction(self):
+        raise NotImplementedError
+
+    def select(self, indices: List[int]):
+        raise NotImplementedError
+
+    @staticmethod
+    def cls() -> Type['CalamariDataGenerator']:
+        return ExtendedPredictionDataSet
+
+    def __post_init__(self):
+        self.files = sorted(glob_all(self.files))
+
+
+class ExtendedPredictionDataSet(CalamariDataGenerator[ExtendedPredictionDataParams]):
+    def __init__(self, mode, params: ExtendedPredictionDataParams):
+        super().__init__(mode, params)
+        for text in params.files:
             text_bn, text_ext = split_all_ext(text)
             sample = {
                 "image_path": None,
@@ -26,6 +44,9 @@ class ExtendedPredictionDataSet(CalamariDataGenerator):
             }
             self._load_sample(sample, False)
             self.add_sample(sample)
+
+    def store_text_prediction(self, sentence, sample_id, output_dir):
+        raise NotImplementedError
 
     def _load_sample(self, sample, text_only):
         gt_txt_path = sample['pred_path']

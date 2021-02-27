@@ -11,6 +11,7 @@ from tfaip.base.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
+from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.evaluator import EvaluatorParams
 from calamari_ocr.utils import glob_all, split_all_ext
 
@@ -126,7 +127,7 @@ def write_xlsx(xlsx_file, eval_datas):
 @pai_dataclass
 @dataclass
 class EvalArgs:
-    gt: CalamariDataGeneratorParams = field(metadata=pai_meta(
+    gt: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
         help="GT", mode='flat'))
     pred: Optional[CalamariDataGeneratorParams] = field(default=None, metadata=pai_meta(
         help='Optional prediction dataset', mode='flat'))
@@ -158,7 +159,7 @@ def run():
 def parse_args(args=None):
     parser = PAIArgumentParser()
     parser.add_root_argument('root', EvalArgs, ignore=['gt.images', 'pred.images'])
-    return parser.parse_args(args=args).args
+    return parser.parse_args(args=args).root
 
 
 def main(args: EvalArgs):
@@ -191,14 +192,15 @@ def main(args: EvalArgs):
     # sort descending
     print_confusions(r, args.n_confusions)
 
-    print_worst_lines(r, data.create_pipeline(evaluator.params.setup, args.gt).reader().samples(), args.n_worst_lines)
+    samples = data.create_pipeline(evaluator.params.setup, args.gt).reader().samples()
+    print_worst_lines(r, samples, args.n_worst_lines)
 
     if args.xlsx_output:
         write_xlsx(args.xlsx_output,
                    [{
                        "prefix": "evaluation",
                        "results": r,
-                       "gt_files": args.gt,
+                       "gt_files": [s['id'] for s in samples],
                    }])
 
 

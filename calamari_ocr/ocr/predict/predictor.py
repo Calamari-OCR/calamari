@@ -64,7 +64,7 @@ class MultiPredictor(tfaip_cls.MultiModelPredictor):
     def create_voter(self, data_params: 'DataParams') -> MultiModelVoter:
         # Cut non text processors (first two)
         pipeline = self.data.create_pipeline(self.params.pipeline, None)
-        post_proc_params = [SequentialProcessorPipelineParams(run_parallel=data_params.pre_proc.run_parallel, processors=data.params.post_proc.processors[2:]) for data in self.datas]
+        post_proc_params = [SequentialProcessorPipelineParams(run_parallel=False, processors=data.params.post_proc.processors[2:]) for data in self.datas]
         post_proc = [p.create(pipeline) for p in post_proc_params]
         pre_proc = self.data.params.pre_proc.create(pipeline)
         out_to_in_transformer = OutputToInputTransformer(pre_proc)
