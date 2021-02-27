@@ -56,7 +56,7 @@ class TestTrainFile(unittest.TestCase):
     def test_simple_train(self):
         trainer_params = uw3_trainer_params(with_validation=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_train_without_center_normalizer(self):
@@ -65,19 +65,19 @@ class TestTrainFile(unittest.TestCase):
                                                           ScaleToHeightProcessorParams())
         trainer_params.scenario.data.__post_init__()
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_train_with_val(self):
         trainer_params = uw3_trainer_params(with_validation=True)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_train_split(self):
         trainer_params = uw3_trainer_params(with_split=True)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
 
@@ -88,7 +88,7 @@ class TestTrainFileNoPreload(unittest.TestCase):
     def test_simple_train(self):
         trainer_params = uw3_trainer_params(with_validation=False, preload=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_train_without_center_normalizer(self):
@@ -97,19 +97,19 @@ class TestTrainFileNoPreload(unittest.TestCase):
                                                           ScaleToHeightProcessorParams(modes=INPUT_PROCESSOR))
         trainer_params.scenario.data.__post_init__()
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_train_with_val(self):
         trainer_params = uw3_trainer_params(with_validation=True, preload=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_train_split(self):
         trainer_params = uw3_trainer_params(with_split=True, preload=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
 

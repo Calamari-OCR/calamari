@@ -23,18 +23,18 @@ class TestPretrained(unittest.TestCase):
     def test_pretraining_with_codec_adaption_no_preload(self):
         trainer_params = default_trainer_params(preload=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_pretraining_with_codec_adaption(self):
         trainer_params = default_trainer_params()
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_pretraining_without_codec_adaption(self):
         trainer_params = default_trainer_params()
         trainer_params.codec.keep_loaded = True
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)

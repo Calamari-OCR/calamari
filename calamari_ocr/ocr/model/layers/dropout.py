@@ -24,7 +24,7 @@ class DropoutLayerParams(LayerParams):
 class DropoutLayer(Layer[DropoutLayerParams]):
     def __init__(self, *args, **kwargs):
         super(DropoutLayer, self).__init__(*args, **kwargs)
-        self.dropout = keras.layers.Dropout(self.params.rate)
+        self.dropout = keras.layers.Dropout(rate=self.params.rate)
 
     def input_dims(self) -> int:
         return -1  # arbitrary

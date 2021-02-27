@@ -53,13 +53,13 @@ class TestHDF5Train(unittest.TestCase):
     def test_simple_train(self):
         trainer_params = default_trainer_params(with_validation=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_train_with_val(self):
         trainer_params = default_trainer_params(with_validation=True)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
 
@@ -70,13 +70,13 @@ class TestHDF5TrainNoPreload(unittest.TestCase):
     def test_simple_train(self):
         trainer_params = default_trainer_params(with_validation=False, preload=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_train_with_val(self):
         trainer_params = default_trainer_params(with_validation=True, preload=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
 

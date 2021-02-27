@@ -18,7 +18,7 @@ def default_layers():
         Conv2DLayerParams(filters=60),
         MaxPool2DLayerParams(),
         BiLSTMLayerParams(),
-        DropoutLayerParams(0.5),
+        DropoutLayerParams(rate=0.5),
     ]
 
 

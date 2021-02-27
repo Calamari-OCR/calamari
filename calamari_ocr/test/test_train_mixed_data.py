@@ -43,5 +43,5 @@ class TestTrainMixedData(unittest.TestCase):
     def test_train_abbyy_test_page(self):
         trainer_params = default_trainer_params()
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)

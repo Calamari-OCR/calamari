@@ -18,7 +18,7 @@ class TestTrainFile(unittest.TestCase):
     def test_simple_train(self):
         trainer_params = uw3_trainer_params()
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             train.main(trainer_params)
             keras.backend.clear_session()
             resume_training.main([os.path.join(d, 'checkpoint', 'checkpoint_0001')])

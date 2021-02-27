@@ -42,13 +42,13 @@ class TestTrainFile(unittest.TestCase):
     def test_simple_train_preload(self):
         trainer_params = setup_trainer_params(preload=True)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_simple_train_no_preload(self):
         trainer_params = setup_trainer_params(preload=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
 

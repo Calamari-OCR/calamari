@@ -13,8 +13,8 @@ def run():
 
 
 def main(trainer_params: TrainerParams):
-    if trainer_params.checkpoint_dir:
-        setup_log(trainer_params.checkpoint_dir, append=False)
+    if trainer_params.output_dir:
+        setup_log(trainer_params.output_dir, append=False)
 
     logger.info("trainer_params=" + trainer_params.to_json(indent=2))
 

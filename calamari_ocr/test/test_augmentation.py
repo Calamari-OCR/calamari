@@ -25,19 +25,19 @@ class TestAugmentation(unittest.TestCase):
     def test_augmentation_train(self):
         trainer_params = default_trainer_params(with_validation=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_augmentation_train_val(self):
         trainer_params = default_trainer_params(with_validation=True)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_augmentation_train_val_split(self):
         trainer_params = default_trainer_params(with_split=True)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
 
@@ -48,17 +48,17 @@ class TestAugmentationNoPreload(unittest.TestCase):
     def test_augmentation_train(self):
         trainer_params = default_trainer_params(preload=False)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_augmentation_train_val(self):
         trainer_params = default_trainer_params(preload=False, with_validation=True)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_augmentation_train_val_split(self):
         trainer_params = default_trainer_params(preload=False, with_split=True)
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)

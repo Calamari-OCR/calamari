@@ -366,7 +366,7 @@ def run(args):
     params.skip_load_model_test = True
     params.scenario_params.export_frozen = False
     params.checkpoint_save_freq_ = args.checkpoint_frequency if args.checkpoint_frequency >= 0 else args.early_stopping_frequency
-    params.checkpoint_dir = args.output_dir
+    params.output_dir = args.output_dir
     params.test_every_n = args.display
     params.skip_invalid_gt = not args.no_skip_invalid_gt
     params.data_aug_retrain_on_original = not args.only_train_on_augmented

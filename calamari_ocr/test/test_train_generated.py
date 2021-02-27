@@ -53,5 +53,5 @@ class TestTrainGenerated(unittest.TestCase):
     def test_train(self):
         trainer_params = default_trainer_params()
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)

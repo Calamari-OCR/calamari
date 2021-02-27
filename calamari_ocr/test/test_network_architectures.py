@@ -23,7 +23,7 @@ class TestNetworkArchitectures(unittest.TestCase):
         trainer_params = uw3_trainer_params()
         trainer_params.scenario.model.layers = default_layers()
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_pure_lstm_architecture(self):
@@ -33,7 +33,7 @@ class TestNetworkArchitectures(unittest.TestCase):
             BiLSTMLayerParams(hidden_nodes=20),
         ]
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_pure_cnn_architecture(self):
@@ -45,7 +45,7 @@ class TestNetworkArchitectures(unittest.TestCase):
             Conv2DLayerParams(filters=30),
         ]
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_dilated_block_architecture(self):
@@ -58,7 +58,7 @@ class TestNetworkArchitectures(unittest.TestCase):
             Conv2DLayerParams(filters=10),
         ]
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_transposed_conv_architecture(self):
@@ -72,7 +72,7 @@ class TestNetworkArchitectures(unittest.TestCase):
             BiLSTMLayerParams(hidden_nodes=10),
         ]
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 
     def test_concat_cnn_architecture(self):
@@ -87,6 +87,6 @@ class TestNetworkArchitectures(unittest.TestCase):
             BiLSTMLayerParams(hidden_nodes=10),
         ]
         with tempfile.TemporaryDirectory() as d:
-            trainer_params.checkpoint_dir = d
+            trainer_params.output_dir = d
             main(trainer_params)
 

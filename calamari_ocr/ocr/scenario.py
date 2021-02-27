@@ -41,7 +41,7 @@ class CalamariScenarioBase(ScenarioBase[Data, TModel, TScenarioParams, CalamariD
         trainer_params.early_stopping.frequency = 1
         trainer_params.early_stopping.n_to_go = 5
         trainer_params.skip_model_load_test = True
-        trainer_params.optimizer.clip_grad = 5
+        trainer_params.optimizer.global_clip_norm = 5
         trainer_params.learning_rate = Constant()
         return trainer_params
 

@@ -53,6 +53,9 @@ class GeneratedLineDatasetParams(CalamariDataGeneratorParams):
     def select(self, indices: List[int]):
         pass
 
+    def to_prediction(self):
+        raise NotImplementedError
+
     @staticmethod
     def cls() -> Type['DataGenerator']:
         from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.dataset import GeneratedLineDataset
