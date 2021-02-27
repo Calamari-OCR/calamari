@@ -151,11 +151,11 @@ def make_multiscale_noise_uniform(shape, srange=(1.0, 100.0), nscales=4, span=(0
 
 def random_blobs(shape, blobdensity, size, roughness=2.0):
     h, w = shape[:2]
-    numblobs = int(blobdensity * w * h)
-    mask = np.zeros((h, w), 'i')
+    numblobs = max(1, int(blobdensity * w * h))  # Prevent being 0
+    mask = np.zeros((h, w), np.uint8)
     for i in range(numblobs):
         mask[randint(0, h-1), randint(0, w-1)] = 1
-    dt = cv.distanceTransform(1-mask.astype(np.uint8), cv.DIST_L2, 3)
+    dt = cv.distanceTransform(1 - mask, cv.DIST_L2, 3)
     mask = np.array(dt < size, 'f')
     mask = cv.GaussianBlur(mask, (0, 0), sigmaX=size/(2*roughness), borderType=cv.BORDER_REFLECT)
     mask -= np.amin(mask)
