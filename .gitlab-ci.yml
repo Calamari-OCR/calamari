@@ -129,6 +129,12 @@ test-scripts:
   stage: test
   script:
     - set -e
+    - python -m unittest calamari_ocr.test.test_scripts
+
+test-command-line:
+  stage: test
+  script:
+    - set -e
     - calamari-train --train.images calamari_ocr/test/data/uw3_50lines/train/*.bin.png --trainer.epochs 1 --trainer.samples_per_epoch 16 --trainer.output_dir tmp_output --n_augmentations 2 --trainer.gen SplitTrain --network=cnn=40:3x3,pool=2x2,cnn=60:3x3,pool=2x2,lstm=200,dropout=0.5
     - calamari-predict --data.images calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint tmp_output/best.ckpt.json
     - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt

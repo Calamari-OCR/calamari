@@ -1,16 +1,35 @@
-import matplotlib.pyplot as plt
+from dataclasses import field, dataclass
 
-from paiargparse import PAIArgumentParser
-
+import tfaip.util.logging as logging
+from paiargparse import PAIArgumentParser, pai_meta, pai_dataclass
+from tfaip.base import PipelineMode
+from tfaip.base.data.databaseparams import DataPipelineParams
 
 from calamari_ocr import __version__
 from calamari_ocr.ocr.dataset.data import Data
-from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator
-from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessorParams
-from calamari_ocr.ocr.dataset.params import DataParams
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
+from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
+from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessorParams, AugmentationProcessorParams
+from calamari_ocr.ocr.dataset.params import DataParams, DATA_GENERATOR_CHOICES
+
+logger = logging.logger(__name__)
 
 
-def main():
+@pai_dataclass
+@dataclass
+class DataWrapper:
+    data: DataParams = field(default_factory=Data.default_params, metadata=pai_meta(
+        fix_dc=True, mode='flat'
+    ))
+    gen: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
+        mode='flat', choices=DATA_GENERATOR_CHOICES,
+    ))
+    pipeline: DataPipelineParams = field(default_factory=DataPipelineParams, metadata=pai_meta(
+        mode='flat', fix_dc=True
+    ))
+
+
+def main(args=None):
     parser = PAIArgumentParser()
     parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
 
@@ -20,31 +39,41 @@ def main():
 
     parser.add_argument("--preload", action='store_true', help='Simulate preloading')
     parser.add_argument("--as_validation", action='store_true', help="Access as validation instead of training data.")
+    parser.add_argument("--n_augmentations", type=float, default=0)
+    parser.add_argument("--no_plot", action='store_true', help='This parameter is for testing only')
 
-    parser.add_root_argument("data", DataParams, Data.get_default_params())
-    args = parser.parse_args()
+    parser.add_root_argument("data", DataWrapper)
+    args = parser.parse_args(args=args)
 
-    data_params: DataParams = args.data
-    data_params.pre_proc.processors = list(p for p in data_params.pre_proc.processors if not isinstance(p, PrepareSampleProcessorParams))  # NO PREPARE SAMPLE
+    data_wrapper: DataWrapper = args.data
+    data_params = data_wrapper.data
+    data_params.pre_proc.run_parallel = False
+    data_params.pre_proc.erase_all(PrepareSampleProcessorParams)
+    for p in data_params.pre_proc.processors_of_type(AugmentationProcessorParams):
+        p.n_augmentations = args.n_augmentations
     data_params.__post_init__()
+    data_wrapper.pipeline.mode = PipelineMode.Evaluation if args.as_validation else PipelineMode.Training
+    data_wrapper.gen.prepare_for_mode(data_wrapper.pipeline.mode)
 
     data = Data(data_params)
-    data_pipeline = data.val_data() if args.as_validation else data.train_data()
-    if not args.preload:
-        reader: CalamariDataGenerator = data_pipeline.reader()
-        if len(args.select) == 0:
-            args.select = range(len(reader))
-        else:
-            reader._samples = [reader.samples()[i] for i in args.select]
+    if len(args.select) == 0:
+        args.select = list(range(len(data_wrapper.gen)))
     else:
-        data.preload()
-        data_pipeline = data.val_data() if args.as_validation else data.train_data()
-        samples = data_pipeline.samples
-        if len(args.select) == 0:
-            args.select = range(len(samples))
-        else:
-            data_pipeline.samples = [samples[i] for i in args.select]
+        try:
+            data_wrapper.gen.select(args.select)
+        except NotImplementedError:
+            logger.warning(f"Selecting is not supported for a data generator of type {type(data_wrapper.gen)}. "
+                           f"Resuming without selection.")
+    data_pipeline = data.create_pipeline(data_wrapper.pipeline, data_wrapper.gen)
+    if args.preload:
+        data_pipeline = data_pipeline.as_preloaded()
 
+    if args.no_plot:
+        with data_pipeline as dataset:
+            list(zip(args.select, dataset.generate_input_samples(auto_repeat=False)))
+        return
+
+    import matplotlib.pyplot as plt
     f, ax = plt.subplots(args.n_rows, args.n_cols, sharey='all')
     row, col = 0, 0
     with data_pipeline as dataset:

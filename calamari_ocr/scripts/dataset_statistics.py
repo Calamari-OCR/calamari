@@ -1,41 +1,45 @@
-import argparse
 import logging
+from dataclasses import dataclass, field
 
 import numpy as np
-from calamari_ocr.ocr.dataset import DataSetType
+from paiargparse import PAIArgumentParser, pai_dataclass, pai_meta
 from tfaip.base.data.pipeline.definitions import PipelineMode
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
 
-from calamari_ocr.ocr.dataset.datareader.factory import DataReaderFactory
-from calamari_ocr.utils import glob_all, split_all_ext
+from calamari_ocr import __version__
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
+from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
+from calamari_ocr.ocr.dataset.params import DATA_GENERATOR_CHOICES
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--files", nargs="+", required=True,
-                        help="List of all image files with corresponding gt.txt files")
-    parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
+@pai_dataclass
+@dataclass
+class Args:
+    data: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
+        choices=DATA_GENERATOR_CHOICES, mode='flat'
+    ))
+
+
+def main(args=None):
+    parser = PAIArgumentParser()
+    parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
+    parser.add_root_argument("args", Args)
     parser.add_argument("--line_height", type=int, default=48,
                         help="The line height")
     parser.add_argument("--pad", type=int, default=16,
                         help="Padding (left right) of the line")
 
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
 
-    logger.info("Resolving files")
-    image_files = glob_all(args.files)
-    gt_files = [split_all_ext(p)[0] + ".gt.txt" for p in image_files]
+    data: CalamariDataGeneratorParams = args.args.data
+    gen = data.create(PipelineMode.Evaluation)
 
-    ds = DataReaderFactory.create_data_reader(
-        args.dataset,
-        PipelineMode.Training,
-        images=image_files, texts=gt_files, non_existing_as_empty=True)
-
-    logger.info(f"Loading {len(image_files)} files")
-    images, texts, metas = list(zip(*map(lambda s: (s.inputs, s.targets, s.meta), tqdm_wrapper(ds.generate(), progress_bar=True, total=len(ds)))))
+    logger.info(f"Loading {len(data)} files")
+    images, texts, metas = list(zip(
+        *map(lambda s: (s.inputs, s.targets, s.meta), tqdm_wrapper(gen.generate(), progress_bar=True, total=len(gen)))))
     statistics = {
         "n_lines": len(images),
         "chars": [len(c) for c in texts],
@@ -68,7 +72,8 @@ def main():
     del statistics["chars"]
     del statistics["widths"]
 
-    logger.info(statistics)
+    print(statistics)
+    return statistics
 
 
 if __name__ == "__main__":
