@@ -2,6 +2,7 @@ import tensorflow as tf
 from typing import Dict, Type, List, Tuple, Any
 import bidi.algorithm as bidi
 import Levenshtein
+from tfaip.base import Sample
 
 from tfaip.base.model.modelbase import ModelBase, ModelBaseParams
 from tfaip.util.typing import AnyNumpy
@@ -79,8 +80,8 @@ class EnsembleModel(ModelBase[ModelParams]):
 
         return weights
 
-    def print_evaluate(self, inputs: Dict[str, AnyNumpy], outputs: Prediction, targets: Dict[str, AnyNumpy],
-                       data, print_fn=print):
+    def print_evaluate(self, sample: Sample, data, print_fn=print):
+        targets, outputs = sample.targets, sample.outputs
         gt_sentence = targets['sentence']
         lr = "\u202A\u202B"
         s = ""

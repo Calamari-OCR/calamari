@@ -62,6 +62,6 @@ class PrepareSample(MappingDataProcessor[PrepareSampleProcessorParams]):
             return sample.new_invalid()
 
         return sample.new_inputs(
-            {'img': line.astype(np.uint8), 'img_len': [len(line)], 'meta': [json.dumps(sample.meta)]}).new_targets(
+            {'img': line.astype(np.uint8), 'img_len': [len(line)]}).new_targets(
             {'gt': text, 'gt_len': [len(text)], 'fold_id': [sample.meta.get('fold_id', -1)]}
         )

@@ -37,11 +37,11 @@ class SavedCalamariModel:
         else:
             logger.info(f"Checkpoint version {self.version} is up-to-date.")
 
-        from calamari_ocr.ocr.scenario import CalamariScenario
+        from calamari_ocr.ocr.training.params import TrainerParams
         if 'scenario' in self.dict:
-            self.trainer_params = CalamariScenario.trainer_params_from_dict(self.dict)
+            self.trainer_params = TrainerParams.from_dict(self.dict)
         else:
-            self.trainer_params = CalamariScenario.trainer_params_from_dict({'scenario': self.dict})
+            self.trainer_params = TrainerParams.from_dict({'scenario': self.dict})
         self.scenario_params = self.trainer_params.scenario
 
     def update_checkpoint(self):
@@ -58,23 +58,21 @@ class SavedCalamariModel:
         logger.info(f'Upgrading from version {self.version}')
         shutil.copyfile(self.json_path, self.json_path + f'_v{self.version}')
         shutil.copyfile(self.ckpt_path + '.h5', self.ckpt_path + f'.h5_v{self.version}')
-        if self.version == 0:
-            if self.dict['model']['network']['backend'].get('type', 'TENSORFLOW') == 'TENSORFLOW':
-                rename(self.ckpt_path, '', '', 'cnn_lstm/',
-                       dry_run=self.dry_run, force_prefix=False)
-        elif self.version == 1:
-            raise Exception(
-                "Due to a update to tensorflow 2.0, the weights can not be converted yet. A retraining is required.")
+        if self.version < 2:
+            raise Exception(f"Models of checkpoint-version lower than {self.version} are not supported anymore. "
+                            f"Use an older version of calamari to upgrade them to an supported version.")
         elif self.version == 2:
-            from calamari_ocr.ocr.savedmodel.migrations.version2to3 import migrate, update_model
+            from calamari_ocr.ocr.savedmodel.migrations.version2to4 import migrate2to4, update_model
             # Calamari 1.3 -> Calamari 2.0
-            self.dict = migrate(self.dict)
+            self.dict = migrate2to4(self.dict)
             update_model(self.dict, self.ckpt_path)
+            self.version = 4
         elif self.version == 3:
-            from calamari_ocr.ocr.savedmodel.migrations.version3to4 import migrate
-            self.dict = migrate(self.dict)
+            from calamari_ocr.ocr.savedmodel.migrations.version3to4 import migrate3to4, update_model
+            self.dict = migrate3to4(self.dict)
+            update_model(self.dict, self.ckpt_path)
+            self.version = 4
 
-        self.version += 1
         self._update_json_version()
 
     def _update_json_version(self):

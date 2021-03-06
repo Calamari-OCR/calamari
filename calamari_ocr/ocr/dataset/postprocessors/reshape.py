@@ -19,11 +19,9 @@ class ReshapeOutputsProcessor(MappingDataProcessor[ReshapeOutputsProcessorParams
         inputs = sample.inputs
         outputs = sample.outputs
         assert (inputs['img_len'].shape == (1,))
-        assert (inputs['meta'].shape == (1,))
         inputs = inputs.copy()
         outputs = outputs.copy()
         inputs['img_len'] = inputs['img_len'][0]
-        inputs['meta'] = inputs['meta'][0]
 
         def reshape_outputs(suffix):
             out_len = 'out_len' + suffix

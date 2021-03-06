@@ -22,11 +22,11 @@ from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransfor
 class Predictor(tfaip_cls.Predictor):
     @staticmethod
     def from_checkpoint(params: PredictorParams, checkpoint: str, auto_update_checkpoints=True):
+        DeviceConfig(params.device)  # Device must be specified first
         ckpt = SavedCalamariModel(checkpoint, auto_update=auto_update_checkpoints)
         scenario_params = CalamariScenario.params_from_dict(ckpt.dict)
         scenario = CalamariScenario(scenario_params)
         predictor = Predictor(params, scenario.create_data())
-        ckpt = SavedCalamariModel(checkpoint, auto_update=auto_update_checkpoints)  # Device params must be specified first
         predictor.set_model(keras.models.load_model(ckpt.ckpt_path + '.h5', custom_objects=CalamariScenario.model_cls().all_custom_objects()))
         return predictor
 

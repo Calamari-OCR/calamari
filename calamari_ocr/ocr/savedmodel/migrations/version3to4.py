@@ -1,4 +1,36 @@
+import logging
+import os
+
+from tensorflow import keras
+from tfaip.util.tfaipargparse import post_init
+
 from calamari_ocr.ocr.scenario import CalamariScenario
+from calamari_ocr.ocr.training.params import TrainerParams
+
+logger = logging.getLogger(__name__)
+
+
+def update_model(params: dict, path: str):
+    logger.info(f"Updating model at {path}")
+
+    trainer_params = TrainerParams.from_dict(params)
+    scenario_params = trainer_params.scenario
+    scenario = CalamariScenario(scenario_params)
+    scenario.setup()
+    input_layers = scenario.data.create_input_layers()
+    outputs = scenario.model.build(input_layers)
+    pred_model = keras.models.Model(inputs=input_layers, outputs=outputs)
+    pred_model.load_weights(path + '.h5')
+
+    logger.info(f"Writing converted model at {path}.tmp.h5")
+    pred_model.save(path + '.tmp.h5', include_optimizer=False)
+    logger.info(f"Attempting to load converted model at {path}.tmp.h5")
+    keras.models.load_model(path + '.tmp.h5', custom_objects=CalamariScenario.model_cls().all_custom_objects())
+    logger.info(f"Replacing old model at {path}.h5")
+    os.remove(path + '.h5')
+    os.rename(path + '.tmp.h5', path + '.h5')
+    logger.info(f"New model successfully written")
+    keras.backend.clear_session()
 
 
 def rename(d, f, t):
@@ -43,7 +75,7 @@ def migrate_model_params(model: dict):
     del model['dropout']
 
 
-def migrate(trainer_params: dict) -> dict:
+def migrate3to4(trainer_params: dict) -> dict:
     convert_processor_name = {
         "CenterNormalizer": "calamari_ocr.ocr.dataset.imageprocessors.center_normalizer:CenterNormalizerProcessorParams",
         "DataRangeNormalizer": "calamari_ocr.ocr.dataset.imageprocessors.data_range_normalizer:DataRangeProcessorParams",
@@ -90,5 +122,8 @@ def migrate(trainer_params: dict) -> dict:
 
     migrate_model_params(scenario['model'])
 
-    CalamariScenario.params_from_dict(scenario)
+    params = CalamariScenario.params_from_dict(scenario)
+    post_init(params)
+    scenario = params.to_dict()
+
     return {'scenario': scenario}

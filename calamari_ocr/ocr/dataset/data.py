@@ -59,7 +59,6 @@ class Data(DataBase[DataParams]):
         return {
             'img': tf.TensorSpec([None, self._params.line_height, self._params.input_channels], dtype=tf.uint8),
             'img_len': tf.TensorSpec([1], dtype=tf.int32),
-            'meta': tf.TensorSpec([1], dtype=tf.string),
         }
 
     def _target_layer_specs(self):

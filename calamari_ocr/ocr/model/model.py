@@ -2,6 +2,7 @@ import tensorflow as tf
 from typing import Dict, Type, List, Tuple, Any
 import bidi.algorithm as bidi
 import Levenshtein
+from tfaip.base import Sample
 
 from tfaip.base.model.modelbase import ModelBase, ModelBaseParams
 from tfaip.util.typing import AnyNumpy
@@ -60,8 +61,8 @@ class Model(ModelBase[ModelParams]):
             "CER": K.flatten(targets['gt_len']),
         }
 
-    def print_evaluate(self, inputs: Dict[str, AnyNumpy], outputs: Prediction, targets: Dict[str, AnyNumpy],
-                       data: 'CalamariData', print_fn):
+    def print_evaluate(self, sample: Sample, data: 'CalamariData', print_fn):
+        targets, outputs = sample.targets, sample.outputs
         pred_sentence = outputs.sentence
         gt_sentence = targets['sentence']
         lr = "\u202A\u202B"

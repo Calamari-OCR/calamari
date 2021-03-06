@@ -4,7 +4,7 @@ from typing import Type
 from tfaip.base.data.pipeline.datapipeline import RawDataPipeline
 from tfaip.base.data.pipeline.definitions import PipelineMode
 from tfaip.base.trainer.callbacks.tensor_board_callback import TensorBoardCallback
-from tfaip.base.trainer.callbacks.train_params_logger import TrainParamsLoggerCallback
+from tfaip.base.trainer.callbacks.train_params_logger import TrainerCheckpointsCallback
 from tfaip.base.trainer.trainer import Trainer as AIPTrainer
 from tfaip.base.trainer.warmstart.warmstarter import Warmstarter
 
@@ -193,7 +193,7 @@ class Trainer(AIPTrainer):
                 if isinstance(cb, TensorBoardCallback):
                     cb.steps_per_epoch = self._steps_per_epoch
 
-                if isinstance(cb, TrainParamsLoggerCallback):
+                if isinstance(cb, TrainerCheckpointsCallback):
                     if first:
                         self._callbacks[i] = self.create_train_params_logger_callback(store_params=False,
                                                                                       store_weights=True)
