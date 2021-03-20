@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from paiargparse import PAIArgumentParser, pai_dataclass, pai_meta
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.data.pipeline.definitions import PipelineMode
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
 
 from calamari_ocr import __version__
@@ -35,7 +35,7 @@ def main(args=None):
     args = parser.parse_args(args=args)
 
     data: CalamariDataGeneratorParams = args.args.data
-    gen = data.create(PipelineMode.Evaluation)
+    gen = data.create(PipelineMode.EVALUATION)
 
     logger.info(f"Loading {len(data)} files")
     images, texts, metas = list(zip(

@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import Type
 
 from paiargparse import pai_dataclass
-from tfaip.base.data.pipeline.definitions import Sample
-from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
+from tfaip.data.pipeline.definitions import Sample
+from tfaip.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
 
 
 @pai_dataclass

@@ -3,7 +3,7 @@ import random
 from multiprocessing import Process, Queue, Manager
 
 import numpy as np
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, InputSample, SampleMeta
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.params import GeneratedLineDatasetParams
@@ -121,7 +121,7 @@ if __name__ == "__main__":
             fonts=['Junicode.ttf', 'DejaVuSerif.ttf']
         ),
         text_generator=params
-    ).create(PipelineMode.Training)
+    ).create(PipelineMode.TRAINING)
 
     import matplotlib.pyplot as plt
 

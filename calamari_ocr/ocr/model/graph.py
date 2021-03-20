@@ -3,7 +3,7 @@ from functools import partial
 import tensorflow as tf
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import ctc_ops as ctc
-from tfaip.base.model.graphbase import GraphBase
+from tfaip.model.graphbase import GraphBase
 
 from calamari_ocr.ocr.model.layers.concat import ConcatLayerParams
 from calamari_ocr.ocr.model.layers.toinputdims import ToInputDimsLayerParams

@@ -5,8 +5,8 @@ from typing import List, Iterable, Type
 
 import numpy as np
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base.data.pipeline.definitions import Sample
-from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
+from tfaip.data.pipeline.definitions import Sample
+from tfaip.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
 from tfaip.util.multiprocessing.parallelmap import parallel_map
 
 from calamari_ocr.ocr.augmentation.data_augmenter import DataAugmenterParams, DefaultDataAugmenterParams

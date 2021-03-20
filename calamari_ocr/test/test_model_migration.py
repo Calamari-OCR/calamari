@@ -4,8 +4,8 @@ import tempfile
 import unittest
 
 from tensorflow import keras
-from tfaip.base import DeviceConfigParams
-from tfaip.base.device_config import DeviceConfig
+from tfaip import DeviceConfigParams
+from tfaip.device.device_config import DeviceConfig
 
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.predict.predictor import Predictor

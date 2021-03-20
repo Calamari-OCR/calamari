@@ -9,9 +9,9 @@ from typing import Generator, Iterable, Optional, List, NoReturn
 import numpy as np
 from dataclasses_json import dataclass_json
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base import DataGeneratorParams
-from tfaip.base.data.pipeline.datagenerator import DataGenerator, T
-from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
+from tfaip import DataGeneratorParams
+from tfaip.data.pipeline.datagenerator import DataGenerator, T
+from tfaip.data.pipeline.definitions import PipelineMode, Sample
 
 logger = logging.getLogger(__name__)
 
@@ -155,10 +155,10 @@ class CalamariDataGenerator(DataGenerator[T], ABC):
         pass
 
     def generate(self) -> Iterable[Sample]:
-        if self.mode == PipelineMode.Training:
+        if self.mode == PipelineMode.TRAINING:
             # no pred_and_eval bc it's shuffle
             shuffle(self._samples)
-        for sample in self._generate_epoch(text_only=self.mode == PipelineMode.Targets):
+        for sample in self._generate_epoch(text_only=self.mode == PipelineMode.TARGETS):
             yield sample.to_input_target_sample()
 
     def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:

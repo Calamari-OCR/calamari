@@ -1,6 +1,6 @@
 from typing import Generator
 
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr.dataset.params import SampleMeta, InputSample
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator

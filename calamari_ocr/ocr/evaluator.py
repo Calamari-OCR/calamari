@@ -5,9 +5,9 @@ from edit_distance import edit_distance
 from collections import namedtuple
 
 from paiargparse import pai_dataclass
-from tfaip.base import DataGeneratorParams
-from tfaip.base.data.databaseparams import DataPipelineParams
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip import DataGeneratorParams
+from tfaip.data.databaseparams import DataPipelineParams
+from tfaip.data.pipeline.definitions import PipelineMode
 from tfaip.util.multiprocessing.parallelmap import parallel_map, tqdm_wrapper
 
 from calamari_ocr.ocr.dataset.data import Data
@@ -31,7 +31,7 @@ class Evaluator:
         self.params = params
         self.data = data
         self.preloaded_gt = None
-        self.params.setup.mode = PipelineMode.Targets
+        self.params.setup.mode = PipelineMode.TARGETS
 
     def preload_gt(self, gt_dataset: DataGeneratorParams, progress_bar=False):
         """ Preload gt to be used for several experiments

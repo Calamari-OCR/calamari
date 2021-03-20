@@ -4,7 +4,7 @@ from random import shuffle
 from typing import Generator, List
 
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.data.pipeline.definitions import PipelineMode
 
 import numpy as np
 import h5py
@@ -42,13 +42,13 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
     def __init__(self, mode: PipelineMode, params: Hdf5):
         super(Hdf5Generator, self).__init__(mode, params)
         self.prediction = None
-        if mode == PipelineMode.Prediction or mode == PipelineMode.Evaluation:
+        if mode == PipelineMode.PREDICTION or mode == PipelineMode.EVALUATION:
             self.prediction = {}
 
         for filename in self.params.files:
             f = h5py.File(filename, 'r')
             codec = list(map(chr, f['codec']))
-            if mode == PipelineMode.Prediction or mode == PipelineMode.Evaluation:
+            if mode == PipelineMode.PREDICTION or mode == PipelineMode.EVALUATION:
                 self.prediction[filename] = {'transcripts': [], 'codec': codec}
 
             # create empty samples for id and correct dataset size
@@ -83,7 +83,7 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
 
     def _generate_epoch(self, text_only) -> Generator[InputSample, None, None]:
         filenames = list(self.params.files)
-        if self.mode == PipelineMode.Training:
+        if self.mode == PipelineMode.TRAINING:
             shuffle(filenames)
 
         for filename in filenames:
@@ -96,7 +96,7 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
                         yield InputSample(None, text, SampleMeta(id=f"{filename}/{i}", fold_id=fold_id))
                 else:
                     gen = zip(f['images'], f['images_dims'], f['transcripts'], range(len(f['images'])))
-                    if self.mode == PipelineMode.Training:
+                    if self.mode == PipelineMode.TRAINING:
                         gen = list(gen)
                         shuffle(gen)
 

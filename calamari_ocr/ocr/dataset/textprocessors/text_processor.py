@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 
-from tfaip.base.data.pipeline.definitions import Sample
-from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, T
+from tfaip.data.pipeline.definitions import Sample
+from tfaip.data.pipeline.processor.dataprocessor import MappingDataProcessor, T
 
 from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import Prediction
 

@@ -5,7 +5,7 @@ from typing import List, Generator
 
 import numpy as np
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base.data.pipeline.definitions import PipelineMode, TARGETS_PROCESSOR, INPUT_PROCESSOR
+from tfaip.data.pipeline.definitions import PipelineMode, TARGETS_PROCESSOR, INPUT_PROCESSOR
 from tqdm import tqdm
 
 from calamari_ocr.ocr.dataset.datareader.abbyy.xml import XMLReader, XMLWriter

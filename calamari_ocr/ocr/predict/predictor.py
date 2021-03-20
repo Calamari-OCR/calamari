@@ -1,14 +1,14 @@
 from typing import List
 
 from tensorflow import keras
-from tfaip.base import DataGeneratorParams
+from tfaip import DataGeneratorParams
 
-from tfaip.base.data.pipeline.definitions import PipelineMode
-from tfaip.base.data.pipeline.processor.dataprocessor import SequenceProcessorParams
-from tfaip.base.data.pipeline.processor.params import SequentialProcessorPipelineParams
-from tfaip.base.device_config import DeviceConfig
-import tfaip.base.imports as tfaip_cls
-from tfaip.base.predict.multimodelpredictor import MultiModelVoter
+from tfaip.data.pipeline.definitions import PipelineMode
+from tfaip.data.pipeline.processor.dataprocessor import SequenceProcessorParams
+from tfaip.data.pipeline.processor.params import SequentialProcessorPipelineParams
+from tfaip.device.device_config import DeviceConfig
+import tfaip.imports as tfaip_cls
+from tfaip.predict.multimodelpredictor import MultiModelVoter
 
 from calamari_ocr.ocr.predict.params import PredictorParams
 from calamari_ocr.ocr.scenario import CalamariScenario

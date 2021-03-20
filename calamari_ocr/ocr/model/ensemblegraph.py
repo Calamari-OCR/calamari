@@ -1,6 +1,6 @@
 import logging
 
-from tfaip.base.model.graphbase import GraphBase
+from tfaip.model.graphbase import GraphBase
 
 import tensorflow as tf
 import tensorflow.keras.backend as K

@@ -3,7 +3,7 @@ import tempfile
 import unittest
 
 from tensorflow import keras
-from tfaip.base.data.pipeline.processor.params import SequentialProcessorPipelineParams
+from tfaip.data.pipeline.processor.params import SequentialProcessorPipelineParams
 
 from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
 from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessorParams

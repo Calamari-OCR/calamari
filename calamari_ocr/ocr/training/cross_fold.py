@@ -3,7 +3,7 @@ import json
 from contextlib import ExitStack
 from typing import List
 
-from tfaip.base.data.pipeline.definitions import Sample, PipelineMode
+from tfaip.data.pipeline.definitions import Sample, PipelineMode
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
 
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
@@ -40,7 +40,7 @@ class CrossFold:
         if isinstance(self.data_generator_params, FileDataParams):
             self.is_h5_dataset = False
             self.folds = [[] for _ in range(self.n_folds)]
-            file_data_gen: FileDataGenerator = self.data_generator_params.create(PipelineMode.Evaluation)
+            file_data_gen: FileDataGenerator = self.data_generator_params.create(PipelineMode.EVALUATION)
             for i, sample in enumerate(file_data_gen.samples()):
                 self.folds[i % n_folds].append(sample['image_path'])
         else:
@@ -48,7 +48,7 @@ class CrossFold:
             # else load the data of each fold and write it to hd5 data files
             with ExitStack() as stack:
                 folds = [stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, 'fold{}'.format(i)))) for i in range(self.n_folds)]
-                data_generator = self.data_generator_params.create(PipelineMode.Evaluation)
+                data_generator = self.data_generator_params.create(PipelineMode.EVALUATION)
                 for i, sample in tqdm_wrapper(enumerate(data_generator.generate()), progress_bar=progress_bar,
                                               total=len(data_generator), desc="Creating hdf5 files"):
                     sample: Sample = sample

@@ -5,7 +5,7 @@ from random import shuffle
 
 import numpy as np
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR, TARGETS_PROCESSOR
+from tfaip.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR, TARGETS_PROCESSOR
 from tqdm import tqdm
 from lxml import etree
 import cv2 as cv
@@ -67,7 +67,7 @@ class PageXMLDatasetLoader:
         ns = {"ns": root.nsmap[None]}
         imgfile = root.xpath('//ns:Page',
                              namespaces=ns)[0].attrib["imageFilename"]
-        if (self.mode in {PipelineMode.Training, PipelineMode.Evaluation}) and not split_all_ext(img)[0].endswith(
+        if (self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}) and not split_all_ext(img)[0].endswith(
                 split_all_ext(imgfile)[0]):
             raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
                 img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
@@ -113,7 +113,7 @@ class PageXMLDatasetLoader:
             except (ValueError, IndexError):
                 orientation = 0
 
-            if self.mode in {PipelineMode.Training, PipelineMode.Evaluation}:
+            if self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}:
                 if len(text) == 0:
                     # Empty lines cannot be used for training (CTC-loss can not be computed)
                     continue
@@ -361,7 +361,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
     def _sample_iterator(self):
         all_samples = zip(self.params.images, self.params.xml_files, range(len(self.params.images)))
-        if self.mode == PipelineMode.Training:
+        if self.mode == PipelineMode.TRAINING:
             all_samples = list(all_samples)
             shuffle(all_samples)
         return all_samples

@@ -1,8 +1,8 @@
 import os
 from typing import Type, TYPE_CHECKING
 
-from tfaip.base.scenario.scenariobase import ScenarioBase, TModel, TScenarioParams, TTrainerPipelineParams
-from tfaip.base.trainer.scheduler import Constant
+from tfaip.scenario.scenariobase import ScenarioBase, TModel, TScenarioParams, TTrainerPipelineParams
+from tfaip.trainer.scheduler import Constant
 
 from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.model.ensemblemodel import EnsembleModel

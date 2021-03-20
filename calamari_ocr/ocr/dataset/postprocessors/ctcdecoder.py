@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 from typing import Type
 
 from paiargparse import pai_dataclass
-from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
-from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
+from tfaip.data.pipeline.definitions import PipelineMode, Sample
+from tfaip.data.pipeline.processor.dataprocessor import MappingDataProcessor, DataProcessorParams
 
 from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import create_ctc_decoder, CTCDecoderParams
 

@@ -2,7 +2,7 @@ from copy import deepcopy
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from tfaip.base.data.pipeline.definitions import Sample
+from tfaip.data.pipeline.definitions import Sample
 
 from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import Prediction

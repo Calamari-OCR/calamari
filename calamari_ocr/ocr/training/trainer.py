@@ -1,12 +1,12 @@
 import logging
 from typing import Type
 
-from tfaip.base.data.pipeline.datapipeline import RawDataPipeline
-from tfaip.base.data.pipeline.definitions import PipelineMode
-from tfaip.base.trainer.callbacks.tensor_board_callback import TensorBoardCallback
-from tfaip.base.trainer.callbacks.train_params_logger import TrainerCheckpointsCallback
-from tfaip.base.trainer.trainer import Trainer as AIPTrainer
-from tfaip.base.trainer.warmstart.warmstarter import Warmstarter
+from tfaip.data.pipeline.datapipeline import RawDataPipeline
+from tfaip.data.pipeline.definitions import PipelineMode
+from tfaip.trainer.callbacks.tensor_board_callback import TensorBoardCallback
+from tfaip.trainer.callbacks.train_params_logger import TrainerCheckpointsCallback
+from tfaip.trainer.trainer import Trainer as AIPTrainer
+from tfaip.trainer.warmstart.warmstarter import WarmStarter
 
 from calamari_ocr.ocr import Codec, SavedCalamariModel
 from calamari_ocr.ocr.dataset.data import Data
@@ -14,7 +14,7 @@ from calamari_ocr.ocr.dataset.imageprocessors.augmentation import AugmentationPr
 from calamari_ocr.ocr.model.params import ModelParams
 from calamari_ocr.ocr.training.params import TrainerParams
 from calamari_ocr.ocr.training.pipeline_params import CalamariTrainOnlyPipelineParams
-from calamari_ocr.ocr.training.warmstart import WarmstarterWithCodecAdaption
+from calamari_ocr.ocr.training.warmstart import WarmStarterWithCodecAdaption
 from calamari_ocr.utils import checkpoint_path
 
 logger = logging.getLogger(__name__)
@@ -26,8 +26,8 @@ class Trainer(AIPTrainer):
         return TrainerParams
 
     @staticmethod
-    def warmstarter_cls() -> Type[Warmstarter]:
-        return WarmstarterWithCodecAdaption
+    def warmstarter_cls() -> Type[WarmStarter]:
+        return WarmStarterWithCodecAdaption
 
     def __init__(self, params: TrainerParams, scenario, restore=False):
         """Train a DNN using given preprocessing, weights, and data
@@ -143,16 +143,16 @@ class Trainer(AIPTrainer):
             logger.info("Using training data for validation.")
             assert (val_pipeline is None)
             if self._params.gen.train.preload:
-                data._pipelines[PipelineMode.Evaluation] = RawDataPipeline(
+                data._pipelines[PipelineMode.EVALUATION] = RawDataPipeline(
                     [s for s in train_pipeline.samples if not s.meta['augmented']],
                     pipeline_params=self._params.gen.setup.train,
                     data_base=data,
                     generator_params=train_pipeline.generator_params,
                     input_processors=train_pipeline._input_processors,
                     output_processors=train_pipeline._output_processors,
-                ).to_mode(PipelineMode.Evaluation)
+                ).to_mode(PipelineMode.EVALUATION)
             else:
-                data._pipelines[PipelineMode.Evaluation] = train_pipeline.to_mode(PipelineMode.Evaluation)
+                data._pipelines[PipelineMode.EVALUATION] = train_pipeline.to_mode(PipelineMode.EVALUATION)
         else:
             if val_pipeline is None:
                 raise ValueError("No validation data provided."
@@ -206,5 +206,5 @@ class Trainer(AIPTrainer):
 
         logger.info("Training finished")
 
-    def create_warmstarter(self) -> Warmstarter:
-        return WarmstarterWithCodecAdaption(self.params.warmstart, codec_changes=self._codec_changes)
+    def create_warmstarter(self) -> WarmStarter:
+        return WarmStarterWithCodecAdaption(self.params.warmstart, codec_changes=self._codec_changes)

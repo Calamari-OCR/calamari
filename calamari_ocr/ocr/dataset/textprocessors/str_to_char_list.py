@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import List, Type
 
 from paiargparse import pai_dataclass
-from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
+from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 

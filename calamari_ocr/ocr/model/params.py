@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import List, Tuple, Any, Union
 
 from paiargparse import pai_dataclass
-from tfaip.base.model.modelbaseparams import ModelBaseParams
+from tfaip.model.modelbaseparams import ModelBaseParams
 
 from calamari_ocr.ocr.model.layers.layer import LayerParams, IntVec2D
 

@@ -3,7 +3,7 @@ from typing import Type
 
 import bidi.algorithm as bidi_algorithm
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
+from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 from tfaip.util.enum import StrEnum
 
 from calamari_ocr.ocr.dataset.textprocessors import TextProcessor

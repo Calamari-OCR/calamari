@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 from paiargparse import PAIArgumentParser
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr.dataset.datareader.extended_prediction import ExtendedPredictionDataParams
 
@@ -19,7 +19,7 @@ def parse_args(args=None) -> ExtendedPredictionDataParams:
 def run(data: ExtendedPredictionDataParams):
     logger.info("Resolving files")
     logger.info('Average confidence: {:.2%}'.format(
-        np.mean([s['best_prediction'].avg_char_probability for s in data.create(PipelineMode.Evaluation).samples()])))
+        np.mean([s['best_prediction'].avg_char_probability for s in data.create(PipelineMode.EVALUATION).samples()])))
 
 
 def main():

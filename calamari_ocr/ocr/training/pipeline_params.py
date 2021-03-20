@@ -5,7 +5,7 @@ from typing import Optional
 import logging
 
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base import TrainerPipelineParams, TrainerPipelineParamsBase, PipelineMode
+from tfaip import TrainerPipelineParams, TrainerPipelineParamsBase, PipelineMode
 
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
@@ -60,7 +60,7 @@ class CalamariSplitTrainerPipelineParams(TrainerPipelineParams[CalamariDataGener
             raise ValueError("validation_split_ratio must be in (0, 1)")
 
         # resolve all files so we can split them
-        self.train.prepare_for_mode(PipelineMode.Training)
+        self.train.prepare_for_mode(PipelineMode.TRAINING)
         self.val = deepcopy(self.train)
         samples = len(self.train)
         n = int(self.validation_split_ratio * samples)

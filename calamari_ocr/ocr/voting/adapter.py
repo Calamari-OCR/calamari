@@ -1,7 +1,7 @@
 import json
 
-from tfaip.base.data.pipeline.definitions import Sample
-from tfaip.base.predict.multimodelpredictor import MultiModelVoter
+from tfaip.data.pipeline.definitions import Sample
+from tfaip.predict.multimodelpredictor import MultiModelVoter
 
 from calamari_ocr.ocr.predict.params import PredictionResult
 from calamari_ocr.ocr.voting import voter_from_params

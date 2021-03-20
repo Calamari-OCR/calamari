@@ -446,7 +446,7 @@
             "__cls__": "calamari_ocr.ocr.dataset.imageprocessors.preparesample:PrepareSampleProcessorParams"
           }
         ],
-        "__cls__": "tfaip.base.data.pipeline.processor.params:SequentialProcessorPipelineParams"
+        "__cls__": "tfaip.data.pipeline.processor.params:SequentialProcessorPipelineParams"
       },
       "post_proc": {
         "run_parallel": true,
@@ -812,7 +812,7 @@
             "__cls__": "calamari_ocr.ocr.dataset.textprocessors.basic_text_processors:StripTextProcessorParams"
           }
         ],
-        "__cls__": "tfaip.base.data.pipeline.processor.params:SequentialProcessorPipelineParams"
+        "__cls__": "tfaip.data.pipeline.processor.params:SequentialProcessorPipelineParams"
       },
       "resource_base_path": ".",
       "skip_invalid_gt": true,
@@ -916,7 +916,7 @@
       "__cls__": "calamari_ocr.ocr.dataset.params:DataParams"
     },
     "evaluator": {
-      "__cls__": "tfaip.base.evaluator.params:EvaluatorParams"
+      "__cls__": "tfaip.evaluator.params:EvaluatorParams"
     },
     "export_net_config": true,
     "net_config_filename": "net_config.json",

@@ -4,7 +4,7 @@ from typing import Type, Tuple
 import numpy as np
 import cv2 as cv
 from paiargparse import pai_dataclass
-from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
+from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import scale_to_h
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor

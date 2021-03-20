@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from tfaip.base.data.pipeline.definitions import Sample
-from tfaip.base.data.pipeline.processor.dataprocessor import MappingDataProcessor, T
+from tfaip.data.pipeline.definitions import Sample
+from tfaip.data.pipeline.processor.dataprocessor import MappingDataProcessor, T
 
 
 class ImageProcessor(MappingDataProcessor[T], ABC):

@@ -2,9 +2,9 @@ import tensorflow as tf
 from typing import Dict, Type, List, Tuple, Any
 import bidi.algorithm as bidi
 import Levenshtein
-from tfaip.base import Sample
+from tfaip import Sample
 
-from tfaip.base.model.modelbase import ModelBase, ModelBaseParams
+from tfaip.model.modelbase import ModelBase, ModelBaseParams
 from tfaip.util.typing import AnyNumpy
 
 from calamari_ocr.ocr.model.graph import Graph
@@ -30,30 +30,27 @@ class Model(ModelBase[ModelParams]):
     def create_graph(self, params: ModelBaseParams) -> 'GraphBase':
         return Graph(params)
 
-    def _loss(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
+    def _extended_loss(self, inputs_targets: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
         def to_2d_list(x):
             return K.expand_dims(K.flatten(x), axis=-1)
 
         # note: blank is last index
-        loss = KL.Lambda(lambda args: K.ctc_batch_cost(args[0] - 1, args[1], args[2], args[3]), name='ctc')(
-            (inputs['gt'], outputs['blank_last_softmax'], to_2d_list(outputs['out_len']), to_2d_list(inputs['gt_len'])))
         return {
-            'loss': loss
+            'loss': K.ctc_batch_cost(inputs_targets['gt'] - 1, outputs['blank_last_softmax'],
+                                     to_2d_list(outputs['out_len']), to_2d_list(inputs_targets['gt_len']))
         }
 
     def _extended_metric(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
-        def create_cer(decoded, targets, targets_length):
+        # Note for codec change: the codec size is derived upon creation, therefore the ctc ops must be created
+        # using the true codec size (the W/B-Matrix may change its shape however during loading/codec change
+        # to match the true codec size
+        def cer(decoded, targets, targets_length):
             greedy_decoded = tf.sparse.from_dense(decoded)
             sparse_targets = tf.cast(K.ctc_label_dense_to_sparse(targets, math_ops.cast(
                 K.flatten(targets_length), dtype='int32')), 'int32')
             return tf.edit_distance(tf.cast(greedy_decoded, tf.int32), sparse_targets, normalize=True)
-
-        # Note for codec change: the codec size is derived upon creation, therefore the ctc ops must be created
-        # using the true codec size (the W/B-Matrix may change its shape however during loading/codec change
-        # to match the true codec size
-        cer = KL.Lambda(lambda args: create_cer(*args), output_shape=(1,), name='cer')((outputs['decoded'], inputs['gt'], inputs['gt_len']))
         return {
-            'CER': cer,
+            'CER': cer(outputs['decoded'], inputs['gt'], inputs['gt_len']),
         }
 
     def _sample_weights(self, inputs: Dict[str, tf.Tensor], targets: Dict[str, tf.Tensor]) -> Dict[str, Any]:

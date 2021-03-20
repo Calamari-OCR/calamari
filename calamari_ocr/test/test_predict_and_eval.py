@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from tfaip.base.data.databaseparams import DataPipelineParams
+from tfaip.data.databaseparams import DataPipelineParams
 
 from calamari_ocr.ocr.predict.params import PredictorParams
 from calamari_ocr.scripts.predict_and_eval import main, PredictAndEvalArgs

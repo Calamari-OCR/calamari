@@ -3,7 +3,7 @@ from typing import Type
 
 import numpy as np
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
+from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 

@@ -7,7 +7,7 @@ import os
 import json
 import numpy as np
 from paiargparse import PAIArgumentParser, pai_dataclass, pai_meta
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams

@@ -3,7 +3,7 @@ import os
 import shutil
 
 import tfaip.util.logging as logging
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.data.pipeline.definitions import PipelineMode
 from tqdm import tqdm
 
 from calamari_ocr.ocr import CrossFold
@@ -34,7 +34,7 @@ def main():
     images = glob_all(args.files)
     texts = [split_all_ext(p)[0] + '.gt.txt' for p in images]
     data_reader = FileDataParams(images=images, texts=texts, skip_invalid=True)
-    data_reader.prepare_for_mode(PipelineMode.Training)
+    data_reader.prepare_for_mode(PipelineMode.TRAINING)
     cross_fold = CrossFold(n_folds=args.n_folds, data_generator_params=data_reader, output_dir=args.output_dir)
 
     logger.info("Copying files")

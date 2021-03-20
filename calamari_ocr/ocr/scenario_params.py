@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from paiargparse import pai_dataclass
-from tfaip.base import ScenarioBaseParams
+from tfaip import ScenarioBaseParams
 
 from calamari_ocr.ocr import DataParams
 from calamari_ocr.ocr.model.params import ModelParams

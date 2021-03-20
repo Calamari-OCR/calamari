@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List
 
 from paiargparse import pai_meta, pai_dataclass
-from tfaip.base import TrainerParams as AIPTrainerParams, TrainerPipelineParamsBase
+from tfaip import TrainerParams as AIPTrainerParams, TrainerPipelineParamsBase
 
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.dataset.codec import CodecConstructionParams

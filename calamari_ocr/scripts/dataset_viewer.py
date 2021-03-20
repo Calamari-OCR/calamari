@@ -2,8 +2,8 @@ from dataclasses import field, dataclass
 
 import tfaip.util.logging as logging
 from paiargparse import PAIArgumentParser, pai_meta, pai_dataclass
-from tfaip.base import PipelineMode
-from tfaip.base.data.databaseparams import DataPipelineParams
+from tfaip import PipelineMode
+from tfaip.data.databaseparams import DataPipelineParams
 
 from calamari_ocr import __version__
 from calamari_ocr.ocr.dataset.data import Data
@@ -52,7 +52,7 @@ def main(args=None):
     for p in data_params.pre_proc.processors_of_type(AugmentationProcessorParams):
         p.n_augmentations = args.n_augmentations
     data_params.__post_init__()
-    data_wrapper.pipeline.mode = PipelineMode.Evaluation if args.as_validation else PipelineMode.Training
+    data_wrapper.pipeline.mode = PipelineMode.EVALUATION if args.as_validation else PipelineMode.TRAINING
     data_wrapper.gen.prepare_for_mode(data_wrapper.pipeline.mode)
 
     data = Data(data_params)

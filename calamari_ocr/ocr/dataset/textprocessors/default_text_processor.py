@@ -1,6 +1,6 @@
 from typing import List
 
-from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
+from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.textprocessors import TextNormalizerProcessorParams, TextRegularizerProcessorParams
 from calamari_ocr.ocr.dataset.textprocessors.basic_text_processors import BidiTextProcessorParams, \

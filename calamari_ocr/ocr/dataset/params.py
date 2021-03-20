@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base import DataBaseParams
+from tfaip import DataBaseParams
 
 from calamari_ocr.ocr.dataset.codec import Codec
 from calamari_ocr.ocr.dataset.datareader.abbyy.reader import Abbyy

@@ -3,10 +3,10 @@ import os
 from typing import Type
 
 import tensorflow as tf
-from tfaip.base.data.data import DataBase
-from tfaip.base.data.pipeline.datapipeline import DataPipeline
-from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
-from tfaip.base.data.pipeline.processor.params import SequentialProcessorPipelineParams
+from tfaip.data.data import DataBase
+from tfaip.data.pipeline.datapipeline import DataPipeline
+from tfaip.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
+from tfaip.data.pipeline.processor.params import SequentialProcessorPipelineParams
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
@@ -36,11 +36,11 @@ class Data(DataBase[DataParams]):
     def default_params(cls) -> DataParams:
         params: DataParams = super(Data, cls).default_params()
         params.pre_proc = SequentialProcessorPipelineParams(
-            run_parallel=True,
+            run_parallel=False,
             processors=default_image_processors() +
                        default_text_pre_processors() +
                        [
-                           AugmentationProcessorParams(modes={PipelineMode.Training}),
+                           AugmentationProcessorParams(modes={PipelineMode.TRAINING}),
                            PrepareSampleProcessorParams(modes=INPUT_PROCESSOR),
                        ],
         )
@@ -90,7 +90,7 @@ if __name__ == '__main__':
             processors=default_image_processors() +
                        default_text_pre_processors() +
                        [
-                           AugmentationProcessorParams(modes={PipelineMode.Training},
+                           AugmentationProcessorParams(modes={PipelineMode.TRAINING},
                                                        data_aug_params=DataAugmentationAmount(amount=2),
                                                        ),
                            PrepareSampleProcessorParams(modes=INPUT_PROCESSOR),

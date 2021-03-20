@@ -4,8 +4,8 @@ from typing import List, Type, Optional, Iterable
 
 from dataclasses_json import dataclass_json
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base.data.pipeline.definitions import PipelineMode, Sample
-from tfaip.base.data.pipeline.processor.dataprocessor import DataProcessorParams
+from tfaip.data.pipeline.definitions import PipelineMode, Sample
+from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 
@@ -381,6 +381,6 @@ class TextRegularizerProcessor(TextProcessor[TextRegularizerProcessorParams]):
 
 
 if __name__ == "__main__":
-    n = TextRegularizerProcessorParams(replacement_groups=["quotes", "spaces"]).create(None, mode=PipelineMode.Training)
+    n = TextRegularizerProcessorParams(replacement_groups=["quotes", "spaces"]).create(None, mode=PipelineMode.TRAINING)
     assert (n(Sample(targets="“Resolve quotes”")).targets == "''Resolve quotes''")
     assert (n(Sample(targets="  “Resolve   spaces  ”   ")).targets == "''Resolve spaces ''")

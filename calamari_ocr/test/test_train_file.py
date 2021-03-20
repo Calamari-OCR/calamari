@@ -3,7 +3,7 @@ import tempfile
 import unittest
 
 from tensorflow import keras
-from tfaip.base import INPUT_PROCESSOR
+from tfaip import INPUT_PROCESSOR
 
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.dataset.imageprocessors.center_normalizer import CenterNormalizerProcessorParams

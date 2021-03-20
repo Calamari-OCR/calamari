@@ -2,9 +2,9 @@ from dataclasses import dataclass, field
 from typing import Callable, List, Optional
 import numpy as np
 
-import tfaip.base as tfaip
+import tfaip as tfaip
 from dataclasses_json import dataclass_json
-from tfaip.base.data.pipeline.definitions import Sample
+from tfaip.data.pipeline.definitions import Sample
 
 
 @dataclass_json

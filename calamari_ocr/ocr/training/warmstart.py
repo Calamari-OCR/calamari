@@ -1,16 +1,16 @@
 from typing import List
 import numpy as np
 
-from tfaip.base.trainer.warmstart.warmstarter import Warmstarter
+from tfaip.trainer.warmstart.warmstarter import WarmStarter
 
 
-class WarmstarterWithCodecAdaption(Warmstarter):
+class WarmStarterWithCodecAdaption(WarmStarter):
     def __init__(self, params, codec_changes):
-        super(WarmstarterWithCodecAdaption, self).__init__(params)
+        super().__init__(params)
         self.codec_changes = codec_changes
 
     def _trim(self, names: List[str]):
-        names = super(WarmstarterWithCodecAdaption, self)._trim(names)
+        names = super()._trim(names)
 
         # Manually trim to support older checkpoints
         to_trim = ['CalamariGraph/', 'keras_debug_model/CalamariGraph/']
@@ -28,7 +28,7 @@ class WarmstarterWithCodecAdaption(Warmstarter):
 
     def apply_weights(self, target_model, new_weights):
         if self.codec_changes is None:
-            super(WarmstarterWithCodecAdaption, self).apply_weights(target_model, new_weights)
+            super().apply_weights(target_model, new_weights)
         else:
             self.copy_weights_from_model(target_model, new_weights, *self.codec_changes)
 

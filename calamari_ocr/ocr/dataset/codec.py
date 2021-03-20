@@ -3,12 +3,12 @@ from typing import List, TYPE_CHECKING, Iterator, Set
 
 from paiargparse import pai_dataclass, pai_meta
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
-from tfaip.base.data.pipeline.definitions import PipelineMode
+from tfaip.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.utils import glob_all
 
 if TYPE_CHECKING:
-    from tfaip.base.data.pipeline.datapipeline import DataPipeline
+    from tfaip.data.pipeline.datapipeline import DataPipeline
 
 
 @pai_dataclass
@@ -51,7 +51,7 @@ class Codec:
         chars = codec_construction_params.resolved_include_chars
 
         for pipeline in data_pipelines:
-            pipeline = pipeline.to_mode(PipelineMode.Targets)
+            pipeline = pipeline.to_mode(PipelineMode.TARGETS)
             pipeline = pipeline.as_preloaded(progress_bar=progress_bar)
             data_gen = pipeline.create_data_generator()
             for sample in tqdm_wrapper(data_gen.generate(), total=len(data_gen), desc="Computing codec", progress_bar=progress_bar):
@@ -78,7 +78,7 @@ class Codec:
         -------
             Codec based on the set of characters + whitelist
         """
-        chars = set() if whitelist is None else set(whitelist)
+        chars = set() if codec_construction_params.include is None else set(codec_construction_params.include)
 
         for text in texts:
             for c in text:

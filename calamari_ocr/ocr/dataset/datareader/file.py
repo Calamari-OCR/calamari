@@ -8,7 +8,7 @@ import numpy as np
 import logging
 
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.base.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
+from tfaip.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
 
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams, InputSample, \
     SampleMeta
@@ -71,7 +71,7 @@ class FileDataParams(CalamariDataGeneratorParams):
             else:
                 input_image_files = None
 
-        if mode in {PipelineMode.Training, PipelineMode.Evaluation}:
+        if mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}:
             if len(set(gt_txt_files)) != len(gt_txt_files):
                 logger.warning("Some ground truth text files occur more than once in the data set "
                                "(ignore this warning, if this was intended).")
@@ -95,12 +95,12 @@ class FileDataGenerator(CalamariDataGenerator[FileDataParams]):
         """
         super().__init__(mode, params)
 
-        if mode == PipelineMode.Prediction:
+        if mode == PipelineMode.PREDICTION:
             texts = [None] * len(params.images)
         else:
             texts = params.texts
 
-        if mode == PipelineMode.Targets:
+        if mode == PipelineMode.TARGETS:
             images = [None] * len(params.texts)
         else:
             images = params.images
