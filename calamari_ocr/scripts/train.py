@@ -269,25 +269,26 @@ def run(args):
 
         # resolve all files so we can split them
         data_params.train = data_params.train.prepare_for_mode(PipelineMode.Training)
-        n = int(args.validation_split_ratio * len(data_params.train.files))
+        n_val = int(args.validation_split_ratio * len(data_params.train.files))
+        n_train = len(data_params.train.files) - n_val
         logger.info(f"Splitting training and validation files with ratio {args.validation_split_ratio}: "
-                    f"{n}/{len(data_params.train.files) - n} for validation/training.")
+                    f"{n_val}/{n_train} for validation/training.")
         indices = list(range(len(data_params.train.files)))
         shuffle(indices)
         all_files = data_params.train.files
         all_text_files = data_params.train.text_files
 
         # split train and val img/gt files. Use train settings
-        data_params.train.files = [all_files[i] for i in indices[:n]]
+        data_params.train.files = [all_files[i] for i in indices[:n_train]]
         if all_text_files is not None:
             assert(len(all_text_files) == len(all_files))
-            data_params.train.text_files = [all_text_files[i] for i in indices[:n]]
+            data_params.train.text_files = [all_text_files[i] for i in indices[:n_train]]
         data_params.val = PipelineParams(
             type=args.dataset,
             skip_invalid=not args.no_skip_invalid_gt,
             remove_invalid=True,
-            files=[all_files[i] for i in indices[n:]],
-            text_files=[all_text_files[i] for i in indices[n:]] if data_params.train.text_files is not None else None,
+            files=[all_files[i] for i in indices[n_train:]],
+            text_files=[all_text_files[i] for i in indices[n_train:]] if data_params.train.text_files is not None else None,
             gt_extension=args.gt_extension,
             data_reader_args=dataset_args,
             batch_size=args.batch_size,
@@ -309,7 +310,7 @@ def run(args):
             raise ValueError("No validation data provided. "
                              "Either specify to use the training data using the --use_train_as_val flag or "
                              "define a fraction of training data that will be used for validation, "
-                             "e.g. --validation_split_ratio 0.2 to use 20% for training and 80% for validation")
+                             "e.g. --validation_split_ratio 0.2 to use 20% for validation and 80% for training")
         data_params.val = None
 
     data_params.pre_processors_ = SamplePipelineParams(run_parallel=True)
