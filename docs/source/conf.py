@@ -34,9 +34,9 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'tfaip'
-copyright = '2021, Planet AI GmbH'
-author = 'The tfaip authors'
+project = 'Calamari OCR'
+copyright = '2021, the Calamari OCR authors'
+author = 'The Calamari OCR authors'
 
 
 # -- General configuration ---------------------------------------------------
