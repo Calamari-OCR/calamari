@@ -169,4 +169,4 @@ class BeamList:
 
     def dump(self):
         for k in self.beams.keys():
-            print(unicode(self.beams[k]).encode('ascii', 'replace'))  # map to ascii if possible (for py2 and windows)
+            print(str(self.beams[k]).encode('ascii', 'replace'))  # map to ascii if possible (for py2 and windows)

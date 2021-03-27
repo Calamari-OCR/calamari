@@ -38,7 +38,7 @@ class MultiPredictor(tfaip_cls.MultiModelPredictor):
                    predictor_params: PredictorParams = None,
                    voter_params: VoterParams = None,
                    **kwargs
-                   ) -> 'aip_predict.MultiModelPredictor':
+                   ) -> 'tfaip_cls.MultiModelPredictor':
         if not checkpoints:
             raise Exception("No checkpoints provided.")
 

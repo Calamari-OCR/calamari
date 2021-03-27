@@ -3,6 +3,7 @@ from typing import Dict, Type, List, Tuple, Any
 import bidi.algorithm as bidi
 import Levenshtein
 from tfaip import Sample
+from tfaip.model.graphbase import GraphBase
 
 from tfaip.model.modelbase import ModelBase, ModelBaseParams
 from tfaip.util.typing import AnyNumpy
@@ -58,7 +59,7 @@ class Model(ModelBase[ModelParams]):
             "CER": K.flatten(targets['gt_len']),
         }
 
-    def print_evaluate(self, sample: Sample, data: 'CalamariData', print_fn):
+    def print_evaluate(self, sample: Sample, data, print_fn):
         targets, outputs = sample.targets, sample.outputs
         pred_sentence = outputs.sentence
         gt_sentence = targets['sentence']

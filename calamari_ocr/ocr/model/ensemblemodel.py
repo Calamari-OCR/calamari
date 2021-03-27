@@ -3,6 +3,7 @@ from typing import Dict, Type, List, Tuple, Any
 import bidi.algorithm as bidi
 import Levenshtein
 from tfaip import Sample
+from tfaip.model.graphbase import GraphBase
 
 from tfaip.model.modelbase import ModelBase, ModelBaseParams
 from tfaip.util.typing import AnyNumpy

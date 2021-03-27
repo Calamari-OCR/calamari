@@ -3,6 +3,7 @@ from typing import List, Type
 
 from dataclasses_json import dataclass_json
 from paiargparse import pai_dataclass
+from tfaip.data.pipeline.datagenerator import DataGenerator
 
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 
