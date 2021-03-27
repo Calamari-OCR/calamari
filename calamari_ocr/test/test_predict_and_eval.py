@@ -33,7 +33,7 @@ class TestPredictAndEval(unittest.TestCase):
         main(args)
 
     def test_predict_and_eval_abbyy(self):
-        from calamari_ocr.test.test_train_abbyxml import default_trainer_params
+        from calamari_ocr.test.test_train_abbyyxml import default_trainer_params
         checkpoint = os.path.join(this_dir, "models", "0.ckpt")
         trainer_params = default_trainer_params(with_validation=True)
         args = PredictAndEvalArgs(

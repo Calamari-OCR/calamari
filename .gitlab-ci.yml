@@ -13,7 +13,6 @@ cache:
   paths:
     - .cache/pip
     - venv
-    - calamari_models
   policy: pull
 
 stages:
@@ -26,19 +25,16 @@ install_dependencies:
     paths:
       - .cache/pip
       - venv
-      - calamari_models
     policy: pull-push
   before_script:
     - set -e
     - rm -rf venv
-    - rm -rf calamari_models
   script:
     - set -e
     - virtualenv -p python3.7 venv
     - source venv/bin/activate
     - pip install --use-feature 2020-resolver -r requirements.txt
     - python setup.py install
-    - wget -q -O - https://github.com/Calamari-OCR/calamari_models/archive/1.0.tar.gz | tar xz && mv calamari_models-1.0 calamari_models
 
 
 test-train-file:
@@ -135,6 +131,10 @@ test-command-line:
   stage: test
   script:
     - set -e
-    - calamari-train --train.images calamari_ocr/test/data/uw3_50lines/train/*.bin.png --trainer.epochs 1 --trainer.samples_per_epoch 16 --trainer.output_dir tmp_output --n_augmentations 2 --trainer.gen SplitTrain --network=cnn=40:3x3,pool=2x2,cnn=60:3x3,pool=2x2,lstm=200,dropout=0.5
-    - calamari-predict --data.images calamari_ocr/test/data/uw3_50lines/test/*.png --checkpoint tmp_output/best.ckpt.json
-    - calamari-eval --gt calamari_ocr/test/data/uw3_50lines/test/*.gt.txt
+    - python -m unittest calamari_ocr.test.test_command_line
+
+test-model-zoo:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_model_zoo

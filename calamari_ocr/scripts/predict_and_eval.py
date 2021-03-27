@@ -113,6 +113,8 @@ def main(args: PredictAndEvalArgs):
         with open(args.dump, 'wb') as f:
             pickle.dump({"full": full_evaluation, "gt": evaluator.preloaded_gt}, f)
 
+    return full_evaluation
+
 
 if __name__ == "__main__":
     run()
