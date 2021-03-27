@@ -6,7 +6,8 @@ before_script:
   - set -e
   - virtualenv -p python3.7 venv
   - source venv/bin/activate
-  - pip install --use-feature 2020-resolver -r requirements.txt
+  - pip install -U pip
+  - pip install -r requirements.txt
   - python setup.py install
 
 cache:
@@ -33,45 +34,10 @@ install_dependencies:
     - set -e
     - virtualenv -p python3.7 venv
     - source venv/bin/activate
-    - pip install --use-feature 2020-resolver -r requirements.txt
+    - pip install -U pip
+    - pip install -r requirements.txt
     - python setup.py install
 
-
-test-train-file:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_train_file
-
-test-train-pagexml:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_train_pagexml
-
-test-train-abbyyxml:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_train_abbyyxml
-
-test-train-hdf5:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_train_hdf5
-
-test-train-generated:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_train_generated
-
-test-train-mixed-data:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_train_mixed_data
 
 test-augmentation:
   stage: test
@@ -79,53 +45,6 @@ test-augmentation:
     - set -e
     - python -m unittest calamari_ocr.test.test_augmentation
 
-test-resume-training:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_resume_training
-
-test-pretrained:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_pretrained
-
-test-network-architectures:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_network_architectures
-
-test-train-ensemble:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_train_ensemble
-
-test-prediction:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_prediction
-
-test-predict-and-eval:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_predict_and_eval
-
-test-eval:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_eval
-
-test-scripts:
-  stage: test
-  script:
-    - set -e
-    - python -m unittest calamari_ocr.test.test_scripts
 
 test-command-line:
   stage: test
@@ -133,8 +52,104 @@ test-command-line:
     - set -e
     - python -m unittest calamari_ocr.test.test_command_line
 
+test-cross-fold-train:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_cross_fold_train
+
+test-eval:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_eval
+
 test-model-zoo:
   stage: test
   script:
     - set -e
     - python -m unittest calamari_ocr.test.test_model_zoo
+
+test-model-migration:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_model_migration
+
+test-network-architectures:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_network_architectures
+
+test-predict-and-eval:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_predict_and_eval
+
+test-prediction:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_prediction
+
+test-pretrained:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_pretrained
+
+test-resume-training:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_resume_training
+
+test-scripts:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_scripts
+
+test-train-abbyyxml:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_abbyyxml
+
+test-train-ensemble:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_ensemble
+
+test-train-file:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_file
+
+test-train-generated:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_generated
+
+test-train-hdf5:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_hdf5
+
+test-train-mixed-data:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_mixed_data
+
+test-train-pagexml:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_train_pagexml
