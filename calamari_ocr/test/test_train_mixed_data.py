@@ -6,14 +6,14 @@ from tensorflow.python.keras.backend import clear_session
 
 from calamari_ocr.ocr.dataset.datareader.abbyy.reader import Abbyy
 from calamari_ocr.ocr.dataset.datareader.pagexml.reader import PageXML
-from calamari_ocr.ocr.scenario import CalamariScenario
 from calamari_ocr.scripts.train import main
+from calamari_ocr.test.calamari_test_scenario import CalamariTestScenario
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 def default_trainer_params():
-    p = CalamariScenario.default_trainer_params()
+    p = CalamariTestScenario.default_trainer_params()
     p.gen.train = Abbyy(
         images=[
             os.path.join(this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg"),

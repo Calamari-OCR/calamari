@@ -3,17 +3,19 @@ import tempfile
 import unittest
 
 from tensorflow import keras
+from tfaip.util.tfaipargparse import post_init
 
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.scenario import CalamariEnsembleScenario
 from calamari_ocr.scripts.train import main
+from calamari_ocr.test.calamari_test_scenario import CalamariTestEnsembleScenario
 from calamari_ocr.utils import glob_all
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-def setup_trainer_params(preload=True, debug=True):
-    p = CalamariEnsembleScenario.default_trainer_params()
+def setup_trainer_params(preload=True, debug=False):
+    p = CalamariTestEnsembleScenario.default_trainer_params()
     p.scenario.debug_graph_construction = debug
     p.force_eager = debug
 
@@ -22,16 +24,7 @@ def setup_trainer_params(preload=True, debug=True):
         preload=preload,
     )
 
-    p.gen.setup.val.batch_size = 1
-    p.gen.setup.val.num_processes = 1
-    p.gen.setup.train.batch_size = 1
-    p.gen.setup.train.num_processes = 1
-    p.epochs = 1
-    p.samples_per_epoch = 2
-    p.scenario.data.pre_proc.run_parallel = False
-    p.scenario.data.__post_init__()
-    p.scenario.__post_init__()
-    p.__post_init__()
+    post_init(p)
     return p
 
 

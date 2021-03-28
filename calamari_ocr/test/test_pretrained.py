@@ -12,7 +12,7 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 def default_trainer_params(*, preload=True):
     p = uw3_trainer_params(with_validation=True, preload=preload)
-    p.warmstart.model = os.path.join(this_dir, 'models', '0.ckpt.json')
+    p.warmstart.model = os.path.join(this_dir, 'models', 'best.ckpt.json')
     return p
 
 

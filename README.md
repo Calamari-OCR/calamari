@@ -34,3 +34,20 @@ See the [docs](https://calamari-ocr.readthedocs.io) to learn how to use Calamari
 ## Calamari API
 
 See the [docs](https://calamari-ocr.readthedocs.io) to learn how to adapt Calamari for your needs.
+
+## Citing Calamari
+
+If you use Calamari in your Research-Project, please cite:
+
+> Wick, C., Reul, C., Puppe, F.: *Calamari - A High-Performance Tensorflow-based Deep Learning Package for Optical Character Recognition.* Digital Humanities Quarterly **14**(1) (2020)
+
+```
+@article{wick_calamari_2020,
+    title = {Calamari - {A} {High}-{Performance} {Tensorflow}-based {Deep} {Learning} {Package} for {Optical} {Character} {Recognition}},
+    volume = {14},
+    number = {1},
+    journal = {Digital Humanities Quarterly},
+    author = {Wick, Christoph and Reul, Christian and Puppe, Frank},
+    year = {2020},
+}
+```

@@ -36,13 +36,13 @@ def default_predictor_params():
 
 
 def create_single_model_predictor():
-    checkpoint = os.path.join(this_dir, "models", "0.ckpt")
+    checkpoint = os.path.join(this_dir, "models", "best.ckpt")
     predictor = Predictor.from_checkpoint(default_predictor_params(), checkpoint=checkpoint)
     return predictor
 
 
 def create_multi_model_predictor():
-    checkpoint = os.path.join(this_dir, "models", "0.ckpt")
+    checkpoint = os.path.join(this_dir, "models", "best.ckpt")
     predictor = MultiPredictor.from_paths(predictor_params=default_predictor_params(),
                                           checkpoints=[checkpoint, checkpoint])
     return predictor
@@ -50,7 +50,7 @@ def create_multi_model_predictor():
 
 def predict_args(n_models=1, data: CalamariDataGeneratorParams = file_dataset()) -> PredictArgs:
     p = PredictArgs(
-        checkpoint=[os.path.join(this_dir, "models", "0.ckpt")] * n_models,
+        checkpoint=[os.path.join(this_dir, "models", "best.ckpt")] * n_models,
         data=data,
     )
     return p

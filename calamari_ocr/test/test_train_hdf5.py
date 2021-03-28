@@ -7,15 +7,15 @@ from tfaip.data.pipeline.processor.params import SequentialProcessorPipelinePara
 
 from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
 from calamari_ocr.ocr.dataset.imageprocessors import PrepareSampleProcessorParams
-from calamari_ocr.ocr.scenario import CalamariScenario
 from calamari_ocr.ocr.training.pipeline_params import CalamariTrainOnlyPipelineParams
 from calamari_ocr.scripts.train import main
+from calamari_ocr.test.calamari_test_scenario import CalamariTestScenario
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 def default_trainer_params(with_validation=False, preload=True):
-    p = CalamariScenario.default_trainer_params()
+    p = CalamariTestScenario.default_trainer_params()
     train = Hdf5(
         files=[os.path.join(this_dir, "data", "uw3_50lines", "uw3-50lines.h5")],
         preload=preload,

@@ -19,7 +19,7 @@ def default_cross_fold_params(trainer_params, pretrained='none', with_augmentati
         trainer=trainer_params,
         n_folds=3,
     )
-    checkpoint = os.path.join(this_dir, "models", "0.ckpt")
+    checkpoint = os.path.join(this_dir, "models", "best.ckpt")
     if pretrained == 'one':
         cfp.weights = [checkpoint]
     elif pretrained == 'all':

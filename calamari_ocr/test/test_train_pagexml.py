@@ -5,16 +5,16 @@ import unittest
 from tensorflow import keras
 
 from calamari_ocr.ocr.dataset.datareader.pagexml.reader import PageXML
-from calamari_ocr.ocr.scenario import CalamariScenario
 from calamari_ocr.ocr.training.pipeline_params import CalamariSplitTrainerPipelineParams, \
     CalamariTrainOnlyPipelineParams
 from calamari_ocr.scripts.train import main
+from calamari_ocr.test.calamari_test_scenario import CalamariTestScenario
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 def default_trainer_params(*, with_validation=False, with_split=False, preload=True):
-    p = CalamariScenario.default_trainer_params()
+    p = CalamariTestScenario.default_trainer_params()
     train = PageXML(
         images=[
             os.path.join(this_dir, "data", "avicanon_pagexml", "006.nrm.png"),

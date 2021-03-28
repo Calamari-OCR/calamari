@@ -17,7 +17,7 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 def predict_args(data) -> PredictArgs:
     p = PredictArgs(
-        checkpoint=[os.path.join(this_dir, "models", "0.ckpt")],
+        checkpoint=[os.path.join(this_dir, "models", "best.ckpt")],
         data=data,
     )
     return p

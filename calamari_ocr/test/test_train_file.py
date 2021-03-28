@@ -4,21 +4,22 @@ import unittest
 
 from tensorflow import keras
 from tfaip import INPUT_PROCESSOR
+from tfaip.util.tfaipargparse import post_init
 
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.dataset.imageprocessors.center_normalizer import CenterNormalizerProcessorParams
 from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessorParams
-from calamari_ocr.ocr.scenario import CalamariScenario
 from calamari_ocr.ocr.training.pipeline_params import CalamariSplitTrainerPipelineParams, \
     CalamariTrainOnlyPipelineParams
 from calamari_ocr.scripts.train import main
+from calamari_ocr.test.calamari_test_scenario import CalamariTestScenario
 from calamari_ocr.utils import glob_all
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 def uw3_trainer_params(with_validation=False, with_split=False, preload=True, debug=False):
-    p = CalamariScenario.default_trainer_params()
+    p = CalamariTestScenario.default_trainer_params()
     p.scenario.debug_graph_construction = debug
     p.force_eager = debug
 
@@ -40,12 +41,7 @@ def uw3_trainer_params(with_validation=False, with_split=False, preload=True, de
     p.gen.setup.val.num_processes = 1
     p.gen.setup.train.batch_size = 1
     p.gen.setup.train.num_processes = 1
-    p.epochs = 1
-    p.samples_per_epoch = 2
-    p.scenario.data.pre_proc.run_parallel = False
-    p.scenario.data.__post_init__()
-    p.scenario.__post_init__()
-    p.__post_init__()
+    post_init(p)
     return p
 
 

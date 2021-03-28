@@ -5,14 +5,14 @@ import unittest
 
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset import TextGeneratorParams, LineGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.params import GeneratedLineDatasetParams
-from calamari_ocr.ocr.scenario import CalamariScenario
 from calamari_ocr.scripts.train import main
+from calamari_ocr.test.calamari_test_scenario import CalamariTestScenario
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 def default_trainer_params():
-    p = CalamariScenario.default_trainer_params()
+    p = CalamariTestScenario.default_trainer_params()
 
     with open(os.path.join(this_dir, 'data', 'line_generation_config', 'text_gen_params.json')) as f:
         text_gen_params = TextGeneratorParams.from_dict(json.load(f))
