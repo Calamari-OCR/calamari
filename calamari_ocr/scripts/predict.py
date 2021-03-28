@@ -153,21 +153,7 @@ def main():
     parser = PAIArgumentParser()
 
     parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
-    parser.add_root_argument("root", PredictArgs)
-
-    parser.add_argument("--verbose", action="store_true",
-                        help="Print additional information")
-    parser.add_argument("--voter", type=str, default="confidence_voter_default_ctc",
-                        help="The voting algorithm to use. Possible values: confidence_voter_default_ctc (default), "
-                             "sequence_voter")
-    parser.add_argument("--output_dir", type=str,
-                        help="By default the prediction files will be written to the same directory as the given files. "
-                             "You can use this argument to specify a specific output dir for the prediction files.")
-    parser.add_argument("--dictionary", nargs="+", default=[],
-                        help="List of text files that will be used to create a dictionary")
-    parser.add_argument("--beam_width", type=int, default=25,
-                        help='Number of beams when using the CTCWordBeamSearch decoder')
-
+    parser.add_root_argument("root", PredictArgs, flat=True)
     args = parser.parse_args()
 
     run(args.root)

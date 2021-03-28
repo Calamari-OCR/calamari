@@ -90,7 +90,3 @@ autodoc_mock_imports = [
 ]
 
 autosectionlabel_prefix_document = True
-
-rst_prolog = """
-.. |tfaip| replace:: *tfaip*
-"""

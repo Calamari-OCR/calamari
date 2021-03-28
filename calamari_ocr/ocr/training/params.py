@@ -146,7 +146,7 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
                 kernel_size=IntVec2D(*kernel_size),
                 strides=IntVec2D(1, 1),
             ))
-        elif label == "tcnn":
+        elif label in {"tcnn", "tconv", 'tconv2d'}:
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
 

@@ -15,7 +15,8 @@ from calamari_ocr.ocr.dataset.params import DATA_GENERATOR_CHOICES
 
 logger = logging.getLogger(__name__)
 
-@pai_dataclass
+
+@pai_dataclass(alt="TrainVal")
 @dataclass
 class CalamariDefaultTrainerPipelineParams(TrainerPipelineParams[CalamariDataGeneratorParams,
                                                                  CalamariDataGeneratorParams]):

@@ -1,0 +1,42 @@
+Install
+=======
+
+Calamari requires:
+
+* Python3.7 or later including the development packages
+
+Calamari was tested on Linux, but should be flawlessly usable on windows or mac.
+
+
+Installation using Pip
+----------------------
+
+The suggested method is to install calamari into a virtual environment using pip:
+
+.. code-block:: shell
+
+    virtualenv -p python3 PATH_TO_VENV_DIR # (e.g. virtualenv -p python3 calamari_venv)
+    source PATH_TO_VENV_DIR/bin/activate
+    pip install calamari_ocr
+
+which will install Calamari and all of its dependencies.
+
+To install the package without a virtual environment simply run
+
+Installation from Source
+------------------------
+
+To install the package from its source, download the source code and install it.
+Optionally (but recommended) install in a virtual env.
+
+.. code-block:: shell
+
+    git clone https://github.com/calamari-OCR/calamari
+    cd calamari
+    python setup.py install
+
+Conda users can alternatively call
+
+.. code-block:: shell
+
+    conda env create -f environment_master.yml
