@@ -32,11 +32,14 @@ class TrainerParams(AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrai
         help="When training with augmentations usually the model is retrained in a second run with "
              "only the non augmented data. This will take longer. Use this flag to disable this "
              "behavior."))
-    current_stage: int = 0  # Current training progress: 0 standard, 1 retraining on non aug.
+
+    # Current training progress: 0 standard, 1 retraining on non aug.
+    current_stage: int = field(default=0, metadata=pai_meta(mode='ignore'))
 
     progress_bar: bool = True
 
-    auto_upgrade_checkpoints: bool = True
+    auto_upgrade_checkpoints: bool = field(default=True, metadata=pai_meta(
+        help='Automatically update older checkpoints for warm start.'))
 
     codec: CodecConstructionParams = field(default_factory=CodecConstructionParams, metadata=pai_meta(
         help="Parameters defining how to construct the codec.", mode='flat'  # The actual codec is stored in data

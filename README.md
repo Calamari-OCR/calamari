@@ -19,7 +19,7 @@ The current release can be accessed [here](https://github.com/Calamari-OCR/calam
 
 ## Installing
 
-Calamari is available on [pypi](https://pypi.org/calamari-ocr):
+Calamari is available on [pypi](https://pypi.org/project/calamari-ocr):
 
 ```shell
 pip install calamari_ocr
