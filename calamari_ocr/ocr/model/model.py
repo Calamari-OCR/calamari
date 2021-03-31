@@ -37,7 +37,7 @@ class Model(ModelBase[ModelParams]):
 
         # note: blank is last index
         return {
-            'loss': K.ctc_batch_cost(inputs_targets['gt'] - 1, outputs['blank_last_softmax'],
+            'ctc-loss': K.ctc_batch_cost(inputs_targets['gt'] - 1, outputs['blank_last_softmax'],
                                      to_2d_list(outputs['out_len']), to_2d_list(inputs_targets['gt_len']))
         }
 
