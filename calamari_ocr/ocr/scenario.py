@@ -43,6 +43,8 @@ class CalamariScenarioBase(ScenarioBase[Data, TModel, TScenarioParams, CalamariD
         trainer_params.skip_model_load_test = True
         trainer_params.optimizer.global_clip_norm = 5
         trainer_params.learning_rate = Constant()
+        trainer_params.gen.setup.train.num_processes = 8
+        trainer_params.gen.setup.val.num_processes = 8
         return trainer_params
 
 

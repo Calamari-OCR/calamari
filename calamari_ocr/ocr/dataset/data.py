@@ -36,7 +36,7 @@ class Data(DataBase[DataParams]):
     def default_params(cls) -> DataParams:
         params: DataParams = super(Data, cls).default_params()
         params.pre_proc = SequentialProcessorPipelineParams(
-            run_parallel=False,
+            run_parallel=True,
             processors=default_image_processors() +
                        default_text_pre_processors() +
                        [
