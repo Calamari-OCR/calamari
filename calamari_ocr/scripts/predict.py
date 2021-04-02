@@ -40,15 +40,15 @@ class PredictArgs:
     extended_prediction_data_format: str = field(default='json', metadata=pai_meta(
         mode='flat',
         help="Extension format: Either pred or json. Note that json will not print logits."))
-    no_progress_bars: bool = field(default=False, metadata=pai_meta(
-        mode='flat',
-        help="Do not show any progress bars"))
-    ctc_decoder: CTCDecoderParams = field(default_factory=CTCDecoderParams)
+    ctc_decoder: CTCDecoderParams = field(default_factory=CTCDecoderParams, metadata=pai_meta(mode='ignore'))
     voter: VoterParams = field(default_factory=VoterParams)
     output_dir: Optional[str] = field(default=None, metadata=pai_meta(
         mode='flat',
         help="By default the prediction files will be written to the same directory as the given files. "
              "You can use this argument to specify a specific output dir for the prediction files."))
+    predictor: PredictorParams = field(default_factory=PredictorParams, metadata=pai_meta(
+        fix_dc=True, mode='flat',
+    ))
 
 
 def prepare_ctc_decoder_params(ctc_decoder: CTCDecoderParams):
@@ -92,8 +92,7 @@ def run(args: PredictArgs):
     # predict for all models
     from calamari_ocr.ocr.predict.predictor import MultiPredictor
     predictor = MultiPredictor.from_paths(checkpoints=args.checkpoint, voter_params=args.voter,
-                                          predictor_params=PredictorParams(silent=True,
-                                                                           progress_bar=not args.no_progress_bars))
+                                          predictor_params=args.predictor)
     do_prediction = predictor.predict(args.data)
     pipeline: CalamariPipeline = predictor.data.get_or_create_pipeline(predictor.params.pipeline, args.data)
     reader = pipeline.reader()

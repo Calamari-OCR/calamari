@@ -57,10 +57,29 @@ In the following is the full list of arguments (``calamari-predict --help``):
                             Extension format: Either pred or json. Note that json will not print logits. (default: json)
       --no_progress_bars NO_PROGRESS_BARS
                             Do not show any progress bars (default: False)
-      --ctc_decoder CTC_DECODER
       --voter VOTER
       --output_dir OUTPUT_DIR
                             By default the prediction files will be written to the same directory as the given files. You can use this argument to specify a specific output dir for the prediction files. (default: None)
+      --pipeline.batch_size PIPELINE.BATCH_SIZE
+                            Batch size (default: 16)
+      --pipeline.limit PIPELINE.LIMIT
+                            Limit the number of examples produced by the generator. Note, if GeneratingDataProcessors are present in the data pipeline, the number of examples produced by the generator can differ. (default: -1)
+      --pipeline.prefetch PIPELINE.PREFETCH
+                            Prefetching data. -1 default to max(num_processes * 2 by default, 2 * batch size) (default: -1)
+      --pipeline.num_processes PIPELINE.NUM_PROCESSES
+                            Number of processes for data loading. (default: 4)
+      --pipeline.batch_drop_remainder PIPELINE.BATCH_DROP_REMAINDER
+                            Drop remainder parameter of padded_batch. Drop batch if it is smaller than batch size. (default: False)
+      --pipeline.shuffle_buffer_size PIPELINE.SHUFFLE_BUFFER_SIZE
+                            Size of the shuffle buffer required for randomizing data (if required). Disabled by default. (default: -1)
+      --pipeline.bucket_boundaries [PIPELINE.BUCKET_BOUNDARIES [PIPELINE.BUCKET_BOUNDARIES ...]]
+                            Elements of the Dataset are grouped together by length and then are padded and batched. See tf.data.experimental.bucket_by_sequence_length (default: [])
+      --pipeline.bucket_batch_sizes [PIPELINE.BUCKET_BATCH_SIZES [PIPELINE.BUCKET_BATCH_SIZES ...]]
+                            Batch sizes of the buckets. By default, batch_size * (len(bucked_boundaries) + 1). (default: None)
+      --predictor.progress_bar PREDICTOR.PROGRESS_BAR
+                            Render a progress bar during prediction. (default: True)
+      --predictor.run_eagerly PREDICTOR.RUN_EAGERLY
+                            Run the prediction model in eager mode. Use for debug only. (default: False)
       --data.skip_invalid DATA.SKIP_INVALID
                             Missing help string (default: False)
       --data.non_existing_as_empty DATA.NON_EXISTING_AS_EMPTY
@@ -75,23 +94,20 @@ In the following is the full list of arguments (``calamari-predict --help``):
                             Extension of the gt files (expected to exist in same dir) (default: .gt.txt)
       --data.pred_extension DATA.PRED_EXTENSION
                             Extension of prediction text files (default: .pred.txt)
-      --ctc_decoder.type {Default,TokenPassing,WordBeamSearch,default,token_passing,word_beam_search}
-                            Missing help string (default: CTCDecoderType.Default)
-      --ctc_decoder.blank_index CTC_DECODER.BLANK_INDEX
-                            Missing help string (default: 0)
-      --ctc_decoder.min_p_threshold CTC_DECODER.MIN_P_THRESHOLD
-                            Missing help string (default: 0)
-      --ctc_decoder.non_word_chars [CTC_DECODER.NON_WORD_CHARS [CTC_DECODER.NON_WORD_CHARS ...]]
-                            Missing help string (default: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '[', ']', '(', ')', '_', '.', ':', ';', '!', '?', '{', '}', '-', "'", '"'])
-      --ctc_decoder.dictionary [CTC_DECODER.DICTIONARY [CTC_DECODER.DICTIONARY ...]]
-                            Missing help string (default: [])
-      --ctc_decoder.word_separator CTC_DECODER.WORD_SEPARATOR
-                            Missing help string (default: )
       --voter.type {SequenceVoter,ConfidenceVoterDefaultCTC,sequence_voter,confidence_voter_default_ctc}
                             Missing help string (default: VoterType.ConfidenceVoterDefaultCTC)
       --voter.blank_index VOTER.BLANK_INDEX
                             Missing help string (default: 0)
-
+      --predictor.device.gpus [PREDICTOR.DEVICE.GPUS [PREDICTOR.DEVICE.GPUS ...]]
+                            List of the GPUs to use. (default: None)
+      --predictor.device.gpu_auto_tune PREDICTOR.DEVICE.GPU_AUTO_TUNE
+                            Enable auto tuning of the GPUs (default: False)
+      --predictor.device.gpu_memory PREDICTOR.DEVICE.GPU_MEMORY
+                            Limit the per GPU memory in MB. By default the memory will grow automatically (default: None)
+      --predictor.device.soft_device_placement PREDICTOR.DEVICE.SOFT_DEVICE_PLACEMENT
+                            Set up soft device placement is enabled (default: True)
+      --predictor.device.dist_strategy {DEFAULT,CENTRAL_STORAGE,MIRROR,default,central_storage,mirror}
+                            Distribution strategy for multi GPU, select 'mirror' or 'central_storage' (default: DistributionStrategy.DEFAULT)
 
 
 calamari-train
@@ -109,7 +125,7 @@ A full list is shown below.
 * ``--trainer.epochs``: The maximum number of training iterations (batches) for training. Note: this is the upper boundary if you use early stopping.
 * ``--trainer.samples_per_epoch``: The number of samples to process per epoch (by default the size of the dataset)
 * ``--early_stopping.frequency=1``: How often to check for early stopping on the validation dataset.
-* ``--early_stopping.n_to_go=10``: How many successive models must be worse than the current best model to break the training loop
+* ``--early_stopping.n_to_go=5``: How many successive models must be worse than the current best model to break the training loop
 * ``--warmstart.model``: Load network weights from a given pretrained model. Note that the codec will probably change its size to match the codec of the provided ground truth files. To enforce that some characters may not be deleted use a --whitelist.
 * ``--n_augmentations=0``: Data augmentation on the training set.
 

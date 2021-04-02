@@ -4,6 +4,7 @@ import numpy as np
 
 import tfaip as tfaip
 from dataclasses_json import dataclass_json
+from paiargparse import pai_meta
 from tfaip.data.pipeline.definitions import Sample
 
 
@@ -54,9 +55,8 @@ class Predictions:
 @dataclass_json
 @dataclass
 class PredictorParams(tfaip.PredictorParams):
-    with_gt: bool = False
-    ctc_decoder_params = None
-    silent: bool = True
+    # override defaults
+    silent: bool = field(default=True, metadata=pai_meta(mode='ignore'))
 
 
 class PredictionResult:
