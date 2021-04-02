@@ -5,6 +5,7 @@ from paiargparse import pai_dataclass, pai_meta, PAIArgumentParser
 
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
+from calamari_ocr.ocr.dataset.params import DATA_GENERATOR_CHOICES
 from calamari_ocr.ocr.predict.params import PredictorParams
 from calamari_ocr.scripts.eval import print_confusions
 from calamari_ocr.utils import glob_all
@@ -24,7 +25,7 @@ class PredictAndEvalArgs:
     n_confusions: int = field(default=10, metadata=pai_meta(
         mode='flat', help="Only print n most common confusions. Defaults to 10, use -1 for all."))
     data: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
-        mode="flat", help="Input data"))
+        mode="flat", help="Input data", choices=DATA_GENERATOR_CHOICES))
     predictor: PredictorParams = field(default_factory=PredictorParams, metadata=pai_meta(
         mode="flat", help="Predictor data"))
     skip_empty_gt: bool = field(default=False, metadata=pai_meta(
