@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List
 
 from paiargparse import pai_dataclass, pai_meta
+from tfaip.util.tfaipargparse import post_init
 
 from calamari_ocr.ocr import CrossFold, SavedCalamariModel
 from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
@@ -174,8 +175,7 @@ class CrossFoldTrainer:
                 trainer_params.early_stopping.best_model_output_dir = self.params.best_models_dir
                 trainer_params.early_stopping.best_model_name = ''
                 best_model_prefix = self.params.best_model_label.format(id=fold)
-                trainer_params.scenario.default_serve_dir = f'{best_model_prefix}.ckpt.h5'
-                trainer_params.scenario.trainer_params_filename = f'{best_model_prefix}.ckpt.json'
+                trainer_params.best_model_prefix = best_model_prefix
 
                 if seed >= 0:
                     trainer_params.random_seed = seed + fold
@@ -193,6 +193,8 @@ class CrossFoldTrainer:
                         # access model once to upgrade the model if necessary
                         # (can not be performed in parallel if multiple folds use the same model)
                         SavedCalamariModel(trainer_params.warmstart.model)
+
+                post_init(trainer_params)
 
                 json.dump(
                     trainer_params.to_dict(),

@@ -18,6 +18,7 @@ def default_cross_fold_params(trainer_params, pretrained='none', with_augmentati
     cfp = CrossFoldTrainerParams(
         trainer=trainer_params,
         n_folds=3,
+        max_parallel_models=1,
     )
     checkpoint = os.path.join(this_dir, "models", "best.ckpt")
     if pretrained == 'one':
