@@ -38,15 +38,6 @@
             </TextLine>
             <TextLine id="r1_l003" comments="">
                 <Coords points="735,468 533,466 533,493 735,493"/>
-                <TextEquiv index="0" comments="User: lenka.jirouskova@uni-wuerzburg.de">
-                    <Unicode>humani corporis di-</Unicode>
-                </TextEquiv>
-                <TextEquiv index="1">
-                    <Unicode>humani corporis di-</Unicode>
-                </TextEquiv>
-                <TextEquiv index="40" comments="User: lenka.jirouskova@uni-wuerzburg.de">
-                    <Unicode>humani corporis di-</Unicode>
-                </TextEquiv>
             </TextLine>
             <TextLine id="r1_l004" comments="">
                 <Coords points="736,495 533,494 533,520 736,520"/>

@@ -49,7 +49,7 @@ class InputSample:
 @pai_dataclass
 @dataclass
 class CalamariDataGeneratorParams(DataGeneratorParams, ABC):
-    skip_invalid: bool = False
+    skip_invalid: bool = True
     non_existing_as_empty: bool = False
     n_folds: int = field(default=-1, metadata=pai_meta(mode='ignore'))
     preload: bool = field(default=True, metadata=pai_meta(

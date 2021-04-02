@@ -63,7 +63,7 @@ def main(args: PredictAndEvalArgs):
                                           predictor_params=args.predictor)
     do_prediction = predictor.predict(args.data)
 
-    all_voter_sentences = []
+    all_voter_sentences = {}
     all_prediction_sentences = {}
 
     for s in do_prediction:
@@ -72,9 +72,9 @@ def main(args: PredictAndEvalArgs):
         if prediction.voter_predictions is not None and args.output_individual_voters:
             for i, p in enumerate(prediction.voter_predictions):
                 if i not in all_prediction_sentences:
-                    all_prediction_sentences[i] = []
-                all_prediction_sentences[i].append(p.sentence)
-        all_voter_sentences.append(sentence)
+                    all_prediction_sentences[i] = {}
+                all_prediction_sentences[i][s.meta['id']] = p.sentence
+        all_voter_sentences[s.meta['id']] = sentence
 
     # evaluation
     from calamari_ocr.ocr.evaluator import Evaluator, EvaluatorParams
@@ -83,10 +83,6 @@ def main(args: PredictAndEvalArgs):
     evaluator.preload_gt(gt_dataset=args.data, progress_bar=True)
 
     def single_evaluation(label, predicted_sentences):
-        if len(predicted_sentences) != len(evaluator.preloaded_gt):
-            raise Exception("Mismatch in number of gt and pred files: {} != {}. Probably, the prediction did "
-                            "not succeed".format(len(evaluator.preloaded_gt), len(predicted_sentences)))
-
         r = evaluator.evaluate(gt_data=evaluator.preloaded_gt, pred_data=predicted_sentences)
 
         print("=================")

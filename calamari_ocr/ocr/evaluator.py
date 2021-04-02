@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Dict
 
 from edit_distance import edit_distance
 
@@ -22,6 +23,7 @@ class EvaluatorParams:
     setup: DataPipelineParams = field(default_factory=DataPipelineParams)
     progress_bar: bool = True
     skip_empty_gt: bool = False
+    non_existing_pred_as_empty: bool = True
 
 
 class Evaluator:
@@ -47,11 +49,11 @@ class Evaluator:
 
         """
         with self.data.create_pipeline(self.params.setup, gt_dataset) as dataset:
-            self.preloaded_gt = [sample.targets for sample in tqdm_wrapper(dataset.generate_input_samples(),
-                                                                           total=len(dataset),
-                                                                           progress_bar=progress_bar,
-                                                                           desc="Loading GT",
-                                                                           )]
+            self.preloaded_gt = {sample.meta['id']: sample.targets for sample in tqdm_wrapper(dataset.generate_input_samples(),
+                                                                                              total=len(dataset),
+                                                                                              progress_bar=progress_bar,
+                                                                                              desc="Loading GT",
+                                                                                              )}
 
     def run(self, *, gt_dataset: DataGeneratorParams, pred_dataset: DataGeneratorParams):
         """ evaluate on the given dataset
@@ -63,18 +65,18 @@ class Evaluator:
             gt_data = self.preloaded_gt
         else:
             with self.data.create_pipeline(self.params.setup, gt_dataset) as data:
-                gt_data = [sample.targets for sample in tqdm_wrapper(data.generate_input_samples(),
+                gt_data = {sample.meta['id']: sample.targets for sample in tqdm_wrapper(data.generate_input_samples(),
                                                                      total=len(data),
                                                                      progress_bar=self.params.progress_bar,
                                                                      desc="Loading GT",
-                                                                     )]
+                                                                     )}
 
         with self.data.create_pipeline(self.params.setup, pred_dataset) as data:
-            pred_data = [sample.targets for sample in tqdm_wrapper(data.generate_input_samples(),
-                                                                   total=len(data),
-                                                                   progress_bar=self.params.progress_bar,
-                                                                   desc="Loading Prediction"
-                                                                   )]
+            pred_data = {sample.meta['id']: sample.targets for sample in tqdm_wrapper(data.generate_input_samples(),
+                                                                                      total=len(data),
+                                                                                      progress_bar=self.params.progress_bar,
+                                                                                      desc="Loading Prediction"
+                                                                                      )}
 
         return self.evaluate(gt_data=gt_data, pred_data=pred_data)
 
@@ -169,7 +171,7 @@ class Evaluator:
             "confusion": confusion,
         }
 
-    def evaluate(self, *, gt_data=None, pred_data=None):
+    def evaluate(self, *, gt_data: Dict[str, str], pred_data: Dict[str, str]):
         """ evaluate on the given raw data
 
         Parameters
@@ -183,8 +185,14 @@ class Evaluator:
         -------
         evaluation dictionary
         """
-        if len(gt_data) != len(pred_data):
-            raise Exception("Mismatch in gt and pred files count: {} vs {}".format(len(gt_data), len(pred_data)))
+        if self.params.non_existing_pred_as_empty:
+            pred_data = {sample_id: pred_data.get(sample_id, '') for sample_id in gt_data.keys()}
+
+        gt_ids, pred_ids = set(gt_data.keys()), set(pred_data.keys())
+        if gt_ids != pred_ids:
+            raise Exception(f"Mismatch in gt and pred. Samples could not be matched by ID. "
+                            f"GT without PRED: {gt_ids.difference(pred_ids)}. "
+                            f"PRED without GT: {pred_ids.difference(gt_ids)}")
 
         # evaluate single lines
         out = parallel_map(Evaluator.evaluate_single_args, [{'gt': gt, 'pred': pred, 'skip_empty_gt': self.params.skip_empty_gt} for gt, pred in zip(gt_data, pred_data)],

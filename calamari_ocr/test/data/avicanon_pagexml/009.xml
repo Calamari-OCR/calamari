@@ -11,26 +11,11 @@
             <Coords points="139,1918 189,1921 189,1827 593,1829 591,2207 133,2209 133,2209 133,2209"/>
             <TextLine id="r0_l001" comments="">
                 <Coords points="585,1866 585,1836 192,1836 192,1867 528,1868"/>
-                <TextEquiv index="1">
-                    <Unicode>Lementa sunt corpora, et sunt partes pri//</Unicode>
-                </TextEquiv>
-                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
-                    <Unicode>Lementa sunt corpora, et sunt partes pri//</Unicode>
-                </TextEquiv>
-                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
-                    <Unicode>Lementa sunt corpora, et sunt partes pri//</Unicode>
-                </TextEquiv>
             </TextLine>
             <TextLine id="r0_l002" comments="">
                 <Coords points="585,1897 585,1867 490,1870 312,1870 191,1868 191,1897 235,1897 273,1899 515,1899"/>
                 <TextEquiv index="1">
-                    <Unicode>mae corporis humani, et aliorum, quae in</Unicode>
-                </TextEquiv>
-                <TextEquiv index="0" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
-                    <Unicode>mae corporis humani, et aliorum, quae in</Unicode>
-                </TextEquiv>
-                <TextEquiv index="40" comments="User: carolin.helmer1@stud-mail.uni-wuerzburg.de">
-                    <Unicode>mae corporis humani, et aliorum, quae in</Unicode>
+                    <Unicode> </Unicode>
                 </TextEquiv>
             </TextLine>
             <TextLine id="r0_l003" comments="">
