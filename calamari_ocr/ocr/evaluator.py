@@ -189,13 +189,16 @@ class Evaluator:
             pred_data = {sample_id: pred_data.get(sample_id, '') for sample_id in gt_data.keys()}
 
         gt_ids, pred_ids = set(gt_data.keys()), set(pred_data.keys())
+        if len(gt_ids) != len(gt_data):
+            raise ValueError(f"Non unique keys in ground truth data.")
         if gt_ids != pred_ids:
             raise Exception(f"Mismatch in gt and pred. Samples could not be matched by ID. "
                             f"GT without PRED: {gt_ids.difference(pred_ids)}. "
                             f"PRED without GT: {pred_ids.difference(gt_ids)}")
 
+        gt_pred = [(gt_data[s_id], pred_data[s_id]) for s_id in gt_ids]
         # evaluate single lines
-        out = parallel_map(Evaluator.evaluate_single_args, [{'gt': gt, 'pred': pred, 'skip_empty_gt': self.params.skip_empty_gt} for gt, pred in zip(gt_data, pred_data)],
+        out = parallel_map(Evaluator.evaluate_single_args, [{'gt': gt, 'pred': pred, 'skip_empty_gt': self.params.skip_empty_gt} for gt, pred in gt_pred],
                            processes=self.params.setup.num_processes, progress_bar=self.params.progress_bar, desc="Evaluation")
 
         return Evaluator.evaluate_single_list(out, True)
