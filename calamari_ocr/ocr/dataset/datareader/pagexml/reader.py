@@ -58,10 +58,11 @@ class PageXMLDatasetLoader:
         root = etree.parse(xml).getroot()
         self.root = root
 
+        page_id = split_all_ext(xml)[0]
         if self.mode in TARGETS_PROCESSOR:
-            return self._samples_gt_from_book(root, img, xml)
+            return self._samples_gt_from_book(root, img, page_id)
         else:
-            return self._samples_from_book(root, img, xml)
+            return self._samples_from_book(root, img, page_id)
 
     def _samples_gt_from_book(self, root, img, page_id):
         ns = {"ns": root.nsmap[None]}
