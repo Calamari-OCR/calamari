@@ -215,14 +215,14 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                  params: PageXML,
                  ):
         super().__init__(mode, params)
-        self.pages = []
+        self.pages = {}
         for img, xml in zip(params.images, params.xml_files):
             loader = PageXMLDatasetLoader(self.mode, params.non_existing_as_empty, params.text_index,
                                           params.skip_invalid, params.skip_commented)
             for sample in loader.load(img, xml):
                 self.add_sample(sample)
 
-            self.pages.append(loader.root)
+            self.pages[split_all_ext(xml)[0]] = loader.root
 
         # store which pagexml was stored last, to check when a file is ready to be written during sequential prediction
         self._last_page_id = None
@@ -351,13 +351,13 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             self._store_page(extension, self._last_page_id)
             self._last_page_id = None
         else:
-            for xml, page in tqdm(zip(self.params.xmlfiles, self.pages), desc="Writing PageXML files",
-                                  total=len(self.params.xmlfiles)):
+            for xml in tqdm(self.params.xmlfiles, desc="Writing PageXML files", total=len(self.params.xmlfiles)):
+                page = self.pages(split_all_ext(xml)[0])
                 with open(split_all_ext(xml)[0] + extension, 'w') as f:
                     f.write(etree.tounicode(page.getroottree()))
 
     def _store_page(self, extension, page_id):
-        page = self.pages[self.params.xml_files.index(page_id)]
+        page = self.pages[page_id]
         with open(split_all_ext(page_id)[0] + extension, 'w') as f:
             f.write(etree.tounicode(page.getroottree()))
 
