@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 import os
 import json
 import numpy as np
+from calamari_ocr.ocr.dataset.params import DATA_GENERATOR_CHOICES
 from paiargparse import PAIArgumentParser, pai_dataclass, pai_meta
 from tfaip.data.pipeline.definitions import PipelineMode
 
@@ -128,9 +129,9 @@ def write_xlsx(xlsx_file, eval_datas):
 @dataclass
 class EvalArgs:
     gt: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
-        help="GT", mode='flat'))
+        help="GT", mode='flat', choices=DATA_GENERATOR_CHOICES))
     pred: Optional[CalamariDataGeneratorParams] = field(default=None, metadata=pai_meta(
-        help='Optional prediction dataset', mode='flat'))
+        help='Optional prediction dataset', mode='flat', choices=DATA_GENERATOR_CHOICES))
     n_confusions: int = field(default=10, metadata=pai_meta(
         help="Only print n most common confusions. Defaults to 10, use -1 for all.", mode='flat'))
     n_worst_lines: int = field(default=0, metadata=pai_meta(

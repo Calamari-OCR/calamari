@@ -12,7 +12,6 @@ from tfaip.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
 
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams, InputSample, \
     SampleMeta
-from calamari_ocr.scripts.ensemble import split
 
 from calamari_ocr.utils import split_all_ext, glob_all, keep_files_with_same_file_name
 from calamari_ocr.utils.image import load_image
