@@ -52,6 +52,7 @@ class Abbyy(CalamariDataGeneratorParams):
         if not self.xml_files:
             self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
         if not self.images:
+            self.xml_files = sorted(glob_all(self.xml_files))
             self.images = [None] * len(self.xml_files)
 
 

@@ -19,7 +19,7 @@ from calamari_ocr.utils.image import load_image
 logger = logging.getLogger(__name__)
 
 
-@pai_dataclass
+@pai_dataclass(alt='File')
 @dataclass
 class FileDataParams(CalamariDataGeneratorParams):
     images: List[str] = field(default_factory=list, metadata=pai_meta(

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
 
 from edit_distance import edit_distance
 
@@ -11,8 +11,10 @@ from tfaip.data.databaseparams import DataPipelineParams
 from tfaip.data.pipeline.definitions import PipelineMode
 from tfaip.util.multiprocessing.parallelmap import parallel_map, tqdm_wrapper
 
-from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.dataset.textprocessors import synchronize
+
+if TYPE_CHECKING:
+    from calamari_ocr.ocr.dataset.data import Data
 
 SingleEvalData = namedtuple('SingleEvalData', ['chars', 'char_errs', 'sync_errs', 'conf', 'gt_pred'])
 
@@ -27,7 +29,7 @@ class EvaluatorParams:
 
 
 class Evaluator:
-    def __init__(self, params: EvaluatorParams, data: Data):
+    def __init__(self, params: EvaluatorParams, data: 'Data'):
         """ Class to evaluation the CER and errors of two dataset
         """
         self.params = params

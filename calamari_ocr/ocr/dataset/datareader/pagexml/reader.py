@@ -167,7 +167,7 @@ class PageXMLDatasetLoader:
 @pai_dataclass
 @dataclass
 class PageXML(CalamariDataGeneratorParams):
-    images: List[str] = field(default_factory=list, metadata=pai_meta(required=True))
+    images: List[str] = field(default_factory=list)
     xml_files: List[str] = field(default_factory=list)
     gt_extension: str = field(default='.xml', metadata=pai_meta(
         help="Default extension of the gt files (expected to exist in same dir)"
@@ -204,6 +204,7 @@ class PageXML(CalamariDataGeneratorParams):
         if not self.xml_files:
             self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
         if not self.images:
+            self.xml_files = sorted(glob_all(self.xml_files))
             self.images = [None] * len(self.xml_files)
 
 
