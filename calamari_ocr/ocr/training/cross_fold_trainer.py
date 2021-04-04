@@ -159,9 +159,11 @@ class CrossFoldTrainer:
                 )
                 if cross_fold.is_h5_dataset:
                     tp = trainer_params.gen.train.to_dict()
+                    del tp['__cls__']
                     tp["files"] = train_files
                     trainer_params.gen.train = Hdf5.from_dict(tp)
                     vp = trainer_params.gen.val.to_dict()
+                    del vp['__cls__']
                     vp['files'] = test_files
                     trainer_params.gen.val = Hdf5.from_dict(vp)
                 else:
