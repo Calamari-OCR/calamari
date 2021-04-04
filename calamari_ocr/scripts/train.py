@@ -1,9 +1,12 @@
+from typing import TYPE_CHECKING
+
 from paiargparse import PAIArgumentParser
 from tfaip.util.logging import setup_log, logger
 
 from calamari_ocr import __version__
-from calamari_ocr.ocr.scenario import CalamariScenario
-from calamari_ocr.ocr.training.params import TrainerParams
+
+if TYPE_CHECKING:
+    from calamari_ocr.ocr.training.params import TrainerParams
 
 logger = logger(__name__)
 
@@ -12,7 +15,7 @@ def run():
     main(parse_args())
 
 
-def main(trainer_params: TrainerParams):
+def main(trainer_params: 'TrainerParams'):
     if trainer_params.output_dir:
         setup_log(trainer_params.output_dir, append=False)
 
@@ -24,6 +27,7 @@ def main(trainer_params: TrainerParams):
 
 
 def parse_args(args=None):
+    from calamari_ocr.ocr.scenario import CalamariScenario
     parser = PAIArgumentParser()
     parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
 
