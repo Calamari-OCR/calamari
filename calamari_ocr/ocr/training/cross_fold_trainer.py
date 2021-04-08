@@ -82,6 +82,12 @@ class CrossFoldTrainerParams:
                                                                             "from scratch"))
     single_fold: List[int] = field(default_factory=list, metadata=pai_meta(mode='flat',
                                                                            help="Only train a single (list of single) specific fold(s)."))
+    visible_gpus: Optional[List[int]] = field(default=None, metadata=pai_meta(
+        mode='flat', help='GPUs to use for scheduling the individual trainig.'
+                          'Use e.g. 0, 1, 2 to schedule five trainings on 0, 1, 2, 0, 1 by setting CUDA_VISIBLE_DEVICES. '
+                          'This option should not be used with `--device.gpus`'
+    ))
+
 
     def __post_init__(self):
         if self.max_parallel_models <= 0:
@@ -178,6 +184,10 @@ class CrossFoldTrainer:
                 trainer_params.early_stopping.best_model_name = ''
                 best_model_prefix = self.params.best_model_label.format(id=fold)
                 trainer_params.best_model_prefix = best_model_prefix
+
+                if self.params.visible_gpus:
+                    assert trainer_params.device.gpus is None, "Using visible_gpus with device.gpus is not supported"
+                    trainer_params.device.gpus = [self.params.visible_gpus[fold % len(self.params.visible_gpus)]]
 
                 if seed >= 0:
                     trainer_params.random_seed = seed + fold
