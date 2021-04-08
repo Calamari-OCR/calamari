@@ -8,7 +8,7 @@ from calamari_ocr.ocr.dataset.imageprocessors import AugmentationProcessorParams
 from calamari_ocr.ocr.training.cross_fold_trainer import CrossFoldTrainerParams
 from calamari_ocr.scripts.cross_fold_train import main
 from calamari_ocr.test.test_train_file import uw3_trainer_params as default_files_trainer_params
-from calamari_ocr.test.test_train_pagexml import default_trainer_params as default_hdf5_trainer_params
+from calamari_ocr.test.test_train_pagexml import default_trainer_params as default_pagexml_trainer_params
 
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -71,7 +71,7 @@ class TestCrossFoldTrain(unittest.TestCase):
             main(cfp)
 
     def test_on_pagexml(self):
-        cfp = default_cross_fold_params(default_hdf5_trainer_params())
+        cfp = default_cross_fold_params(default_pagexml_trainer_params())
         with tempfile.TemporaryDirectory() as d:
             cfp.best_models_dir = d
             main(cfp)

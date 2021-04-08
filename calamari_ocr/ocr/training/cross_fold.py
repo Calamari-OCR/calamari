@@ -36,11 +36,17 @@ class CrossFold:
 
         # fill single fold files
 
+        data_generator = self.data_generator_params.create(PipelineMode.EVALUATION)
+        if len(data_generator) == 0:
+            raise ValueError('Empty dataset.')
+        if len(data_generator) < self.n_folds:
+            raise ValueError('Less files than folds in the dataset which results in folds without any training example.')
+
         # if a FileDataSet, we can just use the paths of the images
         if isinstance(self.data_generator_params, FileDataParams):
             self.is_h5_dataset = False
             self.folds = [[] for _ in range(self.n_folds)]
-            file_data_gen: FileDataGenerator = self.data_generator_params.create(PipelineMode.EVALUATION)
+            file_data_gen: FileDataGenerator = data_generator
             for i, sample in enumerate(file_data_gen.samples()):
                 self.folds[i % n_folds].append(sample['image_path'])
         else:
@@ -48,7 +54,6 @@ class CrossFold:
             # else load the data of each fold and write it to hd5 data files
             with ExitStack() as stack:
                 folds = [stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, 'fold{}'.format(i)))) for i in range(self.n_folds)]
-                data_generator = self.data_generator_params.create(PipelineMode.EVALUATION)
                 for i, sample in tqdm_wrapper(enumerate(data_generator.generate()), progress_bar=progress_bar,
                                               total=len(data_generator), desc="Creating hdf5 files"):
                     sample: Sample = sample
