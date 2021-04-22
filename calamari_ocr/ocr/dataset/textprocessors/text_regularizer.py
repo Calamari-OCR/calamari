@@ -140,7 +140,6 @@ def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -
         replacement("ﬄ", "ffl")
         replacement("ﬂ", "fl")
         replacement("ﬁ", "fi")
-        replacement("ẞ", "ſs")
         replacement("ﬆ", "st")
         replacement("ﬅ", "ſt")
         replacement("Ꜩ", "TZ")
@@ -187,12 +186,12 @@ def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -
         replacement("''", "\"")
 
         # replace transcription errors or unwanted symbols:
-        replacement("z", "ʒ")  # in those trancriptions that should not have z, but ʒ (small letter ezh, U+0292)
-        replacement("Z", "Ʒ")  # in those trancriptions that should not have Z, but Ʒ (capital ezh, U+01B7)
+        # replacement("z", "ʒ")  # in those trancriptions that should not have z, but ʒ (small letter ezh, U+0292)
+        # replacement("Z", "Ʒ")  # in those trancriptions that should not have Z, but Ʒ (capital ezh, U+01B7)
         # replacement("¶','")       # if the pilcrow sign is not in the line image
         replacement("ꝛ", "r")  # if you don't want to preserve r rotunda, U+A75B
         replacement("I", "J")  # most Fraktur fonts have only a single glyph for I and J
-        replacement("⸍", "\\")  # U+2E0D -> /, regularize transcription for virgula
+        replacement("⸍", "/")  # U+2E0D -> /, regularize transcription for virgula
         # replacement("⸍','-")      # U+2E0D -> -, may also mean hyphenation at line end
         # use flattened a above instead of similar combining diaeresis, or macron
         replacement("q̈", "qᷓ")  # replace combining diaeresis (U+0308) with flattened a above (U+1DD3, qᷓ = quam)
