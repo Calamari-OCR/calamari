@@ -41,7 +41,7 @@ def run(command, verbose=False):
     env = os.environ.copy()
     env['PYTHONIOENCODING'] = 'utf-8'
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, env=env,
-                               close_fds=ON_POSIX, text=True, bufsize=1)
+                               close_fds=ON_POSIX, text=True, bufsize=1, encoding='utf-8')
     # Make nonblocking output
     stdout_queue = Queue()
     stdout_reader = Thread(target=enqueue_output, args=(process.stdout, stdout_queue), daemon=True)

@@ -4,6 +4,7 @@ import unittest
 from glob import glob
 from subprocess import check_call
 
+import pytest
 from tensorflow.python.keras.backend import clear_session
 from tfaip.data.databaseparams import DataPipelineParams
 
@@ -12,6 +13,7 @@ from calamari_ocr.scripts.predict_and_eval import main as predict_and_eval_main,
 from calamari_ocr.test.test_train_file import uw3_trainer_params
 
 
+@pytest.mark.skipif(os.name != 'posix', reason="Do not run on windows due to missing wget and untar.")
 class TestModelZoo(unittest.TestCase):
     def tearDown(self) -> None:
         clear_session()
