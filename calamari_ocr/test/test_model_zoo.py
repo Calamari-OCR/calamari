@@ -20,7 +20,7 @@ class TestModelZoo(unittest.TestCase):
         version = '1.0'
         url = f"https://github.com/Calamari-OCR/calamari_models/archive/{version}.tar.gz"
         with tempfile.TemporaryDirectory() as d:
-            # d = 'model_archive_permanent'  # for debugging
+            d = 'model_archive_permanent'  # for debugging
             os.makedirs(d, exist_ok=True)
             os.chdir(d)
             if not os.path.exists('calamari_models'):

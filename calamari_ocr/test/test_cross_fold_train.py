@@ -19,6 +19,7 @@ def default_cross_fold_params(trainer_params, pretrained='none', with_augmentati
         trainer=trainer_params,
         n_folds=3,
         max_parallel_models=1,
+        single_fold=[0],  # Only one fold for tests
     )
     checkpoint = os.path.join(this_dir, "models", "best.ckpt")
     if pretrained == 'one':
@@ -72,6 +73,18 @@ class TestCrossFoldTrain(unittest.TestCase):
 
     def test_on_pagexml(self):
         cfp = default_cross_fold_params(default_pagexml_trainer_params())
+        with tempfile.TemporaryDirectory() as d:
+            cfp.best_models_dir = d
+            main(cfp)
+
+    def test_on_pagexml_mixed_color_as_gray(self):
+        cfp = default_cross_fold_params(default_pagexml_trainer_params(img_suffix='*.png'))
+        with tempfile.TemporaryDirectory() as d:
+            cfp.best_models_dir = d
+            main(cfp)
+
+    def test_on_pagexml_mixed_color_as_color(self):
+        cfp = default_cross_fold_params(default_pagexml_trainer_params(img_suffix='*.png', channels=3))
         with tempfile.TemporaryDirectory() as d:
             cfp.best_models_dir = d
             main(cfp)

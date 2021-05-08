@@ -1,5 +1,62 @@
+from dataclasses import dataclass, field
+
 import numpy as np
 from PIL import Image
+from paiargparse import pai_dataclass, pai_meta
+import cv2 as cv
+
+
+@pai_dataclass
+@dataclass
+class ImageLoaderParams:
+    channels: int = field(default=1, metadata=pai_meta(
+        help='Number of channels to produce, by default 1=grayscale. Use 3 for colour.'
+    ))
+    to_gray_method: str = field(default='cv', metadata=pai_meta(
+        help='Method to apply to convert color to gray.',
+        choices=['avg', 'cv'],
+    ))
+
+    def create(self) -> 'ImageLoader':
+        return ImageLoader(self)
+
+
+class ImageLoader:
+    def __init__(self, params: ImageLoaderParams):
+        self.params = params
+
+    def load_image(self, image_path: str) -> np.ndarray:
+        img = load_image(image_path)
+        if len(img.shape) == 2:
+            img_channels = 1
+        elif len(img.shape) == 3:
+            img_channels = img.shape[-1]
+        else:
+            raise ValueError(f"Unknown image format. Must bei either WxH or WxHxC, but got {img.shape}.")
+
+        if img_channels == self.params.channels:
+            pass  # good
+        elif img_channels == 3 and self.params.channels == 1:
+            if self.params.to_gray_method == 'avg':
+                img = np.mean(img.astype('float32'), axis=-1).astype(dtype=img.dtype)
+            elif self.params.to_gray_method == 'cv':
+                img = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
+            else:
+                raise ValueError(f'Unsupported image conversion method {self.params.method}')
+        elif img_channels == 4 and self.params.channels == 1:
+            if self.params.to_gray_method == 'avg':
+                img = np.mean(img[:, :, :3].astype('float32'), axis=-1).astype(dtype=img.dtype)
+            elif self.params.to_gray_method == 'cv':
+                img = cv.cvtColor(img, cv.COLOR_RGBA2GRAY)
+            else:
+                raise ValueError(f'Unsupported image conversion method {self.params.method}')
+        elif img_channels == 1 and self.params.channels == 3:
+            img = np.stack([img] * 3, axis=-1)
+        else:
+            raise ValueError(f"Unsupported image files. Trying to convert from {img_channels} channels to "
+                             f"{self.params.channels} channels.")
+
+        return img
 
 
 def load_image(image_path: str) -> np.ndarray:

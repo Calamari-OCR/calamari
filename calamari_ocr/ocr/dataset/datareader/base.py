@@ -4,14 +4,16 @@ from abc import abstractmethod, ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from random import shuffle
-from typing import Generator, Iterable, Optional, List, NoReturn
+from typing import Generator, Iterable, Optional, List, NoReturn, TypeVar
 
 import numpy as np
 from dataclasses_json import dataclass_json
 from paiargparse import pai_dataclass, pai_meta
 from tfaip import DataGeneratorParams
-from tfaip.data.pipeline.datagenerator import DataGenerator, T
+from tfaip.data.pipeline.datagenerator import DataGenerator
 from tfaip.data.pipeline.definitions import PipelineMode, Sample
+
+from calamari_ocr.utils.image import ImageLoaderParams, ImageLoader
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +50,7 @@ class InputSample:
 
 @pai_dataclass
 @dataclass
-class CalamariDataGeneratorParams(DataGeneratorParams, ABC):
+class CalamariDataGeneratorParams(DataGeneratorParams, ImageLoaderParams, ABC):
     skip_invalid: bool = True
     non_existing_as_empty: bool = False
     n_folds: int = field(default=-1, metadata=pai_meta(mode='ignore'))
@@ -77,11 +79,21 @@ class CalamariDataGeneratorParams(DataGeneratorParams, ABC):
         gen.post_init()
         return gen
 
+    def image_loader(self) -> ImageLoader:
+        return ImageLoader(self)
+
+
+T = TypeVar('T', bound=CalamariDataGeneratorParams)
+
 
 class CalamariDataGenerator(DataGenerator[T], ABC):
     def __init__(self, mode: PipelineMode, params: T):
         super(CalamariDataGenerator, self).__init__(mode, params)
         self._samples = []
+        self._image_loader = params.image_loader()
+
+    def _load_image(self, path: str) -> np.ndarray:
+        return self._image_loader.load_image(path)
 
     def post_init(self):
         if self.params.n_folds > 0:

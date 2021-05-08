@@ -17,7 +17,6 @@ from calamari_ocr.utils import split_all_ext, filename, glob_all
 
 import logging
 
-from calamari_ocr.utils.image import load_image
 
 logger = logging.getLogger(__name__)
 
@@ -376,7 +375,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         img = None
         if self.mode in INPUT_PROCESSOR:
-            img = load_image(image_path)
+            img = self._load_image(image_path)
 
         for i, sample in enumerate(loader.load(image_path, xml_path)):
             fold_id = (idx + i) % self.params.n_folds if self.params.n_folds > 0 else -1

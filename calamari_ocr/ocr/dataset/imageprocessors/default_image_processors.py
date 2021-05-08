@@ -10,7 +10,6 @@ from calamari_ocr.ocr.dataset.imageprocessors.final_preparation import FinalPrep
 
 def default_image_processors() -> List[DataProcessorParams]:
     return [
-        DataRangeProcessorParams(modes=INPUT_PROCESSOR),
         CenterNormalizerProcessorParams(modes=INPUT_PROCESSOR),
         FinalPreparationProcessorParams(modes=INPUT_PROCESSOR),
     ]

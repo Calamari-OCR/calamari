@@ -25,7 +25,12 @@ class FinalPreparationProcessorParams(DataProcessorParams):
 
 
 class FinalPreparation(ImageProcessor[FinalPreparationProcessorParams]):
-    def _apply_single(self, data, meta):
+    def _apply_single(self, data: np.ndarray, meta):
+        if len(data.shape) != 3:
+            data = np.expand_dims(data, axis=-1)  # add channels dimension
+
+        channels = data.shape[-1]
+
         if data.size > 0:
             # non empty image
             if self.params.normalize:
@@ -42,14 +47,17 @@ class FinalPreparation(ImageProcessor[FinalPreparationProcessorParams]):
         if self.params.pad > 0:
             if self.params.transpose:
                 w = data.shape[1]
-                data = np.vstack([np.full((self.params.pad, w), self.params.pad_value), data,
-                                  np.full((self.params.pad, w), self.params.pad_value)])
+                data = np.vstack([np.full((self.params.pad, w, channels), self.params.pad_value), data,
+                                  np.full((self.params.pad, w, channels), self.params.pad_value)])
             else:
                 w = data.shape[0]
-                data = np.hstack([np.full((w, self.params.pad), self.params.pad_value), data,
-                                  np.full((w, self.params.pad), self.params.pad_value)])
+                data = np.hstack([np.full((w, self.params.pad, channels), self.params.pad_value), data,
+                                  np.full((w, self.params.pad, channels), self.params.pad_value)])
 
         data = (data * 255).astype(np.uint8)
+
+        if channels == 1:
+            data = np.squeeze(data, axis=-1)
 
         return data
 

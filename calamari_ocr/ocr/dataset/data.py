@@ -1,14 +1,16 @@
 import logging
 import os
-from typing import Type
+from typing import Type, Optional
 
 import tensorflow as tf
 from tfaip.data.data import DataBase
+from tfaip.data.databaseparams import DataPipelineParams
 from tfaip.data.pipeline.datapipeline import DataPipeline
 from tfaip.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR
 from tfaip.data.pipeline.processor.params import SequentialProcessorPipelineParams
 
 from calamari_ocr.ocr.augmentation.dataaugmentationparams import DataAugmentationAmount
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.dataset.imageprocessors.augmentation import AugmentationProcessorParams
 from calamari_ocr.ocr.dataset.imageprocessors.default_image_processors import default_image_processors
@@ -18,6 +20,7 @@ from calamari_ocr.ocr.dataset.pipeline import CalamariPipeline
 from calamari_ocr.ocr.dataset.postprocessors.ctcdecoder import CTCDecoderProcessorParams
 from calamari_ocr.ocr.dataset.postprocessors.reshape import ReshapeOutputsProcessorParams
 from calamari_ocr.ocr.dataset.textprocessors.default_text_processor import default_text_pre_processors
+from calamari_ocr.utils.image import ImageLoaderParams
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +70,14 @@ class Data(DataBase[DataParams]):
             'gt': tf.TensorSpec([None], dtype=tf.int32),
             'gt_len': tf.TensorSpec([1], dtype=tf.int32),
         }
+
+    def create_pipeline(self, pipeline_params: DataPipelineParams, params: Optional[CalamariDataGeneratorParams]) -> DataPipeline:
+        if params is not None and isinstance(params, ImageLoaderParams):
+            params.channels = self.params.input_channels  # set channels
+        return self.data_pipeline_cls()(pipeline_params,
+                                        self,
+                                        generator_params=params,
+                                        )
 
 
 if __name__ == '__main__':

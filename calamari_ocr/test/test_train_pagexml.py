@@ -13,12 +13,12 @@ from calamari_ocr.test.calamari_test_scenario import CalamariTestScenario
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-def default_trainer_params(*, with_validation=False, with_split=False, preload=True):
+def default_trainer_params(*, with_validation=False, with_split=False, preload=True, img_suffix='nrm.png', channels=1):
     p = CalamariTestScenario.default_trainer_params()
     train = PageXML(
         images=[
-            os.path.join(this_dir, "data", "avicanon_pagexml", "006.nrm.png"),
-            os.path.join(this_dir, "data", "avicanon_pagexml", "007.nrm.png")
+            os.path.join(this_dir, "data", "avicanon_pagexml", f"006.{img_suffix}"),
+            os.path.join(this_dir, "data", "avicanon_pagexml", f"007.{img_suffix}")
         ],
         preload=preload,
     )
@@ -26,7 +26,7 @@ def default_trainer_params(*, with_validation=False, with_split=False, preload=T
         p.gen = CalamariSplitTrainerPipelineParams(validation_split_ratio=0.5, train=train)
     elif with_validation:
         p.gen.val = PageXML(
-            images=[os.path.join(this_dir, "data", "avicanon_pagexml", "008.nrm.png")],
+            images=[os.path.join(this_dir, "data", "avicanon_pagexml", f"008.{img_suffix}")],
             preload=preload
         )
         p.gen.train = train
@@ -41,6 +41,7 @@ def default_trainer_params(*, with_validation=False, with_split=False, preload=T
     p.epochs = 1
     p.samples_per_epoch = 2
     p.scenario.data.pre_proc.run_parallel = False
+    p.scenario.data.input_channels = channels
     p.scenario.data.__post_init__()
     p.scenario.__post_init__()
     p.__post_init__()

@@ -1,10 +1,14 @@
 import unittest
+from math import log10, floor
 
 from tensorflow import keras
 
 from calamari_ocr.ocr.scenario import CalamariScenario
 from calamari_ocr.test.test_train_file import uw3_trainer_params
-from calamari_ocr.test.test_train_pagexml import default_trainer_params
+
+
+def round_sig(x, sig=6):
+    return round(x, sig - int(floor(log10(abs(x)))) - 1)
 
 
 class TestTrainConsistency(unittest.TestCase):
@@ -36,4 +40,4 @@ class TestTrainConsistency(unittest.TestCase):
         for k, v in cb.train_logs.items():
             if k.startswith("val_"):
                 continue
-            self.assertEqual(v, cb.train_logs['val_' + k])
+            self.assertAlmostEqual(round_sig(v), round_sig(cb.train_logs['val_' + k]))
