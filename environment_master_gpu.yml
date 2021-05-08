@@ -1,0 +1,11 @@
+name: calamari_gpu
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - cudatoolkit=11.0
+  - cudnn
+  - pip
+  - python>=3.7,<3.9
+  - pip:
+    - git+https://github.com/Calamari-OCR/calamari.git@master
