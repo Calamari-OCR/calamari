@@ -63,7 +63,7 @@ class PageXMLDatasetLoader:
             raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
                 img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
 
-        img_w = page.attrib.get("imageWidth")
+        img_w = int(page.attrib.get("imageWidth"))
         textlines = root.findall('.//ns:TextLine', namespaces=ns)
 
         for textline in textlines:
@@ -75,7 +75,7 @@ class PageXMLDatasetLoader:
             if len(tequivs) > 1:
                 logger.warning("PageXML is invalid: TextLine includes TextEquivs with non unique ids")
 
-            if self.skip_commented and textline.attrib.get("comments") is not None:
+            if self.skip_commented and len(textline.attrib.get("comments", "")):
                 continue
 
             if tequivs is not None and len(tequivs) > 0:
@@ -127,7 +127,7 @@ class PageXMLDatasetLoader:
 
         img_w = int(page.attrib.get("imageWidth"))
         for textline in root.findall('.//ns:TextLine', namespaces=ns):
-            if self.skip_commented and textline.attrib.get("comments") is not None:
+            if self.skip_commented and len(textline.attrib.get("comments", "")):
                 continue
             orientation = float(textline.getparent().attrib.get("orientation", default=0))
 
