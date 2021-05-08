@@ -70,7 +70,13 @@ class CenterNormalizerProcessor(ImageProcessor[CenterNormalizerProcessorParams])
             return img
 
         if img.ndim > 2:
-            temp = (cv.cvtColor(img, cv.COLOR_BGR2GRAY) / 255).astype(np.float32)
+            assert img.ndim == 3, img.shape
+            if img.shape[-1] == 1:
+                temp = np.squeeze(img, axis=-1)
+            elif img.shape[-1] == 3:
+                temp = (cv.cvtColor(img, cv.COLOR_RGB2GRAY) / 255).astype(np.float32)
+            else:
+                temp = np.mean(img, axis=-1)
         else:
             temp = (img / 255).astype(np.float32)
         temp = np.amax(temp) - temp

@@ -51,9 +51,6 @@ class Hdf5DatasetWriter:
         if not data.dtype == np.uint8:
             raise TypeError("Data for hdf5 must have type np.uint8")
 
-        if len(data.shape) != 2:
-            raise TypeError("Only Gray or Binary images are supported")
-
         self.data.append(data)
         self.text.append(text)
 

@@ -193,6 +193,16 @@ The ratio of real and augmented data can be adapted by the ``--n_augmentations``
 ``--n_augmentations=5`` means that for every real line there are five augmented lines.
 
 
+Color mode
+~~~~~~~~~~
+
+By default, Calamari converts all images to grayscale.
+Any color (or RGBA) image is converted to grayscale using OpenCVs convert function.
+This can be changed to a simple average on RGB by setting ``--train.to_gray_method=avg``.
+
+To train a model on color images, if present in the images, set ``--data.input_channels=3``.
+
+
 Warm-Starting with a Pretrained model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

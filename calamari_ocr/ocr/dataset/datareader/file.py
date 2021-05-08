@@ -14,7 +14,6 @@ from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, Cala
     SampleMeta
 
 from calamari_ocr.utils import split_all_ext, glob_all, keep_files_with_same_file_name
-from calamari_ocr.utils.image import load_image
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +178,7 @@ class FileDataGenerator(CalamariDataGenerator[FileDataParams]):
                 raise Exception("Image file at '{}' does not exist".format(image_path))
 
         try:
-            img = load_image(image_path)
+            img = self._load_image(image_path)
         except:
             return None
 

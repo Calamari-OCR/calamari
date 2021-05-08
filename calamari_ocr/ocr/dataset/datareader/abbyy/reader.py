@@ -11,8 +11,7 @@ from tqdm import tqdm
 from calamari_ocr.ocr.dataset.datareader.abbyy.xml import XMLReader, XMLWriter
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams, InputSample, \
     SampleMeta
-from calamari_ocr.utils import split_all_ext, glob_all, keep_files_with_same_file_name
-from calamari_ocr.utils.image import load_image
+from calamari_ocr.utils import split_all_ext, glob_all
 
 
 @pai_dataclass
@@ -92,7 +91,7 @@ class AbbyyGenerator(CalamariDataGenerator[Abbyy]):
         fold_id = -1
         for p, page in enumerate(self.book.pages):
             if self.mode in INPUT_PROCESSOR:
-                img = load_image(page.imgFile)
+                img = self._load_image(page.imgFile)
                 if self.params.binary:
                     img = img > 0.9
             else:

@@ -14,9 +14,10 @@ from calamari_ocr.ocr.predict.predictor import Predictor, PredictorParams, Multi
 from calamari_ocr.scripts.compute_average_prediction_confidence import run as run_compute_avg_pred
 from calamari_ocr.scripts.predict import run, PredictArgs
 from calamari_ocr.utils import glob_all
-from calamari_ocr.utils.image import load_image
+from calamari_ocr.utils.image import ImageLoaderParams
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
+gray_scale_image_loader = ImageLoaderParams(channels=1).create()
 
 
 def file_dataset():
@@ -102,7 +103,7 @@ class TestValidationTrain(unittest.TestCase):
 
     def test_raw_prediction(self):
         predictor = create_single_model_predictor()
-        images = [load_image(file) for file in file_dataset().images]
+        images = [gray_scale_image_loader.load_image(file) for file in file_dataset().images]
         for result in predictor.predict_raw(images):
             self.assertGreater(result.outputs.avg_char_probability, 0)
 
@@ -113,7 +114,7 @@ class TestValidationTrain(unittest.TestCase):
 
     def test_raw_prediction_voted(self):
         predictor = create_multi_model_predictor()
-        images = [load_image(file) for file in file_dataset().images]
+        images = [gray_scale_image_loader.load_image(file) for file in file_dataset().images]
         for sample in predictor.predict_raw(images):
             r, voted = sample.outputs
 

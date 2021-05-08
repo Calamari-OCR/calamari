@@ -47,10 +47,6 @@ class PrepareSample(MappingDataProcessor[PrepareSampleProcessorParams]):
         if len(line.shape) == 2:
             line = np.expand_dims(line, axis=-1)
 
-        if line.shape[-1] != self.data_params.input_channels:
-            raise ValueError(
-                f"Expected {self.data_params.input_channels} channels but got {line.shape[-1]}. Shape of input {line.shape}")
-
         if self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION} and not self.is_valid_line(text, len(
                 line) // self.data_params.downscale_factor):
             # skip longer outputs than inputs (also in evaluation due to loss computation)
