@@ -20,17 +20,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
-def xml_attr(elem, ns, label, default=None):
-    try:
-        return elem.xpath(label, namespaces=ns).pop()
-    except IndexError as e:
-        if default is None:
-            raise e
-
-        return default
-
-
 class CutMode(IntEnum):
     BOX = 0
     POLYGON = 1
@@ -39,7 +28,7 @@ class CutMode(IntEnum):
 
 class PageXMLDatasetLoader:
     def __init__(self, mode: PipelineMode, non_existing_as_empty: bool, text_index: int, skip_invalid: bool = True,
-                 skip_commented=True):
+                 skip_commented=False):
         self.mode = mode
         self._non_existing_as_empty = non_existing_as_empty
         self.root = None
@@ -66,34 +55,32 @@ class PageXMLDatasetLoader:
 
     def _samples_gt_from_book(self, root, img, page_id) -> Iterable[Dict[str, Any]]:
         ns = {"ns": root.nsmap[None]}
-        imgfile = root.xpath('//ns:Page',
-                             namespaces=ns)[0].attrib["imageFilename"]
+        page = root.find('.//ns:Page', namespaces=ns)
+        imgfile = page.attrib.get("imageFilename")
         if (self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}) and not split_all_ext(img)[0].endswith(
                 split_all_ext(imgfile)[0]):
             raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
                 img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
 
-        img_w = int(root.xpath('//ns:Page',
-                               namespaces=ns)[0].attrib["imageWidth"])
-        textlines = root.xpath('//ns:TextLine', namespaces=ns)
+        img_w = int(page.attrib.get("imageWidth"))
+        textlines = root.findall('.//ns:TextLine', namespaces=ns)
 
         for textline in textlines:
-            tequivs = textline.xpath('./ns:TextEquiv[@index="{}"]'.format(self.text_index),
-                                     namespaces=ns)
+            tequivs = textline.findall('./ns:TextEquiv[@index="{}"]'.format(self.text_index), namespaces=ns)
 
             if not tequivs:
-                tequivs = textline.xpath('./ns:TextEquiv[not(@index)]', namespaces=ns)
+                tequivs = textline.findall('./ns:TextEquiv', namespaces=ns)
 
             if len(tequivs) > 1:
                 logger.warning("PageXML is invalid: TextLine includes TextEquivs with non unique ids")
 
-            parat = textline.attrib
-            if self.skip_commented and "comments" in parat and parat["comments"]:
+            if self.skip_commented and len(textline.attrib.get("comments", "")):
                 continue
 
             if tequivs is not None and len(tequivs) > 0:
                 l = tequivs[0]
-                text = l.xpath('./ns:Unicode', namespaces=ns).pop().text
+                uc = l.find('./ns:Unicode', namespaces=ns)
+                text = uc.text if uc is not None else ''
                 if text is None:
                     # Handle empty tag as empty string not as "not existing"
                     text = ''
@@ -109,10 +96,7 @@ class PageXMLDatasetLoader:
                 else:
                     raise Exception("Empty text field")
 
-            try:
-                orientation = float(textline.xpath('../@orientation', namespaces=ns).pop())
-            except (ValueError, IndexError):
-                orientation = 0
+            orientation = float(textline.getparent().attrib.get("orientation", default=0))
 
             if self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}:
                 if len(text) == 0:
@@ -122,43 +106,38 @@ class PageXMLDatasetLoader:
             yield {
                 'page_id': page_id,
                 'ns': ns,
-                "rtype": xml_attr(textline, ns, '../@type', ''),
-                'xml_element': l,
+                "rtype": textline.getparent().attrib.get("type", default=""),
+                'xml_element': textline,
                 "image_path": img,
-                "id": "{}/{}".format(page_id, xml_attr(textline, ns, './@id')),
+                "id": "{}/{}".format(page_id, textline.attrib.get("id")),
                 "text": text,
-                "coords": xml_attr(textline, ns, './ns:Coords/@points'),
+                "coords": textline.find('./ns:Coords', namespaces=ns).attrib.get("points"),
                 "orientation": orientation,
                 "img_width": img_w
             }
 
     def _samples_from_book(self, root, img, page_id) -> Iterable[Dict[str, Any]]:
         ns = {"ns": root.nsmap[None]}
-        imgfile = root.xpath('//ns:Page',
-                             namespaces=ns)[0].attrib["imageFilename"]
+        page = root.find('.//ns:Page', namespaces=ns)
+        imgfile = page.attrib.get("imageFilename")
         if not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
             raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
                 img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
 
-        img_w = int(root.xpath('//ns:Page',
-                               namespaces=ns)[0].attrib["imageWidth"])
-        for l in root.xpath('//ns:TextLine', namespaces=ns):
-            parat = l.attrib
-            if self.skip_commented and "comments" in parat and parat["comments"]:
+        img_w = int(page.attrib.get("imageWidth"))
+        for textline in root.findall('.//ns:TextLine', namespaces=ns):
+            if self.skip_commented and len(textline.attrib.get("comments", "")):
                 continue
-            try:
-                orientation = float(l.xpath('../@orientation', namespaces=ns).pop())
-            except (ValueError, IndexError):
-                orientation = 0
+            orientation = float(textline.getparent().attrib.get("orientation", default=0))
 
             yield {
                 'page_id': page_id,
                 'ns': ns,
-                "rtype": xml_attr(l, ns, '../@type', ''),
-                'xml_element': l,
+                "rtype": textline.getparent().attrib.get("type", default=""),
+                'xml_element': textline,
                 "image_path": img,
-                "id": "{}/{}".format(page_id, xml_attr(l, ns, './@id')),
-                "coords": xml_attr(l, ns, './ns:Coords/@points'),
+                "id": "{}/{}".format(page_id, textline.attrib.get("id")),
+                "coords": textline.find('./ns:Coords', namespaces=ns).attrib.get("points"),
                 "orientation": orientation,
                 "img_width": img_w,
                 "text": None,
@@ -180,7 +159,9 @@ class PageXML(CalamariDataGeneratorParams):
     pred_extension: str = field(default='.pred.xml', metadata=pai_meta(
         help="Default extension of the prediction files"
     ))
-    skip_commented: bool = field(default=True)
+    skip_commented: bool = field(default=False, metadata=pai_meta(
+        help='Skip lines with "comments" attribute.'
+    ))
 
     def __len__(self):
         return len(self.images)
