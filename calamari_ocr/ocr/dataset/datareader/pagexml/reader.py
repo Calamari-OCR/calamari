@@ -159,7 +159,9 @@ class PageXML(CalamariDataGeneratorParams):
     pred_extension: str = field(default='.pred.xml', metadata=pai_meta(
         help="Default extension of the prediction files"
     ))
-    skip_commented: bool = field(default=True)
+    skip_commented: bool = field(default=False, metadata=pai_meta(
+        help='Skip lines with "comments" attribute.'
+    ))
 
     def __len__(self):
         return len(self.images)
