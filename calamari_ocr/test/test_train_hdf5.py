@@ -36,10 +36,6 @@ def default_trainer_params(with_validation=False, preload=True):
     p.gen.setup.train.num_processes = 1
     p.epochs = 1
     p.samples_per_epoch = 2
-    p.scenario.data.pre_proc = SequentialProcessorPipelineParams(
-        run_parallel=False,
-        processors=[PrepareSampleProcessorParams()],
-    )
     p.scenario.data.__post_init__()
     p.scenario.__post_init__()
     p.__post_init__()

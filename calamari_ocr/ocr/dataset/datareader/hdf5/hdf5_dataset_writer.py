@@ -1,5 +1,6 @@
 import numpy as np
 import h5py
+from tfaip import PipelineMode
 
 
 class Hdf5DatasetWriter:
@@ -59,6 +60,13 @@ class Hdf5DatasetWriter:
 
 
 if __name__ == "__main__":
+    from calamari_ocr.ocr.dataset.datareader.file import FileDataGenerator, FileDataParams
+
+    dg = FileDataParams(images='calamari_ocr/test/data/uw3_50lines/train/*.png').create(PipelineMode.TRAINING)
+    with Hdf5DatasetWriter('calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5', n_max=1000) as writer:
+        for sample in dg.generate():
+            writer.write(sample.inputs, sample.targets)
+
     from contextlib import ExitStack
 
     with Hdf5DatasetWriter('test', n_max=5) as writer:
@@ -69,4 +77,5 @@ if __name__ == "__main__":
     l = [Hdf5DatasetWriter('test1', n_max=5), Hdf5DatasetWriter('test2', n_max=5)]
     with ExitStack() as stack:
         w = [stack.enter_context(x) for x in l]
+
 

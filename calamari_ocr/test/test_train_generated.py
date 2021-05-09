@@ -3,6 +3,8 @@ import os
 import tempfile
 import unittest
 
+import pytest
+
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset import TextGeneratorParams, LineGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.params import GeneratedLineDatasetParams
 from calamari_ocr.scripts.train import main
@@ -49,6 +51,7 @@ def default_trainer_params():
     return p
 
 
+@pytest.mark.skipif(os.name != 'posix', reason="Do not run on windows due to missing font.")
 class TestTrainGenerated(unittest.TestCase):
     def test_train(self):
         trainer_params = default_trainer_params()

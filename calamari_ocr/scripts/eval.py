@@ -204,6 +204,8 @@ def main(args: EvalArgs):
                        "gt_files": [s['id'] for s in samples],
                    }])
 
+    return r
+
 
 if __name__ == '__main__':
     run()
