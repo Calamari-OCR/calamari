@@ -1,8 +1,9 @@
 from contextlib import ExitStack
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from paiargparse import PAIArgumentParser
 from tfaip.util.logging import logger, WriteToLogFile
+from tfaip.util.typing import AnyNumpy
 
 from calamari_ocr import __version__
 
@@ -16,7 +17,7 @@ def run():
     main(parse_args())
 
 
-def main(trainer_params: 'TrainerParams'):
+def main(trainer_params: 'TrainerParams') -> Dict[str, AnyNumpy]:
     with ExitStack() as stack:
         if trainer_params.output_dir:
             stack.enter_context(WriteToLogFile(trainer_params.output_dir, append=False))
@@ -25,7 +26,7 @@ def main(trainer_params: 'TrainerParams'):
 
         # create the trainer and run it
         trainer = trainer_params.scenario.cls().create_trainer(trainer_params)
-        trainer.train()
+        return trainer.train()
 
 
 def parse_args(args=None):

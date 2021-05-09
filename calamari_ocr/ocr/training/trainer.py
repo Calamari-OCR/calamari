@@ -3,6 +3,7 @@ from typing import Type
 
 from tfaip.data.pipeline.datapipeline import RawDataPipeline
 from tfaip.data.pipeline.definitions import PipelineMode
+from tfaip.trainer.callbacks.logger_callback import LoggerCallback
 from tfaip.trainer.callbacks.tensor_board_callback import TensorBoardCallback
 from tfaip.trainer.callbacks.train_params_logger import TrainerCheckpointsCallback
 from tfaip.trainer.trainer import Trainer as AIPTrainer
@@ -161,9 +162,9 @@ class Trainer(AIPTrainer):
                                  "Alternatively, set 'trainer.gen SplitTrain' and to use by "
                                  "default 20% of the training data for validation")
 
-
+        last_logs = None
         if self._params.current_stage == 0:
-            super(Trainer, self).train(
+            last_logs = super(Trainer, self).train(
                 callbacks=callbacks,
             )
 
@@ -201,10 +202,12 @@ class Trainer(AIPTrainer):
                     else:
                         self._callbacks[i] = self.create_train_params_logger_callback(store_params=True,
                                                                                       store_weights=False)
-
+            logger_callback = next(c for c in self._callbacks if isinstance(c, LoggerCallback))
             super(Trainer, self).fit()
+            last_logs = logger_callback.last_logs
 
         logger.info("Training finished")
+        return last_logs
 
     def create_warmstarter(self) -> WarmStarter:
         return WarmStarterWithCodecAdaption(self.params.warmstart, codec_changes=self._codec_changes)
