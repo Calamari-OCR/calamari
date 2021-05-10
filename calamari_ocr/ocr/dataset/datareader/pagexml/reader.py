@@ -183,6 +183,7 @@ class PageXML(CalamariDataGeneratorParams):
 
     def prepare_for_mode(self, mode: PipelineMode):
         self.images = sorted(glob_all(self.images))
+        self.xml_files = sorted(self.xml_files)
         if not self.xml_files:
             self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
         if not self.images:
