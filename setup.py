@@ -21,7 +21,7 @@ setup(
             'calamari-resume-training=calamari_ocr.scripts.resume_training:main',
             'calamari-train=calamari_ocr.scripts.train:run',
             'calamari-cross-fold-train=calamari_ocr.scripts.cross_fold_train:main',
-            'calamari-predict-and-eval=calamari_ocr.scripts.predict_and_eval:main',
+            'calamari-predict-and-eval=calamari_ocr.scripts.predict_and_eval:run',
             'calamari-dataset-viewer=calamari_ocr.scripts.dataset_viewer:main',
             'calamari-dataset-statistics=calamari_ocr.scripts.dataset_statistics:main',
         ],
