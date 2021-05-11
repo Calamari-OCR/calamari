@@ -119,8 +119,8 @@ def convert_text_processor(proc: dict):
         elif t == 'STRIP_NORMALIZER':
             flat.append(text_processor("StripTextProcessor"))
         elif t == 'BIDI_NORMALIZER':
-            conv = [None, 'L', 'R']
-            flat.append(text_processor("BidiTextProcessor", args={'bidi_direction': conv[p.get('bidiDirection', 0)]}))
+            conv = {'BIDI_AUTO': None, 'BIDI_LTR': 'L', 'BIDI_RTL': 'R'}
+            flat.append(text_processor("BidiTextProcessor", args={'bidi_direction': conv[p.get('bidiDirection', 'BIDI_AUTO')]}))
         elif t == 'TEXT_NORMALIZER':
             conv = ['NFC', 'NFKC', 'NFD', 'NFKD']
             flat.append(text_processor("TextNormalizer", args={'unicode_normalization': conv[p.get('unicodeNormalization', 0)]}))
