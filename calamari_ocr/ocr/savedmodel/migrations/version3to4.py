@@ -82,6 +82,7 @@ def migrate3to4(trainer_params: dict) -> dict:
         "FinalPreparation": "calamari_ocr.ocr.dataset.imageprocessors.final_preparation:FinalPreparationProcessorParams",
         "AugmentationProcessor": "calamari_ocr.ocr.dataset.imageprocessors.augmentation:AugmentationProcessorParams",
         "StripTextProcessor": "calamari_ocr.ocr.dataset.textprocessors.basic_text_processors:StripTextProcessorParams",
+        "BidiTextProcessor": "calamari_ocr.ocr.dataset.textprocessors.basic_text_processors:BidiTextProcessorParams",
         "TextNormalizer": "calamari_ocr.ocr.dataset.textprocessors.text_normalizer:TextNormalizerProcessorParams",
         "TextRegularizer": "calamari_ocr.ocr.dataset.textprocessors.text_regularizer:TextRegularizerProcessorParams",
         "PrepareSampleProcessor": "calamari_ocr.ocr.dataset.imageprocessors.preparesample:PrepareSampleProcessorParams",
