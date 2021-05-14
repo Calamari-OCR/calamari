@@ -108,7 +108,7 @@ The content of a `h5`-file is:
 * ``images``: list of raw images
 * ``images_dims``: the shape of the images (numpy arrays)
 * ``codec``: integer mapping to decode the ``transcriptions`` (ASCII)
-* ``transcriptions``: list of encoded transcriptions using the codec
+* ``transcripts``: list of encoded transcriptions using the codec
 
 Call
 
