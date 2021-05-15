@@ -22,7 +22,7 @@ The current release can be accessed [here](https://github.com/Calamari-OCR/calam
 Calamari is available on [pypi](https://pypi.org/project/calamari-ocr):
 
 ```shell
-pip install calamari_ocr
+pip install calamari-ocr
 ```
 
 Read the [docs](https://calamari-ocr.readthedocs.io) for further instructions.
