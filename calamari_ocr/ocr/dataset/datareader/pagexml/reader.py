@@ -207,12 +207,21 @@ class PageXML(CalamariDataGeneratorParams):
 
     def prepare_for_mode(self, mode: PipelineMode):
         self.images = sorted(glob_all(self.images))
-        self.xml_files = sorted(self.xml_files)
+        self.xml_files = sorted(glob_all(self.xml_files))
         if not self.xml_files:
             self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
         if not self.images:
-            self.xml_files = sorted(glob_all(self.xml_files))
             self.images = [None] * len(self.xml_files)
+
+        if len(self.images) != len(self.xml_files):
+            raise ValueError(f"Different number of image and xml files, {len(self.images)} != {len(self.xml_files)}")
+        for img_path, xml_path in zip(self.images, self.xml_files):
+            if img_path and xml_path:
+                img_bn, xml_bn = split_all_ext(img_path)[0], split_all_ext(xml_path)[0]
+                if img_bn != xml_bn:
+                    logger.warning(
+                        f"Filenames are not matching, got base names \n" f"  image: {img_bn}\n" f"  xml:   {xml_bn}\n."
+                    )
 
 
 class PageXMLReader(CalamariDataGenerator[PageXML]):

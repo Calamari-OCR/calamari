@@ -1,4 +1,4 @@
-import os
+import logging
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import List, Generator
@@ -20,6 +20,8 @@ from calamari_ocr.ocr.dataset.datareader.base import (
     SampleMeta,
 )
 from calamari_ocr.utils import split_all_ext, glob_all
+
+logger = logging.getLogger(__name__)
 
 
 @pai_dataclass
@@ -61,8 +63,17 @@ class Abbyy(CalamariDataGeneratorParams):
         if not self.xml_files:
             self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
         if not self.images:
-            self.xml_files = sorted(glob_all(self.xml_files))
             self.images = [None] * len(self.xml_files)
+
+        if len(self.images) != len(self.xml_files):
+            raise ValueError(f"Different number of image and xml files, {len(self.images)} != {len(self.xml_files)}")
+        for img_path, xml_path in zip(self.images, self.xml_files):
+            if img_path and xml_path:
+                img_bn, xml_bn = split_all_ext(img_path)[0], split_all_ext(xml_path)[0]
+                if img_bn != xml_bn:
+                    logger.warning(
+                        f"Filenames are not matching, got base names \n  image: {img_bn}\n  xml:   {xml_bn}\n."
+                    )
 
 
 class AbbyyGenerator(CalamariDataGenerator[Abbyy]):
