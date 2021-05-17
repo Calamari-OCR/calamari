@@ -14,9 +14,7 @@ logger = logging.logger(__name__)
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Write split of folds to separate directories"
-    )
+    parser = argparse.ArgumentParser(description="Write split of folds to separate directories")
     parser.add_argument(
         "--files",
         nargs="+",
@@ -29,9 +27,7 @@ def main():
         required=True,
         help="The number of fold, that is the number of models to train",
     )
-    parser.add_argument(
-        "--output_dir", type=str, required=True, help="Where to write the folds"
-    )
+    parser.add_argument("--output_dir", type=str, required=True, help="Where to write the folds")
     parser.add_argument(
         "--keep_original_filename",
         action="store_true",
@@ -58,17 +54,11 @@ def main():
         if not os.path.exists(fold_out_dir):
             os.makedirs(fold_out_dir)
 
-        for file_id, file in tqdm(
-            enumerate(fold_files), total=len(fold_files), desc=f"Fold {fold_id}"
-        ):
+        for file_id, file in tqdm(enumerate(fold_files), total=len(fold_files), desc=f"Fold {fold_id}"):
             img_file = file
             base, ext = split_all_ext(file)
             txt_file = base + ".gt.txt"
-            output_basename = (
-                os.path.basename(base)
-                if args.keep_original_filename
-                else f"{fold_id:08d}"
-            )
+            output_basename = os.path.basename(base) if args.keep_original_filename else f"{fold_id:08d}"
 
             if os.path.exists(img_file) and os.path.exists(txt_file):
                 output_file = os.path.join(fold_out_dir, f"{output_basename}{ext}")

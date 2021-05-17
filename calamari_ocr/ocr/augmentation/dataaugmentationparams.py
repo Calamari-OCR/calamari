@@ -30,21 +30,13 @@ class DataAugmentationAmount:
     @staticmethod
     def from_factor(n):
         if n >= 1:
-            return DataAugmentationAmount(
-                DataAugmentationAmountReference.ABSOLUTE, int(n), None
-            )
+            return DataAugmentationAmount(DataAugmentationAmountReference.ABSOLUTE, int(n), None)
         elif n > 0:
-            return DataAugmentationAmount(
-                DataAugmentationAmountReference.PERCENTAGE, None, n
-            )
+            return DataAugmentationAmount(DataAugmentationAmountReference.PERCENTAGE, None, n)
         elif n == 0:
-            return DataAugmentationAmount(
-                DataAugmentationAmountReference.PERCENTAGE, 0, 0
-            )
+            return DataAugmentationAmount(DataAugmentationAmountReference.PERCENTAGE, 0, 0)
         else:
-            raise ValueError(
-                "Factor must be between (0, +infinity) but got {}".format(n)
-            )
+            raise ValueError("Factor must be between (0, +infinity) but got {}".format(n))
 
     def __init__(
         self,

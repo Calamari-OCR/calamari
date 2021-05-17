@@ -22,12 +22,12 @@ class CalamariPipeline(DataPipeline):
             input_processors,
             output_processors,
         )
-        if generator_params and isinstance(
-            generator_params, CalamariDataGeneratorParams
-        ):
+        if generator_params and isinstance(generator_params, CalamariDataGeneratorParams):
             generator_params.n_folds = data_base.params.ensemble
         self._reader = None
-        self._output_processors.run_parallel = False  # TODO: parallel support, but currently in voter this makes one prediction per pipeline, mega slow
+        self._output_processors.run_parallel = (
+            False  # TODO: parallel support, but currently in voter this makes one prediction per pipeline, mega slow
+        )
 
     def reader(self):
         if self._reader is None:

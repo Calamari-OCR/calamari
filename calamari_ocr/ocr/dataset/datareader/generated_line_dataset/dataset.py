@@ -36,9 +36,7 @@ class LineGeneratorProcess(Process):
         try:
             words = self.text_generator.generate()
             image = self.line_generator.draw(words) if not self.text_only else None
-            self.output_queue.put(
-                (image, TextGenerator.words_to_unformatted_text(words))
-            )
+            self.output_queue.put((image, TextGenerator.words_to_unformatted_text(words)))
         except ValueError as e:
             logger.exception(e)
             raise
@@ -67,9 +65,7 @@ class GeneratedLineDataset(CalamariDataGenerator[GeneratedLineDatasetParams]):
         """
         super().__init__(mode, params)
 
-        self._samples = [
-            {"id": "{}".format(i)} for i in range(self.params.lines_per_epoch)
-        ]
+        self._samples = [{"id": "{}".format(i)} for i in range(self.params.lines_per_epoch)]
         self.text_generator_params = self.params.text_generator
         self.line_generator_params = self.params.line_generator
         self.manager = Manager()
@@ -91,9 +87,7 @@ class GeneratedLineDataset(CalamariDataGenerator[GeneratedLineDatasetParams]):
 
     def _load_sample(self, sample, text_only):
         image, text = self.data_queue.get()
-        fold_id = (
-            -1 if self.params.n_folds <= 0 else np.random.randint(self.params.n_folds)
-        )
+        fold_id = -1 if self.params.n_folds <= 0 else np.random.randint(self.params.n_folds)
         yield InputSample(image, text, SampleMeta(id=sample["id"], fold_id=fold_id))
 
 

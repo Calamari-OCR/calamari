@@ -36,13 +36,9 @@ class Hdf5DatasetWriter:
         file = h5py.File(filename, "w")
         dti32 = h5py.special_dtype(vlen=np.dtype("int32"))
         dtui8 = h5py.special_dtype(vlen=np.dtype("uint8"))
-        file.create_dataset(
-            "transcripts", (len(self.text),), dtype=dti32, compression="gzip"
-        )
+        file.create_dataset("transcripts", (len(self.text),), dtype=dti32, compression="gzip")
         file.create_dataset("images_dims", data=[d.shape for d in self.data], dtype=int)
-        file.create_dataset(
-            "images", (len(self.text),), dtype=dtui8, compression="gzip"
-        )
+        file.create_dataset("images", (len(self.text),), dtype=dtui8, compression="gzip")
         file.create_dataset("codec", data=list(map(ord, codec)))
         file["transcripts"][...] = [list(map(codec.index, d)) for d in self.text]
         file["images"][...] = [d.reshape(-1) for d in self.data]
@@ -69,12 +65,8 @@ if __name__ == "__main__":
         FileDataParams,
     )
 
-    dg = FileDataParams(images="calamari_ocr/test/data/uw3_50lines/train/*.png").create(
-        PipelineMode.TRAINING
-    )
-    with Hdf5DatasetWriter(
-        "calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5", n_max=1000
-    ) as writer:
+    dg = FileDataParams(images="calamari_ocr/test/data/uw3_50lines/train/*.png").create(PipelineMode.TRAINING)
+    with Hdf5DatasetWriter("calamari_ocr/test/data/uw3_50lines/uw3-50lines.h5", n_max=1000) as writer:
         for sample in dg.generate():
             writer.write(sample.inputs, sample.targets)
 

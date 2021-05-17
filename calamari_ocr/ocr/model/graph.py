@@ -65,18 +65,11 @@ class CalamariGraph(GraphBase[ModelParams]):
 
         # if concat or conv_T layers are present, we need to pad the input to ensure that possible
         # up-sampling layers work properly
-        require_padding = any(
-            [
-                isinstance(l, (ConcatLayerParams, TransposedConv2DLayerParams))
-                for l in params.layers
-            ]
-        )
+        require_padding = any([isinstance(l, (ConcatLayerParams, TransposedConv2DLayerParams)) for l in params.layers])
         if require_padding:
             s = self._params.compute_max_downscale_factor()
             padding = calculate_padding(input_data, s.to_tuple())
-            padded = KL.Lambda(partial(pad, x_only=True), name="padded_input")(
-                [input_data, padding]
-            )
+            padded = KL.Lambda(partial(pad, x_only=True), name="padded_input")([input_data, padding])
             last_layer_output = padded
         else:
             last_layer_output = input_data

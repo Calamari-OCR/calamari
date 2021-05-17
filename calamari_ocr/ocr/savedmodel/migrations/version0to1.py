@@ -4,9 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def rename(
-    checkpoint, replace_from, replace_to, add_prefix, dry_run, force_prefix=False
-):
+def rename(checkpoint, replace_from, replace_to, add_prefix, dry_run, force_prefix=False):
     import tensorflow as tf
 
     tf.compat.v1.reset_default_graph()

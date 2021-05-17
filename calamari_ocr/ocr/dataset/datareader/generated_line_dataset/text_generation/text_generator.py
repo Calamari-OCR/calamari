@@ -22,14 +22,10 @@ class TextGenerator:
         self.params = text_generator_params
         self.charset = list(text_generator_params.charset)
         self.super_charset = (
-            list(text_generator_params.super_charset)
-            if len(text_generator_params.super_charset) > 0
-            else self.charset
+            list(text_generator_params.super_charset) if len(text_generator_params.super_charset) > 0 else self.charset
         )
         self.sub_charset = (
-            list(text_generator_params.sub_charset)
-            if len(text_generator_params.sub_charset) > 0
-            else self.charset
+            list(text_generator_params.sub_charset) if len(text_generator_params.sub_charset) > 0 else self.charset
         )
         assert len(self.charset) > 0
         assert self.params.sub_script_p + self.params.super_script_p <= 1
@@ -53,9 +49,7 @@ class TextGenerator:
                 np.round(
                     max(
                         1,
-                        np.random.normal(
-                            self.params.word_length_mean, self.params.word_length_sigma
-                        ),
+                        np.random.normal(self.params.word_length_mean, self.params.word_length_sigma),
                     )
                 )
             )
@@ -78,9 +72,7 @@ class TextGenerator:
                 variant = FontVariantType.NORMAL
 
             if rnd[3] < self.params.letter_spacing_p:
-                letter_spacing = np.random.normal(
-                    self.params.letter_spacing_mean, self.params.letter_spacing_sigma
-                )
+                letter_spacing = np.random.normal(self.params.letter_spacing_mean, self.params.letter_spacing_sigma)
             else:
                 letter_spacing = 0
 
@@ -115,11 +107,7 @@ if __name__ == "__main__":
     params.letter_spacing_p = 0.5
     params.letter_spacing_mean = 1
     params.letter_spacing_sigma = 0.1
-    params.charset.extend(
-        list(
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()_-.;:'\" "
-        )
-    )
+    params.charset.extend(list("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()_-.;:'\" "))
     params.super_charset.extend(list("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
     gen = TextGenerator(params)
 

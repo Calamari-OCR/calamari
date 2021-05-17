@@ -17,9 +17,7 @@ def load_and_convert_weights(ckpt, dry_run=True):
                 rec_kernel = var[-rec_size:]
 
                 tf.Variable(kernel, name=var_name)
-                tf.Variable(
-                    rec_kernel, name=var_name.replace("kernel", "recurrent_kernel")
-                )
+                tf.Variable(rec_kernel, name=var_name.replace("kernel", "recurrent_kernel"))
             elif var_name.endswith("_lstm/bias"):
                 # this might be required
                 dims = len(var) // 4

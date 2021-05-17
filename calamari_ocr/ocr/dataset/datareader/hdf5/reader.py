@@ -72,9 +72,7 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
     def store_text_prediction(self, sentence, sample_id, output_dir):
         sample = self.sample_by_id(sample_id)
         codec = self.prediction[sample["filename"]]["codec"]
-        self.prediction[sample["filename"]]["transcripts"].append(
-            list(map(codec.index, sentence))
-        )
+        self.prediction[sample["filename"]]["transcripts"].append(list(map(codec.index, sentence)))
 
     def store(self):
         extension = self.params.pred_extension
@@ -102,13 +100,9 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
             with h5py.File(filename, "r") as f:
                 codec = list(map(chr, f["codec"]))
                 if text_only:
-                    for i, (text, idx) in enumerate(
-                        zip(f["transcripts"], range(len(f["transcripts"])))
-                    ):
+                    for i, (text, idx) in enumerate(zip(f["transcripts"], range(len(f["transcripts"])))):
                         text = "".join([codec[c] for c in text])
-                        fold_id = (
-                            idx % self.params.n_folds if self.params.n_folds > 0 else -1
-                        )
+                        fold_id = idx % self.params.n_folds if self.params.n_folds > 0 else -1
                         yield InputSample(
                             None,
                             text,
@@ -128,9 +122,7 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
                     for i, (image, shape, text, idx) in enumerate(gen):
                         image = np.reshape(image, shape)
                         text = "".join([codec[c] for c in text])
-                        fold_id = (
-                            idx % self.params.n_folds if self.params.n_folds > 0 else -1
-                        )
+                        fold_id = idx % self.params.n_folds if self.params.n_folds > 0 else -1
                         yield InputSample(
                             image,
                             text,

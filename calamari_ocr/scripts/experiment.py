@@ -20,14 +20,10 @@ this_absdir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
 # create necessary directories
 def run_for_single_line(args):
     # lines/network/pretraining as base dir
-    args.base_dir = os.path.join(
-        args.base_dir, "all" if args.n_lines < 0 else str(args.n_lines)
-    )
+    args.base_dir = os.path.join(args.base_dir, "all" if args.n_lines < 0 else str(args.n_lines))
     pretrain_prefix = "scratch"
     if args.weights and len(args.weights) > 0:
-        pretrain_prefix = ",".join(
-            [split_all_ext(os.path.basename(path))[0] for path in args.weights]
-        )
+        pretrain_prefix = ",".join([split_all_ext(os.path.basename(path))[0] for path in args.weights])
 
     args.base_dir = os.path.join(args.base_dir, args.network, pretrain_prefix)
 
@@ -143,12 +139,8 @@ def main():
         "manager such as slurm.",
     )
 
-    parser.add_argument(
-        "--skip_train", action="store_true", help="Skip the cross fold training"
-    )
-    parser.add_argument(
-        "--skip_eval", action="store_true", help="Skip the cross fold evaluation"
-    )
+    parser.add_argument("--skip_train", action="store_true", help="Skip the cross fold training")
+    parser.add_argument("--skip_eval", action="store_true", help="Skip the cross fold evaluation")
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
     parser.add_argument(
         "--n_confusions",
@@ -162,9 +154,7 @@ def main():
         help="Optionally write a xlsx file with the evaluation results",
     )
 
-    setup_train_args(
-        parser, omit=["early_stopping_best_model_output_dir", "output_dir"]
-    )
+    setup_train_args(parser, omit=["early_stopping_best_model_output_dir", "output_dir"])
 
     args = parser.parse_args()
 
@@ -188,11 +178,7 @@ def main():
     predictions = list(predictions)
 
     # output predictions as csv:
-    header = (
-        "lines,"
-        + ",".join([str(fold) for fold in range(len(predictions[0]["full"]) - 1)])
-        + ",avg,std,voted"
-    )
+    header = "lines," + ",".join([str(fold) for fold in range(len(predictions[0]["full"]) - 1)]) + ",avg,std,voted"
 
     print(header)
 

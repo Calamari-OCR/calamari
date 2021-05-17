@@ -141,9 +141,7 @@ def ctcTokenPassing(mat, classes, charWords, blankIdx=-1, word_separator=" "):
             # if bigrams should be used, these lines have to be adapted
             bestOutputTok = toks.get(sortedWordIdx[-1], end, t - 1)
             wBestPrime = primeWords[sortedWordIdx[-1]]
-            toks.set(
-                wIdx, beg, t, Token(bestOutputTok.score, bestOutputTok.history + [wIdx])
-            )
+            toks.set(wIdx, beg, t, Token(bestOutputTok.score, bestOutputTok.history + [wIdx]))
 
             # 18-24
             s = 1
@@ -156,11 +154,7 @@ def ctcTokenPassing(mat, classes, charWords, blankIdx=-1, word_separator=" "):
                     if s == 2 and (wBestPrime[-2] != wPrime[1]):
                         P.append(toks.get(wIdx, 0, t))
 
-                if (
-                    wPrime[s - 1] != blankIdx
-                    and s > 2
-                    and wPrime[s - 2 - 1] != wPrime[s - 1]
-                ):
+                if wPrime[s - 1] != blankIdx and s > 2 and wPrime[s - 2 - 1] != wPrime[s - 1]:
                     tok = toks.get(wIdx, s - 2, t - 1)
                     P.append(Token(tok.score, tok.history))
 
@@ -183,9 +177,7 @@ def ctcTokenPassing(mat, classes, charWords, blankIdx=-1, word_separator=" "):
 
     # Termination: 26-28
     bestWIdx = outputIndices(toks, words, end, maxT)[-1]
-    return word_separator.join(
-        [charWords[i] for i in toks.get(bestWIdx, end, maxT).history]
-    )
+    return word_separator.join([charWords[i] for i in toks.get(bestWIdx, end, maxT).history])
 
 
 if __name__ == "__main__":

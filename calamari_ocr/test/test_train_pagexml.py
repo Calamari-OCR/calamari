@@ -32,14 +32,10 @@ def default_trainer_params(
         preload=preload,
     )
     if with_split:
-        p.gen = CalamariSplitTrainerPipelineParams(
-            validation_split_ratio=0.5, train=train
-        )
+        p.gen = CalamariSplitTrainerPipelineParams(validation_split_ratio=0.5, train=train)
     elif with_validation:
         p.gen.val = PageXML(
-            images=[
-                os.path.join(this_dir, "data", "avicanon_pagexml", f"008.{img_suffix}")
-            ],
+            images=[os.path.join(this_dir, "data", "avicanon_pagexml", f"008.{img_suffix}")],
             preload=preload,
         )
         p.gen.train = train

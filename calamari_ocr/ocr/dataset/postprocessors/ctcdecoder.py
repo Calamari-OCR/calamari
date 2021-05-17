@@ -38,25 +38,17 @@ class CTCDecoderProcessor(MappingDataProcessor[CTCDecoderProcessorParams]):
         mode: PipelineMode,
     ):
         super().__init__(params, data_params, mode)
-        self.ctc_decoder = create_ctc_decoder(
-            data_params.codec, self.params.ctc_decoder_params
-        )
+        self.ctc_decoder = create_ctc_decoder(data_params.codec, self.params.ctc_decoder_params)
 
     def apply(self, sample: Sample) -> Sample:
         if sample.targets and "gt" in sample.targets:
-            sample.targets["sentence"] = "".join(
-                self.data_params.codec.decode(sample.targets["gt"])
-            )
+            sample.targets["sentence"] = "".join(self.data_params.codec.decode(sample.targets["gt"]))
         if sample.outputs:
 
             def decode(suffix):
-                outputs = self.ctc_decoder.decode(
-                    sample.outputs["softmax" + suffix].astype(float)
-                )
+                outputs = self.ctc_decoder.decode(sample.outputs["softmax" + suffix].astype(float))
                 outputs.labels = list(map(int, outputs.labels))
-                outputs.sentence = "".join(
-                    self.data_params.codec.decode(outputs.labels)
-                )
+                outputs.sentence = "".join(self.data_params.codec.decode(outputs.labels))
                 return outputs
 
             outputs = decode("")

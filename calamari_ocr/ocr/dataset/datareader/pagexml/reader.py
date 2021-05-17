@@ -54,9 +54,7 @@ class PageXMLDatasetLoader:
     def load(self, img, xml) -> Iterable[Dict[str, Any]]:
         if not os.path.exists(xml):
             if self.skip_invalid:
-                logger.warning(
-                    f"File '{xml}' does not exist. Skipping since `skip_invalid=True`."
-                )
+                logger.warning(f"File '{xml}' does not exist. Skipping since `skip_invalid=True`.")
                 return []
             else:
                 raise FileNotFoundError(f"File '{xml}' does not exist.")
@@ -74,9 +72,9 @@ class PageXMLDatasetLoader:
         ns = {"ns": root.nsmap[None]}
         page = root.find(".//ns:Page", namespaces=ns)
         imgfile = page.attrib.get("imageFilename")
-        if (
-            self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}
-        ) and not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
+        if (self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}) and not split_all_ext(img)[0].endswith(
+            split_all_ext(imgfile)[0]
+        ):
             raise Exception(
                 "Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
                     img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]
@@ -87,17 +85,13 @@ class PageXMLDatasetLoader:
         textlines = root.findall(".//ns:TextLine", namespaces=ns)
 
         for textline in textlines:
-            tequivs = textline.findall(
-                './ns:TextEquiv[@index="{}"]'.format(self.text_index), namespaces=ns
-            )
+            tequivs = textline.findall('./ns:TextEquiv[@index="{}"]'.format(self.text_index), namespaces=ns)
 
             if not tequivs:
                 tequivs = textline.findall("./ns:TextEquiv", namespaces=ns)
 
             if len(tequivs) > 1:
-                logger.warning(
-                    "PageXML is invalid: TextLine includes TextEquivs with non unique ids"
-                )
+                logger.warning("PageXML is invalid: TextLine includes TextEquivs with non unique ids")
 
             if self.skip_commented and len(textline.attrib.get("comments", "")):
                 continue
@@ -121,9 +115,7 @@ class PageXMLDatasetLoader:
                 else:
                     raise Exception("Empty text field")
 
-            orientation = float(
-                textline.getparent().attrib.get("orientation", default=0)
-            )
+            orientation = float(textline.getparent().attrib.get("orientation", default=0))
 
             if self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}:
                 if len(text) == 0:
@@ -138,9 +130,7 @@ class PageXMLDatasetLoader:
                 "image_path": img,
                 "id": "{}/{}".format(page_id, textline.attrib.get("id")),
                 "text": text,
-                "coords": textline.find("./ns:Coords", namespaces=ns).attrib.get(
-                    "points"
-                ),
+                "coords": textline.find("./ns:Coords", namespaces=ns).attrib.get("points"),
                 "orientation": orientation,
                 "img_width": img_w,
             }
@@ -160,9 +150,7 @@ class PageXMLDatasetLoader:
         for textline in root.findall(".//ns:TextLine", namespaces=ns):
             if self.skip_commented and len(textline.attrib.get("comments", "")):
                 continue
-            orientation = float(
-                textline.getparent().attrib.get("orientation", default=0)
-            )
+            orientation = float(textline.getparent().attrib.get("orientation", default=0))
 
             yield {
                 "page_id": page_id,
@@ -171,9 +159,7 @@ class PageXMLDatasetLoader:
                 "xml_element": textline,
                 "image_path": img,
                 "id": "{}/{}".format(page_id, textline.attrib.get("id")),
-                "coords": textline.find("./ns:Coords", namespaces=ns).attrib.get(
-                    "points"
-                ),
+                "coords": textline.find("./ns:Coords", namespaces=ns).attrib.get("points"),
                 "orientation": orientation,
                 "img_width": img_w,
                 "text": None,
@@ -187,9 +173,7 @@ class PageXML(CalamariDataGeneratorParams):
     xml_files: List[str] = field(default_factory=list)
     gt_extension: str = field(
         default=".xml",
-        metadata=pai_meta(
-            help="Default extension of the gt files (expected to exist in same dir)"
-        ),
+        metadata=pai_meta(help="Default extension of the gt files (expected to exist in same dir)"),
     )
     text_index: int = 0
     pad: Optional[List[int]] = field(
@@ -200,9 +184,7 @@ class PageXML(CalamariDataGeneratorParams):
         default=".pred.xml",
         metadata=pai_meta(help="Default extension of the prediction files"),
     )
-    skip_commented: bool = field(
-        default=False, metadata=pai_meta(help='Skip lines with "comments" attribute.')
-    )
+    skip_commented: bool = field(default=False, metadata=pai_meta(help='Skip lines with "comments" attribute.'))
 
     def __len__(self):
         return len(self.images)
@@ -215,9 +197,7 @@ class PageXML(CalamariDataGeneratorParams):
 
     def to_prediction(self):
         pred = deepcopy(self)
-        pred.xml_files = [
-            split_all_ext(f)[0] + self.pred_extension for f in self.xml_files
-        ]
+        pred.xml_files = [split_all_ext(f)[0] + self.pred_extension for f in self.xml_files]
         return pred
 
     @staticmethod
@@ -228,9 +208,7 @@ class PageXML(CalamariDataGeneratorParams):
         self.images = sorted(glob_all(self.images))
         self.xml_files = sorted(self.xml_files)
         if not self.xml_files:
-            self.xml_files = [
-                split_all_ext(f)[0] + self.gt_extension for f in self.images
-            ]
+            self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
         if not self.images:
             self.xml_files = sorted(glob_all(self.xml_files))
             self.images = [None] * len(self.xml_files)
@@ -367,13 +345,9 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         sample = self.sample_by_id(sample_id)
         ns = sample["ns"]
         line = sample["xml_element"]
-        textequivxml = line.find(
-            './ns:TextEquiv[@index="{}"]'.format(self.params.text_index), namespaces=ns
-        )
+        textequivxml = line.find('./ns:TextEquiv[@index="{}"]'.format(self.params.text_index), namespaces=ns)
         if textequivxml is None:
-            textequivxml = etree.SubElement(
-                line, "TextEquiv", attrib={"index": str(self.params.text_index)}
-            )
+            textequivxml = etree.SubElement(line, "TextEquiv", attrib={"index": str(self.params.text_index)})
 
         u_xml = textequivxml.find("./ns:Unicode", namespaces=ns)
         if u_xml is None:
@@ -406,9 +380,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 total=len(self.params.xmlfiles),
             ):
                 page = self.pages(split_all_ext(xml)[0])
-                with open(
-                    split_all_ext(xml)[0] + extension, "w", encoding="utf-8"
-                ) as f:
+                with open(split_all_ext(xml)[0] + extension, "w", encoding="utf-8") as f:
                     f.write(etree.tounicode(page.getroottree(), pretty_print=True))
 
     def _store_page(self, extension, page_id):
@@ -417,9 +389,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             f.write(etree.tounicode(page.getroottree(), pretty_print=True))
 
     def _sample_iterator(self):
-        all_samples = zip(
-            self.params.images, self.params.xml_files, range(len(self.params.images))
-        )
+        all_samples = zip(self.params.images, self.params.xml_files, range(len(self.params.images)))
         if self.mode == PipelineMode.TRAINING:
             all_samples = list(all_samples)
             shuffle(all_samples)
@@ -470,6 +440,4 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             else:
                 line_img = None
 
-            yield InputSample(
-                line_img, text, SampleMeta(id=sample["id"], fold_id=fold_id)
-            )
+            yield InputSample(line_img, text, SampleMeta(id=sample["id"], fold_id=fold_id))

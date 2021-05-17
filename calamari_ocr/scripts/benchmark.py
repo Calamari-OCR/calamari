@@ -33,10 +33,7 @@ def main():
     batch_sizes = [1, 5, 10, 20, 50]
     tab = PrettyTable(["n"] + list(map(str, batch_sizes)))
     for n_examples in [1, 10, 100, 1000]:
-        results = [
-            benchmark_prediction(args.model, bs, args.processes, n_examples)
-            for bs in batch_sizes
-        ]
+        results = [benchmark_prediction(args.model, bs, args.processes, n_examples) for bs in batch_sizes]
         tab.add_row([n_examples] + results)
 
     print(tab)

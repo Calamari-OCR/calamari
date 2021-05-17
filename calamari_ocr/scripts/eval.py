@@ -36,9 +36,7 @@ def print_confusions(r, n_confusions):
             print("{:8s} {:8s} {:8d} {:10.2%}".format(gt_fmt, pred_fmt, count, percent))
             total_percent += percent
 
-        print(
-            "The remaining but hidden errors make up {:.2%}".format(1.0 - total_percent)
-        )
+        print("The remaining but hidden errors make up {:.2%}".format(1.0 - total_percent))
 
 
 def print_worst_lines(r, gt_samples, n_worst_lines):
@@ -51,19 +49,9 @@ def print_worst_lines(r, gt_samples, n_worst_lines):
         n_worst_lines = len(gt_samples)
 
     if n_worst_lines > 0:
-        print(
-            "{:60s} {:4s} {:3s} {:3s} {}".format(
-                "GT FILE", "LEN", "ERR", "SER", "CONFUSIONS"
-            )
-        )
-        for (len_gt, errs, sync_errs, confusion, gt_pred), sample in sorted_lines[
-            :n_worst_lines
-        ]:
-            print(
-                "{:60s} {:4d} {:3d} {:3d} {}".format(
-                    sample["id"][-60:], len_gt, errs, sync_errs, confusion
-                )
-            )
+        print("{:60s} {:4s} {:3s} {:3s} {}".format("GT FILE", "LEN", "ERR", "SER", "CONFUSIONS"))
+        for (len_gt, errs, sync_errs, confusion, gt_pred), sample in sorted_lines[:n_worst_lines]:
+            print("{:60s} {:4d} {:3d} {:3d} {}".format(sample["id"][-60:], len_gt, errs, sync_errs, confusion))
 
 
 def write_xlsx(xlsx_file, eval_datas):
@@ -98,18 +86,14 @@ def write_xlsx(xlsx_file, eval_datas):
         sorted_lines = sorted(zip(r["single"], gt_files), key=lambda a: -a[0][1])
 
         all_cs = []
-        for i, ((len_gt, errs, sync_errs, confusion, (gt, pred)), gt_file) in enumerate(
-            sorted_lines
-        ):
+        for i, ((len_gt, errs, sync_errs, confusion, (gt, pred)), gt_file) in enumerate(sorted_lines):
             ws.write(i + 1, 0, gt_file)
             ws.write(i + 1, 1, gt.strip())
             ws.write(i + 1, 2, pred.strip())
             ws.write(i + 1, 3, len_gt)
             ws.write(i + 1, 4, errs)
             ws.write(i + 1, 5, errs / max(len(gt), len(pred), 1))
-            ws.write(
-                i + 1, 6, errs / r["total_char_errs"] if r["total_char_errs"] > 0 else 0
-            )
+            ws.write(i + 1, 6, errs / r["total_char_errs"] if r["total_char_errs"] > 0 else 0)
             ws.write(i + 1, 7, sync_errs)
             ws.write(i + 1, 8, "{}".format(confusion))
             all_cs.append(errs / max(len(gt), len(pred), 1))
@@ -180,15 +164,11 @@ class EvalArgs:
     )
     n_worst_lines: int = field(
         default=0,
-        metadata=pai_meta(
-            help="Print the n worst recognized text lines with its error", mode="flat"
-        ),
+        metadata=pai_meta(help="Print the n worst recognized text lines with its error", mode="flat"),
     )
     xlsx_output: Optional[str] = field(
         default=None,
-        metadata=pai_meta(
-            help="Optionally write a xlsx file with the evaluation results", mode="flat"
-        ),
+        metadata=pai_meta(help="Optionally write a xlsx file with the evaluation results", mode="flat"),
     )
     non_existing_file_handling_mode: str = field(
         default="error",

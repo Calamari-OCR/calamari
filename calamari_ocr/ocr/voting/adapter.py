@@ -32,9 +32,7 @@ class CalamariMultiModelVoter(MultiModelVoter):
                 data_proc_params=meta,
             )
 
-        for i, (prediction, m, data, post_) in enumerate(
-            zip(outputs, meta, self.datas, self.post_proc)
-        ):
+        for i, (prediction, m, data, post_) in enumerate(zip(outputs, meta, self.datas, self.post_proc)):
             prediction.id = f"fold_{i}"
             prediction_results.append(
                 PredictionResult(
@@ -47,6 +45,4 @@ class CalamariMultiModelVoter(MultiModelVoter):
         # vote the results (if only one model is given, this will just return the sentences)
         prediction = self.voter.vote_prediction_result(prediction_results)
         prediction.id = "voted"
-        return Sample(
-            inputs=inputs, outputs=(prediction_results, prediction), meta=meta[0]
-        )
+        return Sample(inputs=inputs, outputs=(prediction_results, prediction), meta=meta[0])

@@ -23,9 +23,7 @@ class TestDatasetViewer(unittest.TestCase):
         self.run_dataset_viewer(["--gen", "PageXML", "--gen.images", images])
 
     def test_dataset_viewer_abbyyxml(self):
-        images = os.path.join(
-            this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg"
-        )
+        images = os.path.join(this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg")
         self.run_dataset_viewer(["--gen", "Abbyy", "--gen.images", images])
 
     def test_dataset_viewer_hdf5(self):
@@ -48,9 +46,7 @@ class TestDatasetStatistics(unittest.TestCase):
         self.run_dataset_statistics(["--data", "PageXML", "--data.images", images])
 
     def test_dataset_viewer_abbyyxml(self):
-        images = os.path.join(
-            this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg"
-        )
+        images = os.path.join(this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg")
         self.run_dataset_statistics(["--data", "Abbyy", "--data.images", images])
 
     def test_dataset_viewer_hdf5(self):

@@ -11,9 +11,7 @@ import cv2 as cv
 class ImageLoaderParams:
     channels: int = field(
         default=1,
-        metadata=pai_meta(
-            help="Number of channels to produce, by default 1=grayscale. Use 3 for colour."
-        ),
+        metadata=pai_meta(help="Number of channels to produce, by default 1=grayscale. Use 3 for colour."),
     )
     to_gray_method: str = field(
         default="cv",
@@ -38,9 +36,7 @@ class ImageLoader:
         elif len(img.shape) == 3:
             img_channels = img.shape[-1]
         else:
-            raise ValueError(
-                f"Unknown image format. Must bei either WxH or WxHxC, but got {img.shape}."
-            )
+            raise ValueError(f"Unknown image format. Must bei either WxH or WxHxC, but got {img.shape}.")
 
         if img_channels == self.params.channels:
             pass  # good
@@ -50,20 +46,14 @@ class ImageLoader:
             elif self.params.to_gray_method == "cv":
                 img = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
             else:
-                raise ValueError(
-                    f"Unsupported image conversion method {self.params.method}"
-                )
+                raise ValueError(f"Unsupported image conversion method {self.params.method}")
         elif img_channels == 4 and self.params.channels == 1:
             if self.params.to_gray_method == "avg":
-                img = np.mean(img[:, :, :3].astype("float32"), axis=-1).astype(
-                    dtype=img.dtype
-                )
+                img = np.mean(img[:, :, :3].astype("float32"), axis=-1).astype(dtype=img.dtype)
             elif self.params.to_gray_method == "cv":
                 img = cv.cvtColor(img, cv.COLOR_RGBA2GRAY)
             else:
-                raise ValueError(
-                    f"Unsupported image conversion method {self.params.method}"
-                )
+                raise ValueError(f"Unsupported image conversion method {self.params.method}")
         elif img_channels == 1 and self.params.channels == 3:
             img = np.stack([img] * 3, axis=-1)
         else:

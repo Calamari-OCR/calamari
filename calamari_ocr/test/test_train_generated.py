@@ -21,19 +21,13 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 def default_trainer_params():
     p = CalamariTestScenario.default_trainer_params()
 
-    with open(
-        os.path.join(this_dir, "data", "line_generation_config", "text_gen_params.json")
-    ) as f:
+    with open(os.path.join(this_dir, "data", "line_generation_config", "text_gen_params.json")) as f:
         text_gen_params = TextGeneratorParams.from_dict(json.load(f))
 
-    with open(
-        os.path.join(this_dir, "data", "line_generation_config", "line_gen_params.json")
-    ) as f:
+    with open(os.path.join(this_dir, "data", "line_generation_config", "line_gen_params.json")) as f:
         line_gen_params = LineGeneratorParams.from_dict(json.load(f))
 
-    p.codec.include_files = os.path.join(
-        this_dir, "data", "line_generation_config", "whilelist.txt"
-    )
+    p.codec.include_files = os.path.join(this_dir, "data", "line_generation_config", "whilelist.txt")
     p.codec.auto_compute = False
 
     p.gen.train = GeneratedLineDatasetParams(
@@ -62,9 +56,7 @@ def default_trainer_params():
     return p
 
 
-@pytest.mark.skipif(
-    os.name != "posix", reason="Do not run on windows due to missing font."
-)
+@pytest.mark.skipif(os.name != "posix", reason="Do not run on windows due to missing font.")
 class TestTrainGenerated(unittest.TestCase):
     def test_train(self):
         trainer_params = default_trainer_params()

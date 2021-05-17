@@ -75,9 +75,7 @@ def migrate_model_params(model: dict):
         layer["__cls__"] = convert_layer_name[layer["type"]]
         del layer["type"]
 
-    model["layers"].append(
-        {"__cls__": convert_layer_name["dropout"], "rate": model["dropout"]}
-    )
+    model["layers"].append({"__cls__": convert_layer_name["dropout"], "rate": model["dropout"]})
     del model["dropout"]
 
 
@@ -114,12 +112,8 @@ def migrate3to5(trainer_params: dict) -> dict:
     rename(data, "post_processors_", "post_proc")
     rename(data["pre_proc"], "sample_processors", "processors")
     rename(data["post_proc"], "sample_processors", "processors")
-    data["post_proc"][
-        "__cls__"
-    ] = "tfaip.data.pipeline.processor.params:SequentialProcessorPipelineParams"
-    data["pre_proc"][
-        "__cls__"
-    ] = "tfaip.data.pipeline.processor.params:SequentialProcessorPipelineParams"
+    data["post_proc"]["__cls__"] = "tfaip.data.pipeline.processor.params:SequentialProcessorPipelineParams"
+    data["pre_proc"]["__cls__"] = "tfaip.data.pipeline.processor.params:SequentialProcessorPipelineParams"
     for proc in data["pre_proc"]["processors"] + data["post_proc"]["processors"]:
         if "args" in proc:
             args = proc["args"]

@@ -18,9 +18,7 @@ class TestCommandList(unittest.TestCase):
                     [
                         "calamari-train",
                         "--train.images",
-                        os.path.join(
-                            this_dir, "data", "uw3_50lines", "train", "*.bin.png"
-                        ),
+                        os.path.join(this_dir, "data", "uw3_50lines", "train", "*.bin.png"),
                         "--trainer.epochs",
                         "1",
                         "--trainer.samples_per_epoch",
@@ -39,9 +37,7 @@ class TestCommandList(unittest.TestCase):
                     [
                         "calamari-predict",
                         "--data.images",
-                        os.path.join(
-                            this_dir, "data", "uw3_50lines", "test", "*.bin.png"
-                        ),
+                        os.path.join(this_dir, "data", "uw3_50lines", "test", "*.bin.png"),
                         "--data.pred_extension",
                         pred_extension,
                         "--checkpoint",
@@ -53,9 +49,7 @@ class TestCommandList(unittest.TestCase):
                     [
                         "calamari-predict",
                         "--data.images",
-                        os.path.join(
-                            this_dir, "data", "uw3_50lines", "test", "*.bin.png"
-                        ),
+                        os.path.join(this_dir, "data", "uw3_50lines", "test", "*.bin.png"),
                         "--data.pred_extension",
                         pred_extension,
                         "--checkpoint",
@@ -68,17 +62,11 @@ class TestCommandList(unittest.TestCase):
                     [
                         "calamari-eval",
                         "--gt.texts",
-                        os.path.join(
-                            this_dir, "data", "uw3_50lines", "test", "*.gt.txt"
-                        ),
+                        os.path.join(this_dir, "data", "uw3_50lines", "test", "*.gt.txt"),
                         "--gt.pred_extension",
                         pred_extension,
                     ]
                 )
         finally:
-            for file in glob(
-                os.path.join(
-                    this_dir, "data", "uw3_50lines", "test", "*" + pred_extension
-                )
-            ):
+            for file in glob(os.path.join(this_dir, "data", "uw3_50lines", "test", "*" + pred_extension)):
                 os.remove(file)

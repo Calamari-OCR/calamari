@@ -39,13 +39,9 @@ def wordBeamSearch(mat, beamWidth, lm, useNGrams, allowWordToWordTransition=Fals
             def getNonBlank(c):
                 labelIdx = chars.index(c)
                 if beam.getText() != "" and beam.getText()[-1] == c:
-                    return (
-                        mat[t, labelIdx] * beam.getPrBlank()
-                    )  # same chars must be separated by blank
+                    return mat[t, labelIdx] * beam.getPrBlank()  # same chars must be separated by blank
                 else:
-                    return (
-                        mat[t, labelIdx] * beam.getPrTotal()
-                    )  # different chars can be neighbours
+                    return mat[t, labelIdx] * beam.getPrTotal()  # different chars can be neighbours
 
             # extend current beam with characters according to language model
             for c in beam.getNextChars():

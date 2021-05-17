@@ -90,9 +90,7 @@ class Beam:
                             prSum += beam.lm.getBigramProb(lastWord, w)
                     beam.textual.prTotal = beam.textual.prUnnormalized * prSum
                     beam.textual.prTotal = (
-                        beam.textual.prTotal ** (1 / (numWords + 1))
-                        if numWords >= 1
-                        else beam.textual.prTotal
+                        beam.textual.prTotal ** (1 / (numWords + 1)) if numWords >= 1 else beam.textual.prTotal
                     )
 
                 # if new char does not occur inside a word
@@ -105,17 +103,13 @@ class Beam:
                         # score with unigram (first word) or bigram (all other words) probability
                         numWords = len(beam.textual.wordHist)
                         if numWords == 1:
-                            beam.textual.prUnnormalized *= beam.lm.getUnigramProb(
-                                beam.textual.wordHist[-1]
-                            )
+                            beam.textual.prUnnormalized *= beam.lm.getUnigramProb(beam.textual.wordHist[-1])
                             beam.textual.prTotal = beam.textual.prUnnormalized
                         elif numWords >= 2:
                             beam.textual.prUnnormalized *= beam.lm.getBigramProb(
                                 beam.textual.wordHist[-2], beam.textual.wordHist[-1]
                             )
-                            beam.textual.prTotal = beam.textual.prUnnormalized ** (
-                                1 / numWords
-                            )
+                            beam.textual.prTotal = beam.textual.prUnnormalized ** (1 / numWords)
 
             else:  # don't use unigrams and bigrams, just keep wordDev up to date
                 if newChar in beam.lm.getWordChars():
@@ -190,6 +184,4 @@ class BeamList:
 
     def dump(self):
         for k in self.beams.keys():
-            print(
-                str(self.beams[k]).encode("ascii", "replace")
-            )  # map to ascii if possible (for py2 and windows)
+            print(str(self.beams[k]).encode("ascii", "replace"))  # map to ascii if possible (for py2 and windows)

@@ -53,14 +53,10 @@ def run(command, verbose=False):
     )
     # Make nonblocking output
     stdout_queue = Queue()
-    stdout_reader = Thread(
-        target=enqueue_output, args=(process.stdout, stdout_queue), daemon=True
-    )
+    stdout_reader = Thread(target=enqueue_output, args=(process.stdout, stdout_queue), daemon=True)
     stdout_reader.start()
     stderr_queue = Queue()
-    stderr_reader = Thread(
-        target=enqueue_output, args=(process.stderr, stderr_queue), daemon=True
-    )
+    stderr_reader = Thread(target=enqueue_output, args=(process.stderr, stderr_queue), daemon=True)
     stderr_reader.start()
     while True:
         try:
@@ -84,6 +80,4 @@ def run(command, verbose=False):
             yield out, err
 
     if process.returncode != 0:
-        raise Exception(
-            "Error: Process finished with code {}".format(process.returncode)
-        )
+        raise Exception("Error: Process finished with code {}".format(process.returncode))

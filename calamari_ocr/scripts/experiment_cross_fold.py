@@ -18,14 +18,10 @@ this_absdir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
 # create necessary directories
 def run_for_single_line(args):
     # lines/network/pretraining as base dir
-    args.base_dir = os.path.join(
-        args.base_dir, "all" if args.n_lines < 0 else str(args.n_lines)
-    )
+    args.base_dir = os.path.join(args.base_dir, "all" if args.n_lines < 0 else str(args.n_lines))
     pretrain_prefix = "scratch"
     if args.weights and len(args.weights) > 0:
-        pretrain_prefix = ",".join(
-            [split_all_ext(os.path.basename(path))[0] for path in args.weights]
-        )
+        pretrain_prefix = ",".join([split_all_ext(os.path.basename(path))[0] for path in args.weights])
 
     args.base_dir = os.path.join(args.base_dir, args.network, pretrain_prefix)
 
@@ -71,20 +67,13 @@ def run_for_single_line(args):
         predict_script_path = os.path.join(this_absdir, "experiment_eval.py")
 
         if len(args.single_fold) > 0:
-            models = [
-                os.path.join(best_models_dir, "{}.ckpt.json".format(sf))
-                for sf in args.single_fold
-            ]
+            models = [os.path.join(best_models_dir, "{}.ckpt.json".format(sf)) for sf in args.single_fold]
             for m in models:
                 if not os.path.exists(m):
-                    raise Exception(
-                        "Expected model at '{}', but file does not exist".format(m)
-                    )
+                    raise Exception("Expected model at '{}', but file does not exist".format(m))
         else:
             models = [
-                os.path.join(best_models_dir, d)
-                for d in sorted(os.listdir(best_models_dir))
-                if d.endswith("json")
+                os.path.join(best_models_dir, d) for d in sorted(os.listdir(best_models_dir)) if d.endswith("json")
             ]
             if len(models) != args.n_folds:
                 raise Exception(
@@ -196,12 +185,8 @@ def main():
         default=[],
         help="Only train a single (list of single) specific fold(s).",
     )
-    parser.add_argument(
-        "--skip_train", action="store_true", help="Skip the cross fold training"
-    )
-    parser.add_argument(
-        "--skip_eval", action="store_true", help="Skip the cross fold evaluation"
-    )
+    parser.add_argument("--skip_train", action="store_true", help="Skip the cross fold training")
+    parser.add_argument("--skip_eval", action="store_true", help="Skip the cross fold evaluation")
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
     parser.add_argument(
         "--n_confusions",
@@ -248,11 +233,7 @@ def main():
             raise Exception("Repeated fold id's found.")
         for fold_id in args.single_fold:
             if fold_id < 0 or fold_id >= args.n_folds:
-                raise Exception(
-                    "Invalid fold id found: 0 <= id <= {}, but id == {}".format(
-                        args.n_folds, fold_id
-                    )
-                )
+                raise Exception("Invalid fold id found: 0 <= id <= {}, but id == {}".format(args.n_folds, fold_id))
 
         actual_folds = args.single_fold
     else:

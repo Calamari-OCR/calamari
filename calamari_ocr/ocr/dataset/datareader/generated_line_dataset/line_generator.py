@@ -52,13 +52,9 @@ class FontVariantType(IntEnum):
 
 class FontVariants:
     def __init__(self, base_font_ttf: str, font_size: int):
-        self.font_name = (
-            base_font_ttf if not base_font_ttf.endswith(".ttf") else base_font_ttf[:-4]
-        )
+        self.font_name = base_font_ttf if not base_font_ttf.endswith(".ttf") else base_font_ttf[:-4]
 
-        self.default_font = Font(
-            ImageFont.truetype(self.font_name + ".ttf", size=font_size)
-        )
+        self.default_font = Font(ImageFont.truetype(self.font_name + ".ttf", size=font_size))
 
         def font_or_default(ttf):
             try:
@@ -166,9 +162,7 @@ class Font:
             return image
         except Exception as e:
             logger.exception(e)
-            logger.warning(
-                f"Text: {text}, Spacing: {spacing}, Scale: {scale}, Length: {len(text.strip())}"
-            )
+            logger.warning(f"Text: {text}, Spacing: {spacing}, Scale: {scale}, Length: {len(text.strip())}")
             raise e
 
 
@@ -182,9 +176,7 @@ class LineGenerator:
         canvas = np.zeros((0, 0), dtype=np.uint8)
         offset = int(
             font_variants.default_font.char_height // 2
-            + max(
-                abs(self.params.min_script_offset), abs(self.params.max_script_offset)
-            )
+            + max(abs(self.params.min_script_offset), abs(self.params.max_script_offset))
             * font_variants.default_font.char_height
         )
         x = 0
@@ -195,9 +187,7 @@ class LineGenerator:
                 script_offset = 0
             else:
                 script_offset = int(
-                    np.random.uniform(
-                        self.params.min_script_offset, self.params.max_script_offset
-                    )
+                    np.random.uniform(self.params.min_script_offset, self.params.max_script_offset)
                     * font.char_height
                     * scale
                 )

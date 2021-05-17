@@ -33,14 +33,10 @@ def parse_args(args=None):
     from calamari_ocr.ocr.scenario import CalamariScenario
 
     parser = PAIArgumentParser()
-    parser.add_argument(
-        "--version", action="version", version="%(prog)s v" + __version__
-    )
+    parser.add_argument("--version", action="version", version="%(prog)s v" + __version__)
 
     default_trainer_params = CalamariScenario.default_trainer_params()
-    parser.add_root_argument(
-        "trainer", default_trainer_params.__class__, default=default_trainer_params
-    )
+    parser.add_root_argument("trainer", default_trainer_params.__class__, default=default_trainer_params)
 
     return parser.parse_args(args).trainer
 

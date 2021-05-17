@@ -48,15 +48,11 @@ class CenterNormalizerProcessor(ImageProcessor[CenterNormalizerProcessorParams])
             sigmaY=h * 0.5,
             borderType=cv.BORDER_CONSTANT,
         )
-        smoothed += 0.001 * cv.blur(
-            smoothed, (w, int(h * 0.5)), borderType=cv.BORDER_CONSTANT
-        )
+        smoothed += 0.001 * cv.blur(smoothed, (w, int(h * 0.5)), borderType=cv.BORDER_CONSTANT)
 
         a = np.argmax(smoothed, axis=0).astype(np.uint16)
         kernel = cv.getGaussianKernel(int((8.0 * h * self.extra) + 1), h * self.extra)
-        center = cv.filter2D(
-            a, cv.CV_16U, kernel, borderType=cv.BORDER_REFLECT
-        ).flatten()
+        center = cv.filter2D(a, cv.CV_16U, kernel, borderType=cv.BORDER_REFLECT).flatten()
 
         deltas = abs(np.arange(h)[:, np.newaxis] - center[np.newaxis, :])
         mad = np.mean(deltas[line != 0])
@@ -102,9 +98,7 @@ class CenterNormalizerProcessor(ImageProcessor[CenterNormalizerProcessorParams])
         # The actual image img is embedded into a larger image by
         # adding vertical space on top and at the bottom (padding)
         hpad = r  # this is large enough
-        padded = cv.copyMakeBorder(
-            img, hpad, hpad, 0, 0, cv.BORDER_CONSTANT, value=cval
-        )
+        padded = cv.copyMakeBorder(img, hpad, hpad, 0, 0, cv.BORDER_CONSTANT, value=cval)
 
         center = center + hpad - r
         new_h = 2 * r

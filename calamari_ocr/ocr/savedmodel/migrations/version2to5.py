@@ -28,9 +28,7 @@ def update_model(params: dict, path: str):
         if "layer_names" not in f.attrs and "model_weights" in f:
             f = f["model_weights"]
         graph = pred_model.layers[3]._layers[0]
-        load_weights_from_hdf5_group(
-            f, [l for l in graph.layer_instances if len(l.weights) > 0] + [graph.logits]
-        )
+        load_weights_from_hdf5_group(f, [l for l in graph.layer_instances if len(l.weights) > 0] + [graph.logits])
 
     logger.info(f"Writing converted model at {path}.tmp.h5")
     pred_model.save(path + ".tmp.h5", include_optimizer=False)
@@ -136,21 +134,13 @@ def convert_text_processor(proc: dict):
             flat.append(
                 text_processor(
                     "TextNormalizer",
-                    args={
-                        "unicode_normalization": conv[p.get("unicodeNormalization", 0)]
-                    },
+                    args={"unicode_normalization": conv[p.get("unicodeNormalization", 0)]},
                 )
             )
         elif t == "TEXT_REGULARIZER":
-            flat.append(
-                text_processor(
-                    "TextRegularizer", args={"replacements": p.get("replacements", [])}
-                )
-            )
+            flat.append(text_processor("TextRegularizer", args={"replacements": p.get("replacements", [])}))
         elif t == "STR_TO_CHAR_LIST":
-            flat.append(
-                text_processor("StrToCharList"), args={"chars": p.get("characters", [])}
-            )
+            flat.append(text_processor("StrToCharList"), args={"chars": p.get("characters", [])})
         else:
             raise ValueError(f"Unknown type {t}")
 
@@ -199,9 +189,7 @@ def migrate2to3(d: dict):
     text_preprocessor = model.get("textPreprocessor", {})
     text_postprocessor = model.get("textPostprocessor", {})
 
-    converted_pre_processors = convert_image_processor(
-        data_preprocessor
-    ) + convert_text_processor(text_preprocessor)
+    converted_pre_processors = convert_image_processor(data_preprocessor) + convert_text_processor(text_preprocessor)
 
     converted_pre_processors.append(
         {

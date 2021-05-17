@@ -22,12 +22,7 @@ def run(data: ExtendedPredictionDataParams):
     logger.info("Resolving files")
     logger.info(
         "Average confidence: {:.2%}".format(
-            np.mean(
-                [
-                    s["best_prediction"].avg_char_probability
-                    for s in data.create(PipelineMode.EVALUATION).samples()
-                ]
-            )
+            np.mean([s["best_prediction"].avg_char_probability for s in data.create(PipelineMode.EVALUATION).samples()])
         )
     )
 

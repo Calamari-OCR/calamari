@@ -339,13 +339,7 @@ class Line:
         self.formats = []
 
     def __str__(self):
-        return (
-            "Line:[baseline='"
-            + self.baseline.__str__()
-            + "', "
-            + self.rect.__str__()
-            + "]"
-        )
+        return "Line:[baseline='" + self.baseline.__str__() + "', " + self.rect.__str__() + "]"
 
 
 class Format:

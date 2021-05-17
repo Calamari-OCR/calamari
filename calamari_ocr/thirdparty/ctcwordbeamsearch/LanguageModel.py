@@ -105,9 +105,7 @@ class LanguageModel:
             val2 = val1.get(w2)
             if val2 != None:
                 return val2
-            return self.addK / (
-                self.getUnigramProb(w1) * self.numUniqueWords + self.numUniqueWords
-            )
+            return self.addK / (self.getUnigramProb(w1) * self.numUniqueWords + self.numUniqueWords)
         return 0
 
 

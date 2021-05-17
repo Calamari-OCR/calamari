@@ -12,12 +12,8 @@ def main():
         required=True,
         help="The image files to predict with its gt and pred",
     )
-    parser.add_argument(
-        "--html_output", type=str, required=True, help="Where to write the html file"
-    )
-    parser.add_argument(
-        "--open", action="store_true", help="Automatically open the file"
-    )
+    parser.add_argument("--html_output", type=str, required=True, help="Where to write the html file")
+    parser.add_argument("--open", action="store_true", help="Automatically open the file")
 
     args = parser.parse_args()
     img_files = sorted(glob_all(args.files))

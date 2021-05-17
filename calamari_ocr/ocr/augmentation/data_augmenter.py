@@ -42,9 +42,7 @@ class DataAugmenterBase(Generic[TDataAugParams], ABC):
     def augment_data_tuple(self, t):
         return self.augment_data(*t)
 
-    def augment_datas(
-        self, datas, gt_txts, n_augmentations, processes=1, progress_bar=False
-    ):
+    def augment_datas(self, datas, gt_txts, n_augmentations, processes=1, progress_bar=False):
         if n_augmentations < 0 or not isinstance(n_augmentations, int):
             raise ValueError("Number of augmentation must be an integer >= 0")
 

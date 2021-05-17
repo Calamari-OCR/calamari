@@ -18,9 +18,7 @@ if TYPE_CHECKING:
     from calamari_ocr.ocr.dataset.data import Data
 
 logger = logging.getLogger(__name__)
-SingleEvalData = namedtuple(
-    "SingleEvalData", ["chars", "char_errs", "sync_errs", "conf", "gt_pred"]
-)
+SingleEvalData = namedtuple("SingleEvalData", ["chars", "char_errs", "sync_errs", "conf", "gt_pred"])
 
 
 @pai_dataclass
@@ -67,9 +65,7 @@ class Evaluator:
         if len(self.preloaded_gt) == 0:
             raise ValueError("Empty GT dataset.")
 
-    def run(
-        self, *, gt_dataset: DataGeneratorParams, pred_dataset: DataGeneratorParams
-    ):
+    def run(self, *, gt_dataset: DataGeneratorParams, pred_dataset: DataGeneratorParams):
         """evaluate on the given dataset
         Returns
         -------
@@ -166,9 +162,7 @@ class Evaluator:
         total_sync_errs = 0
         for chars, char_errs, sync_errs, conf, gt_pred in eval_results:
             if store_all:
-                all_eval.append(
-                    SingleEvalData(chars, char_errs, sync_errs, conf, gt_pred)
-                )
+                all_eval.append(SingleEvalData(chars, char_errs, sync_errs, conf, gt_pred))
 
             total_instances += 1
             total_chars += chars
@@ -218,9 +212,7 @@ class Evaluator:
                 else:
                     mapped_pred_data[sample_id] = ""
                     n_empty += 1
-            logger.info(
-                f"{n_empty}/{len(gt_data)} lines could not be matched during the evaluation."
-            )
+            logger.info(f"{n_empty}/{len(gt_data)} lines could not be matched during the evaluation.")
             if n_empty == len(gt_data):
                 raise ValueError(
                     f"No lines could be matched by their ID. First 10 gt ids "
@@ -242,10 +234,7 @@ class Evaluator:
         # evaluate single lines
         out = parallel_map(
             Evaluator.evaluate_single_args,
-            [
-                {"gt": gt, "pred": pred, "skip_empty_gt": self.params.skip_empty_gt}
-                for gt, pred in gt_pred
-            ],
+            [{"gt": gt, "pred": pred, "skip_empty_gt": self.params.skip_empty_gt} for gt, pred in gt_pred],
             processes=self.params.setup.num_processes,
             progress_bar=self.params.progress_bar,
             desc="Evaluation",

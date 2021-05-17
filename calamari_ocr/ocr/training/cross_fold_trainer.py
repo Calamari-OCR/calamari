@@ -118,9 +118,7 @@ class CrossFoldTrainerParams:
     )
     max_parallel_models: int = field(
         default=-1,
-        metadata=pai_meta(
-            mode="flat", help="Number of models to train in parallel. Defaults to all."
-        ),
+        metadata=pai_meta(mode="flat", help="Number of models to train in parallel. Defaults to all."),
     )
     weights: List[str] = field(
         default_factory=list,
@@ -134,9 +132,7 @@ class CrossFoldTrainerParams:
     )
     single_fold: List[int] = field(
         default_factory=list,
-        metadata=pai_meta(
-            mode="flat", help="Only train a single (list of single) specific fold(s)."
-        ),
+        metadata=pai_meta(mode="flat", help="Only train a single (list of single) specific fold(s)."),
     )
     visible_gpus: Optional[List[int]] = field(
         default=None,
@@ -165,36 +161,26 @@ class CrossFoldTrainerParams:
                 raise Exception("Repeated fold id's found.")
             for fold_id in self.single_fold:
                 if fold_id < 0 or fold_id >= self.n_folds:
-                    raise Exception(
-                        "Invalid fold id found: 0 <= id <= {}, but id == {}".format(
-                            self.n_folds, fold_id
-                        )
-                    )
+                    raise Exception("Invalid fold id found: 0 <= id <= {}, but id == {}".format(self.n_folds, fold_id))
 
         # by default, the temporary files will be deleted after a successful training
         # if you specify a temporary dir, you can easily resume to train if an error occurred
         if self.keep_temporary_files and not self.temporary_dir:
-            raise ValueError(
-                "If you want to keep the temporary model files you have to specify a temporary dir"
-            )
+            raise ValueError("If you want to keep the temporary model files you have to specify a temporary dir")
 
 
 class CrossFoldTrainer:
     def __init__(self, params: CrossFoldTrainerParams):
         self.params = params
         # locate the training script (must be in the same dir as "this")
-        self.train_script_path = os.path.abspath(
-            os.path.join(this_absdir, "../..", "scripts", "train_from_params.py")
-        )
+        self.train_script_path = os.path.abspath(os.path.join(this_absdir, "../..", "scripts", "train_from_params.py"))
         # location of best models output
         if not os.path.exists(self.params.best_models_dir):
             os.makedirs(self.params.best_models_dir)
 
         if not os.path.exists(self.train_script_path):
             raise FileNotFoundError(
-                "Missing train script path. Expected 'train.py' at {}".format(
-                    self.train_script_path
-                )
+                "Missing train script path. Expected 'train.py' at {}".format(self.train_script_path)
             )
 
         if not isinstance(self.params.trainer, TrainerParams):
@@ -224,11 +210,7 @@ class CrossFoldTrainer:
         # Create the json argument file for each individual training
         run_args = []
         seed = self.params.trainer.random_seed or -1
-        folds_to_run = (
-            self.params.single_fold
-            if len(self.params.single_fold) > 0
-            else range(len(cross_fold.folds))
-        )
+        folds_to_run = self.params.single_fold if len(self.params.single_fold) > 0 else range(len(cross_fold.folds))
         for fold in folds_to_run:
             train_files = cross_fold.train_files(fold)
             test_files = cross_fold.test_files(fold)
@@ -252,29 +234,19 @@ class CrossFoldTrainer:
                 else:
                     trainer_params.gen.train.images = train_files
                     trainer_params.gen.val.images = test_files
-                    trainer_params.gen.val.gt_extension = (
-                        trainer_params.gen.train.gt_extension
-                    )
+                    trainer_params.gen.val.gt_extension = trainer_params.gen.train.gt_extension
 
                 trainer_params.scenario.id = fold
                 trainer_params.progress_bar_mode = 2
-                trainer_params.output_dir = os.path.join(
-                    temporary_dir, "fold_{}".format(fold)
-                )
-                trainer_params.early_stopping.best_model_output_dir = (
-                    self.params.best_models_dir
-                )
+                trainer_params.output_dir = os.path.join(temporary_dir, "fold_{}".format(fold))
+                trainer_params.early_stopping.best_model_output_dir = self.params.best_models_dir
                 trainer_params.early_stopping.best_model_name = ""
                 best_model_prefix = self.params.best_model_label.format(id=fold)
                 trainer_params.best_model_prefix = best_model_prefix
 
                 if self.params.visible_gpus:
-                    assert (
-                        trainer_params.device.gpus is None
-                    ), "Using visible_gpus with device.gpus is not supported"
-                    trainer_params.device.gpus = [
-                        self.params.visible_gpus[fold % len(self.params.visible_gpus)]
-                    ]
+                    assert trainer_params.device.gpus is None, "Using visible_gpus with device.gpus is not supported"
+                    trainer_params.device.gpus = [self.params.visible_gpus[fold % len(self.params.visible_gpus)]]
 
                 if seed >= 0:
                     trainer_params.random_seed = seed + fold
@@ -316,9 +288,7 @@ class CrossFoldTrainer:
             )
 
         # Launch the individual processes for each training
-        with multiprocessing.pool.ThreadPool(
-            processes=self.params.max_parallel_models
-        ) as pool:
+        with multiprocessing.pool.ThreadPool(processes=self.params.max_parallel_models) as pool:
             # workaround to forward keyboard interrupt
             pool.map_async(train_individual_model, run_args).get()
 

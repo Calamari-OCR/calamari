@@ -39,9 +39,7 @@ class EnsembleModel(ModelBase[EnsembleModelParams]):
         super().__init__(**kwargs)
 
         self.cer_total = keras.metrics.Mean("CER")
-        self.sub_cer = [
-            keras.metrics.Mean(f"CER_{i}") for i in range(self.params.ensemble)
-        ]
+        self.sub_cer = [keras.metrics.Mean(f"CER_{i}") for i in range(self.params.ensemble)]
 
     def _best_logging_settings(self) -> Tuple[str, str]:
         return "min", self.cer_total.name
@@ -74,29 +72,19 @@ class EnsembleModel(ModelBase[EnsembleModelParams]):
         def cer(decoded, targets, targets_length):
             greedy_decoded = tf.sparse.from_dense(decoded)
             sparse_targets = tf.cast(
-                K.ctc_label_dense_to_sparse(
-                    targets, math_ops.cast(K.flatten(targets_length), dtype="int32")
-                ),
+                K.ctc_label_dense_to_sparse(targets, math_ops.cast(K.flatten(targets_length), dtype="int32")),
                 "int32",
             )
-            return tf.edit_distance(
-                tf.cast(greedy_decoded, tf.int32), sparse_targets, normalize=True
-            )
+            return tf.edit_distance(tf.cast(greedy_decoded, tf.int32), sparse_targets, normalize=True)
 
         # Note for codec change: the codec size is derived upon creation, therefore the ctc ops must be created
         # using the true codec size (the W/B-Matrix may change its shape however during loading/codec change
         # to match the true codec size
         sw = K.flatten(targets["gt_len"])
-        return [
-            self.cer_total(
-                cer(outputs["decoded"], targets["gt"], targets["gt_len"]),
-                sample_weight=sw,
-            )
-        ] + [
+        return [self.cer_total(cer(outputs["decoded"], targets["gt"], targets["gt_len"]), sample_weight=sw,)] + [
             self.sub_cer[i](
                 cer(outputs[f"decoded_{i}"], targets["gt"], targets["gt_len"]),
-                sample_weight=sw
-                * tf.cast(tf.equal(K.flatten(targets["fold_id"]), i), tf.int32),
+                sample_weight=sw * tf.cast(tf.equal(K.flatten(targets["fold_id"]), i), tf.int32),
             )
             for i in range(self.params.ensemble)
         ]
@@ -111,8 +99,6 @@ class EnsembleModel(ModelBase[EnsembleModelParams]):
         cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)
         s += "\n  PRED (CER={:.2f}): '{}{}{}'".format(
             cer, lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C"
-        ) + "\n  TRUE:            '{}{}{}'".format(
-            lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C"
-        )
+        ) + "\n  TRUE:            '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C")
 
         print_fn(s)

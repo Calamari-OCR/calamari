@@ -21,8 +21,6 @@ class CSVWriter:
         self.writer = csv.writer(self.file, lineterminator="\n")
 
     def write(self, line):
-        line = [
-            x.encode("ascii", "replace") for x in line
-        ]  # map to ascii if possible (for py2 and windows)
+        line = [x.encode("ascii", "replace") for x in line]  # map to ascii if possible (for py2 and windows)
         self.writer.writerow(line)
         self.file.flush()

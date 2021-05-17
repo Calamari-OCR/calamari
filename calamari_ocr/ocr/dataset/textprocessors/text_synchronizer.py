@@ -17,10 +17,7 @@ class Sync:
         return str(self.substr)
 
     def get_text(self):
-        return [
-            self.texts[i][start : start + length]
-            for i, (start, end, length) in enumerate(self.substr)
-        ]
+        return [self.texts[i][start : start + length] for i, (start, end, length) in enumerate(self.substr)]
 
     def is_valid(self):
         return np.any(self.substr[:, 2] > 0)

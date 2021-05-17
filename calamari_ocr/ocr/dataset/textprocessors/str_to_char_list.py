@@ -36,8 +36,6 @@ class StrToCharListProcessor(TextProcessor[StrToCharListProcessorParams]):
                 continue
 
             else:
-                raise Exception(
-                    "Could not parse remainder '{}' of '{}'".format(txt[index:], txt)
-                )
+                raise Exception("Could not parse remainder '{}' of '{}'".format(txt[index:], txt))
 
         return out

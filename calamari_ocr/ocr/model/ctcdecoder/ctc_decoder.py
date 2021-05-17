@@ -28,9 +28,7 @@ class CTCDecoderParams:
     min_p_threshold: float = 0
 
     beam_width = 25
-    non_word_chars: List[str] = field(
-        default_factory=lambda: list("0123456789[]()_.:;!?{}-'\"")
-    )
+    non_word_chars: List[str] = field(default_factory=lambda: list("0123456789[]()_.:;!?{}-'\""))
 
     dictionary: List[str] = field(default_factory=list)
     word_separator: str = " "
@@ -84,11 +82,7 @@ class CTCDecoder(ABC):
         pred.is_voted_result = False
         pred.logits = probabilities
         for c, l in zip(sentence, pred.labels):
-            pred.positions.append(
-                PredictionPosition(
-                    chars=[PredictionCharacter(label=l, char=c, probability=1.0)]
-                )
-            )
+            pred.positions.append(PredictionPosition(chars=[PredictionCharacter(label=l, char=c, probability=1.0)]))
         return pred
 
     def find_alternatives(self, probabilities, sentence, threshold) -> Prediction:
@@ -140,7 +134,5 @@ class CTCDecoder(ABC):
             if len(pos.chars) > 0:
                 pred.avg_char_probability += pos.chars[0].probability
 
-        pred.avg_char_probability /= (
-            len(pred.positions) if len(pred.positions) > 0 else 1
-        )
+        pred.avg_char_probability /= len(pred.positions) if len(pred.positions) > 0 else 1
         return pred

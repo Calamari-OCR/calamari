@@ -31,9 +31,7 @@ def main():
         required=True,
         help="The (relative or absolute) count of training files (or -1 to use the remaining)",
     )
-    parser.add_argument(
-        "--output_dir", type=str, required=True, help="Where to write the splits"
-    )
+    parser.add_argument("--output_dir", type=str, required=True, help="Where to write the splits")
     parser.add_argument("--eval_sub_dir", type=str, default="eval")
     parser.add_argument("--train_sub_dir", type=str, default="train")
 
@@ -80,9 +78,7 @@ def main():
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
 
-        for img, txt in tqdm(
-            zip(imgs, txts), total=len(imgs), desc="Writing to {}".format(out_dir)
-        ):
+        for img, txt in tqdm(zip(imgs, txts), total=len(imgs), desc="Writing to {}".format(out_dir)):
             if not os.path.exists(img):
                 logger.warning("Image file at {} not found".format(img))
                 continue

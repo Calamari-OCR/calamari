@@ -24,9 +24,7 @@ if TYPE_CHECKING:
     from calamari_ocr.ocr.training.params import TrainerParams
 
 
-class CalamariScenarioBase(
-    ScenarioBase[TScenarioParams, CalamariDefaultTrainerPipelineParams]
-):
+class CalamariScenarioBase(ScenarioBase[TScenarioParams, CalamariDefaultTrainerPipelineParams]):
     @classmethod
     def trainer_cls(cls):
         from calamari_ocr.ocr.training.trainer import Trainer
@@ -39,9 +37,7 @@ class CalamariScenarioBase(
         scenario_params.export_serve = True
         scenario_params.export_net_config = False
         scenario_params.default_serve_dir = "best.ckpt.h5"
-        scenario_params.scenario_params_filename = (
-            "scenario_params.json"  # should never be written!
-        )
+        scenario_params.scenario_params_filename = "scenario_params.json"  # should never be written!
         scenario_params.trainer_params_filename = "best.ckpt.json"
         return scenario_params
 
@@ -49,9 +45,7 @@ class CalamariScenarioBase(
     def default_trainer_params(cls) -> "TrainerParams":
         trainer_params = super(CalamariScenarioBase, cls).default_trainer_params()
         trainer_params.export_final = False
-        trainer_params.checkpoint_sub_dir = os.path.join(
-            "checkpoint", "checkpoint_{epoch:04d}"
-        )
+        trainer_params.checkpoint_sub_dir = os.path.join("checkpoint", "checkpoint_{epoch:04d}")
         trainer_params.early_stopping.upper_threshold = 0.9
         trainer_params.early_stopping.lower_threshold = 0.0
         trainer_params.early_stopping.frequency = 1

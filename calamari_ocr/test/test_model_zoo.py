@@ -16,18 +16,14 @@ from calamari_ocr.scripts.predict_and_eval import (
 from calamari_ocr.test.test_train_file import uw3_trainer_params
 
 
-@pytest.mark.skipif(
-    os.name != "posix", reason="Do not run on windows due to missing wget and untar."
-)
+@pytest.mark.skipif(os.name != "posix", reason="Do not run on windows due to missing wget and untar.")
 class TestModelZoo(unittest.TestCase):
     def tearDown(self) -> None:
         clear_session()
 
     def test_model_zoo(self):
         version = "1.0"
-        url = (
-            f"https://github.com/Calamari-OCR/calamari_models/archive/{version}.tar.gz"
-        )
+        url = f"https://github.com/Calamari-OCR/calamari_models/archive/{version}.tar.gz"
         with tempfile.TemporaryDirectory() as d:
             d = "model_archive_permanent"  # for debugging
             os.makedirs(d, exist_ok=True)
@@ -57,9 +53,7 @@ class TestModelZoo(unittest.TestCase):
                 )
             trainer_params = uw3_trainer_params(with_validation=True)
             args = PredictAndEvalArgs(
-                checkpoint=glob(
-                    os.path.join("calamari_models", "antiqua_modern", "*.ckpt.json")
-                ),
+                checkpoint=glob(os.path.join("calamari_models", "antiqua_modern", "*.ckpt.json")),
                 predictor=PredictorParams(pipeline=DataPipelineParams(batch_size=5)),
                 data=trainer_params.gen.val_gen(),
             )

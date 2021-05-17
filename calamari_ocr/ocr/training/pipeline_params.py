@@ -63,14 +63,10 @@ class CalamariSplitTrainerPipelineParams(
     )
     validation_split_ratio: float = field(
         default=0.2,
-        metadata=pai_meta(
-            help="Use factor of n of the training dataset for validation."
-        ),
+        metadata=pai_meta(help="Use factor of n of the training dataset for validation."),
     )
 
-    val: Optional[CalamariDataGeneratorParams] = field(
-        default=None, metadata=pai_meta(mode="ignore")
-    )
+    val: Optional[CalamariDataGeneratorParams] = field(default=None, metadata=pai_meta(mode="ignore"))
 
     def __post_init__(self):
         if self.val is not None:

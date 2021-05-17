@@ -28,9 +28,7 @@ logger = logging.getLogger(__name__)
 
 @pai_dataclass
 @dataclass
-class TrainerParams(
-    AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrainerPipelineParams]
-):
+class TrainerParams(AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrainerPipelineParams]):
     version: int = SavedCalamariModel.VERSION
 
     data_aug_retrain_on_original: bool = field(
@@ -49,9 +47,7 @@ class TrainerParams(
 
     auto_upgrade_checkpoints: bool = field(
         default=True,
-        metadata=pai_meta(
-            help="Automatically update older checkpoints for warm start."
-        ),
+        metadata=pai_meta(help="Automatically update older checkpoints for warm start."),
     )
 
     codec: CodecConstructionParams = field(
@@ -101,9 +97,7 @@ class TrainerParams(
             self.gen.val_gen().n_folds = self.scenario.model.ensemble
 
         if self.network:
-            self.scenario.model.layers = graph_params_from_definition_string(
-                self.network
-            )
+            self.scenario.model.layers = graph_params_from_definition_string(self.network)
 
 
 def set_default_network_params(params: TrainerParams):
@@ -134,11 +128,7 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
 
             match = concat_matcher.match(value)
             if match is None:
-                raise Exception(
-                    "Concat structure needs: concat=[index0]:[index1] but got concat={}".format(
-                        value
-                    )
-                )
+                raise Exception("Concat structure needs: concat=[index0]:[index1] but got concat={}".format(value))
 
             match = match.groups()
             layers.append(ConcatLayerParams(concat_indices=list(map(int, match))))
@@ -148,9 +138,7 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
 
             match = db_matcher.match(value)
             if match is None:
-                raise Exception(
-                    "Dilated block structure needs: db=[filters]:[depth>0]:[h]x[w]"
-                )
+                raise Exception("Dilated block structure needs: db=[filters]:[depth>0]:[h]x[w]")
 
             match = match.groups()
             kernel_size = [2, 2]
@@ -173,11 +161,7 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
 
             match = cnn_matcher.match(value)
             if match is None:
-                raise Exception(
-                    "CNN structure needs: cnn=[filters]:[h]x[w] but got {}".format(
-                        value
-                    )
-                )
+                raise Exception("CNN structure needs: cnn=[filters]:[h]x[w] but got {}".format(value))
 
             match = match.groups()
             kernel_size = [2, 2]
@@ -199,9 +183,7 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
 
             match = cnn_matcher.match(value)
             if match is None:
-                raise Exception(
-                    "Transposed CNN structure needs: tcnn=[filters]:[sx]x[sy]"
-                )
+                raise Exception("Transposed CNN structure needs: tcnn=[filters]:[sx]x[sy]")
 
             match = match.groups()
             kernel_size = [2, 2]

@@ -50,17 +50,10 @@ class Trainer(AIPTrainer):
         """
         super(Trainer, self).__init__(params, scenario, restore)
         self._params: TrainerParams = params
-        if (
-            not isinstance(self._params.checkpoint_save_freq, str)
-            and self._params.checkpoint_save_freq < 0
-        ):
-            self._params.checkpoint_save_freq = (
-                self._params.early_stopping_params.frequency
-            )
+        if not isinstance(self._params.checkpoint_save_freq, str) and self._params.checkpoint_save_freq < 0:
+            self._params.checkpoint_save_freq = self._params.early_stopping_params.frequency
         self._params.warmstart.model = (
-            checkpoint_path(self._params.warmstart.model)
-            if self._params.warmstart.model
-            else None
+            checkpoint_path(self._params.warmstart.model) if self._params.warmstart.model else None
         )
         self.checkpoint = None
         if self._params.warmstart.model:
@@ -82,10 +75,7 @@ class Trainer(AIPTrainer):
         data: Data = self._data
         model: ModelParams = self.scenario.params.model
 
-        use_training_as_validation = (
-            model.ensemble > 0
-            or self.params.gen.__class__ == CalamariTrainOnlyPipelineParams
-        )
+        use_training_as_validation = model.ensemble > 0 or self.params.gen.__class__ == CalamariTrainOnlyPipelineParams
 
         # Setup train pipeline
         train_pipeline = self.params.gen.train_data(data)
@@ -118,10 +108,7 @@ class Trainer(AIPTrainer):
         # compute the codec
         codec = data.params.codec
         if not codec:
-            if (
-                self._params.codec.auto_compute
-                or len(self._params.codec.resolved_include_chars) == 0
-            ):
+            if self._params.codec.auto_compute or len(self._params.codec.resolved_include_chars) == 0:
                 codec = Codec.from_input_dataset(
                     filter(lambda x: x, [train_pipeline, val_pipeline]),
                     codec_construction_params=self._params.codec,
@@ -149,13 +136,9 @@ class Trainer(AIPTrainer):
             restore_codec = codec.__class__(restore_data_params["codec"]["charset"])
 
             # the codec changes as tuple (deletions/insertions), and the new codec is the changed old one
-            codec_changes = restore_codec.align(
-                codec, shrink=not self._params.codec.keep_loaded
-            )
+            codec_changes = restore_codec.align(codec, shrink=not self._params.codec.keep_loaded)
             codec = restore_codec
-            logger.info(
-                f"Codec changes: {len(codec_changes[0])} deletions, {len(codec_changes[1])} appends"
-            )
+            logger.info(f"Codec changes: {len(codec_changes[0])} deletions, {len(codec_changes[1])} appends")
             # The actual weight/bias matrix will be changed after loading the old weights
             if not any(codec_changes):
                 codec_changes = None  # No codec changes
@@ -184,9 +167,7 @@ class Trainer(AIPTrainer):
                     output_processors=train_pipeline._output_processors,
                 ).to_mode(PipelineMode.EVALUATION)
             else:
-                data._pipelines[PipelineMode.EVALUATION] = train_pipeline.to_mode(
-                    PipelineMode.EVALUATION
-                )
+                data._pipelines[PipelineMode.EVALUATION] = train_pipeline.to_mode(PipelineMode.EVALUATION)
         else:
             if val_pipeline is None:
                 raise ValueError(
@@ -203,9 +184,7 @@ class Trainer(AIPTrainer):
                 callbacks=callbacks,
             )
 
-        data_aug = self._data.params.pre_proc.processors_of_type(
-            AugmentationProcessorParams
-        )
+        data_aug = self._data.params.pre_proc.processors_of_type(AugmentationProcessorParams)
         if (
             self._params.data_aug_retrain_on_original
             and len(data_aug) > 0
@@ -222,15 +201,9 @@ class Trainer(AIPTrainer):
             self._data.params.pre_proc.erase_all(AugmentationProcessorParams)
             # Remove augmented samples if 'preloaded"
             if isinstance(train_pipeline, RawDataPipeline):
-                train_pipeline.samples = [
-                    s
-                    for s in train_pipeline.samples
-                    if not s.meta.get("augmented", False)
-                ]
+                train_pipeline.samples = [s for s in train_pipeline.samples if not s.meta.get("augmented", False)]
 
-            logger.info(
-                f"Training on {len(train_pipeline.create_data_generator())} samples."
-            )
+            logger.info(f"Training on {len(train_pipeline.create_data_generator())} samples.")
 
             super(Trainer, self).setup_steps_per_epoch()
 
@@ -250,9 +223,7 @@ class Trainer(AIPTrainer):
                         self._callbacks[i] = self.create_train_params_logger_callback(
                             store_params=True, store_weights=False
                         )
-            logger_callback = next(
-                c for c in self._callbacks if isinstance(c, LoggerCallback)
-            )
+            logger_callback = next(c for c in self._callbacks if isinstance(c, LoggerCallback))
             super(Trainer, self).fit()
             last_logs = logger_callback.last_logs
 
@@ -260,6 +231,4 @@ class Trainer(AIPTrainer):
         return last_logs
 
     def create_warmstarter(self) -> WarmStarter:
-        return WarmStarterWithCodecAdaption(
-            self.params.warmstart, codec_changes=self._codec_changes
-        )
+        return WarmStarterWithCodecAdaption(self.params.warmstart, codec_changes=self._codec_changes)

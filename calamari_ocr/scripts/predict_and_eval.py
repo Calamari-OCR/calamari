@@ -17,19 +17,13 @@ from calamari_ocr import __version__
 @dataclass
 class PredictAndEvalArgs:
     checkpoint: List[str] = field(
-        metadata=pai_meta(
-            mode="flat", nargs="+", help="Path to the checkpoint without file extension"
-        )
+        metadata=pai_meta(mode="flat", nargs="+", help="Path to the checkpoint without file extension")
     )
     dump: Optional[str] = field(
         default=None,
-        metadata=pai_meta(
-            mode="flat", help="Dump the output as serialized pickle object"
-        ),
+        metadata=pai_meta(mode="flat", help="Dump the output as serialized pickle object"),
     )
-    output_individual_voters: bool = field(
-        default=False, metadata=pai_meta(mode="flat")
-    )
+    output_individual_voters: bool = field(default=False, metadata=pai_meta(mode="flat"))
     n_confusions: int = field(
         default=10,
         metadata=pai_meta(
@@ -39,9 +33,7 @@ class PredictAndEvalArgs:
     )
     data: CalamariDataGeneratorParams = field(
         default_factory=FileDataParams,
-        metadata=pai_meta(
-            mode="flat", help="Input data", choices=DATA_GENERATOR_CHOICES
-        ),
+        metadata=pai_meta(mode="flat", help="Input data", choices=DATA_GENERATOR_CHOICES),
     )
     predictor: PredictorParams = field(
         default_factory=PredictorParams,
@@ -65,9 +57,7 @@ def parse_args(args=None):
     parser = PAIArgumentParser()
 
     # GENERAL/SHARED PARAMETERS
-    parser.add_argument(
-        "--version", action="version", version="%(prog)s v" + __version__
-    )
+    parser.add_argument("--version", action="version", version="%(prog)s v" + __version__)
     parser.add_root_argument("args", PredictAndEvalArgs)
     return parser.parse_args(args=args).args
 
@@ -75,9 +65,7 @@ def parse_args(args=None):
 def main(args: PredictAndEvalArgs):
     # allow user to specify json file for model definition, but remove the file extension
     # for further processing
-    args.checkpoint = [
-        (cp if cp.endswith(".json") else cp + ".json") for cp in args.checkpoint
-    ]
+    args.checkpoint = [(cp if cp.endswith(".json") else cp + ".json") for cp in args.checkpoint]
     args.checkpoint = glob_all(args.checkpoint)
     args.checkpoint = [cp[:-5] for cp in args.checkpoint]
 
@@ -116,9 +104,7 @@ def main(args: PredictAndEvalArgs):
     evaluator.preload_gt(gt_dataset=args.data, progress_bar=True)
 
     def single_evaluation(label, predicted_sentences):
-        r = evaluator.evaluate(
-            gt_data=evaluator.preloaded_gt, pred_data=predicted_sentences
-        )
+        r = evaluator.evaluate(gt_data=evaluator.preloaded_gt, pred_data=predicted_sentences)
 
         print("=================")
         print(f"Evaluation result of {label}")
@@ -141,9 +127,7 @@ def main(args: PredictAndEvalArgs):
         return r
 
     full_evaluation = {}
-    for id, data in [(str(i), sent) for i, sent in all_prediction_sentences.items()] + [
-        ("voted", all_voter_sentences)
-    ]:
+    for id, data in [(str(i), sent) for i, sent in all_prediction_sentences.items()] + [("voted", all_voter_sentences)]:
         full_evaluation[id] = {"eval": single_evaluation(id, data), "data": data}
 
     if not args.predictor.silent:

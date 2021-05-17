@@ -46,12 +46,8 @@ def scale_to_h(img, target_height):
     target_width = np.maximum(round(scale * w), 1)
     if scale <= 1:
         # Down-Sampling: interpolation "area"
-        return cv.resize(
-            img, (target_width, target_height), interpolation=cv.INTER_AREA
-        )
+        return cv.resize(img, (target_width, target_height), interpolation=cv.INTER_AREA)
 
     else:
         # Up-Sampling: linear interpolation
-        return cv.resize(
-            img, (target_width, target_height), interpolation=cv.INTER_LINEAR
-        )
+        return cv.resize(img, (target_width, target_height), interpolation=cv.INTER_LINEAR)

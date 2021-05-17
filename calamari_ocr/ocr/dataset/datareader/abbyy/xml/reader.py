@@ -49,9 +49,7 @@ class XMLReader:
             if xmlfile:
                 if not os.path.exists(xmlfile):
                     if not self.skip_invalid:
-                        raise XMLParseError(
-                            "The abbyy xml file {} does not exist".format(xmlfile)
-                        )
+                        raise XMLParseError("The abbyy xml file {} does not exist".format(xmlfile))
                     else:
                         toremove.append(i)
                         continue
@@ -59,9 +57,7 @@ class XMLReader:
             if imgfile:
                 if not os.path.exists(imgfile):
                     if not self.skip_invalid:
-                        raise XMLParseError(
-                            "The image file {} does not exist".format(imgfile)
-                        )
+                        raise XMLParseError("The image file {} does not exist".format(imgfile))
                     else:
                         toremove.append(i)
                         continue
@@ -71,9 +67,7 @@ class XMLReader:
             except XMLParseError as e:
                 logger.exception(e)
                 if self.skip_invalid:
-                    logger.warning(
-                        "Exception during XMLParsing ignored. Skipping example."
-                    )
+                    logger.warning("Exception during XMLParsing ignored. Skipping example.")
                     toremove.append(i)
                     continue
                 else:
@@ -106,9 +100,7 @@ class XMLReader:
         for attr in attrs:
             a[attr] = node.get(attr)
             if a[attr] is None:
-                raise XMLParseError(
-                    "Missing required attribute {} on node {}".format(attr, node)
-                )
+                raise XMLParseError("Missing required attribute {} on node {}".format(attr, node))
 
         return a
 
@@ -118,8 +110,7 @@ class XMLReader:
             tree = ET.parse(xmlfile)
         except ET.ParseError as e:
             raise XMLParseError(
-                "The xml file '" + xmlfile + "' couldn't be read because of a "
-                "syntax error in the xml file. " + e.msg
+                "The xml file '" + xmlfile + "' couldn't be read because of a " "syntax error in the xml file. " + e.msg
             )
 
         root = tree.getroot()
@@ -128,9 +119,7 @@ class XMLReader:
             raise XMLParseError("The xml file '" + xmlfile + "' is empty.")
 
         for pagecount, pageNode in enumerate(root):
-            a = XMLReader.requireAttr(
-                pageNode, ["width", "height", "resolution", "originalCoords"]
-            )
+            a = XMLReader.requireAttr(pageNode, ["width", "height", "resolution", "originalCoords"])
             page = Page(
                 a["width"],
                 a["height"],
@@ -149,18 +138,13 @@ class XMLReader:
                     # Reads rectangle data and controls if they are empty
                     name = blockNode.get("blockName")
 
-                    block = Block(
-                        type, name, XMLReader.parseRect(blockNode, required=False)
-                    )
+                    block = Block(type, name, XMLReader.parseRect(blockNode, required=False))
 
                     for textNode in blockNode:
 
                         # Again only text nodes will be considered
 
-                        if (
-                            textNode.tag
-                            == "{http://www.abbyy.com/FineReader_xml/FineReader10-schema-v1.xml}text"
-                        ):
+                        if textNode.tag == "{http://www.abbyy.com/FineReader_xml/FineReader10-schema-v1.xml}text":
                             for parNode in textNode:
                                 align = parNode.get("align")
                                 startIndent = parNode.get("startIndent")
@@ -178,11 +162,7 @@ class XMLReader:
                                     maxCount = 0
                                     for formNode in lineNode:
                                         countChars = 0
-                                        if (
-                                            formNode.text is None
-                                            or formNode.text == "\n"
-                                            or formNode.text == ""
-                                        ):
+                                        if formNode.text is None or formNode.text == "\n" or formNode.text == "":
                                             for charNode in formNode:
                                                 text += str(charNode.text)
                                                 countChars = countChars + 1

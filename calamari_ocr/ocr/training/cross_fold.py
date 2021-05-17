@@ -61,11 +61,7 @@ class CrossFold:
             # else load the data of each fold and write it to hd5 data files
             with ExitStack() as stack:
                 folds = [
-                    stack.enter_context(
-                        Hdf5DatasetWriter(
-                            os.path.join(self.output_dir, "fold{}".format(i))
-                        )
-                    )
+                    stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, "fold{}".format(i))))
                     for i in range(self.n_folds)
                 ]
                 for i, sample in tqdm_wrapper(

@@ -11,9 +11,7 @@ from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 @dataclass_json
 @dataclass
 class LineGeneratorParams:
-    fonts: List[str] = field(
-        default_factory=lambda: ["Junicode.ttf", "DejaVuSerif.ttf"]
-    )
+    fonts: List[str] = field(default_factory=lambda: ["Junicode.ttf", "DejaVuSerif.ttf"])
     font_size: int = 32
     min_script_offset: float = -0.5
     max_script_offset: float = 0.5
@@ -26,9 +24,7 @@ class TextGeneratorParams:
     word_length_sigma: float = 3
 
     charset: List[str] = field(
-        default_factory=lambda: list(
-            "ABCEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()_-.;:'\" "
-        )
+        default_factory=lambda: list("ABCEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()_-.;:'\" ")
     )
     super_charset: List[str] = field(default_factory=list)
     sub_charset: List[str] = field(default_factory=list)

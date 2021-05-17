@@ -63,7 +63,5 @@ class BidiTextProcessor(TextProcessor[BidiTextProcessorParams]):
         # To support arabic text
         return bidi_algorithm.get_display(
             txt,
-            base_dir=self.params.bidi_direction.value
-            if self.params.bidi_direction != BidiDirection.AUTO
-            else None,
+            base_dir=self.params.bidi_direction.value if self.params.bidi_direction != BidiDirection.AUTO else None,
         )

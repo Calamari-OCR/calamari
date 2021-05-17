@@ -18,13 +18,9 @@ class TestTrainConsistency(unittest.TestCase):
         trainer_params.epochs = 1
         trainer_params.random_seed = 9412
         trainer_params.samples_per_epoch = 6
-        trainer_params.gen.setup.train.batch_size = (
-            trainer_params.gen.setup.val.batch_size
-        ) = 6
+        trainer_params.gen.setup.train.batch_size = trainer_params.gen.setup.val.batch_size = 6
         trainer_params.learning_rate.lr = 0
-        trainer_params.gen.train.images = trainer_params.gen.train.images[
-            : trainer_params.samples_per_epoch
-        ]
+        trainer_params.gen.train.images = trainer_params.gen.train.images[: trainer_params.samples_per_epoch]
         del trainer_params.scenario.model.layers[-1]  # no dropout
         trainer = CalamariScenario.create_trainer(trainer_params)
 

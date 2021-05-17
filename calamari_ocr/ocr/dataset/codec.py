@@ -16,9 +16,7 @@ if TYPE_CHECKING:
 class CodecConstructionParams:
     keep_loaded: bool = field(
         default=True,
-        metadata=pai_meta(
-            help="Fully include the codec of the loaded model to the new codec"
-        ),
+        metadata=pai_meta(help="Fully include the codec of the loaded model to the new codec"),
     )
     auto_compute: bool = field(
         default=True,
@@ -34,14 +32,10 @@ class CodecConstructionParams:
     )
     include_files: List[str] = field(
         default_factory=list,
-        metadata=pai_meta(
-            help="Whitelist of txt files that may not be removed on restoring a model"
-        ),
+        metadata=pai_meta(help="Whitelist of txt files that may not be removed on restoring a model"),
     )
 
-    resolved_include_chars: Set[str] = field(
-        default_factory=set, metadata=pai_meta(mode="ignore")
-    )
+    resolved_include_chars: Set[str] = field(default_factory=set, metadata=pai_meta(mode="ignore"))
 
     def __post_init__(self):
         # parse whitelist
@@ -60,9 +54,7 @@ class CodecConstructionParams:
 @pai_dataclass(no_assign_to_unknown=False)
 @dataclass
 class Codec:
-    charset: List[
-        str
-    ]  # this filed will be used to store and load a the Codec from json
+    charset: List[str]  # this filed will be used to store and load a the Codec from json
 
     @staticmethod
     def from_input_dataset(
@@ -89,9 +81,7 @@ class Codec:
         return Codec(sorted(list(chars)))
 
     @staticmethod
-    def from_texts(
-        texts: List[str], codec_construction_params: CodecConstructionParams
-    ):
+    def from_texts(texts: List[str], codec_construction_params: CodecConstructionParams):
         """Compute a codec from given text
 
         First computes a set of all available characters.
@@ -107,11 +97,7 @@ class Codec:
         -------
             Codec based on the set of characters + whitelist
         """
-        chars = (
-            set()
-            if codec_construction_params.include is None
-            else set(codec_construction_params.include)
-        )
+        chars = set() if codec_construction_params.include is None else set(codec_construction_params.include)
 
         for text in texts:
             for c in text:

@@ -14,9 +14,7 @@ class FinalPreparationProcessorParams(DataProcessorParams):
     normalize: bool = True
     invert: bool = True
     transpose: bool = True
-    pad: int = field(
-        default=16, metadata=pai_meta(help="Padding (left right) of the line")
-    )
+    pad: int = field(default=16, metadata=pai_meta(help="Padding (left right) of the line"))
     pad_value: int = 0
 
     @staticmethod

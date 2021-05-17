@@ -47,9 +47,7 @@ class AugmentationProcessorParams(DataProcessorParams):
 class AugmentationProcessor(MappingDataProcessor[AugmentationProcessorParams]):
     def __init__(self, *args, **kwargs):
         super(AugmentationProcessor, self).__init__(*args, **kwargs)
-        self.data_aug_params = DataAugmentationAmount.from_factor(
-            self.params.n_augmentations
-        )
+        self.data_aug_params = DataAugmentationAmount.from_factor(self.params.n_augmentations)
         self.data_augmenter = self.params.augmenter.create()
 
     def preload(
@@ -94,9 +92,7 @@ class AugmentationProcessor(MappingDataProcessor[AugmentationProcessorParams]):
         meta["augmented"] = True
         return self.data_augmenter.augment_single(line, text)
 
-    def multi_augment(
-        self, sample: Sample, n_augmentations=1, include_non_augmented=True
-    ):
+    def multi_augment(self, sample: Sample, n_augmentations=1, include_non_augmented=True):
         if include_non_augmented:
             out = [sample]
         else:

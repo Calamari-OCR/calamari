@@ -19,9 +19,7 @@ def autoinvert(image):
 #
 
 
-def random_transform(
-    translation=(-0.05, 0.05), rotation=(-2, 2), scale=(-0.1, 0.1), aniso=(-0.1, 0.1)
-):
+def random_transform(translation=(-0.05, 0.05), rotation=(-2, 2), scale=(-0.1, 0.1), aniso=(-0.1, 0.1)):
     dx = pyr.uniform(*translation)
     dy = pyr.uniform(*translation)
     angle = pyr.uniform(*rotation)
@@ -31,9 +29,7 @@ def random_transform(
     return dict(angle=angle, scale=scale, aniso=aniso, translation=(dx, dy))
 
 
-def transform_image(
-    image, angle=0.0, scale=1.0, aniso=1.0, translation=(0, 0), order=1
-):
+def transform_image(image, angle=0.0, scale=1.0, aniso=1.0, translation=(0, 0), order=1):
     dx, dy = translation
     scale = 1.0 / scale
     c = np.cos(angle)
@@ -55,9 +51,7 @@ def transform_image(
 
 
 def random_pad(image, horizontal=(0, 100)):
-    l, r = np.random.randint(*horizontal, size=1), np.random.randint(
-        *horizontal, size=1
-    )
+    l, r = np.random.randint(*horizontal, size=1), np.random.randint(*horizontal, size=1)
     return cv.copyMakeBorder(
         image,
         l[0],
@@ -78,9 +72,7 @@ def bounded_gaussian_noise(shape, sigma, maxdelta):
     n, m = shape[:2]
     deltas = np.random.rand(2, n, m)
     for n, d in enumerate(deltas):
-        deltas[n] = cv.GaussianBlur(
-            d, (0, 0), sigmaX=sigma, borderType=cv.BORDER_REFLECT
-        )
+        deltas[n] = cv.GaussianBlur(d, (0, 0), sigmaX=sigma, borderType=cv.BORDER_REFLECT)
     deltas -= np.amin(deltas)
     deltas /= np.amax(deltas)
     deltas = (2 * deltas - 1) * maxdelta
@@ -104,9 +96,7 @@ def distort_with_noise(image, deltas, order=1):
 
 def noise_distort1d(shape, sigma=100.0, magnitude=100.0):
     h, w = shape
-    noise = cv.GaussianBlur(
-        np.random.randn(w), (0, 0), sigmaX=sigma, borderType=cv.BORDER_REFLECT
-    )
+    noise = cv.GaussianBlur(np.random.randn(w), (0, 0), sigmaX=sigma, borderType=cv.BORDER_REFLECT)
     noise *= magnitude / np.amax(abs(noise))
     dys = np.array([noise] * h)
     deltas = np.array([dys, np.zeros((h, w))])
@@ -160,9 +150,7 @@ def make_multiscale_noise(shape, scales, weights=None, span=(0.0, 1.0)):
     return result
 
 
-def make_multiscale_noise_uniform(
-    shape, srange=(1.0, 100.0), nscales=4, span=(0.0, 1.0)
-):
+def make_multiscale_noise_uniform(shape, srange=(1.0, 100.0), nscales=4, span=(0.0, 1.0)):
     lo, hi = np.log10(srange[0]), np.log10(srange[1])
     scales = np.random.uniform(size=nscales)
     scales = np.add.accumulate(scales)
@@ -188,15 +176,11 @@ def random_blobs(shape, blobdensity, size, roughness=2.0):
         mask[randint(0, h - 1), randint(0, w - 1)] = 1
     dt = cv.distanceTransform(1 - mask, cv.DIST_L2, 3)
     mask = np.array(dt < size, "f")
-    mask = cv.GaussianBlur(
-        mask, (0, 0), sigmaX=size / (2 * roughness), borderType=cv.BORDER_REFLECT
-    )
+    mask = cv.GaussianBlur(mask, (0, 0), sigmaX=size / (2 * roughness), borderType=cv.BORDER_REFLECT)
     mask -= np.amin(mask)
     mask /= np.amax(mask)
     noise = np.random.rand(h, w)
-    noise = cv.GaussianBlur(
-        noise, (0, 0), sigmaX=size / (2 * roughness), borderType=cv.BORDER_REFLECT
-    )
+    noise = cv.GaussianBlur(noise, (0, 0), sigmaX=size / (2 * roughness), borderType=cv.BORDER_REFLECT)
     noise -= np.amin(noise)
     noise /= np.amax(noise)
     return np.array(mask * noise > 0.5, "f")
@@ -207,10 +191,7 @@ def random_blotches(image, fgblobs, bgblobs, fgscale=10, bgscale=10):
     bg = random_blobs(image.shape[:2], bgblobs, bgscale)
     if image.ndim > 2:
         return np.concatenate(
-            [
-                np.minimum(np.maximum(image[..., i], fg), 1 - bg)[:, :, None]
-                for i in range(image.shape[-1])
-            ],
+            [np.minimum(np.maximum(image[..., i], fg), 1 - bg)[:, :, None] for i in range(image.shape[-1])],
             axis=image.ndim - 1,
         )
     return np.minimum(np.maximum(image, fg), 1 - bg)
@@ -230,9 +211,7 @@ def make_fiber(line, a, stepsize=0.5):
     return np.array([coss, sins]).transpose(1, 0)
 
 
-def make_fibrous_image(
-    shape, nfibers=300, le=300, a=0.2, stepsize=0.5, span=(0.1, 1.0), blur=1.0
-):
+def make_fibrous_image(shape, nfibers=300, le=300, a=0.2, stepsize=0.5, span=(0.1, 1.0), blur=1.0):
     h, w = shape
     lo, hi = span
     result = np.zeros(shape)
@@ -270,10 +249,7 @@ def printlike_multiscale(image, blur=1.0, blotches=5e-5, inverted=None):
     selector = random_blotches(selector, 3 * blotches, blotches)
     paper = make_multiscale_noise_uniform(image.shape[:2], span=(0.8, 1.0))
     ink = make_multiscale_noise_uniform(image.shape[:2], span=(0.0, 0.2))
-    blurred = (
-        cv.GaussianBlur(selector, (0, 0), sigmaX=blur, borderType=cv.BORDER_REFLECT)
-        + selector
-    ) / 2
+    blurred = (cv.GaussianBlur(selector, (0, 0), sigmaX=blur, borderType=cv.BORDER_REFLECT) + selector) / 2
     if blurred.ndim == 3:
         ink = np.repeat(ink[:, :, None], 3, 2)
         paper = np.repeat(paper[:, :, None], 3, 2)
@@ -302,9 +278,7 @@ def printlike_fibrous(image, blur=1.0, blotches=5e-5, inverted=None):
     )
     paper -= make_fibrous_image(image.shape, 300, 500, 0.01, span=(0.0, 0.25), blur=0.5)
     ink = make_multiscale_noise(image.shape, [1.0, 5.0, 10.0, 50.0], span=(0.0, 0.5))
-    blurred = cv.GaussianBlur(
-        selector, (0, 0), sigmaX=blur, borderType=cv.BORDER_REFLECT
-    )
+    blurred = cv.GaussianBlur(selector, (0, 0), sigmaX=blur, borderType=cv.BORDER_REFLECT)
     printed = blurred * ink + (1 - blurred) * paper
     if inverted:
         return 1 - printed

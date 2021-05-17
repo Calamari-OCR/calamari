@@ -20,9 +20,7 @@ class TestModelMigration(unittest.TestCase):
         keras.backend.clear_session()
 
     def predict_and_eval(self, model_path):
-        predictor = Predictor.from_checkpoint(
-            default_predictor_params(), checkpoint=model_path
-        )
+        predictor = Predictor.from_checkpoint(default_predictor_params(), checkpoint=model_path)
         for sample in predictor.predict(file_dataset()):
             self.assertGreater(
                 sample.outputs.avg_char_probability, 0.95

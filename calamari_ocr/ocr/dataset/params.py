@@ -20,13 +20,9 @@ DATA_GENERATOR_CHOICES = [FileDataParams, PageXML, Abbyy, Hdf5]
 class DataParams(DataBaseParams):
     skip_invalid_gt: bool = True
     input_channels: int = 1
-    downscale_factor: int = field(
-        default=-1, metadata=pai_meta(mode="ignore")
-    )  # Set based on model
+    downscale_factor: int = field(default=-1, metadata=pai_meta(mode="ignore"))  # Set based on model
     line_height: int = field(default=48, metadata=pai_meta(help="The line height"))
-    ensemble: int = field(
-        default=0, metadata=pai_meta(mode="ignore")
-    )  # Set based on model
+    ensemble: int = field(default=0, metadata=pai_meta(mode="ignore"))  # Set based on model
     codec: Optional[Codec] = field(default=None, metadata=pai_meta(mode="ignore"))
 
     @staticmethod

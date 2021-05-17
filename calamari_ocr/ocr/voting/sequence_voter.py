@@ -44,14 +44,10 @@ class SequenceVoter(Voter):
         def place_vote(c, num_candidates, num_votes=1):
             index = 0
             if c is not None:
-                while index < num_candidates and (
-                    candidates[index]["char"] is None or candidates[index]["char"] != c
-                ):
+                while index < num_candidates and (candidates[index]["char"] is None or candidates[index]["char"] != c):
                     index += 1
             else:
-                while index < num_candidates and (
-                    candidates[index]["char"] is not None
-                ):
+                while index < num_candidates and (candidates[index]["char"] is not None):
                     index += 1
 
             if index < num_candidates:
@@ -87,9 +83,7 @@ class SequenceVoter(Voter):
             while r:
                 for i, voter in enumerate(voters):
                     if sync.start(i) <= sync.stop(i):
-                        num_candidates = place_vote(
-                            inputs[i][sync.start(i)], num_candidates
-                        )
+                        num_candidates = place_vote(inputs[i][sync.start(i)], num_candidates)
                         sync.set_start(i, sync.start(i) + 1)
                     else:
                         num_candidates = place_vote(None, num_candidates)
@@ -132,9 +126,7 @@ class SequenceVoter(Voter):
         if key in sequences:
             sequence = sequences[key]
         else:
-            sequence = SequenceVoter.Sequence(
-                key, [0] * number_of_voters, 0 if reject else 1
-            )
+            sequence = SequenceVoter.Sequence(key, [0] * number_of_voters, 0 if reject else 1)
             sequences[key] = sequence
 
         sequence.count[index] += 1
@@ -143,9 +135,7 @@ class SequenceVoter(Voter):
     def count_sequences(sequences, index, voters):
         voter = voters[index]
         for start in range(len(voter.text)):
-            SequenceVoter.add_sequence(
-                sequences, voter.text[start : start + 2], False, index, len(voters)
-            )
+            SequenceVoter.add_sequence(sequences, voter.text[start : start + 2], False, index, len(voters))
 
     @staticmethod
     def select_voters(voters):

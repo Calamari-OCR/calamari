@@ -53,14 +53,10 @@ class Model(ModelBase[ModelParams]):
         def cer(decoded, targets, targets_length):
             greedy_decoded = tf.sparse.from_dense(decoded)
             sparse_targets = tf.cast(
-                K.ctc_label_dense_to_sparse(
-                    targets, math_ops.cast(K.flatten(targets_length), dtype="int32")
-                ),
+                K.ctc_label_dense_to_sparse(targets, math_ops.cast(K.flatten(targets_length), dtype="int32")),
                 "int32",
             )
-            return tf.edit_distance(
-                tf.cast(greedy_decoded, tf.int32), sparse_targets, normalize=True
-            )
+            return tf.edit_distance(tf.cast(greedy_decoded, tf.int32), sparse_targets, normalize=True)
 
         return [
             self.cer_metric(
@@ -77,10 +73,6 @@ class Model(ModelBase[ModelParams]):
         cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)
         print_fn(
             "\n  CER:  {}".format(cer)
-            + "\n  PRED: '{}{}{}'".format(
-                lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C"
-            )
-            + "\n  TRUE: '{}{}{}'".format(
-                lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C"
-            )
+            + "\n  PRED: '{}{}{}'".format(lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C")
+            + "\n  TRUE: '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C")
         )

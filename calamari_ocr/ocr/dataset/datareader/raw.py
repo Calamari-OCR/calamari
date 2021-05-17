@@ -22,16 +22,9 @@ class RawDataReader(CalamariDataGenerator):
         super().__init__(mode, skip_invalid=False, remove_invalid=False)
 
         if images is None and texts is None:
-            raise Exception(
-                "Empty data set is not allowed. Both images and text files are None"
-            )
+            raise Exception("Empty data set is not allowed. Both images and text files are None")
 
-        if (
-            images is not None
-            and texts is not None
-            and len(images) == 0
-            and len(texts) == 0
-        ):
+        if images is not None and texts is not None and len(images) == 0 and len(texts) == 0:
             raise Exception("Empty data set provided.")
 
         if texts is None or len(texts) == 0:

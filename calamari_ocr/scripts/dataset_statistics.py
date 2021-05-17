@@ -26,14 +26,10 @@ class Args:
 
 def main(args=None):
     parser = PAIArgumentParser()
-    parser.add_argument(
-        "--version", action="version", version="%(prog)s v" + __version__
-    )
+    parser.add_argument("--version", action="version", version="%(prog)s v" + __version__)
     parser.add_root_argument("args", Args)
     parser.add_argument("--line_height", type=int, default=48, help="The line height")
-    parser.add_argument(
-        "--pad", type=int, default=16, help="Padding (left right) of the line"
-    )
+    parser.add_argument("--pad", type=int, default=16, help="Padding (left right) of the line")
 
     args = parser.parse_args(args=args)
 

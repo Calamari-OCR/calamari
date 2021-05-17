@@ -29,9 +29,7 @@ class Abbyy(CalamariDataGeneratorParams):
     xml_files: List[str] = field(default_factory=list)
     gt_extension: str = field(
         default=".abbyy.xml",
-        metadata=pai_meta(
-            help="Default extension of the gt files (expected to exist in same dir)"
-        ),
+        metadata=pai_meta(help="Default extension of the gt files (expected to exist in same dir)"),
     )
     binary: bool = False
     pred_extension: str = field(
@@ -50,9 +48,7 @@ class Abbyy(CalamariDataGeneratorParams):
 
     def to_prediction(self):
         pred = deepcopy(self)
-        pred.xml_files = [
-            split_all_ext(f)[0] + self.pred_extension for f in self.xml_files
-        ]
+        pred.xml_files = [split_all_ext(f)[0] + self.pred_extension for f in self.xml_files]
         return pred
 
     @staticmethod
@@ -63,9 +59,7 @@ class Abbyy(CalamariDataGeneratorParams):
         self.images = sorted(glob_all(self.images))
         self.xml_files = sorted(glob_all(self.xml_files))
         if not self.xml_files:
-            self.xml_files = [
-                split_all_ext(f)[0] + self.gt_extension for f in self.images
-            ]
+            self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
         if not self.images:
             self.xml_files = sorted(glob_all(self.xml_files))
             self.images = [None] * len(self.xml_files)
@@ -79,9 +73,7 @@ class AbbyyGenerator(CalamariDataGenerator[Abbyy]):
     ):
         super().__init__(mode, params)
 
-        self.book = XMLReader(
-            self.params.images, self.params.xml_files, self.params.skip_invalid
-        ).read()
+        self.book = XMLReader(self.params.images, self.params.xml_files, self.params.skip_invalid).read()
 
         for p, page in enumerate(self.book.pages):
             for l, line in enumerate(page.getLines()):
@@ -90,9 +82,7 @@ class AbbyyGenerator(CalamariDataGenerator[Abbyy]):
                         {
                             "image_path": page.imgFile,
                             "xml_path": page.xmlFile,
-                            "id": "{}_{}_{}_{}".format(
-                                split_all_ext(page.xmlFile or page.imgFile)[0], p, l, f
-                            ),
+                            "id": "{}_{}_{}_{}".format(split_all_ext(page.xmlFile or page.imgFile)[0], p, l, f),
                             "line": line,
                             "format": fo,
                         }
@@ -104,12 +94,8 @@ class AbbyyGenerator(CalamariDataGenerator[Abbyy]):
         sample["format"].text = sentence
 
     def store(self):
-        for page in tqdm(
-            self.book.pages, desc="Writing Abbyy files", total=len(self.book.pages)
-        ):
-            XMLWriter.write(
-                page, split_all_ext(page.xmlFile)[0] + self.params.pred_extension
-            )
+        for page in tqdm(self.book.pages, desc="Writing Abbyy files", total=len(self.book.pages)):
+            XMLWriter.write(page, split_all_ext(page.xmlFile)[0] + self.params.pred_extension)
 
     def _sample_iterator(self):
         return zip(self.params.images, self.params.xml_files)
@@ -127,17 +113,13 @@ class AbbyyGenerator(CalamariDataGenerator[Abbyy]):
             for l, line in enumerate(page.getLines()):
                 for f, fo in enumerate(line.formats):
                     fold_id += 1
-                    sample_id = "{}_{}_{}_{}".format(
-                        split_all_ext(page.xmlFile or page.imgFile)[0], p, l, f
-                    )
+                    sample_id = "{}_{}_{}_{}".format(split_all_ext(page.xmlFile or page.imgFile)[0], p, l, f)
                     text = None
                     if self.mode in TARGETS_PROCESSOR:
                         text = fo.text
 
                     if text_only:
-                        yield InputSample(
-                            None, text, SampleMeta(id=sample_id, fold_id=fold_id)
-                        )
+                        yield InputSample(None, text, SampleMeta(id=sample_id, fold_id=fold_id))
 
                     else:
                         cut_img = None
@@ -158,9 +140,7 @@ class AbbyyGenerator(CalamariDataGenerator[Abbyy]):
                                 constant_values=cut_img.max(),
                             )
 
-                        yield InputSample(
-                            cut_img, text, SampleMeta(id=sample_id, fold_id=fold_id)
-                        )
+                        yield InputSample(cut_img, text, SampleMeta(id=sample_id, fold_id=fold_id))
 
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
         raise NotImplementedError

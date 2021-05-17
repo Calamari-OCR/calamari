@@ -102,9 +102,7 @@ if __name__ == "__main__":
     from calamari_ocr.ocr import Codec
 
     this_dir = os.path.dirname(os.path.realpath(__file__))
-    base_path = os.path.abspath(
-        os.path.join(this_dir, "..", "..", "test", "data", "uw3_50lines", "train")
-    )
+    base_path = os.path.abspath(os.path.join(this_dir, "..", "..", "test", "data", "uw3_50lines", "train"))
 
     fdr = FileDataParams(
         num_processes=8,
@@ -113,9 +111,7 @@ if __name__ == "__main__":
     )
 
     params = DataParams(
-        codec=Codec(
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;-?+=_()*{}[]`@#$%^&'\""
-        ),
+        codec=Codec("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;-?+=_()*{}[]`@#$%^&'\""),
         downscale_factor=4,
         line_height=48,
         pre_proc=SequentialProcessorPipelineParams(
