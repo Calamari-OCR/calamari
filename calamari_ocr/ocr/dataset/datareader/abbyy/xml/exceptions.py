@@ -6,4 +6,3 @@ class WrongFileStructureException(Exception):
 class XMLParseError(Exception):
     def __init__(self, message: str):
         super(XMLParseError, self).__init__(message)
-

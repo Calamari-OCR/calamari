@@ -29,14 +29,15 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+
+sys.path.insert(0, os.path.abspath("../.."))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'Calamari OCR'
-copyright = '2021, the Calamari OCR authors'
-author = 'The Calamari OCR authors'
+project = "Calamari OCR"
+copyright = "2021, the Calamari OCR authors"
+author = "The Calamari OCR authors"
 
 
 # -- General configuration ---------------------------------------------------
@@ -45,17 +46,17 @@ author = 'The Calamari OCR authors'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'myst_parser',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.autosectionlabel',
-    'sphinx-prompt',
-    'sphinx_substitution_extensions',
+    "myst_parser",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autosectionlabel",
+    "sphinx-prompt",
+    "sphinx_substitution_extensions",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -68,7 +69,7 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -77,16 +78,15 @@ html_static_path = []
 
 # -- Extension configuration -------------------------------------------------
 
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"
 
 autodoc_default_options = {
-    'members': None,  # Include all public members.
-    'undoc-members': True,  # Include members that lack docstrings.
-    'show-inheritance': True,
-    'special-members': '__call__, __init__',
+    "members": None,  # Include all public members.
+    "undoc-members": True,  # Include members that lack docstrings.
+    "show-inheritance": True,
+    "special-members": "__call__, __init__",
 }
 
-autodoc_mock_imports = [
-]
+autodoc_mock_imports = []
 
 autosectionlabel_prefix_document = True

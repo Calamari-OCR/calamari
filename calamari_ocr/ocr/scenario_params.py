@@ -9,7 +9,7 @@ from calamari_ocr.ocr.model.ensemblemodel import EnsembleModelParams
 from calamari_ocr.ocr.model.params import ModelParams
 
 
-TModelParams = TypeVar('TModelParams', bound=ModelParams)
+TModelParams = TypeVar("TModelParams", bound=ModelParams)
 
 
 @pai_dataclass

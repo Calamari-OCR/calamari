@@ -13,14 +13,27 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--files", nargs="+", required=True,
-                        help="All img files, an appropriate .gt.txt must exist")
-    parser.add_argument("--n_eval", type=float, required=True,
-                        help="The (relative or absolute) count of training files (or -1 to use the remaining)")
-    parser.add_argument("--n_train", type=float, required=True,
-                        help="The (relative or absolute) count of training files (or -1 to use the remaining)")
-    parser.add_argument("--output_dir", type=str, required=True,
-                        help="Where to write the splits")
+    parser.add_argument(
+        "--files",
+        nargs="+",
+        required=True,
+        help="All img files, an appropriate .gt.txt must exist",
+    )
+    parser.add_argument(
+        "--n_eval",
+        type=float,
+        required=True,
+        help="The (relative or absolute) count of training files (or -1 to use the remaining)",
+    )
+    parser.add_argument(
+        "--n_train",
+        type=float,
+        required=True,
+        help="The (relative or absolute) count of training files (or -1 to use the remaining)",
+    )
+    parser.add_argument(
+        "--output_dir", type=str, required=True, help="Where to write the splits"
+    )
     parser.add_argument("--eval_sub_dir", type=str, default="eval")
     parser.add_argument("--train_sub_dir", type=str, default="train")
 
@@ -55,17 +68,21 @@ def main():
         args.n_train = len(img_files) - args.n_eval
 
     if args.n_eval + args.n_train > len(img_files):
-        raise Exception("Got {} eval and {} train files = {} in total, but only {} files are in the dataset".format(
-            args.n_eval, args.n_train, args.n_eval + args.n_train, len(img_files)
-        ))
+        raise Exception(
+            "Got {} eval and {} train files = {} in total, but only {} files are in the dataset".format(
+                args.n_eval, args.n_train, args.n_eval + args.n_train, len(img_files)
+            )
+        )
 
     def copy_files(imgs, txts, out_dir):
-        assert(len(imgs) == len(txts))
+        assert len(imgs) == len(txts)
 
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
 
-        for img, txt in tqdm(zip(imgs, txts), total=len(imgs), desc="Writing to {}".format(out_dir)):
+        for img, txt in tqdm(
+            zip(imgs, txts), total=len(imgs), desc="Writing to {}".format(out_dir)
+        ):
             if not os.path.exists(img):
                 logger.warning("Image file at {} not found".format(img))
                 continue
@@ -77,8 +94,16 @@ def main():
             shutil.copyfile(img, os.path.join(out_dir, os.path.basename(img)))
             shutil.copyfile(txt, os.path.join(out_dir, os.path.basename(txt)))
 
-    copy_files(img_files[:args.n_eval], gt_txt_files[:args.n_eval], os.path.join(args.output_dir, args.eval_sub_dir))
-    copy_files(img_files[args.n_eval:], gt_txt_files[args.n_eval:], os.path.join(args.output_dir, args.train_sub_dir))
+    copy_files(
+        img_files[: args.n_eval],
+        gt_txt_files[: args.n_eval],
+        os.path.join(args.output_dir, args.eval_sub_dir),
+    )
+    copy_files(
+        img_files[args.n_eval :],
+        gt_txt_files[args.n_eval :],
+        os.path.join(args.output_dir, args.train_sub_dir),
+    )
 
 
 if __name__ == "__main__":

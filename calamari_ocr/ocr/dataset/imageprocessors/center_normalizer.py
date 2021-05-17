@@ -6,7 +6,9 @@ import cv2 as cv
 from paiargparse import pai_dataclass
 from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 
-from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import scale_to_h
+from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import (
+    scale_to_h,
+)
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
 
 
@@ -17,7 +19,7 @@ class CenterNormalizerProcessorParams(DataProcessorParams):
     line_height: int = field(default=-1)
 
     @staticmethod
-    def cls() -> Type['ImageProcessor']:
+    def cls() -> Type["ImageProcessor"]:
         return CenterNormalizerProcessor
 
 
@@ -29,9 +31,9 @@ class CenterNormalizerProcessor(ImageProcessor[CenterNormalizerProcessorParams])
         self.range, self.smoothness, self.extra = self.params.extra_params
 
     def _apply_single(self, data, meta):
-        assert (self.target_height > 0)  # Not set yet
+        assert self.target_height > 0  # Not set yet
         out, params = self.normalize(data.astype(np.uint8))
-        meta['center'] = params
+        meta["center"] = params
         return out
 
     def set_height(self, target_height):
@@ -39,13 +41,22 @@ class CenterNormalizerProcessor(ImageProcessor[CenterNormalizerProcessorParams])
 
     def measure(self, line):
         h, w = line.shape
-        smoothed = cv.GaussianBlur(line, (0, 0), sigmaX=h * self.smoothness, sigmaY=h * .5,
-                                   borderType=cv.BORDER_CONSTANT)
-        smoothed += .001 * cv.blur(smoothed, (w, int(h * .5)), borderType=cv.BORDER_CONSTANT)
+        smoothed = cv.GaussianBlur(
+            line,
+            (0, 0),
+            sigmaX=h * self.smoothness,
+            sigmaY=h * 0.5,
+            borderType=cv.BORDER_CONSTANT,
+        )
+        smoothed += 0.001 * cv.blur(
+            smoothed, (w, int(h * 0.5)), borderType=cv.BORDER_CONSTANT
+        )
 
         a = np.argmax(smoothed, axis=0).astype(np.uint16)
-        kernel = cv.getGaussianKernel(int((8. * h * self.extra) + 1), h * self.extra)
-        center = cv.filter2D(a, cv.CV_16U, kernel, borderType=cv.BORDER_REFLECT).flatten()
+        kernel = cv.getGaussianKernel(int((8.0 * h * self.extra) + 1), h * self.extra)
+        center = cv.filter2D(
+            a, cv.CV_16U, kernel, borderType=cv.BORDER_REFLECT
+        ).flatten()
 
         deltas = abs(np.arange(h)[:, np.newaxis] - center[np.newaxis, :])
         mad = np.mean(deltas[line != 0])
@@ -91,11 +102,13 @@ class CenterNormalizerProcessor(ImageProcessor[CenterNormalizerProcessorParams])
         # The actual image img is embedded into a larger image by
         # adding vertical space on top and at the bottom (padding)
         hpad = r  # this is large enough
-        padded = cv.copyMakeBorder(img, hpad, hpad, 0, 0, cv.BORDER_CONSTANT, value=cval)
+        padded = cv.copyMakeBorder(
+            img, hpad, hpad, 0, 0, cv.BORDER_CONSTANT, value=cval
+        )
 
         center = center + hpad - r
         new_h = 2 * r
-        dewarped = [padded[c:c + new_h, i] for i, c in enumerate(center)]
+        dewarped = [padded[c : c + new_h, i] for i, c in enumerate(center)]
 
         # transpose and convert
         dewarped = np.swapaxes(np.array(dewarped, dtype=np.uint8), 1, 0)
@@ -142,5 +155,5 @@ class CenterNormalizerProcessor(ImageProcessor[CenterNormalizerProcessorParams])
         return scaled, (m1, m2, t)
 
     def local_to_global_pos(self, x, params):
-        m1, m2, t = params['center']
+        m1, m2, t = params["center"]
         return x / m1 / m2

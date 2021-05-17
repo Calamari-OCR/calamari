@@ -13,7 +13,7 @@ from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 @dataclass
 class StripTextProcessorParams(DataProcessorParams):
     @staticmethod
-    def cls() -> Type['TextProcessor']:
+    def cls() -> Type["TextProcessor"]:
         return StripTextProcessor
 
 
@@ -36,27 +36,34 @@ class StripTextProcessor(TextProcessor[StripTextProcessorParams]):
 
 
 class BidiDirection(StrEnum):
-    LTR = 'L'
-    RTL = 'R'
-    AUTO = 'auto'
+    LTR = "L"
+    RTL = "R"
+    AUTO = "auto"
 
 
 @pai_dataclass
 @dataclass
 class BidiTextProcessorParams(DataProcessorParams):
-    bidi_direction: BidiDirection = field(default=BidiDirection.AUTO, metadata=pai_meta(
-        help="The default text direction when preprocessing bidirectional text. Supported values "
-             "are 'auto' to automatically detect the direction, 'ltr' and 'rtl' for left-to-right and "
-             "right-to-left, respectively"
-    ))
+    bidi_direction: BidiDirection = field(
+        default=BidiDirection.AUTO,
+        metadata=pai_meta(
+            help="The default text direction when preprocessing bidirectional text. Supported values "
+            "are 'auto' to automatically detect the direction, 'ltr' and 'rtl' for left-to-right and "
+            "right-to-left, respectively"
+        ),
+    )
 
     @staticmethod
-    def cls() -> Type['TextProcessor']:
+    def cls() -> Type["TextProcessor"]:
         return BidiTextProcessor
 
 
 class BidiTextProcessor(TextProcessor[BidiTextProcessorParams]):
     def _apply_single(self, txt, meta):
         # To support arabic text
-        return bidi_algorithm.get_display(txt,
-                                          base_dir=self.params.bidi_direction.value if self.params.bidi_direction != BidiDirection.AUTO else None)
+        return bidi_algorithm.get_display(
+            txt,
+            base_dir=self.params.bidi_direction.value
+            if self.params.bidi_direction != BidiDirection.AUTO
+            else None,
+        )

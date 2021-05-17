@@ -5,8 +5,8 @@ from tfaip.util.enum import StrEnum
 
 
 class VoterType(StrEnum):
-    SequenceVoter = 'sequence_voter'
-    ConfidenceVoterDefaultCTC = 'confidence_voter_default_ctc'
+    SequenceVoter = "sequence_voter"
+    ConfidenceVoterDefaultCTC = "confidence_voter_default_ctc"
 
 
 @dataclass_json

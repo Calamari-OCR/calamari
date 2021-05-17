@@ -8,7 +8,9 @@ class DefaultCTCDecoder(CTCDecoder):
     def __init__(self, params, codec):
         super().__init__(params, codec)
         self.blank = params.blank_index
-        self.threshold = params.min_p_threshold if params.min_p_threshold > 0 else 0.0001
+        self.threshold = (
+            params.min_p_threshold if params.min_p_threshold > 0 else 0.0001
+        )
 
     def decode(self, probabilities) -> Prediction:
         last_char = self.blank
@@ -34,5 +36,15 @@ class DefaultCTCDecoder(CTCDecoder):
 
 if __name__ == "__main__":
     d = DefaultCTCDecoder()
-    r = d.decode(np.array(np.transpose([[0.8, 0, 0.7, 0.2, 0.1], [0.1, 0.4, 0.2, 0.7, 0.8], [0.1, 0.6, 0.1, 0.1, 0.1]])))
+    r = d.decode(
+        np.array(
+            np.transpose(
+                [
+                    [0.8, 0, 0.7, 0.2, 0.1],
+                    [0.1, 0.4, 0.2, 0.7, 0.8],
+                    [0.1, 0.6, 0.1, 0.1, 0.1],
+                ]
+            )
+        )
+    )
     print(r)

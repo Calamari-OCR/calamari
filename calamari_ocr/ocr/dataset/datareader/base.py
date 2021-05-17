@@ -34,13 +34,13 @@ class InputSample:
 
     def __post_init__(self):
         if self.image is not None:
-            assert (self.image.dtype == np.uint8)
+            assert self.image.dtype == np.uint8
 
         if self.gt:
-            assert (type(self.gt) == str)
+            assert type(self.gt) == str
 
         if self.meta:
-            assert (type(self.meta) == SampleMeta)
+            assert type(self.meta) == SampleMeta
         else:
             self.meta = SampleMeta(None)
 
@@ -53,11 +53,14 @@ class InputSample:
 class CalamariDataGeneratorParams(DataGeneratorParams, ImageLoaderParams, ABC):
     skip_invalid: bool = True
     non_existing_as_empty: bool = False
-    n_folds: int = field(default=-1, metadata=pai_meta(mode='ignore'))
-    preload: bool = field(default=True, metadata=pai_meta(
-        help='Instead of preloading all data, load the data on the fly. '
-             'This is slower, but might be required for limited RAM or large dataset'
-    ))
+    n_folds: int = field(default=-1, metadata=pai_meta(mode="ignore"))
+    preload: bool = field(
+        default=True,
+        metadata=pai_meta(
+            help="Instead of preloading all data, load the data on the fly. "
+            "This is slower, but might be required for limited RAM or large dataset"
+        ),
+    )
 
     def __len__(self):
         raise NotImplementedError
@@ -72,7 +75,7 @@ class CalamariDataGeneratorParams(DataGeneratorParams, ImageLoaderParams, ABC):
     def prepare_for_mode(self, mode: PipelineMode) -> NoReturn:
         pass
 
-    def create(self, mode: PipelineMode) -> 'CalamariDataGenerator':
+    def create(self, mode: PipelineMode) -> "CalamariDataGenerator":
         params = deepcopy(self)  # always copy of params
         params.prepare_for_mode(mode)
         gen: CalamariDataGenerator = self.cls()(mode, params)
@@ -83,7 +86,7 @@ class CalamariDataGeneratorParams(DataGeneratorParams, ImageLoaderParams, ABC):
         return ImageLoader(self)
 
 
-T = TypeVar('T', bound=CalamariDataGeneratorParams)
+T = TypeVar("T", bound=CalamariDataGeneratorParams)
 
 
 class CalamariDataGenerator(DataGenerator[T], ABC):
@@ -101,10 +104,10 @@ class CalamariDataGenerator(DataGenerator[T], ABC):
             sample_idx = list(range(len(self._samples)))
             shuffle(sample_idx)
             for i, idx in enumerate(sample_idx):
-                self._samples[i]['fold_id'] = i % self.params.n_folds
+                self._samples[i]["fold_id"] = i % self.params.n_folds
 
     def __len__(self):
-        """ Number of samples
+        """Number of samples
 
         Returns
         -------
@@ -114,10 +117,10 @@ class CalamariDataGenerator(DataGenerator[T], ABC):
         return len(self._samples)
 
     def sample_by_id(self, id_) -> dict:
-        return next(sample for sample in self._samples if sample['id'] == id_)
+        return next(sample for sample in self._samples if sample["id"] == id_)
 
     def samples(self) -> List[dict]:
-        """ List of all samples
+        """List of all samples
 
         Returns
         -------
@@ -128,7 +131,7 @@ class CalamariDataGenerator(DataGenerator[T], ABC):
         return self._samples
 
     def add_sample(self, sample):
-        """ Add a sample
+        """Add a sample
 
         Parameters
         ----------
@@ -141,20 +144,20 @@ class CalamariDataGenerator(DataGenerator[T], ABC):
         if "id" not in sample:
             raise Exception("A sample needs an id")
 
-        if 'fold_id' not in sample:
-            sample['fold_id'] = -1  # dummy fold ID
+        if "fold_id" not in sample:
+            sample["fold_id"] = -1  # dummy fold ID
         self._samples.append(sample)
 
     def store_text_prediction(self, sentence, sample_id, output_dir):
         raise NotImplementedError
 
     def store_extended_prediction(self, data, sample, output_dir, extension):
-        bn = sample.get('base_name', sample['id'])
+        bn = sample.get("base_name", sample["id"])
         if extension == "pred":
-            with open(os.path.join(output_dir, bn + ".pred"), 'wb') as f:
+            with open(os.path.join(output_dir, bn + ".pred"), "wb") as f:
                 f.write(data)
         elif extension == "json":
-            with open(os.path.join(output_dir, bn + ".json"), 'w') as f:
+            with open(os.path.join(output_dir, bn + ".json"), "w") as f:
                 f.write(data)
         else:
             raise Exception("Unknown prediction format.")

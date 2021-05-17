@@ -18,7 +18,9 @@ if TYPE_CHECKING:
     from calamari_ocr.ocr.dataset.data import Data
 
 logger = logging.getLogger(__name__)
-SingleEvalData = namedtuple('SingleEvalData', ['chars', 'char_errs', 'sync_errs', 'conf', 'gt_pred'])
+SingleEvalData = namedtuple(
+    "SingleEvalData", ["chars", "char_errs", "sync_errs", "conf", "gt_pred"]
+)
 
 
 @pai_dataclass
@@ -31,16 +33,15 @@ class EvaluatorParams:
 
 
 class Evaluator:
-    def __init__(self, params: EvaluatorParams, data: 'Data'):
-        """ Class to evaluation the CER and errors of two dataset
-        """
+    def __init__(self, params: EvaluatorParams, data: "Data"):
+        """Class to evaluation the CER and errors of two dataset"""
         self.params = params
         self.data = data
         self.preloaded_gt = None
         self.params.setup.mode = PipelineMode.TARGETS
 
     def preload_gt(self, gt_dataset: DataGeneratorParams, progress_bar=False):
-        """ Preload gt to be used for several experiments
+        """Preload gt to be used for several experiments
 
         Use this method to specify ground truth data to be tested versus many predictions
 
@@ -53,17 +54,23 @@ class Evaluator:
 
         """
         with self.data.create_pipeline(self.params.setup, gt_dataset) as dataset:
-            self.preloaded_gt = {sample.meta['id']: sample.targets for sample in tqdm_wrapper(dataset.generate_input_samples(),
-                                                                                              total=len(dataset),
-                                                                                              progress_bar=progress_bar,
-                                                                                              desc="Loading GT",
-                                                                                              )}
+            self.preloaded_gt = {
+                sample.meta["id"]: sample.targets
+                for sample in tqdm_wrapper(
+                    dataset.generate_input_samples(),
+                    total=len(dataset),
+                    progress_bar=progress_bar,
+                    desc="Loading GT",
+                )
+            }
 
         if len(self.preloaded_gt) == 0:
-            raise ValueError('Empty GT dataset.')
+            raise ValueError("Empty GT dataset.")
 
-    def run(self, *, gt_dataset: DataGeneratorParams, pred_dataset: DataGeneratorParams):
-        """ evaluate on the given dataset
+    def run(
+        self, *, gt_dataset: DataGeneratorParams, pred_dataset: DataGeneratorParams
+    ):
+        """evaluate on the given dataset
         Returns
         -------
         evaluation dictionary
@@ -72,18 +79,26 @@ class Evaluator:
             gt_data = self.preloaded_gt
         else:
             with self.data.create_pipeline(self.params.setup, gt_dataset) as data:
-                gt_data = {sample.meta['id']: sample.targets for sample in tqdm_wrapper(data.generate_input_samples(),
-                                                                     total=len(data),
-                                                                     progress_bar=self.params.progress_bar,
-                                                                     desc="Loading GT",
-                                                                     )}
+                gt_data = {
+                    sample.meta["id"]: sample.targets
+                    for sample in tqdm_wrapper(
+                        data.generate_input_samples(),
+                        total=len(data),
+                        progress_bar=self.params.progress_bar,
+                        desc="Loading GT",
+                    )
+                }
 
         with self.data.create_pipeline(self.params.setup, pred_dataset) as data:
-            pred_data = {sample.meta['id']: sample.targets for sample in tqdm_wrapper(data.generate_input_samples(),
-                                                                                      total=len(data),
-                                                                                      progress_bar=self.params.progress_bar,
-                                                                                      desc="Loading Prediction"
-                                                                                      )}
+            pred_data = {
+                sample.meta["id"]: sample.targets
+                for sample in tqdm_wrapper(
+                    data.generate_input_samples(),
+                    total=len(data),
+                    progress_bar=self.params.progress_bar,
+                    desc="Loading Prediction",
+                )
+            }
 
         return self.evaluate(gt_data=gt_data, pred_data=pred_data)
 
@@ -92,8 +107,8 @@ class Evaluator:
         return Evaluator.evaluate_single(**args)
 
     @staticmethod
-    def evaluate_single(_sentinel=None, gt='', pred='', skip_empty_gt=False):
-        """ Evaluate a single pair of data
+    def evaluate_single(_sentinel=None, gt="", pred="", skip_empty_gt=False):
+        """Evaluate a single pair of data
 
         Parameters
         ----------
@@ -151,7 +166,9 @@ class Evaluator:
         total_sync_errs = 0
         for chars, char_errs, sync_errs, conf, gt_pred in eval_results:
             if store_all:
-                all_eval.append(SingleEvalData(chars, char_errs, sync_errs, conf, gt_pred))
+                all_eval.append(
+                    SingleEvalData(chars, char_errs, sync_errs, conf, gt_pred)
+                )
 
             total_instances += 1
             total_chars += chars
@@ -179,7 +196,7 @@ class Evaluator:
         }
 
     def evaluate(self, *, gt_data: Dict[str, str], pred_data: Dict[str, str]):
-        """ evaluate on the given raw data
+        """evaluate on the given raw data
 
         Parameters
         ----------
@@ -199,25 +216,39 @@ class Evaluator:
                 if sample_id in pred_data:
                     mapped_pred_data[sample_id] = pred_data[sample_id]
                 else:
-                    mapped_pred_data[sample_id] = ''
+                    mapped_pred_data[sample_id] = ""
                     n_empty += 1
-            logger.info(f'{n_empty}/{len(gt_data)} lines could not be matched during the evaluation.')
+            logger.info(
+                f"{n_empty}/{len(gt_data)} lines could not be matched during the evaluation."
+            )
             if n_empty == len(gt_data):
-                raise ValueError(f'No lines could be matched by their ID. First 10 gt ids '
-                                 f'{list(gt_data.keys())[:10]}, first 10 pred ids {list(pred_data.keys())[:100]}')
+                raise ValueError(
+                    f"No lines could be matched by their ID. First 10 gt ids "
+                    f"{list(gt_data.keys())[:10]}, first 10 pred ids {list(pred_data.keys())[:100]}"
+                )
             pred_data = mapped_pred_data
 
         gt_ids, pred_ids = set(gt_data.keys()), set(pred_data.keys())
         if len(gt_ids) != len(gt_data):
             raise ValueError(f"Non unique keys in ground truth data.")
         if gt_ids != pred_ids:
-            raise Exception(f"Mismatch in gt and pred. Samples could not be matched by ID. "
-                            f"GT without PRED: {gt_ids.difference(pred_ids)}. "
-                            f"PRED without GT: {pred_ids.difference(gt_ids)}")
+            raise Exception(
+                f"Mismatch in gt and pred. Samples could not be matched by ID. "
+                f"GT without PRED: {gt_ids.difference(pred_ids)}. "
+                f"PRED without GT: {pred_ids.difference(gt_ids)}"
+            )
 
         gt_pred = [(gt_data[s_id], pred_data[s_id]) for s_id in gt_ids]
         # evaluate single lines
-        out = parallel_map(Evaluator.evaluate_single_args, [{'gt': gt, 'pred': pred, 'skip_empty_gt': self.params.skip_empty_gt} for gt, pred in gt_pred],
-                           processes=self.params.setup.num_processes, progress_bar=self.params.progress_bar, desc="Evaluation")
+        out = parallel_map(
+            Evaluator.evaluate_single_args,
+            [
+                {"gt": gt, "pred": pred, "skip_empty_gt": self.params.skip_empty_gt}
+                for gt, pred in gt_pred
+            ],
+            processes=self.params.setup.num_processes,
+            progress_bar=self.params.progress_bar,
+            desc="Evaluation",
+        )
 
         return Evaluator.evaluate_single_list(out, True)

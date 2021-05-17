@@ -11,7 +11,9 @@ from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 @dataclass_json
 @dataclass
 class LineGeneratorParams:
-    fonts: List[str] = field(default_factory=lambda: ['Junicode.ttf', 'DejaVuSerif.ttf'])
+    fonts: List[str] = field(
+        default_factory=lambda: ["Junicode.ttf", "DejaVuSerif.ttf"]
+    )
     font_size: int = 32
     min_script_offset: float = -0.5
     max_script_offset: float = 0.5
@@ -23,7 +25,11 @@ class TextGeneratorParams:
     word_length_mean: float = 11
     word_length_sigma: float = 3
 
-    charset: List[str] = field(default_factory=lambda: list("ABCEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()_-.;:'\" "))
+    charset: List[str] = field(
+        default_factory=lambda: list(
+            "ABCEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()_-.;:'\" "
+        )
+    )
     super_charset: List[str] = field(default_factory=list)
     sub_charset: List[str] = field(default_factory=list)
 
@@ -58,6 +64,9 @@ class GeneratedLineDatasetParams(CalamariDataGeneratorParams):
         raise NotImplementedError
 
     @staticmethod
-    def cls() -> Type['DataGenerator']:
-        from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.dataset import GeneratedLineDataset
+    def cls() -> Type["DataGenerator"]:
+        from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.dataset import (
+            GeneratedLineDataset,
+        )
+
         return GeneratedLineDataset

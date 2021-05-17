@@ -1,6 +1,9 @@
 import operator
 
-from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import PredictionPosition, PredictionCharacter
+from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import (
+    PredictionPosition,
+    PredictionCharacter,
+)
 from calamari_ocr.ocr.dataset.textprocessors import synchronize
 from calamari_ocr.ocr.voting.voter import Voter
 
@@ -26,7 +29,9 @@ def find_voters_with_most_frequent_length(sync, voters):
 
     most_freq = max(lengths.items(), key=operator.itemgetter(1))[0]
 
-    return [i for i, voter in enumerate(voters) if sync.length(i) == most_freq], most_freq
+    return [
+        i for i, voter in enumerate(voters) if sync.length(i) == most_freq
+    ], most_freq
 
 
 class MergeableCharacter:
@@ -37,24 +42,29 @@ class MergeableCharacter:
         self.stop = stop
 
     def merge(self, char, p, start, stop):
-        assert(self.char == char)
+        assert self.char == char
         self.p += p
         self.start = min(start, self.start)
         self.stop = max(stop, self.stop)
 
 
 def perform_conf_vote(voters):
-    results = [voter['sequence'] for voter in voters]
+    results = [voter["sequence"] for voter in voters]
     synclist = synchronize(results)
 
     final_result = []
 
     for sync in synclist:
-        actual_voters, most_freq_length = find_voters_with_most_frequent_length(sync, voters)
+        actual_voters, most_freq_length = find_voters_with_most_frequent_length(
+            sync, voters
+        )
 
         # set of all characters (check if all say the same, then the set size is one)
         s = []
-        for r in [voters[voter_id]['sequence'][sync.start(voter_id):sync.stop(voter_id)+1] for voter_id in actual_voters]:
+        for r in [
+            voters[voter_id]["sequence"][sync.start(voter_id) : sync.stop(voter_id) + 1]
+            for voter_id in actual_voters
+        ]:
             if r not in s:
                 s.append(r)
 
@@ -62,13 +72,17 @@ def perform_conf_vote(voters):
             c_p = {}
             for voter_id in actual_voters:
                 idx = i + sync.start(voter_id)
-                alts = voters[voter_id]['alternatives'][idx]
-                pos = voters[voter_id]['positions'][idx]
+                alts = voters[voter_id]["alternatives"][idx]
+                pos = voters[voter_id]["positions"][idx]
                 for k, p in alts.items():
                     if k in c_p:
-                        c_p[k].merge(k, p / len(actual_voters), pos.global_start, pos.global_end)
+                        c_p[k].merge(
+                            k, p / len(actual_voters), pos.global_start, pos.global_end
+                        )
                     else:
-                        c_p[k] = MergeableCharacter(k, p / len(actual_voters), pos.global_start, pos.global_end)
+                        c_p[k] = MergeableCharacter(
+                            k, p / len(actual_voters), pos.global_start, pos.global_end
+                        )
 
             chars = sorted(c_p.values(), key=lambda v: -v.p)
             final_result.append(chars)
@@ -109,9 +123,11 @@ class ConfidenceVoter(Voter):
                 for c in pos.chars:
                     d[c.char] = c.probability
 
-            return {"sequence": prediction.chars,
-                    "alternatives": alternatives,
-                    "positions": prediction.prediction.positions, }
+            return {
+                "sequence": prediction.chars,
+                "alternatives": alternatives,
+                "positions": prediction.prediction.positions,
+            }
 
         voted = perform_conf_vote([extract_data(p) for p in predictions])
 
@@ -134,5 +150,3 @@ class ConfidenceVoter(Voter):
                 sentence += voted_pos[0].char
 
         prediction_out.sentence = sentence
-
-

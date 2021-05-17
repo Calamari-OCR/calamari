@@ -12,6 +12,7 @@ def default_layers():
     from calamari_ocr.ocr.model.layers.pool2d import MaxPool2DLayerParams
     from calamari_ocr.ocr.model.layers.bilstm import BiLSTMLayerParams
     from calamari_ocr.ocr.model.layers.dropout import DropoutLayerParams
+
     return [
         Conv2DLayerParams(filters=40),
         MaxPool2DLayerParams(),
@@ -34,10 +35,12 @@ class ModelParams(ModelBaseParams):
     @staticmethod
     def cls():
         from calamari_ocr.ocr.model.model import Model
+
         return Model
 
     def graph_cls(self):
         from calamari_ocr.ocr.model.graph import CalamariGraph
+
         return CalamariGraph
 
     def __post_init__(self):
@@ -45,7 +48,7 @@ class ModelParams(ModelBaseParams):
         counts = {}
         for layer in self.layers:
             counts[layer.name_prefix()] = counts.get(layer.name_prefix(), -1) + 1
-            layer.name = f'{layer.name_prefix()}_{counts[layer.name_prefix()]}'
+            layer.name = f"{layer.name_prefix()}_{counts[layer.name_prefix()]}"
 
     def compute_downscale_factor(self) -> IntVec2D:
         factor = IntVec2D(1, 1)

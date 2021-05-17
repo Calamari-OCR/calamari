@@ -14,18 +14,34 @@ if TYPE_CHECKING:
 @pai_dataclass
 @dataclass
 class CodecConstructionParams:
-    keep_loaded: bool = field(default=True, metadata=pai_meta(
-        help="Fully include the codec of the loaded model to the new codec"))
-    auto_compute: bool = field(default=True, metadata=pai_meta(
-        help="Compute the codec automatically. See also include."))
-    include: List[str] = field(default_factory=list, metadata=pai_meta(
-        help="Whitelist of characters that may not be removed on restoring a model. "
-             "For large dataset you can use this to skip the automatic codec computation "
-             "(see auto_compute)"))
-    include_files: List[str] = field(default_factory=list, metadata=pai_meta(
-        help="Whitelist of txt files that may not be removed on restoring a model"))
+    keep_loaded: bool = field(
+        default=True,
+        metadata=pai_meta(
+            help="Fully include the codec of the loaded model to the new codec"
+        ),
+    )
+    auto_compute: bool = field(
+        default=True,
+        metadata=pai_meta(help="Compute the codec automatically. See also include."),
+    )
+    include: List[str] = field(
+        default_factory=list,
+        metadata=pai_meta(
+            help="Whitelist of characters that may not be removed on restoring a model. "
+            "For large dataset you can use this to skip the automatic codec computation "
+            "(see auto_compute)"
+        ),
+    )
+    include_files: List[str] = field(
+        default_factory=list,
+        metadata=pai_meta(
+            help="Whitelist of txt files that may not be removed on restoring a model"
+        ),
+    )
 
-    resolved_include_chars: Set[str] = field(default_factory=set, metadata=pai_meta(mode='ignore'))
+    resolved_include_chars: Set[str] = field(
+        default_factory=set, metadata=pai_meta(mode="ignore")
+    )
 
     def __post_init__(self):
         # parse whitelist
@@ -44,17 +60,28 @@ class CodecConstructionParams:
 @pai_dataclass(no_assign_to_unknown=False)
 @dataclass
 class Codec:
-    charset: List[str]  # this filed will be used to store and load a the Codec from json
+    charset: List[
+        str
+    ]  # this filed will be used to store and load a the Codec from json
 
     @staticmethod
-    def from_input_dataset(data_pipelines: Iterator['DataPipeline'], codec_construction_params: CodecConstructionParams, progress_bar=False):
+    def from_input_dataset(
+        data_pipelines: Iterator["DataPipeline"],
+        codec_construction_params: CodecConstructionParams,
+        progress_bar=False,
+    ):
         chars = codec_construction_params.resolved_include_chars
 
         for pipeline in data_pipelines:
             pipeline = pipeline.to_mode(PipelineMode.TARGETS)
             pipeline = pipeline.as_preloaded(progress_bar=progress_bar)
             data_gen = pipeline.create_data_generator()
-            for sample in tqdm_wrapper(data_gen.generate(), total=len(data_gen), desc="Computing codec", progress_bar=progress_bar):
+            for sample in tqdm_wrapper(
+                data_gen.generate(),
+                total=len(data_gen),
+                desc="Computing codec",
+                progress_bar=progress_bar,
+            ):
                 # assert(sample.inputs is None)  # Inputs shall not be generated here
                 for c in sample.targets:
                     chars.add(c)
@@ -62,7 +89,9 @@ class Codec:
         return Codec(sorted(list(chars)))
 
     @staticmethod
-    def from_texts(texts: List[str], codec_construction_params: CodecConstructionParams):
+    def from_texts(
+        texts: List[str], codec_construction_params: CodecConstructionParams
+    ):
         """Compute a codec from given text
 
         First computes a set of all available characters.
@@ -78,7 +107,11 @@ class Codec:
         -------
             Codec based on the set of characters + whitelist
         """
-        chars = set() if codec_construction_params.include is None else set(codec_construction_params.include)
+        chars = (
+            set()
+            if codec_construction_params.include is None
+            else set(codec_construction_params.include)
+        )
 
         for text in texts:
             for c in text:
@@ -87,7 +120,7 @@ class Codec:
         return Codec(sorted(list(chars)))
 
     def __post_init__(self):
-        """ Construct a codec based on a given charset (symbols)
+        """Construct a codec based on a given charset (symbols)
 
         A symbol is typically a character (e.g. a, b, c, d, ...) in OCR, in OMR this might be
         the position of a note in the staff.
@@ -116,7 +149,7 @@ class Codec:
             self.char2code[char] = code
 
     def __len__(self):
-        """ Get the number of characeters in the charset
+        """Get the number of characeters in the charset
 
         this is equal to the maximum possible label.
 
@@ -127,7 +160,7 @@ class Codec:
         return len(self.charset)
 
     def size(self):
-        """ Get the number of characeters in the charset
+        """Get the number of characeters in the charset
 
         this is equal to the maximum possible label.
 
@@ -138,7 +171,7 @@ class Codec:
         return len(self.charset)
 
     def encode(self, s):
-        """ Encode the string into labels
+        """Encode the string into labels
 
         Parameters
         ----------
@@ -156,7 +189,7 @@ class Codec:
         return [self.char2code[c] for c in s]
 
     def decode(self, l):
-        """ Decode the sequence of labels into a sequence of characters
+        """Decode the sequence of labels into a sequence of characters
 
         Parameters
         ----------
@@ -174,7 +207,7 @@ class Codec:
         return [self.code2char[c] for c in l]
 
     def extend(self, codec):
-        """ extend the codec by the given characters
+        """extend the codec by the given characters
 
         If a character is already present it will be skipped.
         The new characters will be added at the end of the codec (highest label numbers)
@@ -204,7 +237,7 @@ class Codec:
         return added
 
     def shrink(self, codec):
-        """ remove the given `codec` from this Codec
+        """remove the given `codec` from this Codec
 
         This algorithm will compute the positions of the codes in the old charset and ignore non present chars.
         This output can then be used to delete specific nodes in the neural net.
@@ -236,7 +269,7 @@ class Codec:
         return deleted_positions
 
     def align(self, codec, shrink=True, extend=True):
-        """ Change the codec to the new `codec` but keep the positions of chars that are in both codecs.
+        """Change the codec to the new `codec` but keep the positions of chars that are in both codecs.
 
         This function is used to compute a codec change: deleted labels, added characters.
 
@@ -265,7 +298,7 @@ class Codec:
 
 
 def ascii_codec():
-    """ default ascii codec
+    """default ascii codec
 
     Returns
     -------
@@ -274,4 +307,3 @@ def ascii_codec():
     """
     ascii_labels = ["", " ", "~"] + [chr(x) for x in range(33, 126)]
     return Codec(ascii_labels)
-

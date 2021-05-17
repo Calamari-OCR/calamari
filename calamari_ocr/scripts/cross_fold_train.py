@@ -1,7 +1,10 @@
 from paiargparse import PAIArgumentParser
 from tfaip.util.logging import logger
 
-from calamari_ocr.ocr.training.cross_fold_trainer import CrossFoldTrainer, CrossFoldTrainerParams
+from calamari_ocr.ocr.training.cross_fold_trainer import (
+    CrossFoldTrainer,
+    CrossFoldTrainerParams,
+)
 
 logger = logger(__name__)
 
@@ -12,7 +15,7 @@ def run():
 
 def parse_args(args=None):
     parser = PAIArgumentParser()
-    parser.add_root_argument('root', CrossFoldTrainerParams, CrossFoldTrainerParams())
+    parser.add_root_argument("root", CrossFoldTrainerParams, CrossFoldTrainerParams())
     params: CrossFoldTrainerParams = parser.parse_args(args).root
     # TODO: add the training args (omit those params, that are set by the cross fold training)
     # setup_train_args(parser, omit=["files", "validation", "weights",

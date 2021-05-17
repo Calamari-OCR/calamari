@@ -11,10 +11,10 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 class ToInputDimsLayerParams(LayerParams):
     @classmethod
     def name_prefix(cls) -> str:
-        return 'to_input_dims'
+        return "to_input_dims"
 
     @classmethod
-    def cls(cls) -> Type['Layer']:
+    def cls(cls) -> Type["Layer"]:
         return ToInputDimsLayer
 
     dims: int = field(default=-1, metadata=pai_meta(required=True))

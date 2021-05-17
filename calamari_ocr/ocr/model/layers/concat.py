@@ -12,13 +12,15 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 class ConcatLayerParams(LayerParams):
     @classmethod
     def name_prefix(cls) -> str:
-        return 'concat'
+        return "concat"
 
     @classmethod
-    def cls(cls) -> Type['Layer']:
+    def cls(cls) -> Type["Layer"]:
         return ConcatLayer
 
-    concat_indices: List[int] = field(default_factory=list, metadata=pai_meta(required=True))
+    concat_indices: List[int] = field(
+        default_factory=list, metadata=pai_meta(required=True)
+    )
 
 
 class ConcatLayer(Layer[ConcatLayerParams]):

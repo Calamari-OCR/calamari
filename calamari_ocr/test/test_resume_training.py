@@ -21,4 +21,4 @@ class TestTrainFile(unittest.TestCase):
             trainer_params.output_dir = d
             train.main(trainer_params)
             keras.backend.clear_session()
-            resume_training.main([os.path.join(d, 'checkpoint', 'checkpoint_0001')])
+            resume_training.main([os.path.join(d, "checkpoint", "checkpoint_0001")])

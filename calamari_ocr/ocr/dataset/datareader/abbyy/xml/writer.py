@@ -7,16 +7,22 @@ class XMLWriter:
     def write(page: Page, filename: str):
         self = XMLWriter
 
-        root = ET.Element('document')
+        root = ET.Element("document")
         tree = ET.ElementTree(root)
 
-        self._addElement(root, "xmlns", "http://www.abbyy.com/FineReader_xml/FineReader10-schema-v1.xml")
+        self._addElement(
+            root,
+            "xmlns",
+            "http://www.abbyy.com/FineReader_xml/FineReader10-schema-v1.xml",
+        )
         self._addElement(root, "version", "1.0")
         self._addElement(root, "producer", "Calamari")
         self._addElement(root, "languages", "")
         NS_XSI = "{http://www.w3.org/2001/XMLSchema-instance}"
-        root.set(NS_XSI + "schemaLocation",
-                 "http://www.abbyy.com/FineReader_xml/FineReader10-schema-v1.xml http://www.abbyy.com/FineReader_xml/FineReader10-schema-v1.xml")
+        root.set(
+            NS_XSI + "schemaLocation",
+            "http://www.abbyy.com/FineReader_xml/FineReader10-schema-v1.xml http://www.abbyy.com/FineReader_xml/FineReader10-schema-v1.xml",
+        )
 
         pageNode = ET.SubElement(root, "page")
         self._addElement(pageNode, "width", page.width)
@@ -59,8 +65,12 @@ class XMLWriter:
                         self._addElement(foNode, "lang", fo.lang)
                         foNode.text = fo.text
 
-        tree.write(open(filename, 'wb'), encoding='utf-8', xml_declaration=True,
-                   pretty_print=True)
+        tree.write(
+            open(filename, "wb"),
+            encoding="utf-8",
+            xml_declaration=True,
+            pretty_print=True,
+        )
 
     @staticmethod
     def _addElement(element, key, value):
@@ -76,4 +86,3 @@ class XMLWriter:
 
         if value is not None:
             element.set(key, value)
-

@@ -5,20 +5,29 @@ from random import shuffle
 
 import numpy as np
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.data.pipeline.definitions import PipelineMode, INPUT_PROCESSOR, TARGETS_PROCESSOR
+from tfaip.data.pipeline.definitions import (
+    PipelineMode,
+    INPUT_PROCESSOR,
+    TARGETS_PROCESSOR,
+)
 from tqdm import tqdm
 from lxml import etree
 import cv2 as cv
 from typing import List, Generator, Optional, Iterable, Dict, Any
 from enum import IntEnum
-from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams, InputSample, \
-    SampleMeta
+from calamari_ocr.ocr.dataset.datareader.base import (
+    CalamariDataGenerator,
+    CalamariDataGeneratorParams,
+    InputSample,
+    SampleMeta,
+)
 from calamari_ocr.utils import split_all_ext, filename, glob_all
 
 import logging
 
 
 logger = logging.getLogger(__name__)
+
 
 class CutMode(IntEnum):
     BOX = 0
@@ -27,8 +36,14 @@ class CutMode(IntEnum):
 
 
 class PageXMLDatasetLoader:
-    def __init__(self, mode: PipelineMode, non_existing_as_empty: bool, text_index: int, skip_invalid: bool = True,
-                 skip_commented=False):
+    def __init__(
+        self,
+        mode: PipelineMode,
+        non_existing_as_empty: bool,
+        text_index: int,
+        skip_invalid: bool = True,
+        skip_commented=False,
+    ):
         self.mode = mode
         self._non_existing_as_empty = non_existing_as_empty
         self.root = None
@@ -39,7 +54,9 @@ class PageXMLDatasetLoader:
     def load(self, img, xml) -> Iterable[Dict[str, Any]]:
         if not os.path.exists(xml):
             if self.skip_invalid:
-                logger.warning(f"File '{xml}' does not exist. Skipping since `skip_invalid=True`.")
+                logger.warning(
+                    f"File '{xml}' does not exist. Skipping since `skip_invalid=True`."
+                )
                 return []
             else:
                 raise FileNotFoundError(f"File '{xml}' does not exist.")
@@ -55,35 +72,43 @@ class PageXMLDatasetLoader:
 
     def _samples_gt_from_book(self, root, img, page_id) -> Iterable[Dict[str, Any]]:
         ns = {"ns": root.nsmap[None]}
-        page = root.find('.//ns:Page', namespaces=ns)
+        page = root.find(".//ns:Page", namespaces=ns)
         imgfile = page.attrib.get("imageFilename")
-        if (self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}) and not split_all_ext(img)[0].endswith(
-                split_all_ext(imgfile)[0]):
-            raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
-                img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
+        if (
+            self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}
+        ) and not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
+            raise Exception(
+                "Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
+                    img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]
+                )
+            )
 
         img_w = int(page.attrib.get("imageWidth"))
-        textlines = root.findall('.//ns:TextLine', namespaces=ns)
+        textlines = root.findall(".//ns:TextLine", namespaces=ns)
 
         for textline in textlines:
-            tequivs = textline.findall('./ns:TextEquiv[@index="{}"]'.format(self.text_index), namespaces=ns)
+            tequivs = textline.findall(
+                './ns:TextEquiv[@index="{}"]'.format(self.text_index), namespaces=ns
+            )
 
             if not tequivs:
-                tequivs = textline.findall('./ns:TextEquiv', namespaces=ns)
+                tequivs = textline.findall("./ns:TextEquiv", namespaces=ns)
 
             if len(tequivs) > 1:
-                logger.warning("PageXML is invalid: TextLine includes TextEquivs with non unique ids")
+                logger.warning(
+                    "PageXML is invalid: TextLine includes TextEquivs with non unique ids"
+                )
 
             if self.skip_commented and len(textline.attrib.get("comments", "")):
                 continue
 
             if tequivs is not None and len(tequivs) > 0:
                 l = tequivs[0]
-                uc = l.find('./ns:Unicode', namespaces=ns)
-                text = uc.text if uc is not None else ''
+                uc = l.find("./ns:Unicode", namespaces=ns)
+                text = uc.text if uc is not None else ""
                 if text is None:
                     # Handle empty tag as empty string not as "not existing"
-                    text = ''
+                    text = ""
             else:
                 l = None
                 text = None
@@ -96,7 +121,9 @@ class PageXMLDatasetLoader:
                 else:
                     raise Exception("Empty text field")
 
-            orientation = float(textline.getparent().attrib.get("orientation", default=0))
+            orientation = float(
+                textline.getparent().attrib.get("orientation", default=0)
+            )
 
             if self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}:
                 if len(text) == 0:
@@ -104,40 +131,49 @@ class PageXMLDatasetLoader:
                     continue
 
             yield {
-                'page_id': page_id,
-                'ns': ns,
+                "page_id": page_id,
+                "ns": ns,
                 "rtype": textline.getparent().attrib.get("type", default=""),
-                'xml_element': textline,
+                "xml_element": textline,
                 "image_path": img,
                 "id": "{}/{}".format(page_id, textline.attrib.get("id")),
                 "text": text,
-                "coords": textline.find('./ns:Coords', namespaces=ns).attrib.get("points"),
+                "coords": textline.find("./ns:Coords", namespaces=ns).attrib.get(
+                    "points"
+                ),
                 "orientation": orientation,
-                "img_width": img_w
+                "img_width": img_w,
             }
 
     def _samples_from_book(self, root, img, page_id) -> Iterable[Dict[str, Any]]:
         ns = {"ns": root.nsmap[None]}
-        page = root.find('.//ns:Page', namespaces=ns)
+        page = root.find(".//ns:Page", namespaces=ns)
         imgfile = page.attrib.get("imageFilename")
         if not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
-            raise Exception("Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
-                img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]))
+            raise Exception(
+                "Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
+                    img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]
+                )
+            )
 
         img_w = int(page.attrib.get("imageWidth"))
-        for textline in root.findall('.//ns:TextLine', namespaces=ns):
+        for textline in root.findall(".//ns:TextLine", namespaces=ns):
             if self.skip_commented and len(textline.attrib.get("comments", "")):
                 continue
-            orientation = float(textline.getparent().attrib.get("orientation", default=0))
+            orientation = float(
+                textline.getparent().attrib.get("orientation", default=0)
+            )
 
             yield {
-                'page_id': page_id,
-                'ns': ns,
+                "page_id": page_id,
+                "ns": ns,
                 "rtype": textline.getparent().attrib.get("type", default=""),
-                'xml_element': textline,
+                "xml_element": textline,
                 "image_path": img,
                 "id": "{}/{}".format(page_id, textline.attrib.get("id")),
-                "coords": textline.find('./ns:Coords', namespaces=ns).attrib.get("points"),
+                "coords": textline.find("./ns:Coords", namespaces=ns).attrib.get(
+                    "points"
+                ),
                 "orientation": orientation,
                 "img_width": img_w,
                 "text": None,
@@ -149,19 +185,24 @@ class PageXMLDatasetLoader:
 class PageXML(CalamariDataGeneratorParams):
     images: List[str] = field(default_factory=list)
     xml_files: List[str] = field(default_factory=list)
-    gt_extension: str = field(default='.xml', metadata=pai_meta(
-        help="Default extension of the gt files (expected to exist in same dir)"
-    ))
+    gt_extension: str = field(
+        default=".xml",
+        metadata=pai_meta(
+            help="Default extension of the gt files (expected to exist in same dir)"
+        ),
+    )
     text_index: int = 0
-    pad: Optional[List[int]] = field(default=None, metadata=pai_meta(
-        help="Additional padding after lines were cut out."
-    ))
-    pred_extension: str = field(default='.pred.xml', metadata=pai_meta(
-        help="Default extension of the prediction files"
-    ))
-    skip_commented: bool = field(default=False, metadata=pai_meta(
-        help='Skip lines with "comments" attribute.'
-    ))
+    pad: Optional[List[int]] = field(
+        default=None,
+        metadata=pai_meta(help="Additional padding after lines were cut out."),
+    )
+    pred_extension: str = field(
+        default=".pred.xml",
+        metadata=pai_meta(help="Default extension of the prediction files"),
+    )
+    skip_commented: bool = field(
+        default=False, metadata=pai_meta(help='Skip lines with "comments" attribute.')
+    )
 
     def __len__(self):
         return len(self.images)
@@ -174,7 +215,9 @@ class PageXML(CalamariDataGeneratorParams):
 
     def to_prediction(self):
         pred = deepcopy(self)
-        pred.xml_files = [split_all_ext(f)[0] + self.pred_extension for f in self.xml_files]
+        pred.xml_files = [
+            split_all_ext(f)[0] + self.pred_extension for f in self.xml_files
+        ]
         return pred
 
     @staticmethod
@@ -185,22 +228,30 @@ class PageXML(CalamariDataGeneratorParams):
         self.images = sorted(glob_all(self.images))
         self.xml_files = sorted(self.xml_files)
         if not self.xml_files:
-            self.xml_files = [split_all_ext(f)[0] + self.gt_extension for f in self.images]
+            self.xml_files = [
+                split_all_ext(f)[0] + self.gt_extension for f in self.images
+            ]
         if not self.images:
             self.xml_files = sorted(glob_all(self.xml_files))
             self.images = [None] * len(self.xml_files)
 
 
 class PageXMLReader(CalamariDataGenerator[PageXML]):
-    def __init__(self,
-                 mode: PipelineMode,
-                 params: PageXML,
-                 ):
+    def __init__(
+        self,
+        mode: PipelineMode,
+        params: PageXML,
+    ):
         super().__init__(mode, params)
         self.pages = {}
         for img, xml in zip(params.images, params.xml_files):
-            loader = PageXMLDatasetLoader(self.mode, params.non_existing_as_empty, params.text_index,
-                                          params.skip_invalid, params.skip_commented)
+            loader = PageXMLDatasetLoader(
+                self.mode,
+                params.non_existing_as_empty,
+                params.text_index,
+                params.skip_invalid,
+                params.skip_commented,
+            )
             for sample in loader.load(img, xml):
                 self.add_sample(sample)
 
@@ -210,8 +261,15 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         self._last_page_id = None
 
     @staticmethod
-    def cutout(pageimg: np.array, coordstring: str, mode: CutMode = CutMode.POLYGON, angle=0, cval=None, scale=1):
-        """ Cut region from image
+    def cutout(
+        pageimg: np.array,
+        coordstring: str,
+        mode: CutMode = CutMode.POLYGON,
+        angle=0,
+        cval=None,
+        scale=1,
+    ):
+        """Cut region from image
         Parameters
         ----------
         pageimg : page image
@@ -234,7 +292,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         coords = np.array(coords, np.int32).reshape((-1, 1, 2))
         maxX, maxY = np.amax(coords, 0).squeeze()
         minX, minY = np.amin(coords, 0).squeeze()
-        cut = pageimg[minX:maxX + 1, minY:maxY + 1]
+        cut = pageimg[minX : maxX + 1, minY : maxY + 1]
         if cut.size == 0:
             return cut  # empty image
         coords -= (minX, minY)
@@ -272,8 +330,14 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             minX, minY = np.amin(coords, 0).squeeze()
             maxX, maxY = np.amax(coords, 0).squeeze()
             # rotate image
-            cut = cv.warpAffine(cut, M, (nW, nH), flags=cv.INTER_LINEAR,
-                                borderMode=cv.BORDER_CONSTANT, borderValue=cval)
+            cut = cv.warpAffine(
+                cut,
+                M,
+                (nW, nH),
+                flags=cv.INTER_LINEAR,
+                borderMode=cv.BORDER_CONSTANT,
+                borderValue=cval,
+            )
         else:
             coords = coords[..., ::-1]
             minX, minY = minY, minX
@@ -294,34 +358,37 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             bg = cv.bitwise_and(box, mask_inv)
             cut = cv.add(fg, bg)
 
-        return cut[minY:maxY + 1, minX:maxX + 1]
+        return cut[minY : maxY + 1, minX : maxX + 1]
 
     def prepare_store(self):
         self._last_page_id = None
 
     def store_text_prediction(self, sentence, sample_id, output_dir):
         sample = self.sample_by_id(sample_id)
-        ns = sample['ns']
-        line = sample['xml_element']
-        textequivxml = line.find('./ns:TextEquiv[@index="{}"]'.format(self.params.text_index),
-                                 namespaces=ns)
+        ns = sample["ns"]
+        line = sample["xml_element"]
+        textequivxml = line.find(
+            './ns:TextEquiv[@index="{}"]'.format(self.params.text_index), namespaces=ns
+        )
         if textequivxml is None:
-            textequivxml = etree.SubElement(line, "TextEquiv", attrib={"index": str(self.params.text_index)})
+            textequivxml = etree.SubElement(
+                line, "TextEquiv", attrib={"index": str(self.params.text_index)}
+            )
 
-        u_xml = textequivxml.find('./ns:Unicode', namespaces=ns)
+        u_xml = textequivxml.find("./ns:Unicode", namespaces=ns)
         if u_xml is None:
             u_xml = etree.SubElement(textequivxml, "Unicode")
 
         u_xml.text = sentence
 
         # check if page can be stored, this requires that (standard in prediction) the pages are passed sequentially
-        if self._last_page_id != sample['page_id']:
+        if self._last_page_id != sample["page_id"]:
             if self._last_page_id:
                 self._store_page(self.params.pred_extension, self._last_page_id)
-            self._last_page_id = sample['page_id']
+            self._last_page_id = sample["page_id"]
 
     def store_extended_prediction(self, data, sample, output_dir, extension):
-        output_dir = os.path.join(output_dir, filename(sample['image_path']))
+        output_dir = os.path.join(output_dir, filename(sample["image_path"]))
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
@@ -333,26 +400,39 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             self._store_page(extension, self._last_page_id)
             self._last_page_id = None
         else:
-            for xml in tqdm(self.params.xmlfiles, desc="Writing PageXML files", total=len(self.params.xmlfiles)):
+            for xml in tqdm(
+                self.params.xmlfiles,
+                desc="Writing PageXML files",
+                total=len(self.params.xmlfiles),
+            ):
                 page = self.pages(split_all_ext(xml)[0])
-                with open(split_all_ext(xml)[0] + extension, 'w', encoding='utf-8') as f:
+                with open(
+                    split_all_ext(xml)[0] + extension, "w", encoding="utf-8"
+                ) as f:
                     f.write(etree.tounicode(page.getroottree(), pretty_print=True))
 
     def _store_page(self, extension, page_id):
         page = self.pages[page_id]
-        with open(split_all_ext(page_id)[0] + extension, 'w', encoding='utf-8') as f:
+        with open(split_all_ext(page_id)[0] + extension, "w", encoding="utf-8") as f:
             f.write(etree.tounicode(page.getroottree(), pretty_print=True))
 
     def _sample_iterator(self):
-        all_samples = zip(self.params.images, self.params.xml_files, range(len(self.params.images)))
+        all_samples = zip(
+            self.params.images, self.params.xml_files, range(len(self.params.images))
+        )
         if self.mode == PipelineMode.TRAINING:
             all_samples = list(all_samples)
             shuffle(all_samples)
         return all_samples
 
     def _load_sample(self, sample, text_only) -> Generator[InputSample, None, None]:
-        loader = PageXMLDatasetLoader(self.mode, self.params.non_existing_as_empty, self.params.text_index,
-                                      self.params.skip_invalid, self.params.skip_commented)
+        loader = PageXMLDatasetLoader(
+            self.mode,
+            self.params.non_existing_as_empty,
+            self.params.text_index,
+            self.params.skip_invalid,
+            self.params.skip_commented,
+        )
         image_path, xml_path, idx = sample
 
         img = None
@@ -370,16 +450,26 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 # rotate by orientation angle in clockwise direction to correct present skew
                 angle = orientation if orientation and orientation % 360 != 0 else 0
 
-                line_img = PageXMLReader.cutout(img, sample['coords'],
-                                                mode=CutMode.POLYGON,
-                                                angle=angle,
-                                                cval=None,
-                                                scale=lx / sample['img_width'])
+                line_img = PageXMLReader.cutout(
+                    img,
+                    sample["coords"],
+                    mode=CutMode.POLYGON,
+                    angle=angle,
+                    cval=None,
+                    scale=lx / sample["img_width"],
+                )
 
                 # add padding as required from normal files
                 if self.params.pad:
-                    img = np.pad(img, self.params.pad, mode='constant', constant_values=img.max(initial=0))
+                    img = np.pad(
+                        img,
+                        self.params.pad,
+                        mode="constant",
+                        constant_values=img.max(initial=0),
+                    )
             else:
                 line_img = None
 
-            yield InputSample(line_img, text, SampleMeta(id=sample['id'], fold_id=fold_id))
+            yield InputSample(
+                line_img, text, SampleMeta(id=sample["id"], fold_id=fold_id)
+            )

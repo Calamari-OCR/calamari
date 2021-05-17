@@ -13,7 +13,7 @@ from calamari_ocr.utils.image import to_uint8
 @dataclass
 class DataRangeProcessorParams(DataProcessorParams):
     @staticmethod
-    def cls() -> Type['ImageProcessor']:
+    def cls() -> Type["ImageProcessor"]:
         return DataRangeProcessor
 
 
@@ -22,6 +22,6 @@ class DataRangeProcessor(ImageProcessor[DataRangeProcessorParams]):
         data = to_uint8(data)
 
         if data.ndim == 3:
-            data = np.mean(data.astype('float32'), axis=2).astype(data.dtype)
+            data = np.mean(data.astype("float32"), axis=2).astype(data.dtype)
 
         return data

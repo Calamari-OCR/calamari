@@ -12,14 +12,17 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, IntVec2D, Layer
 class Conv2DLayerParams(LayerParams):
     @classmethod
     def name_prefix(cls) -> str:
-        return 'conv2d'
+        return "conv2d"
 
     @classmethod
-    def cls(cls) -> Type['Layer']:
+    def cls(cls) -> Type["Layer"]:
         return Conv2DLayer
 
     def downscale(self, size: IntVec2D) -> IntVec2D:
-        return IntVec2D((size.x + self.strides.x - 1) // self.strides.x, (size.y + self.strides.y - 1) // self.strides.y)
+        return IntVec2D(
+            (size.x + self.strides.x - 1) // self.strides.x,
+            (size.y + self.strides.y - 1) // self.strides.y,
+        )
 
     def downscale_factor(self, factor: IntVec2D) -> IntVec2D:
         return IntVec2D(factor.x * self.strides.x, factor.y * self.strides.y)
@@ -29,7 +32,7 @@ class Conv2DLayerParams(LayerParams):
     strides: IntVec2D = field(default_factory=lambda: IntVec2D(1, 1))
 
     padding: str = "same"
-    activation: str = 'relu'
+    activation: str = "relu"
 
 
 class Conv2DLayer(Layer[Conv2DLayerParams]):

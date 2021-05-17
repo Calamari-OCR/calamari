@@ -20,10 +20,14 @@ this_absdir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
 # create necessary directories
 def run_for_single_line(args):
     # lines/network/pretraining as base dir
-    args.base_dir = os.path.join(args.base_dir, "all" if args.n_lines < 0 else str(args.n_lines))
+    args.base_dir = os.path.join(
+        args.base_dir, "all" if args.n_lines < 0 else str(args.n_lines)
+    )
     pretrain_prefix = "scratch"
     if args.weights and len(args.weights) > 0:
-        pretrain_prefix = ",".join([split_all_ext(os.path.basename(path))[0] for path in args.weights])
+        pretrain_prefix = ",".join(
+            [split_all_ext(os.path.basename(path))[0] for path in args.weights]
+        )
 
     args.base_dir = os.path.join(args.base_dir, args.network, pretrain_prefix)
 
@@ -71,22 +75,38 @@ def run_for_single_line(args):
         if not os.path.exists(model):
             raise Exception(f"Expected model at '{model}', but file does not exist")
 
-        for line in run(prefix_run_command([
-                "python3", "-u",
-                predict_script_path,
-                "-j", str(args.num_threads),
-                "--batch_size", str(args.batch_size),
-                "--dump", dump_file,
-                "--files"] + args.eval_files + [
-                ] + (["--verbose"] if args.verbose else []) + [
-                "--checkpoint"] + [model] + [
-                ], args.run, {"threads": args.num_threads}), verbose=args.verbose):
+        for line in run(
+            prefix_run_command(
+                [
+                    "python3",
+                    "-u",
+                    predict_script_path,
+                    "-j",
+                    str(args.num_threads),
+                    "--batch_size",
+                    str(args.batch_size),
+                    "--dump",
+                    dump_file,
+                    "--files",
+                ]
+                + args.eval_files
+                + []
+                + (["--verbose"] if args.verbose else [])
+                + ["--checkpoint"]
+                + [model]
+                + [],
+                args.run,
+                {"threads": args.num_threads},
+            ),
+            verbose=args.verbose,
+        ):
             # Print the output of the thread
             if args.verbose:
                 print(line)
 
     import pickle
-    with open(dump_file, 'rb') as f:
+
+    with open(dump_file, "rb") as f:
         prediction = pickle.load(f)
 
     return prediction
@@ -94,29 +114,57 @@ def run_for_single_line(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--base_dir", type=str, required=True,
-                        help="The base directory where to store all working files")
-    parser.add_argument("--eval_files", type=str, nargs="+", required=True,
-                        help="All files that shall be used for evaluation")
-    parser.add_argument("--n_lines", type=int, default=[-1], nargs="+",
-                        help="Optional argument to specify the number of lines (images) used for training. "
-                             "On default, all available lines will be used.")
-    parser.add_argument("--run", type=str, default=None,
-                        help="An optional command that will receive the train calls. Useful e.g. when using a resource "
-                             "manager such as slurm.")
+    parser.add_argument(
+        "--base_dir",
+        type=str,
+        required=True,
+        help="The base directory where to store all working files",
+    )
+    parser.add_argument(
+        "--eval_files",
+        type=str,
+        nargs="+",
+        required=True,
+        help="All files that shall be used for evaluation",
+    )
+    parser.add_argument(
+        "--n_lines",
+        type=int,
+        default=[-1],
+        nargs="+",
+        help="Optional argument to specify the number of lines (images) used for training. "
+        "On default, all available lines will be used.",
+    )
+    parser.add_argument(
+        "--run",
+        type=str,
+        default=None,
+        help="An optional command that will receive the train calls. Useful e.g. when using a resource "
+        "manager such as slurm.",
+    )
 
-    parser.add_argument("--skip_train", action="store_true",
-                        help="Skip the cross fold training")
-    parser.add_argument("--skip_eval", action="store_true",
-                        help="Skip the cross fold evaluation")
-    parser.add_argument("--verbose", action="store_true",
-                        help="Verbose output")
-    parser.add_argument("--n_confusions", type=int, default=0,
-                        help="Only print n most common confusions. Defaults to 0, use -1 for all.")
-    parser.add_argument("--xlsx_output", type=str,
-                        help="Optionally write a xlsx file with the evaluation results")
+    parser.add_argument(
+        "--skip_train", action="store_true", help="Skip the cross fold training"
+    )
+    parser.add_argument(
+        "--skip_eval", action="store_true", help="Skip the cross fold evaluation"
+    )
+    parser.add_argument("--verbose", action="store_true", help="Verbose output")
+    parser.add_argument(
+        "--n_confusions",
+        type=int,
+        default=0,
+        help="Only print n most common confusions. Defaults to 0, use -1 for all.",
+    )
+    parser.add_argument(
+        "--xlsx_output",
+        type=str,
+        help="Optionally write a xlsx file with the evaluation results",
+    )
 
-    setup_train_args(parser, omit=["early_stopping_best_model_output_dir", "output_dir"])
+    setup_train_args(
+        parser, omit=["early_stopping_best_model_output_dir", "output_dir"]
+    )
 
     args = parser.parse_args()
 
@@ -130,13 +178,21 @@ def main():
     for s_args, n_lines in zip(single_args, args.n_lines):
         s_args.n_lines = n_lines
 
-    predictions = parallel_map(run_for_single_line, single_args, progress_bar=False, processes=len(single_args), use_thread_pool=True)
+    predictions = parallel_map(
+        run_for_single_line,
+        single_args,
+        progress_bar=False,
+        processes=len(single_args),
+        use_thread_pool=True,
+    )
     predictions = list(predictions)
 
-
     # output predictions as csv:
-    header = "lines," + ",".join([str(fold) for fold in range(len(predictions[0]["full"]) - 1)])\
-             + ",avg,std,voted"
+    header = (
+        "lines,"
+        + ",".join([str(fold) for fold in range(len(predictions[0]["full"]) - 1)])
+        + ",avg,std,voted"
+    )
 
     print(header)
 
@@ -145,16 +201,16 @@ def main():
         data = "{}".format(n_lines)
         folds_lers = []
         for fold, pred in prediction.items():
-            if fold == 'voted':
+            if fold == "voted":
                 continue
 
             eval = pred["eval"]
-            data += ",{}".format(eval['avg_ler'])
-            folds_lers.append(eval['avg_ler'])
+            data += ",{}".format(eval["avg_ler"])
+            folds_lers.append(eval["avg_ler"])
 
         data += ",{},{}".format(np.mean(folds_lers), np.std(folds_lers))
-        eval = prediction['voted']["eval"]
-        data += ",{}".format(eval['avg_ler'])
+        eval = prediction["voted"]["eval"]
+        data += ",{}".format(eval["avg_ler"])
 
         print(data)
 
@@ -168,33 +224,37 @@ def main():
 
             for fold, pred in prediction.items():
                 print("FOLD {}".format(fold))
-                print_confusions(pred['eval'], args.n_confusions)
+                print_confusions(pred["eval"], args.n_confusions)
 
     if args.xlsx_output:
         data_list = []
         for prediction_map, n_lines in zip(predictions, args.n_lines):
             prediction = prediction_map["full"]
             for fold, pred in prediction.items():
-                data_list.append({
-                    "prefix": "L{} - Fold{}".format(n_lines, fold),
-                    "results": pred['eval'],
-                    "gt_files": prediction_map['gt_txts'],
-                    "gts": prediction_map['gt'],
-                    "preds": pred['data']
-                })
+                data_list.append(
+                    {
+                        "prefix": "L{} - Fold{}".format(n_lines, fold),
+                        "results": pred["eval"],
+                        "gt_files": prediction_map["gt_txts"],
+                        "gts": prediction_map["gt"],
+                        "preds": pred["data"],
+                    }
+                )
 
-            for voter in ['sequence_voter', 'confidence_voter_default_ctc']:
+            for voter in ["sequence_voter", "confidence_voter_default_ctc"]:
                 pred = prediction[voter]
-                data_list.append({
-                    "prefix": "L{} - {}".format(n_lines, voter[:3]),
-                    "results": pred['eval'],
-                    "gt_files": prediction_map['gt_txts'],
-                    "gts": prediction_map['gt'],
-                    "preds": pred['data']
-                })
+                data_list.append(
+                    {
+                        "prefix": "L{} - {}".format(n_lines, voter[:3]),
+                        "results": pred["eval"],
+                        "gt_files": prediction_map["gt_txts"],
+                        "gts": prediction_map["gt"],
+                        "preds": pred["data"],
+                    }
+                )
 
         write_xlsx(args.xlsx_output, data_list)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

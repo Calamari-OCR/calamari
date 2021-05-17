@@ -5,7 +5,10 @@ from typing import List, Type
 
 from paiargparse import pai_dataclass
 
-from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, CalamariDataGeneratorParams
+from calamari_ocr.ocr.dataset.datareader.base import (
+    CalamariDataGenerator,
+    CalamariDataGeneratorParams,
+)
 from calamari_ocr.ocr.predict.params import Predictions
 from calamari_ocr.utils import split_all_ext, glob_all
 
@@ -25,7 +28,7 @@ class ExtendedPredictionDataParams(CalamariDataGeneratorParams):
         raise NotImplementedError
 
     @staticmethod
-    def cls() -> Type['CalamariDataGenerator']:
+    def cls() -> Type["CalamariDataGenerator"]:
         return ExtendedPredictionDataSet
 
     def __post_init__(self):
@@ -49,26 +52,26 @@ class ExtendedPredictionDataSet(CalamariDataGenerator[ExtendedPredictionDataPara
         raise NotImplementedError
 
     def _load_sample(self, sample, text_only):
-        gt_txt_path = sample['pred_path']
+        gt_txt_path = sample["pred_path"]
         if gt_txt_path is None:
             return None, None
 
-        if gt_txt_path.endswith('.json'):
-            with codecs.open(gt_txt_path, 'r', 'utf-8') as f:
+        if gt_txt_path.endswith(".json"):
+            with codecs.open(gt_txt_path, "r", "utf-8") as f:
                 p = Predictions.from_json(f.read())
-        elif gt_txt_path.endswith('.pred'):
-            with open(gt_txt_path, 'rb') as f:
-                p = Predictions.from_json(zlib.decompress(f.read()).decode('utf-8'))
+        elif gt_txt_path.endswith(".pred"):
+            with open(gt_txt_path, "rb") as f:
+                p = Predictions.from_json(zlib.decompress(f.read()).decode("utf-8"))
 
         if len(p.predictions) == 0:
             return None, None
 
         voted_p = p.predictions[0]
         for vp in p.predictions:
-            if vp.id == 'voted':
+            if vp.id == "voted":
                 voted_p = vp
 
-        sample['best_prediction'] = voted_p
-        sample['predictions'] = p
+        sample["best_prediction"] = voted_p
+        sample["predictions"] = p
 
         return None, voted_p.sentence

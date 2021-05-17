@@ -16,7 +16,9 @@ def default_trainer_params():
     p = CalamariTestScenario.default_trainer_params()
     p.gen.train = Abbyy(
         images=[
-            os.path.join(this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg"),
+            os.path.join(
+                this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg"
+            ),
         ],
     )
     p.gen.val = PageXML(

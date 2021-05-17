@@ -12,25 +12,27 @@ from calamari_ocr.ocr.model.layers.layer import LayerParams, IntVec2D, Layer
 class TransposedConv2DLayerParams(LayerParams):
     @classmethod
     def name_prefix(cls) -> str:
-        return 'tconv2d'
+        return "tconv2d"
 
     @classmethod
-    def cls(cls) -> Type['Layer']:
+    def cls(cls) -> Type["Layer"]:
         return TransposedConv2DLayer
 
     def downscale(self, size: IntVec2D) -> IntVec2D:
         return IntVec2D(size.x * self.strides.x, size.y * self.strides.y)
 
     def downscale_factor(self, size: IntVec2D) -> IntVec2D:
-        return IntVec2D((size.x + self.strides.x - 1) // self.strides.x,
-                        (size.y + self.strides.y - 1) // self.strides.y)
+        return IntVec2D(
+            (size.x + self.strides.x - 1) // self.strides.x,
+            (size.y + self.strides.y - 1) // self.strides.y,
+        )
 
     filters: int = 40
     kernel_size: IntVec2D = field(default_factory=lambda: IntVec2D(3, 3))
     strides: IntVec2D = field(default_factory=lambda: IntVec2D(2, 2))
 
     padding: str = "same"
-    activation: str = 'relu'
+    activation: str = "relu"
 
 
 class TransposedConv2DLayer(Layer[TransposedConv2DLayerParams]):

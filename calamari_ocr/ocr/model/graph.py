@@ -32,40 +32,51 @@ def pad(input_tensors, x_only=False):
     shape = K.shape(input)
     static_shape = input.shape
     if x_only:
-        output = tf.image.pad_to_bounding_box(input, 0, 0,
-                                              (static_shape[1] or K.gather(shape, 1)) + px,
-                                              static_shape[2])
+        output = tf.image.pad_to_bounding_box(
+            input, 0, 0, (static_shape[1] or K.gather(shape, 1)) + px, static_shape[2]
+        )
     else:
-        output = tf.image.pad_to_bounding_box(input, 0, 0,
-                                              (static_shape[1] or K.gather(shape, 1)) + px,
-                                              (static_shape[2] or K.gather(shape, 2)) + py)
+        output = tf.image.pad_to_bounding_box(
+            input,
+            0,
+            0,
+            (static_shape[1] or K.gather(shape, 1)) + px,
+            (static_shape[2] or K.gather(shape, 2)) + py,
+        )
     return output
 
 
 class CalamariGraph(GraphBase[ModelParams]):
-    def __init__(self, params: ModelParams, name='CalamariGraph', **kwargs):
+    def __init__(self, params: ModelParams, name="CalamariGraph", **kwargs):
         super().__init__(params, name=name, **kwargs)
-        assert params.classes > 0, 'non initialized number of classes'
+        assert params.classes > 0, "non initialized number of classes"
 
         self.layer_instances = [l.create() for l in params.layers]
 
         self.reshape = ToInputDimsLayerParams(dims=3).create()
-        self.logits = KL.Dense(params.classes, name='logits')
-        self.softmax = KL.Softmax(name='softmax')
+        self.logits = KL.Dense(params.classes, name="logits")
+        self.softmax = KL.Softmax(name="softmax")
 
     def build_graph(self, inputs, training=None):
         params: ModelParams = self._params
-        input_data = tf.cast(inputs['img'], tf.float32) / 255.0
-        input_sequence_length = K.flatten(inputs['img_len'])
+        input_data = tf.cast(inputs["img"], tf.float32) / 255.0
+        input_sequence_length = K.flatten(inputs["img_len"])
         shape = input_sequence_length, -1
 
         # if concat or conv_T layers are present, we need to pad the input to ensure that possible
         # up-sampling layers work properly
-        require_padding = any([isinstance(l, (ConcatLayerParams, TransposedConv2DLayerParams)) for l in params.layers])
+        require_padding = any(
+            [
+                isinstance(l, (ConcatLayerParams, TransposedConv2DLayerParams))
+                for l in params.layers
+            ]
+        )
         if require_padding:
             s = self._params.compute_max_downscale_factor()
             padding = calculate_padding(input_data, s.to_tuple())
-            padded = KL.Lambda(partial(pad, x_only=True), name='padded_input')([input_data, padding])
+            padded = KL.Lambda(partial(pad, x_only=True), name="padded_input")(
+                [input_data, padding]
+            )
             last_layer_output = padded
         else:
             last_layer_output = input_data
@@ -79,7 +90,7 @@ class CalamariGraph(GraphBase[ModelParams]):
                 last_layer_output = layer(last_layer_output)
 
         lstm_seq_len, lstm_num_features = self._params.compute_downscaled(shape)
-        lstm_seq_len = K.cast(lstm_seq_len, 'int32')
+        lstm_seq_len = K.cast(lstm_seq_len, "int32")
 
         last_layer_output = self.reshape(last_layer_output)
         blank_last_logits = self.logits(last_layer_output)
@@ -88,17 +99,18 @@ class CalamariGraph(GraphBase[ModelParams]):
         logits = tf.roll(blank_last_logits, shift=1, axis=-1)
         softmax = tf.nn.softmax(logits)
 
-        greedy_decoded = ctc.ctc_greedy_decoder(inputs=array_ops.transpose(blank_last_logits, perm=[1, 0, 2]),
-                                                sequence_length=tf.cast(K.flatten(lstm_seq_len),
-                                                                        'int32'))[0][0]
+        greedy_decoded = ctc.ctc_greedy_decoder(
+            inputs=array_ops.transpose(blank_last_logits, perm=[1, 0, 2]),
+            sequence_length=tf.cast(K.flatten(lstm_seq_len), "int32"),
+        )[0][0]
 
         return {
-            'blank_last_logits': blank_last_logits,
-            'blank_last_softmax': blank_last_softmax,
-            'out_len': lstm_seq_len,
-            'logits': logits,
-            'softmax': softmax,
-            'decoded': tf.sparse.to_dense(greedy_decoded, default_value=-1) + 1
+            "blank_last_logits": blank_last_logits,
+            "blank_last_softmax": blank_last_softmax,
+            "out_len": lstm_seq_len,
+            "logits": logits,
+            "softmax": softmax,
+            "decoded": tf.sparse.to_dense(greedy_decoded, default_value=-1) + 1,
         }
 
     @classmethod
@@ -107,6 +119,9 @@ class CalamariGraph(GraphBase[ModelParams]):
             return super().from_config(config)
         except TypeError:
             # convert old format?
-            from calamari_ocr.ocr.savedmodel.migrations.version3to4 import migrate_model_params
-            migrate_model_params(config['params'])
+            from calamari_ocr.ocr.savedmodel.migrations.version3to4 import (
+                migrate_model_params,
+            )
+
+            migrate_model_params(config["params"])
             return super().from_config(config)

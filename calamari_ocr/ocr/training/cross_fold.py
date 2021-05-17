@@ -12,9 +12,14 @@ from calamari_ocr.ocr.dataset.datareader.hdf5 import Hdf5DatasetWriter
 
 
 class CrossFold:
-    def __init__(self, n_folds: int, data_generator_params: CalamariDataGeneratorParams, output_dir: str, progress_bar=True,
-                 ):
-        """ Prepare cross fold training
+    def __init__(
+        self,
+        n_folds: int,
+        data_generator_params: CalamariDataGeneratorParams,
+        output_dir: str,
+        progress_bar=True,
+    ):
+        """Prepare cross fold training
 
         This class creates folds out of the given source files.
         The individual splits are the optionally written to the `output_dir` in a json format.
@@ -38,9 +43,11 @@ class CrossFold:
 
         data_generator = self.data_generator_params.create(PipelineMode.EVALUATION)
         if len(data_generator) == 0:
-            raise ValueError('Empty dataset.')
+            raise ValueError("Empty dataset.")
         if len(data_generator) < self.n_folds:
-            raise ValueError('Less files than folds in the dataset which results in folds without any training example.')
+            raise ValueError(
+                "Less files than folds in the dataset which results in folds without any training example."
+            )
 
         # if a FileDataSet, we can just use the paths of the images
         if isinstance(self.data_generator_params, FileDataParams):
@@ -48,22 +55,32 @@ class CrossFold:
             self.folds = [[] for _ in range(self.n_folds)]
             file_data_gen: FileDataGenerator = data_generator
             for i, sample in enumerate(file_data_gen.samples()):
-                self.folds[i % n_folds].append(sample['image_path'])
+                self.folds[i % n_folds].append(sample["image_path"])
         else:
             self.is_h5_dataset = True
             # else load the data of each fold and write it to hd5 data files
             with ExitStack() as stack:
-                folds = [stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, 'fold{}'.format(i)))) for i in range(self.n_folds)]
-                for i, sample in tqdm_wrapper(enumerate(data_generator.generate()), progress_bar=progress_bar,
-                                              total=len(data_generator), desc="Creating hdf5 files"):
+                folds = [
+                    stack.enter_context(
+                        Hdf5DatasetWriter(
+                            os.path.join(self.output_dir, "fold{}".format(i))
+                        )
+                    )
+                    for i in range(self.n_folds)
+                ]
+                for i, sample in tqdm_wrapper(
+                    enumerate(data_generator.generate()),
+                    progress_bar=progress_bar,
+                    total=len(data_generator),
+                    desc="Creating hdf5 files",
+                ):
                     sample: Sample = sample
                     folds[i % self.n_folds].write(sample.inputs, sample.targets)
 
                 self.folds = [f.files for f in folds]
 
     def train_files(self, fold: int) -> List[str]:
-        """ List the train files of the `fold`
-        """
+        """List the train files of the `fold`"""
         all_files = []
         for fold_id, inputs in enumerate(self.folds):
             if fold_id != fold:
@@ -72,8 +89,7 @@ class CrossFold:
         return all_files
 
     def test_files(self, fold: int) -> List[str]:
-        """ List the test files of the `fold`
-        """
+        """List the test files of the `fold`"""
         for fold_id, inputs in enumerate(self.folds):
             if fold_id == fold:
                 return inputs
@@ -81,7 +97,7 @@ class CrossFold:
         return []
 
     def write_folds_to_json(self, filepath: str):
-        """ Write the fold split to the `filepath` as json.
+        """Write the fold split to the `filepath` as json.
 
         format is for 3 folds:
         {
@@ -93,10 +109,12 @@ class CrossFold:
             "type": FILE (or HDF5)
         }
         """
-        with open(filepath, 'w') as f:
-            json.dump({
-                "isH5": self.is_h5_dataset,
-                "folds": self.folds,
-            }, f, indent=4)
-
-
+        with open(filepath, "w") as f:
+            json.dump(
+                {
+                    "isH5": self.is_h5_dataset,
+                    "folds": self.folds,
+                },
+                f,
+                indent=4,
+            )

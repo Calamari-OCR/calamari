@@ -14,13 +14,13 @@ class FinalPreparationProcessorParams(DataProcessorParams):
     normalize: bool = True
     invert: bool = True
     transpose: bool = True
-    pad: int = field(default=16, metadata=pai_meta(
-        help="Padding (left right) of the line"
-    ))
+    pad: int = field(
+        default=16, metadata=pai_meta(help="Padding (left right) of the line")
+    )
     pad_value: int = 0
 
     @staticmethod
-    def cls() -> Type['ImageProcessor']:
+    def cls() -> Type["ImageProcessor"]:
         return FinalPreparation
 
 
@@ -47,12 +47,22 @@ class FinalPreparation(ImageProcessor[FinalPreparationProcessorParams]):
         if self.params.pad > 0:
             if self.params.transpose:
                 w = data.shape[1]
-                data = np.vstack([np.full((self.params.pad, w, channels), self.params.pad_value), data,
-                                  np.full((self.params.pad, w, channels), self.params.pad_value)])
+                data = np.vstack(
+                    [
+                        np.full((self.params.pad, w, channels), self.params.pad_value),
+                        data,
+                        np.full((self.params.pad, w, channels), self.params.pad_value),
+                    ]
+                )
             else:
                 w = data.shape[0]
-                data = np.hstack([np.full((w, self.params.pad, channels), self.params.pad_value), data,
-                                  np.full((w, self.params.pad, channels), self.params.pad_value)])
+                data = np.hstack(
+                    [
+                        np.full((w, self.params.pad, channels), self.params.pad_value),
+                        data,
+                        np.full((w, self.params.pad, channels), self.params.pad_value),
+                    ]
+                )
 
         data = (data * 255).astype(np.uint8)
 

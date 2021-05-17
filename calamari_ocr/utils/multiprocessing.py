@@ -3,11 +3,11 @@ import time
 import subprocess
 import logging
 import sys
-from threading  import Thread
+from threading import Thread
 from queue import Queue, Empty
 
 
-ON_POSIX = 'posix' in sys.builtin_module_names
+ON_POSIX = "posix" in sys.builtin_module_names
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ def prefix_run_command(command, prefix, args):
 
 
 def enqueue_output(out, queue):
-    for line in iter(out.readline, b''):
+    for line in iter(out.readline, b""):
         queue.put(line)
     out.close()
 
@@ -39,15 +39,28 @@ def run(command, verbose=False):
         logger.info("Executing: {}".format(" ".join(command)))
 
     env = os.environ.copy()
-    env['PYTHONIOENCODING'] = 'utf-8'
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, env=env,
-                               close_fds=ON_POSIX, text=True, bufsize=1, encoding='utf-8')
+    env["PYTHONIOENCODING"] = "utf-8"
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=False,
+        env=env,
+        close_fds=ON_POSIX,
+        text=True,
+        bufsize=1,
+        encoding="utf-8",
+    )
     # Make nonblocking output
     stdout_queue = Queue()
-    stdout_reader = Thread(target=enqueue_output, args=(process.stdout, stdout_queue), daemon=True)
+    stdout_reader = Thread(
+        target=enqueue_output, args=(process.stdout, stdout_queue), daemon=True
+    )
     stdout_reader.start()
     stderr_queue = Queue()
-    stderr_reader = Thread(target=enqueue_output, args=(process.stderr, stderr_queue), daemon=True)
+    stderr_reader = Thread(
+        target=enqueue_output, args=(process.stderr, stderr_queue), daemon=True
+    )
     stderr_reader.start()
     while True:
         try:
@@ -71,4 +84,6 @@ def run(command, verbose=False):
             yield out, err
 
     if process.returncode != 0:
-        raise Exception("Error: Process finished with code {}".format(process.returncode))
+        raise Exception(
+            "Error: Process finished with code {}".format(process.returncode)
+        )

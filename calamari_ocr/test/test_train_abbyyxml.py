@@ -5,8 +5,10 @@ import unittest
 from tensorflow import keras
 
 from calamari_ocr.ocr.dataset.datareader.abbyy.reader import Abbyy
-from calamari_ocr.ocr.training.pipeline_params import CalamariSplitTrainerPipelineParams, \
-    CalamariTrainOnlyPipelineParams
+from calamari_ocr.ocr.training.pipeline_params import (
+    CalamariSplitTrainerPipelineParams,
+    CalamariTrainOnlyPipelineParams,
+)
 from calamari_ocr.scripts.train import main
 from calamari_ocr.test.calamari_test_scenario import CalamariTestScenario
 
@@ -17,16 +19,24 @@ def default_trainer_params(*, with_validation=False, with_split=False, preload=T
     p = CalamariTestScenario.default_trainer_params()
     train = Abbyy(
         images=[
-            os.path.join(this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg"),
+            os.path.join(
+                this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg"
+            ),
         ],
         preload=preload,
     )
     if with_split:
-        p.gen = CalamariSplitTrainerPipelineParams(validation_split_ratio=0.5, train=train)
+        p.gen = CalamariSplitTrainerPipelineParams(
+            validation_split_ratio=0.5, train=train
+        )
     elif with_validation:
         p.gen.val = Abbyy(
-            images=[os.path.join(this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg")],
-            preload=preload
+            images=[
+                os.path.join(
+                    this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg"
+                )
+            ],
+            preload=preload,
         )
         p.gen.train = train
         p.gen.__post_init__()

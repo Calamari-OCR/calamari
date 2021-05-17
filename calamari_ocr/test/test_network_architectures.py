@@ -41,7 +41,9 @@ class TestNetworkArchitectures(unittest.TestCase):
         trainer_params.scenario.model.layers = [
             Conv2DLayerParams(filters=10),
             MaxPool2DLayerParams(),
-            Conv2DLayerParams(filters=20, strides=IntVec2D(2, 2), kernel_size=IntVec2D(4, 4)),
+            Conv2DLayerParams(
+                filters=20, strides=IntVec2D(2, 2), kernel_size=IntVec2D(4, 4)
+            ),
             Conv2DLayerParams(filters=30),
         ]
         with tempfile.TemporaryDirectory() as d:
@@ -82,11 +84,12 @@ class TestNetworkArchitectures(unittest.TestCase):
             MaxPool2DLayerParams(),
             DilatedBlockLayerParams(filters=10),
             TransposedConv2DLayerParams(filters=10),
-            ConcatLayerParams(concat_indices=[1, 4]),  # corresponds to output of first and fourth layer
+            ConcatLayerParams(
+                concat_indices=[1, 4]
+            ),  # corresponds to output of first and fourth layer
             Conv2DLayerParams(filters=10),
             BiLSTMLayerParams(hidden_nodes=10),
         ]
         with tempfile.TemporaryDirectory() as d:
             trainer_params.output_dir = d
             main(trainer_params)
-

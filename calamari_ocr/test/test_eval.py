@@ -18,7 +18,11 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 def predict_args(data) -> PredictArgs:
     p = PredictArgs(
-        checkpoint=[os.path.join(this_dir, "models", f"version{SavedCalamariModel.VERSION}", "0.ckpt")],
+        checkpoint=[
+            os.path.join(
+                this_dir, "models", f"version{SavedCalamariModel.VERSION}", "0.ckpt"
+            )
+        ],
         data=data,
     )
     return p
@@ -36,64 +40,215 @@ class TestValidationTrain(unittest.TestCase):
         keras.backend.clear_session()
 
     def test_prediction_files(self):
-        run_predict(predict_args(data=FileDataParams(
-            images=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")]))
-        )))
-        r = run_eval(eval_args(gt_data=FileDataParams(
-            texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.gt.txt")]))
-        )))
-        self.assertLess(r['avg_ler'], 0.0009, msg='Current best model yields about 0.09% CER')
-        args = eval_args(gt_data=FileDataParams(
-            texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.gt.txt")]))
-        ))
+        run_predict(
+            predict_args(
+                data=FileDataParams(
+                    images=sorted(
+                        glob_all(
+                            [
+                                os.path.join(
+                                    this_dir, "data", "uw3_50lines", "test", "*.png"
+                                )
+                            ]
+                        )
+                    )
+                )
+            )
+        )
+        r = run_eval(
+            eval_args(
+                gt_data=FileDataParams(
+                    texts=sorted(
+                        glob_all(
+                            [
+                                os.path.join(
+                                    this_dir, "data", "uw3_50lines", "test", "*.gt.txt"
+                                )
+                            ]
+                        )
+                    )
+                )
+            )
+        )
+        self.assertLess(
+            r["avg_ler"], 0.0009, msg="Current best model yields about 0.09% CER"
+        )
+        args = eval_args(
+            gt_data=FileDataParams(
+                texts=sorted(
+                    glob_all(
+                        [
+                            os.path.join(
+                                this_dir, "data", "uw3_50lines", "test", "*.gt.txt"
+                            )
+                        ]
+                    )
+                )
+            )
+        )
         with tempfile.TemporaryDirectory() as d:
-            args.xlsx_output = os.path.join(d, 'output.xlsx')
+            args.xlsx_output = os.path.join(d, "output.xlsx")
             run_eval(args)
 
     def test_prediction_files_with_different_extension(self):
-        run_predict(predict_args(data=FileDataParams(
-            pred_extension='.ext-pred.txt',
-            images=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")]))
-        )))
-        r = run_eval(eval_args(gt_data=FileDataParams(
-            pred_extension='.ext-pred.txt',
-            texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.gt.txt")]))
-        )))
-        self.assertLess(r['avg_ler'], 0.0009, msg='Current best model yields about 0.09% CER')
+        run_predict(
+            predict_args(
+                data=FileDataParams(
+                    pred_extension=".ext-pred.txt",
+                    images=sorted(
+                        glob_all(
+                            [
+                                os.path.join(
+                                    this_dir, "data", "uw3_50lines", "test", "*.png"
+                                )
+                            ]
+                        )
+                    ),
+                )
+            )
+        )
+        r = run_eval(
+            eval_args(
+                gt_data=FileDataParams(
+                    pred_extension=".ext-pred.txt",
+                    texts=sorted(
+                        glob_all(
+                            [
+                                os.path.join(
+                                    this_dir, "data", "uw3_50lines", "test", "*.gt.txt"
+                                )
+                            ]
+                        )
+                    ),
+                )
+            )
+        )
+        self.assertLess(
+            r["avg_ler"], 0.0009, msg="Current best model yields about 0.09% CER"
+        )
 
     def test_prediction_files_with_different_sources(self):
-        run_predict(predict_args(data=FileDataParams(
-            pred_extension='.ext-pred.txt',
-            images=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")]))
-        )))
-        r = run_eval(eval_args(gt_data=FileDataParams(
-            texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.gt.txt")]))
-        ), pred_data=FileDataParams(
-            texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.ext-pred.txt")]))
-        )))
-        self.assertLess(r['avg_ler'], 0.0009, msg='Current best model yields about 0.09% CER')
+        run_predict(
+            predict_args(
+                data=FileDataParams(
+                    pred_extension=".ext-pred.txt",
+                    images=sorted(
+                        glob_all(
+                            [
+                                os.path.join(
+                                    this_dir, "data", "uw3_50lines", "test", "*.png"
+                                )
+                            ]
+                        )
+                    ),
+                )
+            )
+        )
+        r = run_eval(
+            eval_args(
+                gt_data=FileDataParams(
+                    texts=sorted(
+                        glob_all(
+                            [
+                                os.path.join(
+                                    this_dir, "data", "uw3_50lines", "test", "*.gt.txt"
+                                )
+                            ]
+                        )
+                    )
+                ),
+                pred_data=FileDataParams(
+                    texts=sorted(
+                        glob_all(
+                            [
+                                os.path.join(
+                                    this_dir,
+                                    "data",
+                                    "uw3_50lines",
+                                    "test",
+                                    "*.ext-pred.txt",
+                                )
+                            ]
+                        )
+                    )
+                ),
+            )
+        )
+        self.assertLess(
+            r["avg_ler"], 0.0009, msg="Current best model yields about 0.09% CER"
+        )
 
     def test_prediction_pagexml(self):
-        run_predict(predict_args(data=PageXML(
-            images=[os.path.join(this_dir, "data", "avicanon_pagexml", "008.nrm.png")],
-        )))
-        run_eval(eval_args(gt_data=PageXML(
-            xml_files=[os.path.join(this_dir, "data", "avicanon_pagexml", "008.xml")],
-        )))
+        run_predict(
+            predict_args(
+                data=PageXML(
+                    images=[
+                        os.path.join(
+                            this_dir, "data", "avicanon_pagexml", "008.nrm.png"
+                        )
+                    ],
+                )
+            )
+        )
+        run_eval(
+            eval_args(
+                gt_data=PageXML(
+                    xml_files=[
+                        os.path.join(this_dir, "data", "avicanon_pagexml", "008.xml")
+                    ],
+                )
+            )
+        )
 
     def test_prediction_abbyy(self):
-        run_predict(predict_args(data=Abbyy(
-            images=[os.path.join(this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.jpg")],
-        )))
-        run_eval(eval_args(gt_data=Abbyy(
-            xml_files=[os.path.join(this_dir, "data", "hiltl_die_bank_des_verderbens_abbyyxml", "*.abbyy.xml")],
-        )))
+        run_predict(
+            predict_args(
+                data=Abbyy(
+                    images=[
+                        os.path.join(
+                            this_dir,
+                            "data",
+                            "hiltl_die_bank_des_verderbens_abbyyxml",
+                            "*.jpg",
+                        )
+                    ],
+                )
+            )
+        )
+        run_eval(
+            eval_args(
+                gt_data=Abbyy(
+                    xml_files=[
+                        os.path.join(
+                            this_dir,
+                            "data",
+                            "hiltl_die_bank_des_verderbens_abbyyxml",
+                            "*.abbyy.xml",
+                        )
+                    ],
+                )
+            )
+        )
 
     def test_prediction_hdf5(self):
-        run_predict(predict_args(data=Hdf5(
-            files=[os.path.join(this_dir, "data", "uw3_50lines", "uw3-50lines.h5")],
-        )))
-        r = run_eval(eval_args(gt_data=Hdf5(
-            files=[os.path.join(this_dir, "data", "uw3_50lines", "uw3-50lines.h5")],
-        )))
-        self.assertLess(r['avg_ler'], 0.006, msg='Current best model yields about 0.55% CER')
+        run_predict(
+            predict_args(
+                data=Hdf5(
+                    files=[
+                        os.path.join(this_dir, "data", "uw3_50lines", "uw3-50lines.h5")
+                    ],
+                )
+            )
+        )
+        r = run_eval(
+            eval_args(
+                gt_data=Hdf5(
+                    files=[
+                        os.path.join(this_dir, "data", "uw3_50lines", "uw3-50lines.h5")
+                    ],
+                )
+            )
+        )
+        self.assertLess(
+            r["avg_ler"], 0.006, msg="Current best model yields about 0.55% CER"
+        )

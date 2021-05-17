@@ -5,10 +5,20 @@ from multiprocessing import Process, Queue, Manager
 import numpy as np
 from tfaip.data.pipeline.definitions import PipelineMode
 
-from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGenerator, InputSample, SampleMeta
-from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.params import GeneratedLineDatasetParams
-from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.line_generator import LineGenerator
-from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.text_generation.text_generator import TextGenerator
+from calamari_ocr.ocr.dataset.datareader.base import (
+    CalamariDataGenerator,
+    InputSample,
+    SampleMeta,
+)
+from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.params import (
+    GeneratedLineDatasetParams,
+)
+from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.line_generator import (
+    LineGenerator,
+)
+from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.text_generation.text_generator import (
+    TextGenerator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +36,9 @@ class LineGeneratorProcess(Process):
         try:
             words = self.text_generator.generate()
             image = self.line_generator.draw(words) if not self.text_only else None
-            self.output_queue.put((image, TextGenerator.words_to_unformatted_text(words)))
+            self.output_queue.put(
+                (image, TextGenerator.words_to_unformatted_text(words))
+            )
         except ValueError as e:
             logger.exception(e)
             raise
@@ -43,18 +55,21 @@ class LineGeneratorProcess(Process):
 
 
 class GeneratedLineDataset(CalamariDataGenerator[GeneratedLineDatasetParams]):
-    def __init__(self,
-                 mode: PipelineMode,
-                 params: GeneratedLineDatasetParams,
-                 ):
-        """ Create a dataset from memory
+    def __init__(
+        self,
+        mode: PipelineMode,
+        params: GeneratedLineDatasetParams,
+    ):
+        """Create a dataset from memory
         Since this dataset already contains all data in the memory, this dataset may not be loaded
         Parameters
         ----------
         """
         super().__init__(mode, params)
 
-        self._samples = [{'id': '{}'.format(i)} for i in range(self.params.lines_per_epoch)]
+        self._samples = [
+            {"id": "{}".format(i)} for i in range(self.params.lines_per_epoch)
+        ]
         self.text_generator_params = self.params.text_generator
         self.line_generator_params = self.params.line_generator
         self.manager = Manager()
@@ -65,7 +80,8 @@ class GeneratedLineDataset(CalamariDataGenerator[GeneratedLineDatasetParams]):
                 self.text_generator_params,
                 self.line_generator_params,
                 "{}".format(i),
-            ) for i in range(8)
+            )
+            for i in range(8)
         ]
         for d in self.data_generators:
             d.start()
@@ -75,13 +91,17 @@ class GeneratedLineDataset(CalamariDataGenerator[GeneratedLineDatasetParams]):
 
     def _load_sample(self, sample, text_only):
         image, text = self.data_queue.get()
-        fold_id = -1 if self.params.n_folds <= 0 else np.random.randint(self.params.n_folds)
-        yield InputSample(image, text, SampleMeta(id=sample['id'], fold_id=fold_id))
+        fold_id = (
+            -1 if self.params.n_folds <= 0 else np.random.randint(self.params.n_folds)
+        )
+        yield InputSample(image, text, SampleMeta(id=sample["id"], fold_id=fold_id))
 
 
 if __name__ == "__main__":
-    from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.params import TextGeneratorParams, \
-        LineGeneratorParams
+    from calamari_ocr.ocr.dataset.datareader.generated_line_dataset.params import (
+        TextGeneratorParams,
+        LineGeneratorParams,
+    )
 
     params = TextGeneratorParams()
     params.word_length_mean = 11
@@ -118,9 +138,9 @@ if __name__ == "__main__":
             font_size=48,
             min_script_offset=-0.5,
             max_script_offset=0.5,
-            fonts=['Junicode.ttf', 'DejaVuSerif.ttf']
+            fonts=["Junicode.ttf", "DejaVuSerif.ttf"],
         ),
-        text_generator=params
+        text_generator=params,
     ).create(PipelineMode.TRAINING)
 
     import matplotlib.pyplot as plt

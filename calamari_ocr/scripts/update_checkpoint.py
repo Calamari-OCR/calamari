@@ -12,8 +12,8 @@ logging.basicConfig(level=logging.INFO)
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--checkpoints', nargs='+', type=str, required=True)
-    parser.add_argument('--dry_run', action='store_true')
+    parser.add_argument("--checkpoints", nargs="+", type=str, required=True)
+    parser.add_argument("--dry_run", action="store_true")
 
     args = parser.parse_args()
 
@@ -22,5 +22,5 @@ def main():
         SavedCalamariModel(ckpt, dry_run=args.dry_run)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

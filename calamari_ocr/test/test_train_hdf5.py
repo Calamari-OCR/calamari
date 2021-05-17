@@ -23,7 +23,7 @@ def default_trainer_params(with_validation=False, preload=True):
     if with_validation:
         p.gen.val = Hdf5(
             files=[os.path.join(this_dir, "data", "uw3_50lines", "uw3-50lines.h5")],
-            preload=preload
+            preload=preload,
         )
         p.gen.train = train
         p.gen.__post_init__()

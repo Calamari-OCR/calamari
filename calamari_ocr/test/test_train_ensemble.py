@@ -19,7 +19,9 @@ def setup_trainer_params(preload=True, debug=False):
     p.force_eager = debug
 
     p.gen.train = FileDataParams(
-        images=glob_all([os.path.join(this_dir, "data", "uw3_50lines", "train", "*.png")]),
+        images=glob_all(
+            [os.path.join(this_dir, "data", "uw3_50lines", "train", "*.png")]
+        ),
         preload=preload,
     )
 

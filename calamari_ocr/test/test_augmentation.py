@@ -10,7 +10,7 @@ from calamari_ocr.test.test_train_file import uw3_trainer_params
 
 def default_trainer_params(*, with_validation=False, with_split=False, preload=True):
     p = uw3_trainer_params(with_validation=with_validation, with_split=with_split)
-    if hasattr(p.gen, 'val'):
+    if hasattr(p.gen, "val"):
         p.gen.val.preload = preload
     p.gen.train.preload = preload
     for dp in p.scenario.data.pre_proc.processors_of_type(AugmentationProcessorParams):

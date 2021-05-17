@@ -23,7 +23,7 @@ class LayerParams(ABC):
 
     @classmethod
     @abstractmethod
-    def cls(cls) -> Type['Layer']:
+    def cls(cls) -> Type["Layer"]:
         raise NotImplementedError
 
     @classmethod
@@ -31,7 +31,7 @@ class LayerParams(ABC):
     def name_prefix(cls) -> str:
         raise NotImplementedError
 
-    def create(self) -> 'Layer':
+    def create(self) -> "Layer":
         return self.cls()(self)
 
     def downscale(self, size: IntVec2D) -> IntVec2D:

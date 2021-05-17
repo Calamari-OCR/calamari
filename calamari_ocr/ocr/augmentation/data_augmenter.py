@@ -14,14 +14,14 @@ from calamari_ocr.utils.image import load_image
 class DataAugmenterParams(ABC):
     @classmethod
     @abstractmethod
-    def cls(cls) -> Type['DataAugmenterBase']:
+    def cls(cls) -> Type["DataAugmenterBase"]:
         raise NotImplementedError
 
-    def create(self) -> 'DataAugmenterBase':
+    def create(self) -> "DataAugmenterBase":
         return self.cls()(self)
 
 
-TDataAugParams = TypeVar('TDataAugParams', bound=DataAugmenterParams)
+TDataAugParams = TypeVar("TDataAugParams", bound=DataAugmenterParams)
 
 
 class DataAugmenterBase(Generic[TDataAugParams], ABC):
@@ -42,15 +42,22 @@ class DataAugmenterBase(Generic[TDataAugParams], ABC):
     def augment_data_tuple(self, t):
         return self.augment_data(*t)
 
-    def augment_datas(self, datas, gt_txts, n_augmentations, processes=1, progress_bar=False):
+    def augment_datas(
+        self, datas, gt_txts, n_augmentations, processes=1, progress_bar=False
+    ):
         if n_augmentations < 0 or not isinstance(n_augmentations, int):
             raise ValueError("Number of augmentation must be an integer >= 0")
 
         if n_augmentations == 0:
             return datas, gt_txts
 
-        out = parallel_map(self.augment_data_tuple, list(zip(datas, gt_txts, [n_augmentations] * len(datas))),
-                           desc="Augmentation", processes=processes, progress_bar=progress_bar)
+        out = parallel_map(
+            self.augment_data_tuple,
+            list(zip(datas, gt_txts, [n_augmentations] * len(datas))),
+            desc="Augmentation",
+            processes=processes,
+            progress_bar=progress_bar,
+        )
         out_d, out_t = type(datas)(), type(datas)()
         for d, t in out:
             out_d += d
@@ -63,13 +70,14 @@ class DataAugmenterBase(Generic[TDataAugParams], ABC):
 @dataclass
 class DefaultDataAugmenterParams(DataAugmenterParams):
     @classmethod
-    def cls(cls) -> Type['DataAugmenterBase']:
+    def cls(cls) -> Type["DataAugmenterBase"]:
         return DefaultDataAugmenter
 
 
 class DefaultDataAugmenter(DataAugmenterBase[DefaultDataAugmenterParams]):
     def augment_single(self, data, gt_txt):
         import calamari_ocr.thirdparty.ocrodeg as ocrodeg
+
         original_dtype = data.dtype
         data = data.astype(np.float)
         m = data.max()
@@ -85,14 +93,17 @@ class DefaultDataAugmenter(DataAugmenterBase[DefaultDataAugmenterParams]):
         return data, gt_txt
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     aug = DefaultDataAugmenterParams().create()
-    img = 255 - np.mean(load_image("../../test/data/uw3_50lines/train/010001.bin.png")[:, :, 0:2], axis=-1)
-    aug_img = [aug.augment_single(img.T, '')[0].T for _ in range(4)]
+    img = 255 - np.mean(
+        load_image("../../test/data/uw3_50lines/train/010001.bin.png")[:, :, 0:2],
+        axis=-1,
+    )
+    aug_img = [aug.augment_single(img.T, "")[0].T for _ in range(4)]
     f, ax = plt.subplots(5, 1)
-    ax[0].imshow(255 - img, cmap='gray')
+    ax[0].imshow(255 - img, cmap="gray")
     for i, x in enumerate(aug_img):
-        ax[i + 1].imshow(255 - x, cmap='gray')
+        ax[i + 1].imshow(255 - x, cmap="gray")
     plt.show()

@@ -17,7 +17,7 @@ def run():
     main(parse_args())
 
 
-def main(trainer_params: 'TrainerParams') -> Dict[str, AnyNumpy]:
+def main(trainer_params: "TrainerParams") -> Dict[str, AnyNumpy]:
     with ExitStack() as stack:
         if trainer_params.output_dir:
             stack.enter_context(WriteToLogFile(trainer_params.output_dir, append=False))
@@ -31,14 +31,19 @@ def main(trainer_params: 'TrainerParams') -> Dict[str, AnyNumpy]:
 
 def parse_args(args=None):
     from calamari_ocr.ocr.scenario import CalamariScenario
+
     parser = PAIArgumentParser()
-    parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
+    parser.add_argument(
+        "--version", action="version", version="%(prog)s v" + __version__
+    )
 
     default_trainer_params = CalamariScenario.default_trainer_params()
-    parser.add_root_argument('trainer', default_trainer_params.__class__, default=default_trainer_params)
+    parser.add_root_argument(
+        "trainer", default_trainer_params.__class__, default=default_trainer_params
+    )
 
     return parser.parse_args(args).trainer
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()

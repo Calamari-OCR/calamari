@@ -6,7 +6,7 @@ class Sync:
         self.texts = texts
 
         if substr:
-            assert(substr.shape[0] == len(self.texts))
+            assert substr.shape[0] == len(self.texts)
             self.substr = substr
         else:
             self.substr = np.zeros((len(texts), 3), dtype=int)
@@ -17,7 +17,10 @@ class Sync:
         return str(self.substr)
 
     def get_text(self):
-        return [self.texts[i][start:start+length] for i, (start, end, length) in enumerate(self.substr)]
+        return [
+            self.texts[i][start : start + length]
+            for i, (start, end, length) in enumerate(self.substr)
+        ]
 
     def is_valid(self):
         return np.any(self.substr[:, 2] > 0)
@@ -106,8 +109,15 @@ def synchronize(texts):
         start[0] = sync.start(0)
         length = sync.length(0)
         for i, text in enumerate(texts[1:], 1):
-            length, new_start, start[i] = longest_match(0, texts[0], start[0], start[0] + length - 1,
-                                                        text, sync.start(i), sync.stop(i))
+            length, new_start, start[i] = longest_match(
+                0,
+                texts[0],
+                start[0],
+                start[0] + length - 1,
+                text,
+                sync.start(i),
+                sync.stop(i),
+            )
 
             if length == 0:
                 return

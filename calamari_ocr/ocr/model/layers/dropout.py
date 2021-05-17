@@ -7,15 +7,15 @@ from tensorflow import keras
 from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 
 
-@pai_dataclass(alt='Dropout')
+@pai_dataclass(alt="Dropout")
 @dataclass
 class DropoutLayerParams(LayerParams):
     @classmethod
     def name_prefix(cls) -> str:
-        return 'dropout'
+        return "dropout"
 
     @classmethod
-    def cls(cls) -> Type['Layer']:
+    def cls(cls) -> Type["Layer"]:
         return DropoutLayer
 
     rate: float = 0.5

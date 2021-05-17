@@ -16,25 +16,45 @@ from calamari_ocr import __version__
 @pai_dataclass
 @dataclass
 class PredictAndEvalArgs:
-    checkpoint: List[str] = field(metadata=pai_meta(
-        mode='flat', nargs="+", help="Path to the checkpoint without file extension"))
-    dump: Optional[str] = field(default=None, metadata=pai_meta(
-        mode='flat', help="Dump the output as serialized pickle object"))
-    output_individual_voters: bool = field(default=False, metadata=pai_meta(
-        mode='flat'))
-    n_confusions: int = field(default=10, metadata=pai_meta(
-        mode='flat', help="Only print n most common confusions. Defaults to 10, use -1 for all."))
-    data: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
-        mode="flat", help="Input data", choices=DATA_GENERATOR_CHOICES))
-    predictor: PredictorParams = field(default_factory=PredictorParams, metadata=pai_meta(
-        mode="flat", help="Predictor data"))
-    skip_empty_gt: bool = field(default=False, metadata=pai_meta(
-        mode='flat', help="Do not evaluate if the GT is empty"
-    ))
+    checkpoint: List[str] = field(
+        metadata=pai_meta(
+            mode="flat", nargs="+", help="Path to the checkpoint without file extension"
+        )
+    )
+    dump: Optional[str] = field(
+        default=None,
+        metadata=pai_meta(
+            mode="flat", help="Dump the output as serialized pickle object"
+        ),
+    )
+    output_individual_voters: bool = field(
+        default=False, metadata=pai_meta(mode="flat")
+    )
+    n_confusions: int = field(
+        default=10,
+        metadata=pai_meta(
+            mode="flat",
+            help="Only print n most common confusions. Defaults to 10, use -1 for all.",
+        ),
+    )
+    data: CalamariDataGeneratorParams = field(
+        default_factory=FileDataParams,
+        metadata=pai_meta(
+            mode="flat", help="Input data", choices=DATA_GENERATOR_CHOICES
+        ),
+    )
+    predictor: PredictorParams = field(
+        default_factory=PredictorParams,
+        metadata=pai_meta(mode="flat", help="Predictor data"),
+    )
+    skip_empty_gt: bool = field(
+        default=False,
+        metadata=pai_meta(mode="flat", help="Do not evaluate if the GT is empty"),
+    )
 
     def __post_init__(self):
-        assert (self.data is not None)
-        assert (len(self.checkpoint) > 0)
+        assert self.data is not None
+        assert len(self.checkpoint) > 0
 
 
 def run():
@@ -45,7 +65,9 @@ def parse_args(args=None):
     parser = PAIArgumentParser()
 
     # GENERAL/SHARED PARAMETERS
-    parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
+    parser.add_argument(
+        "--version", action="version", version="%(prog)s v" + __version__
+    )
     parser.add_root_argument("args", PredictAndEvalArgs)
     return parser.parse_args(args=args).args
 
@@ -53,14 +75,20 @@ def parse_args(args=None):
 def main(args: PredictAndEvalArgs):
     # allow user to specify json file for model definition, but remove the file extension
     # for further processing
-    args.checkpoint = [(cp if cp.endswith(".json") else cp + ".json") for cp in args.checkpoint]
+    args.checkpoint = [
+        (cp if cp.endswith(".json") else cp + ".json") for cp in args.checkpoint
+    ]
     args.checkpoint = glob_all(args.checkpoint)
     args.checkpoint = [cp[:-5] for cp in args.checkpoint]
 
     from calamari_ocr.ocr.predict.predictor import MultiPredictor
+
     voter_params = VoterParams()
-    predictor = MultiPredictor.from_paths(checkpoints=args.checkpoint, voter_params=voter_params,
-                                          predictor_params=args.predictor)
+    predictor = MultiPredictor.from_paths(
+        checkpoints=args.checkpoint,
+        voter_params=voter_params,
+        predictor_params=args.predictor,
+    )
     do_prediction = predictor.predict(args.data)
 
     all_voter_sentences = {}
@@ -73,24 +101,37 @@ def main(args: PredictAndEvalArgs):
             for i, p in enumerate(prediction.voter_predictions):
                 if i not in all_prediction_sentences:
                     all_prediction_sentences[i] = {}
-                all_prediction_sentences[i][s.meta['id']] = p.sentence
-        all_voter_sentences[s.meta['id']] = sentence
+                all_prediction_sentences[i][s.meta["id"]] = p.sentence
+        all_voter_sentences[s.meta["id"]] = sentence
 
     # evaluation
     from calamari_ocr.ocr.evaluator import Evaluator, EvaluatorParams
-    evaluator_params = EvaluatorParams(setup=args.predictor.pipeline, progress_bar=args.predictor.progress_bar, skip_empty_gt=args.skip_empty_gt)
+
+    evaluator_params = EvaluatorParams(
+        setup=args.predictor.pipeline,
+        progress_bar=args.predictor.progress_bar,
+        skip_empty_gt=args.skip_empty_gt,
+    )
     evaluator = Evaluator(evaluator_params, predictor.data)
     evaluator.preload_gt(gt_dataset=args.data, progress_bar=True)
 
     def single_evaluation(label, predicted_sentences):
-        r = evaluator.evaluate(gt_data=evaluator.preloaded_gt, pred_data=predicted_sentences)
+        r = evaluator.evaluate(
+            gt_data=evaluator.preloaded_gt, pred_data=predicted_sentences
+        )
 
         print("=================")
         print(f"Evaluation result of {label}")
         print("=================")
         print("")
-        print("Got mean normalized label error rate of {:.2%} ({} errs, {} total chars, {} sync errs)".format(
-            r["avg_ler"], r["total_char_errs"], r["total_chars"], r["total_sync_errs"]))
+        print(
+            "Got mean normalized label error rate of {:.2%} ({} errs, {} total chars, {} sync errs)".format(
+                r["avg_ler"],
+                r["total_char_errs"],
+                r["total_chars"],
+                r["total_sync_errs"],
+            )
+        )
         print()
         print()
 
@@ -100,7 +141,9 @@ def main(args: PredictAndEvalArgs):
         return r
 
     full_evaluation = {}
-    for id, data in [(str(i), sent) for i, sent in all_prediction_sentences.items()] + [('voted', all_voter_sentences)]:
+    for id, data in [(str(i), sent) for i, sent in all_prediction_sentences.items()] + [
+        ("voted", all_voter_sentences)
+    ]:
         full_evaluation[id] = {"eval": single_evaluation(id, data), "data": data}
 
     if not args.predictor.silent:
@@ -108,7 +151,8 @@ def main(args: PredictAndEvalArgs):
 
     if args.dump:
         import pickle
-        with open(args.dump, 'wb') as f:
+
+        with open(args.dump, "wb") as f:
             pickle.dump({"full": full_evaluation, "gt": evaluator.preloaded_gt}, f)
 
     return full_evaluation

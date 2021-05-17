@@ -21,24 +21,33 @@ from calamari_ocr.utils.output_to_input_transformer import OutputToInputTransfor
 
 class Predictor(tfaip_cls.Predictor):
     @staticmethod
-    def from_checkpoint(params: PredictorParams, checkpoint: str, auto_update_checkpoints=True):
+    def from_checkpoint(
+        params: PredictorParams, checkpoint: str, auto_update_checkpoints=True
+    ):
         DeviceConfig(params.device)  # Device must be specified first
         ckpt = SavedCalamariModel(checkpoint, auto_update=auto_update_checkpoints)
         scenario_params = CalamariScenario.params_from_dict(ckpt.dict)
         scenario = CalamariScenario(scenario_params)
         predictor = Predictor(params, scenario.create_data())
-        predictor.set_model(keras.models.load_model(ckpt.ckpt_path + '.h5', custom_objects=CalamariScenario.model_cls().all_custom_objects()))
+        predictor.set_model(
+            keras.models.load_model(
+                ckpt.ckpt_path + ".h5",
+                custom_objects=CalamariScenario.model_cls().all_custom_objects(),
+            )
+        )
         return predictor
 
 
 class MultiPredictor(tfaip_cls.MultiModelPredictor):
     @classmethod
-    def from_paths(cls, checkpoints: List[str],
-                   auto_update_checkpoints=True,
-                   predictor_params: PredictorParams = None,
-                   voter_params: VoterParams = None,
-                   **kwargs
-                   ) -> 'tfaip_cls.MultiModelPredictor':
+    def from_paths(
+        cls,
+        checkpoints: List[str],
+        auto_update_checkpoints=True,
+        predictor_params: PredictorParams = None,
+        voter_params: VoterParams = None,
+        **kwargs,
+    ) -> "tfaip_cls.MultiModelPredictor":
         if not checkpoints:
             raise Exception("No checkpoints provided.")
 
@@ -46,13 +55,16 @@ class MultiPredictor(tfaip_cls.MultiModelPredictor):
             predictor_params = PredictorParams(silent=True, progress_bar=True)
 
         DeviceConfig(predictor_params.device)
-        checkpoints = [SavedCalamariModel(ckpt, auto_update=auto_update_checkpoints) for ckpt in checkpoints]
+        checkpoints = [
+            SavedCalamariModel(ckpt, auto_update=auto_update_checkpoints)
+            for ckpt in checkpoints
+        ]
         multi_predictor = super(MultiPredictor, cls).from_paths(
             [ckpt.json_path for ckpt in checkpoints],
             predictor_params,
             CalamariScenario,
-            model_paths=[ckpt.ckpt_path + '.h5' for ckpt in checkpoints],
-            predictor_args={'voter_params': voter_params},
+            model_paths=[ckpt.ckpt_path + ".h5" for ckpt in checkpoints],
+            predictor_args={"voter_params": voter_params},
         )
 
         return multi_predictor
@@ -61,11 +73,18 @@ class MultiPredictor(tfaip_cls.MultiModelPredictor):
         super(MultiPredictor, self).__init__(*args, **kwargs)
         self.voter_params = voter_params or VoterParams()
 
-    def create_voter(self, data_params: 'DataParams') -> MultiModelVoter:
+    def create_voter(self, data_params: "DataParams") -> MultiModelVoter:
         # Cut non text processors (first two)
         pipeline = self.data.create_pipeline(self.params.pipeline, None)
-        post_proc_params = [SequentialProcessorPipelineParams(run_parallel=False, processors=data.params.post_proc.processors[2:]) for data in self.datas]
+        post_proc_params = [
+            SequentialProcessorPipelineParams(
+                run_parallel=False, processors=data.params.post_proc.processors[2:]
+            )
+            for data in self.datas
+        ]
         post_proc = [p.create(pipeline) for p in post_proc_params]
         pre_proc = self.data.params.pre_proc.create(pipeline)
         out_to_in_transformer = OutputToInputTransformer(pre_proc)
-        return CalamariMultiModelVoter(self.voter_params, self.datas, post_proc, out_to_in_transformer)
+        return CalamariMultiModelVoter(
+            self.voter_params, self.datas, post_proc, out_to_in_transformer
+        )

@@ -13,15 +13,27 @@ from calamari_ocr.ocr.model.graph import Graph
 
 def split(args):
     ckpt = SavedCalamariModel(args.model)
-    keras_model = keras.models.load_model(ckpt.ckpt_path + '.h5', custom_objects={
-        'Graph': Graph, 'EnsembleGraph': EnsembleGraph, 'VoterGraph': EnsembleGraph})
+    keras_model = keras.models.load_model(
+        ckpt.ckpt_path + ".h5",
+        custom_objects={
+            "Graph": Graph,
+            "EnsembleGraph": EnsembleGraph,
+            "VoterGraph": EnsembleGraph,
+        },
+    )
 
     def extract_keras_model(i):
         inputs = keras_model.input
         outputs = keras_model.output
-        assert(isinstance(outputs, dict))
-        assert(isinstance(inputs, dict))
-        names_to_extract = ['blank_last_logits', 'blank_last_softmax', 'softmax', 'decoded', 'out_len']
+        assert isinstance(outputs, dict)
+        assert isinstance(inputs, dict)
+        names_to_extract = [
+            "blank_last_logits",
+            "blank_last_softmax",
+            "softmax",
+            "decoded",
+            "out_len",
+        ]
         split_outputs = {}
         for name in names_to_extract:
             src_name = f"{name}_{i}"
@@ -44,28 +56,28 @@ def split(args):
 
     with open(ckpt.json_path) as f:
         ckpt_dict = json.load(f)
-        ckpt_dict['scenario_params']['model_params']['ensemble'] = -1
-        ckpt_dict['scenario_params']['data_params']['ensemble_'] = -1
+        ckpt_dict["scenario_params"]["model_params"]["ensemble"] = -1
+        ckpt_dict["scenario_params"]["data_params"]["ensemble_"] = -1
 
     for i, split_model in enumerate(split_models):
         path = os.path.join(ckpt.dirname, f"{ckpt.basename}_split_{i}.ckpt")
-        with open(path + '.json', 'w') as f:
+        with open(path + ".json", "w") as f:
             json.dump(ckpt_dict, f, indent=2)
-        split_model.save(path + '.h5')
+        split_model.save(path + ".h5")
         print(f"Saved {i + 1}/{len(split_models)}")
 
 
 def main():
     parser = ArgumentParser()
-    sub_parser = parser.add_subparsers(title="Program mode", required=True, dest='mode')
+    sub_parser = parser.add_subparsers(title="Program mode", required=True, dest="mode")
     split_parser = sub_parser.add_parser("split")
     split_parser.add_argument("model")
 
     args = parser.parse_args()
 
-    if args.mode == 'split':
+    if args.mode == "split":
         split(args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

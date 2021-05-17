@@ -11,7 +11,10 @@ from calamari_ocr import __version__
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.dataset.params import DATA_GENERATOR_CHOICES
-from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import CTCDecoderParams, CTCDecoderType
+from calamari_ocr.ocr.model.ctcdecoder.ctc_decoder import (
+    CTCDecoderParams,
+    CTCDecoderType,
+)
 from calamari_ocr.ocr.predict.params import Predictions, PredictorParams
 from calamari_ocr.ocr.voting import VoterParams
 from calamari_ocr.utils.glob import glob_all
@@ -25,30 +28,55 @@ logger = tfaip.util.logging.logger(__name__)
 @pai_dataclass
 @dataclass
 class PredictArgs:
-    checkpoint: List[str] = field(metadata=pai_meta(
-        mode='flat',
-        help="Path to the checkpoint without file extension"))
-    data: CalamariDataGeneratorParams = field(default_factory=FileDataParams, metadata=pai_meta(
-        mode='flat', choices=DATA_GENERATOR_CHOICES))
-    verbose: bool = field(default=True, metadata=pai_meta(
-        mode='flat',
-        help='Print the prediction result to the log',
-    ))
-    extended_prediction_data: bool = field(default=False, metadata=pai_meta(
-        mode='flat',
-        help="Write: Predicted string, labels; position, probabilities and alternatives of chars to a .pred file"))
-    extended_prediction_data_format: str = field(default='json', metadata=pai_meta(
-        mode='flat',
-        help="Extension format: Either pred or json. Note that json will not print logits."))
-    ctc_decoder: CTCDecoderParams = field(default_factory=CTCDecoderParams, metadata=pai_meta(mode='ignore'))
+    checkpoint: List[str] = field(
+        metadata=pai_meta(
+            mode="flat", help="Path to the checkpoint without file extension"
+        )
+    )
+    data: CalamariDataGeneratorParams = field(
+        default_factory=FileDataParams,
+        metadata=pai_meta(mode="flat", choices=DATA_GENERATOR_CHOICES),
+    )
+    verbose: bool = field(
+        default=True,
+        metadata=pai_meta(
+            mode="flat",
+            help="Print the prediction result to the log",
+        ),
+    )
+    extended_prediction_data: bool = field(
+        default=False,
+        metadata=pai_meta(
+            mode="flat",
+            help="Write: Predicted string, labels; position, probabilities and alternatives of chars to a .pred file",
+        ),
+    )
+    extended_prediction_data_format: str = field(
+        default="json",
+        metadata=pai_meta(
+            mode="flat",
+            help="Extension format: Either pred or json. Note that json will not print logits.",
+        ),
+    )
+    ctc_decoder: CTCDecoderParams = field(
+        default_factory=CTCDecoderParams, metadata=pai_meta(mode="ignore")
+    )
     voter: VoterParams = field(default_factory=VoterParams)
-    output_dir: Optional[str] = field(default=None, metadata=pai_meta(
-        mode='flat',
-        help="By default the prediction files will be written to the same directory as the given files. "
-             "You can use this argument to specify a specific output dir for the prediction files."))
-    predictor: PredictorParams = field(default_factory=PredictorParams, metadata=pai_meta(
-        fix_dc=True, mode='flat',
-    ))
+    output_dir: Optional[str] = field(
+        default=None,
+        metadata=pai_meta(
+            mode="flat",
+            help="By default the prediction files will be written to the same directory as the given files. "
+            "You can use this argument to specify a specific output dir for the prediction files.",
+        ),
+    )
+    predictor: PredictorParams = field(
+        default_factory=PredictorParams,
+        metadata=pai_meta(
+            fix_dc=True,
+            mode="flat",
+        ),
+    )
 
 
 def prepare_ctc_decoder_params(ctc_decoder: CTCDecoderParams):
@@ -56,14 +84,20 @@ def prepare_ctc_decoder_params(ctc_decoder: CTCDecoderParams):
         dictionary = set()
         logger.info("Creating dictionary")
         for path in glob_all(ctc_decoder.dictionary):
-            with open(path, 'r') as f:
+            with open(path, "r") as f:
                 dictionary = dictionary.union({word for word in f.read().split()})
 
         ctc_decoder.dictionary = dictionary
-        logger.info("Dictionary with {} unique words successfully created.".format(len(dictionary)))
+        logger.info(
+            "Dictionary with {} unique words successfully created.".format(
+                len(dictionary)
+            )
+        )
 
     if ctc_decoder.dictionary:
-        logger.warning("USING A LANGUAGE MODEL IS CURRENTLY EXPERIMENTAL ONLY. NOTE: THE PREDICTION IS VERY SLOW!")
+        logger.warning(
+            "USING A LANGUAGE MODEL IS CURRENTLY EXPERIMENTAL ONLY. NOTE: THE PREDICTION IS VERY SLOW!"
+        )
         ctc_decoder.type = CTCDecoderType.WordBeamSearch
 
 
@@ -79,10 +113,14 @@ def run(args: PredictArgs):
 
     # checks
     if args.extended_prediction_data_format not in ["pred", "json"]:
-        raise Exception("Only 'pred' and 'json' are allowed extended prediction data formats")
+        raise Exception(
+            "Only 'pred' and 'json' are allowed extended prediction data formats"
+        )
 
     # add json as extension, resolve wildcard, expand user, ... and remove .json again
-    args.checkpoint = [(cp if cp.endswith(".json") else cp + ".json") for cp in args.checkpoint]
+    args.checkpoint = [
+        (cp if cp.endswith(".json") else cp + ".json") for cp in args.checkpoint
+    ]
     args.checkpoint = glob_all(args.checkpoint)
     args.checkpoint = [cp[:-5] for cp in args.checkpoint]
 
@@ -91,13 +129,23 @@ def run(args: PredictArgs):
 
     # predict for all models
     from calamari_ocr.ocr.predict.predictor import MultiPredictor
-    predictor = MultiPredictor.from_paths(checkpoints=args.checkpoint, voter_params=args.voter,
-                                          predictor_params=args.predictor)
+
+    predictor = MultiPredictor.from_paths(
+        checkpoints=args.checkpoint,
+        voter_params=args.voter,
+        predictor_params=args.predictor,
+    )
     do_prediction = predictor.predict(args.data)
-    pipeline: CalamariPipeline = predictor.data.get_or_create_pipeline(predictor.params.pipeline, args.data)
+    pipeline: CalamariPipeline = predictor.data.get_or_create_pipeline(
+        predictor.params.pipeline, args.data
+    )
     reader = pipeline.reader()
     if len(reader) == 0:
-        raise Exception("Empty dataset provided. Check your files argument (got {})!".format(args.files))
+        raise Exception(
+            "Empty dataset provided. Check your files argument (got {})!".format(
+                args.files
+            )
+        )
 
     avg_sentence_confidence = 0
     n_predictions = 0
@@ -107,29 +155,41 @@ def run(args: PredictArgs):
     # output the voted results to the appropriate files
     for s in do_prediction:
         inputs, (result, prediction), meta = s.inputs, s.outputs, s.meta
-        sample = reader.sample_by_id(meta['id'])
+        sample = reader.sample_by_id(meta["id"])
         n_predictions += 1
         sentence = prediction.sentence
 
         avg_sentence_confidence += prediction.avg_char_probability
         if args.verbose:
             lr = "\u202A\u202B"
-            logger.info("{}: '{}{}{}'".format(meta['id'], lr[get_base_level(sentence)], sentence, "\u202C"))
+            logger.info(
+                "{}: '{}{}{}'".format(
+                    meta["id"], lr[get_base_level(sentence)], sentence, "\u202C"
+                )
+            )
 
-        output_dir = args.output_dir if args.output_dir else os.path.dirname(prediction.line_path)
+        output_dir = (
+            args.output_dir
+            if args.output_dir
+            else os.path.dirname(prediction.line_path)
+        )
 
-        reader.store_text_prediction(sentence, meta['id'], output_dir=output_dir)
+        reader.store_text_prediction(sentence, meta["id"], output_dir=output_dir)
 
         if args.extended_prediction_data:
             ps = Predictions()
-            ps.line_path = sample['image_path'] if 'image_path' in sample else sample['id']
+            ps.line_path = (
+                sample["image_path"] if "image_path" in sample else sample["id"]
+            )
             ps.predictions.extend([prediction] + [r.prediction for r in result])
             output_dir = output_dir if output_dir else os.path.dirname(ps.line_path)
             if not os.path.exists(output_dir):
                 os.mkdir(output_dir)
 
             if args.extended_prediction_data_format == "pred":
-                data = zlib.compress(ps.to_json(indent=2, ensure_ascii=False).encode('utf-8'))
+                data = zlib.compress(
+                    ps.to_json(indent=2, ensure_ascii=False).encode("utf-8")
+                )
             elif args.extended_prediction_data_format == "json":
                 # remove logits
                 for p in ps.predictions:
@@ -139,10 +199,18 @@ def run(args: PredictArgs):
             else:
                 raise Exception("Unknown prediction format.")
 
-            reader.store_extended_prediction(data, sample, output_dir=output_dir,
-                                             extension=args.extended_prediction_data_format)
+            reader.store_extended_prediction(
+                data,
+                sample,
+                output_dir=output_dir,
+                extension=args.extended_prediction_data_format,
+            )
 
-    logger.info("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
+    logger.info(
+        "Average sentence confidence: {:.2%}".format(
+            avg_sentence_confidence / n_predictions
+        )
+    )
 
     reader.store()
     logger.info("All prediction files written")
@@ -151,7 +219,9 @@ def run(args: PredictArgs):
 def main():
     parser = PAIArgumentParser()
 
-    parser.add_argument('--version', action='version', version='%(prog)s v' + __version__)
+    parser.add_argument(
+        "--version", action="version", version="%(prog)s v" + __version__
+    )
     parser.add_root_argument("root", PredictArgs, flat=True)
     args = parser.parse_args()
 

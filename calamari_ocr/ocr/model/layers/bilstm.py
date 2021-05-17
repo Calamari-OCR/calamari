@@ -7,19 +7,19 @@ from tensorflow import keras
 from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 
 
-@pai_dataclass(alt='BiLSTM')
+@pai_dataclass(alt="BiLSTM")
 @dataclass
 class BiLSTMLayerParams(LayerParams):
     @classmethod
     def name_prefix(cls) -> str:
-        return 'lstm'
+        return "lstm"
 
     @classmethod
-    def cls(cls) -> Type['Layer']:
+    def cls(cls) -> Type["Layer"]:
         return BiLSTMLayer
 
     hidden_nodes: int = 200
-    merge_mode: str = 'concat'
+    merge_mode: str = "concat"
 
 
 class BiLSTMLayer(Layer[BiLSTMLayerParams]):
@@ -28,8 +28,8 @@ class BiLSTMLayer(Layer[BiLSTMLayerParams]):
 
         lstm = keras.layers.LSTM(
             units=self.params.hidden_nodes,
-            activation='tanh',
-            recurrent_activation='sigmoid',
+            activation="tanh",
+            recurrent_activation="sigmoid",
             recurrent_dropout=0,
             unroll=False,
             use_bias=True,
@@ -39,7 +39,7 @@ class BiLSTMLayer(Layer[BiLSTMLayerParams]):
         )
         self.lstm = keras.layers.Bidirectional(
             lstm,
-            name='bidirectional',
+            name="bidirectional",
             merge_mode=self.params.merge_mode,
         )
 

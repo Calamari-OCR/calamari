@@ -12,8 +12,8 @@ class LanguageModel:
     def __init__(self, corpus, chars, wordChars):
         "read text from filename, specify chars which are contained in dataset, specify chars which form words"
         # read from file
-        self.wordCharPattern = '[' + re.escape(wordChars) + ']'
-        self.wordPattern = self.wordCharPattern + '+'
+        self.wordCharPattern = "[" + re.escape(wordChars) + "]"
+        self.wordPattern = self.wordCharPattern + "+"
         words = re.findall(self.wordPattern, corpus)
         uniqueWords = list(set(words))  # make unique
         self.numWords = len(words)
@@ -59,7 +59,8 @@ class LanguageModel:
         self.allChars = chars
         self.wordChars = wordChars
         self.nonWordChars = str().join(
-            set(chars) - set(re.findall(self.wordCharPattern, chars)))  # else calculate those chars
+            set(chars) - set(re.findall(self.wordCharPattern, chars))
+        )  # else calculate those chars
 
     def getNextWords(self, text):
         "text must be prefix of a word"
@@ -70,7 +71,7 @@ class LanguageModel:
         nextChars = str().join(self.tree.getNextChars(text))
 
         # if in between two words or if word ends, add non-word chars
-        if (text == '') or (self.isWord(text)):
+        if (text == "") or (self.isWord(text)):
             nextChars += self.getNonWordChars()
 
         return nextChars
@@ -104,15 +105,17 @@ class LanguageModel:
             val2 = val1.get(w2)
             if val2 != None:
                 return val2
-            return self.addK / (self.getUnigramProb(w1) * self.numUniqueWords + self.numUniqueWords)
+            return self.addK / (
+                self.getUnigramProb(w1) * self.numUniqueWords + self.numUniqueWords
+            )
         return 0
 
 
-if __name__ == '__main__':
-    lm = LanguageModel('12 1 13 12 15 234 2526', ' ,.:0123456789', '0123456789')
-    prefix = '1'
-    print('getNextChars:', lm.getNextChars(prefix))
-    print('getNonWordChars:', lm.getNonWordChars())
-    print('getNextWords:', lm.getNextWords(prefix))
-    print('isWord:', lm.isWord(prefix))
-    print('getBigramProb:', lm.getBigramProb('12', '15'))
+if __name__ == "__main__":
+    lm = LanguageModel("12 1 13 12 15 234 2526", " ,.:0123456789", "0123456789")
+    prefix = "1"
+    print("getNextChars:", lm.getNextChars(prefix))
+    print("getNonWordChars:", lm.getNonWordChars())
+    print("getNextWords:", lm.getNextWords(prefix))
+    print("isWord:", lm.isWord(prefix))
+    print("getBigramProb:", lm.getBigramProb("12", "15"))

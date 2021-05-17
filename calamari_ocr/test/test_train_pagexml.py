@@ -5,29 +5,42 @@ import unittest
 from tensorflow import keras
 
 from calamari_ocr.ocr.dataset.datareader.pagexml.reader import PageXML
-from calamari_ocr.ocr.training.pipeline_params import CalamariSplitTrainerPipelineParams, \
-    CalamariTrainOnlyPipelineParams
+from calamari_ocr.ocr.training.pipeline_params import (
+    CalamariSplitTrainerPipelineParams,
+    CalamariTrainOnlyPipelineParams,
+)
 from calamari_ocr.scripts.train import main
 from calamari_ocr.test.calamari_test_scenario import CalamariTestScenario
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-def default_trainer_params(*, with_validation=False, with_split=False, preload=True, img_suffix='nrm.png', channels=1):
+def default_trainer_params(
+    *,
+    with_validation=False,
+    with_split=False,
+    preload=True,
+    img_suffix="nrm.png",
+    channels=1,
+):
     p = CalamariTestScenario.default_trainer_params()
     train = PageXML(
         images=[
             os.path.join(this_dir, "data", "avicanon_pagexml", f"006.{img_suffix}"),
-            os.path.join(this_dir, "data", "avicanon_pagexml", f"007.{img_suffix}")
+            os.path.join(this_dir, "data", "avicanon_pagexml", f"007.{img_suffix}"),
         ],
         preload=preload,
     )
     if with_split:
-        p.gen = CalamariSplitTrainerPipelineParams(validation_split_ratio=0.5, train=train)
+        p.gen = CalamariSplitTrainerPipelineParams(
+            validation_split_ratio=0.5, train=train
+        )
     elif with_validation:
         p.gen.val = PageXML(
-            images=[os.path.join(this_dir, "data", "avicanon_pagexml", f"008.{img_suffix}")],
-            preload=preload
+            images=[
+                os.path.join(this_dir, "data", "avicanon_pagexml", f"008.{img_suffix}")
+            ],
+            preload=preload,
         )
         p.gen.train = train
         p.gen.__post_init__()
