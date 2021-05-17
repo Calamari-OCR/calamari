@@ -3,6 +3,7 @@
 
 [![Python Test](https://github.com/Calamari-OCR/calamari/actions/workflows/python-test.yml/badge.svg)](https://github.com/Calamari-OCR/calamari/actions/workflows/python-test.yml)
 [![Upload Python Package](https://github.com/Calamari-OCR/calamari/actions/workflows/python-publish.yml/badge.svg)](https://github.com/Calamari-OCR/calamari/actions/workflows/python-publish.yml)
+[![Lint](https://github.com/Calamari-OCR/calamari/actions/workflows/black.yml/badge.svg)](https://github.com/Calamari-OCR/calamari/actions/workflows/black.yml)
 
 OCR Engine based on OCRopy and Kraken using python3.
 It is designed to both be easy to use from the command line but also be modular to be integrated and customized from other python scripts.
