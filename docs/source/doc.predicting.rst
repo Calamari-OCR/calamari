@@ -21,6 +21,15 @@ Single Model
         inputs, prediction, meta = sample.inputs, sample.outputs, sample.meta
         # prediction is usually what you are looking for
 
+Whereby a ``raw_image_generator`` is of type ``Iterable[np.ndarray]`` for example a list of images:
+
+.. code-block:: python
+
+    raw_image_generator = [np.zeros(shape=(200, 50))]
+
+
+Have a look at the `prediction tests <https://github.com/Calamari-OCR/calamari/blob/master/calamari_ocr/test/test_prediction.py>`_ for some more examples.
+
 Multiple models (voting)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
