@@ -45,7 +45,6 @@ test-augmentation:
     - set -e
     - python -m unittest calamari_ocr.test.test_augmentation
 
-
 test-command-line:
   stage: test
   script:
@@ -57,6 +56,12 @@ test-cross-fold-train:
   script:
     - set -e
     - python -m unittest calamari_ocr.test.test_cross_fold_train
+
+test-data-pagexml:
+  stage: test
+  script:
+    - set -e
+    - python -m unittest calamari_ocr.test.test_data_pagexml
 
 test-eval:
   stage: test

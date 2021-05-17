@@ -38,6 +38,8 @@ jobs:
       run: python -m unittest calamari_ocr.test.test_command_line
     - name: Test Cross-Fold-Train
       run: python -m unittest calamari_ocr.test.test_cross_fold_train
+    - name: Test Data PageXML
+      run: python -m unittest calamari_ocr.test.test_data_pagexml
     - name: Test Evaluation
       run: python -m unittest calamari_ocr.test.test_eval
     - name: Test Model Zoo

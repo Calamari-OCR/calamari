@@ -185,6 +185,7 @@ class PageXML(CalamariDataGeneratorParams):
         metadata=pai_meta(help="Default extension of the prediction files"),
     )
     skip_commented: bool = field(default=False, metadata=pai_meta(help='Skip lines with "comments" attribute.'))
+    cut_mode: CutMode = field(default=CutMode.POLYGON, metadata=pai_meta(help="Mode for cutting out the lines."))
 
     def __len__(self):
         return len(self.images)
@@ -242,7 +243,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
     def cutout(
         pageimg: np.array,
         coordstring: str,
-        mode: CutMode = CutMode.POLYGON,
+        mode: CutMode,
         angle=0,
         cval=None,
         scale=1,
@@ -423,7 +424,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 line_img = PageXMLReader.cutout(
                     img,
                     sample["coords"],
-                    mode=CutMode.POLYGON,
+                    mode=self.params.cut_mode,
                     angle=angle,
                     cval=None,
                     scale=lx / sample["img_width"],
