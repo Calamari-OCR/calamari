@@ -20,7 +20,7 @@ The suggested method is to install calamari into a virtual environment using pip
 
     virtualenv -p python3 PATH_TO_VENV_DIR # (e.g. virtualenv -p python3 calamari_venv)
     source PATH_TO_VENV_DIR/bin/activate
-    pip install calamari_ocr
+    pip install calamari-ocr
 
 which will install Calamari and all of its dependencies.
 
