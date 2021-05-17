@@ -31,6 +31,15 @@ class ModelParams(ModelBaseParams):
     ensemble: int = 0  # For usage with the ensemble-model graph
     masking_mode: int = False  # This parameter is for evaluation only and should not be used in production
 
+    @staticmethod
+    def cls():
+        from calamari_ocr.ocr.model.model import Model
+        return Model
+
+    def graph_cls(self):
+        from calamari_ocr.ocr.model.graph import CalamariGraph
+        return CalamariGraph
+
     def __post_init__(self):
         # setup layer names
         counts = {}

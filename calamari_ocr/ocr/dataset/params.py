@@ -25,6 +25,11 @@ class DataParams(DataBaseParams):
     ensemble: int = field(default=0, metadata=pai_meta(mode='ignore'))  # Set based on model
     codec: Optional[Codec] = field(default=None, metadata=pai_meta(mode='ignore'))
 
+    @staticmethod
+    def cls():
+        from calamari_ocr.ocr.dataset.data import Data
+        return Data
+
     def __post_init__(self):
         from calamari_ocr.ocr.dataset.imageprocessors.center_normalizer import CenterNormalizerProcessorParams
         from calamari_ocr.ocr.dataset.imageprocessors.scale_to_height_processor import ScaleToHeightProcessorParams

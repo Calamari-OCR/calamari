@@ -1,11 +1,15 @@
+from dataclasses import dataclass
+
 import tensorflow as tf
 from typing import Dict, Type, List, Tuple, Any
 import bidi.algorithm as bidi
 import Levenshtein
+from paiargparse import pai_dataclass
 from tfaip import Sample
 from tfaip.model.graphbase import GraphBase
 
 from tfaip.model.modelbase import ModelBase, ModelBaseParams
+from tfaip.util.tftyping import AnyTensor
 from tfaip.util.typing import AnyNumpy
 
 from calamari_ocr.ocr.model.params import ModelParams
@@ -19,36 +23,46 @@ K = keras.backend
 KL = keras.layers
 
 
-class EnsembleModel(ModelBase[ModelParams]):
-    @classmethod
-    def _additional_layers(cls) -> List[Type[tf.keras.layers.Layer]]:
-        return [EnsembleGraph]
+@pai_dataclass
+@dataclass
+class EnsembleModelParams(ModelParams):
+    @staticmethod
+    def cls():
+        return EnsembleModel
+
+    def graph_cls(self):
+        return EnsembleGraph
+
+
+class EnsembleModel(ModelBase[EnsembleModelParams]):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.cer_total = keras.metrics.Mean('CER')
+        self.sub_cer = [keras.metrics.Mean(f'CER_{i}') for i in range(self.params.ensemble)]
 
     def _best_logging_settings(self) -> Tuple[str, str]:
-        return "min", "CER"
+        return "min", self.cer_total.name
 
-    def create_graph(self, params: ModelBaseParams) -> 'GraphBase':
-        return EnsembleGraph(params)
-
-    def _extended_loss(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
+    def _loss(self, inputs, targets, outputs) -> Dict[str, AnyTensor]:
         def to_2d_list(x):
             return K.expand_dims(K.flatten(x), axis=-1)
 
         # note: blank is last index
         losses = {
-            'loss': K.ctc_batch_cost(inputs['gt'] - 1, outputs['blank_last_softmax'],
+            'loss': K.ctc_batch_cost(targets['gt'] - 1, outputs['blank_last_softmax'],
                                      to_2d_list(outputs['out_len']),
-                                     to_2d_list(inputs['gt_len']))
+                                     to_2d_list(targets['gt_len']))
         }
 
         for i in range(self._params.ensemble):
-            losses[f'loss_{i}'] = K.ctc_batch_cost(inputs['gt'] - 1, outputs[f'blank_last_softmax_{i}'],
+            losses[f'loss_{i}'] = K.ctc_batch_cost(targets['gt'] - 1, outputs[f'blank_last_softmax_{i}'],
                                                    to_2d_list(outputs[f'out_len_{i}']),
-                                                   to_2d_list(inputs['gt_len']))
+                                                   to_2d_list(targets['gt_len']))
 
         return losses
 
-    def _extended_metric(self, inputs: Dict[str, tf.Tensor], outputs: Dict[str, tf.Tensor]) -> Dict[str, tf.Tensor]:
+    def _metric(self, inputs, targets, outputs) -> List[AnyTensor]:
         def cer(decoded, targets, targets_length):
             greedy_decoded = tf.sparse.from_dense(decoded)
             sparse_targets = tf.cast(K.ctc_label_dense_to_sparse(targets, math_ops.cast(
@@ -58,26 +72,16 @@ class EnsembleModel(ModelBase[ModelParams]):
         # Note for codec change: the codec size is derived upon creation, therefore the ctc ops must be created
         # using the true codec size (the W/B-Matrix may change its shape however during loading/codec change
         # to match the true codec size
-        metrics = {
-            'CER': cer(outputs['decoded'], inputs['gt'], inputs['gt_len']),
-        }
+        sw = K.flatten(targets['gt_len'])
+        return [
+            self.cer_total(cer(outputs['decoded'], targets['gt'], targets['gt_len']), sample_weight=sw)
+        ] + [
+            self.sub_cer[i](cer(outputs[f'decoded_{i}'], targets['gt'], targets['gt_len']),
+                            sample_weight=sw * tf.cast(tf.equal(K.flatten(targets['fold_id']), i), tf.int32)
+                            ) for i in range(self.params.ensemble)
+        ]
 
-        for i in range(self._params.ensemble):
-            metrics[f"CER_{i}"] = cer(outputs[f'decoded_{i}'], inputs['gt'], inputs['gt_len'])
-
-        return metrics
-
-    def _sample_weights(self, inputs: Dict[str, tf.Tensor], targets: Dict[str, tf.Tensor]) -> Dict[str, Any]:
-        weights = {
-            "CER": K.flatten(targets['gt_len']),
-        }
-        for i in range(self._params.ensemble):
-            # Only count CERs of this voter for validation
-            weights[f"CER_{i}"] = weights["CER"] * tf.cast(tf.equal(K.flatten(targets['fold_id']), i), tf.int32)
-
-        return weights
-
-    def print_evaluate(self, sample: Sample, data, print_fn=print):
+    def _print_evaluate(self, sample: Sample, data, print_fn):
         targets, outputs = sample.targets, sample.outputs
         gt_sentence = targets['sentence']
         lr = "\u202A\u202B"

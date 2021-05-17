@@ -42,9 +42,10 @@ def pad(input_tensors, x_only=False):
     return output
 
 
-class Graph(GraphBase[ModelParams]):
+class CalamariGraph(GraphBase[ModelParams]):
     def __init__(self, params: ModelParams, name='CalamariGraph', **kwargs):
-        super(Graph, self).__init__(params, name=name, **kwargs)
+        super().__init__(params, name=name, **kwargs)
+        assert params.classes > 0, 'non initialized number of classes'
 
         self.layer_instances = [l.create() for l in params.layers]
 
@@ -52,7 +53,7 @@ class Graph(GraphBase[ModelParams]):
         self.logits = KL.Dense(params.classes, name='logits')
         self.softmax = KL.Softmax(name='softmax')
 
-    def call(self, inputs, **kwargs):
+    def build_graph(self, inputs, training=None):
         params: ModelParams = self._params
         input_data = tf.cast(inputs['img'], tf.float32) / 255.0
         input_sequence_length = K.flatten(inputs['img_len'])

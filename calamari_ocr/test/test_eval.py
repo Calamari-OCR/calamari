@@ -4,6 +4,7 @@ import unittest
 
 from tensorflow import keras
 
+from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.dataset.datareader.abbyy.reader import Abbyy
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.dataset.datareader.hdf5.reader import Hdf5
@@ -17,7 +18,7 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 def predict_args(data) -> PredictArgs:
     p = PredictArgs(
-        checkpoint=[os.path.join(this_dir, "models", "modern", "best.ckpt")],
+        checkpoint=[os.path.join(this_dir, "models", f"version{SavedCalamariModel.VERSION}", "0.ckpt")],
         data=data,
     )
     return p

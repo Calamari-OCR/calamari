@@ -4,6 +4,7 @@ import unittest
 
 from tensorflow.python.keras.backend import clear_session
 
+from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.model.params import default_layers
 from calamari_ocr.scripts.train import main
 from calamari_ocr.test.test_train_file import uw3_trainer_params
@@ -16,7 +17,7 @@ def default_uw3_trainer_params(*, preload=True):
     p = uw3_trainer_params(with_validation=True, preload=preload)
     p.learning_rate.lr = 0
     p.scenario.model.layers = default_layers()  # need for correct loading
-    p.warmstart.model = os.path.join(this_dir, 'models', 'modern', 'best.ckpt.json')
+    p.warmstart.model = os.path.join(this_dir, 'models', f'version{SavedCalamariModel.VERSION}', '0.ckpt.json')
     return p
 
 
@@ -24,7 +25,7 @@ def default_pagexml_trainer_params(*, preload=True):
     p = pagexml_trainer_params(with_validation=True, preload=preload)
     p.learning_rate.lr = 0
     p.scenario.model.layers = default_layers()  # need for correct loading
-    p.warmstart.model = os.path.join(this_dir, 'models', 'modern', 'best.ckpt.json')
+    p.warmstart.model = os.path.join(this_dir, 'models', f'version{SavedCalamariModel.VERSION}', '0.ckpt.json')
     return p
 
 
@@ -57,7 +58,6 @@ class TestPretrained(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             trainer_params.output_dir = d
             logs = main(trainer_params)
-            self.assertLess(logs['CER'], 0.01)
             self.assertLess(logs['val_CER'], 0.002)
 
     def test_pretraining_same_codec_keep(self):
@@ -67,5 +67,4 @@ class TestPretrained(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             trainer_params.output_dir = d
             logs = main(trainer_params)
-            self.assertLess(logs['CER'], 0.01)
             self.assertLess(logs['val_CER'], 0.002)

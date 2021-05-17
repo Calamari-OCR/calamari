@@ -1,7 +1,7 @@
 import os
 from typing import Type, TYPE_CHECKING
 
-from tfaip.scenario.scenariobase import ScenarioBase, TModel, TScenarioParams, TTrainerPipelineParams
+from tfaip.scenario.scenariobase import ScenarioBase, TScenarioParams, TTrainerPipelineParams
 from tfaip.trainer.scheduler import Constant
 
 from calamari_ocr.ocr.dataset.data import Data
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from calamari_ocr.ocr.training.params import TrainerParams
 
 
-class CalamariScenarioBase(ScenarioBase[Data, TModel, TScenarioParams, CalamariDefaultTrainerPipelineParams]):
+class CalamariScenarioBase(ScenarioBase[TScenarioParams, CalamariDefaultTrainerPipelineParams]):
     @classmethod
     def trainer_cls(cls):
         from calamari_ocr.ocr.training.trainer import Trainer
@@ -48,11 +48,11 @@ class CalamariScenarioBase(ScenarioBase[Data, TModel, TScenarioParams, CalamariD
         return trainer_params
 
 
-class CalamariScenario(CalamariScenarioBase[Model, CalamariScenarioParams]):
+class CalamariScenario(CalamariScenarioBase[CalamariScenarioParams]):
     pass
 
 
-class CalamariEnsembleScenario(CalamariScenarioBase[EnsembleModel, CalamariEnsembleScenarioParams]):
+class CalamariEnsembleScenario(CalamariScenarioBase[CalamariEnsembleScenarioParams]):
     @classmethod
     def default_params(cls):
         p = super().default_params()

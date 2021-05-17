@@ -20,7 +20,6 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 def uw3_trainer_params(with_validation=False, with_split=False, preload=True, debug=False):
     p = CalamariTestScenario.default_trainer_params()
-    p.scenario.debug_graph_construction = debug
     p.force_eager = debug
 
     train = FileDataParams(

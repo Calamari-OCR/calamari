@@ -64,6 +64,7 @@ class Trainer(AIPTrainer):
 
     def train(self, callbacks=None, **kwargs):
         callbacks = callbacks if callbacks else []
+        self.setup_data()
 
         # load preloaded dataset
         data: Data = self._data

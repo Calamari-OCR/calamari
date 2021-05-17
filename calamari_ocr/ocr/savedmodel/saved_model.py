@@ -4,14 +4,13 @@ import os
 import logging
 
 from calamari_ocr import __version__
-from calamari_ocr.ocr.savedmodel.migrations.version0to1 import rename
 from calamari_ocr.utils import split_all_ext
 
 logger = logging.getLogger(__name__)
 
 
 class SavedCalamariModel:
-    VERSION = 4
+    VERSION = 5
 
     def __init__(self, json_path: str, auto_update=True, dry_run=False):
         self.json_path = json_path if json_path.endswith('.json') else json_path + '.json'
@@ -62,16 +61,18 @@ class SavedCalamariModel:
             raise Exception(f"Models of checkpoint-version lower than {self.version} are not supported anymore. "
                             f"Use an older version of calamari to upgrade them to an supported version.")
         elif self.version == 2:
-            from calamari_ocr.ocr.savedmodel.migrations.version2to4 import migrate2to4, update_model
-            # Calamari 1.3 -> Calamari 2.0
-            self.dict = migrate2to4(self.dict)
+            from calamari_ocr.ocr.savedmodel.migrations.version2to5 import migrate2to5, update_model
+            # Calamari 1.3 -> Calamari 2.1
+            self.dict = migrate2to5(self.dict)
             update_model(self.dict, self.ckpt_path)
-            self.version = 4
-        elif self.version == 3:
-            from calamari_ocr.ocr.savedmodel.migrations.version3to4 import migrate3to4, update_model
-            self.dict = migrate3to4(self.dict)
+            self.version = 5
+        elif self.version == 3 or self.version == 4:
+            from calamari_ocr.ocr.savedmodel.migrations.version3_4to5 import migrate3to5, update_model
+            # Calamari 2.0 -> Calamari 2.1
+            if self.version == 3:
+                self.dict = migrate3to5(self.dict)
             update_model(self.dict, self.ckpt_path)
-            self.version = 4
+            self.version = 5
 
         self._update_json_version()
 

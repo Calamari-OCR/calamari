@@ -16,7 +16,6 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 def setup_trainer_params(preload=True, debug=False):
     p = CalamariTestEnsembleScenario.default_trainer_params()
-    p.scenario.debug_graph_construction = debug
     p.force_eager = debug
 
     p.gen.train = FileDataParams(
@@ -34,12 +33,6 @@ class TestTrainFile(unittest.TestCase):
 
     def test_simple_train_preload(self):
         trainer_params = setup_trainer_params(preload=True)
-        with tempfile.TemporaryDirectory() as d:
-            trainer_params.output_dir = d
-            main(trainer_params)
-
-    def test_simple_train_no_preload(self):
-        trainer_params = setup_trainer_params(preload=False)
         with tempfile.TemporaryDirectory() as d:
             trainer_params.output_dir = d
             main(trainer_params)
