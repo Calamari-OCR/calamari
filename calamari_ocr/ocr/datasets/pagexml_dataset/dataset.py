@@ -250,8 +250,8 @@ class PageXMLDataset(DataSet):
         rr, cc = polygon(coords[:, 0], coords[:, 1], pageimg.shape)
         offset = (min([x[0] for x in coords]), min([x[1] for x in coords]))
         box = np.ones(
-            (max([x[0] for x in coords]) - offset[0],
-             max([x[1] for x in coords]) - offset[1],
+            (max([x[0] for x in coords]) - offset[0] + 1,
+             max([x[1] for x in coords]) - offset[1] + 1,
              ) + ((pageimg.shape[-1],) if len(pageimg.shape) == 3 else ()),
             dtype=pageimg.dtype) * 255
         box[rr - offset[0], cc - offset[1]] = pageimg[rr, cc]
