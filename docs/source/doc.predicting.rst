@@ -14,7 +14,7 @@ Single Model
 
     from calamari_ocr.ocr.predict.predictor import Predictor, PredictorParams
     predictor = Predictor.from_checkpoint(
-        predictor_params=PredictorParams(),
+        params=PredictorParams(),
         checkpoint='PATH_TO_THE_MODEL_WITHOUT_EXT')
 
     for sample in predictor.predict_raw(raw_image_generator):
@@ -38,7 +38,7 @@ Multiple models (voting)
     from calamari_ocr.ocr.predict.predictor import MultiPredictor, PredictorParams
     predictor = MultiPredictor.from_paths(
         checkpoints=['CKPT1', 'CKPT2', ...],
-        predictor_params=PredictorParams())
+        params=PredictorParams())
 
     for sample in predictor.predict_raw(raw_image_generator):
         inputs, (results, prediction), meta = sample.inputs, sample.outputs, sample.meta
