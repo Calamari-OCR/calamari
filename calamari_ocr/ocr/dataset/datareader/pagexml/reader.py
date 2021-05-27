@@ -293,7 +293,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         minX, minY = (0, 0)
 
         # calculate angle if needed
-        if angle is None: 
+        if angle is None:
             if max_auto_angle > 0:
                 angle = mbr[2] - 90 if mbr[2] > 45 else mbr[2]
                 if abs(angle) > max_auto_angle:
