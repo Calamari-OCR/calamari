@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Dict
 
 from paiargparse import PAIArgumentParser
 from tfaip.util.logging import logger, WriteToLogFile
+from tfaip.util.tfaipargparse import post_init
 from tfaip.util.typing import AnyNumpy
 
 from calamari_ocr import __version__
@@ -37,8 +38,8 @@ def parse_args(args=None):
 
     default_trainer_params = CalamariScenario.default_trainer_params()
     parser.add_root_argument("trainer", default_trainer_params.__class__, default=default_trainer_params)
-
-    return parser.parse_args(args).trainer
+    params = parser.parse_args(args).trainer
+    return params
 
 
 if __name__ == "__main__":

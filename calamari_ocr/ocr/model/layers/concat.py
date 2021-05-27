@@ -7,7 +7,7 @@ from tensorflow import keras
 from calamari_ocr.ocr.model.layers.layer import LayerParams, Layer
 
 
-@pai_dataclass
+@pai_dataclass(alt="Concat")
 @dataclass
 class ConcatLayerParams(LayerParams):
     @classmethod

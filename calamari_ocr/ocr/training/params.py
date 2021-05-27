@@ -5,6 +5,7 @@ from typing import Optional, List
 
 from paiargparse import pai_meta, pai_dataclass
 from tfaip import TrainerParams as AIPTrainerParams, TrainerPipelineParamsBase
+from tfaip.util.tfaipargparse import post_init
 
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.dataset.codec import CodecConstructionParams
@@ -98,6 +99,7 @@ class TrainerParams(AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrai
 
         if self.network:
             self.scenario.model.layers = graph_params_from_definition_string(self.network)
+            post_init(self.scenario.model)
 
 
 def set_default_network_params(params: TrainerParams):
@@ -109,7 +111,7 @@ def set_default_network_params(params: TrainerParams):
 
 def graph_params_from_definition_string(s: str) -> List[LayerParams]:
     layers = []
-    cnn_matcher = re.compile(r"^([\d]+)(:([\d]+)(x([\d]+))?)?$")
+    cnn_matcher = re.compile(r"^([\d]+)(:([\d]+)x([\d]+))?(:([\d]+)x([\d]+))?$")
     db_matcher = re.compile(r"^([\d]+):([\d]+)(:([\d]+)(x([\d]+))?)?$")
     concat_matcher = re.compile(r"^([\-\d]+):([\-\d]+)$")
     pool_matcher = re.compile(r"^([\d]+)(x([\d]+))?(:([\d]+)x([\d]+))?$")
@@ -141,7 +143,7 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
                 raise Exception("Dilated block structure needs: db=[filters]:[depth>0]:[h]x[w]")
 
             match = match.groups()
-            kernel_size = [2, 2]
+            kernel_size = [3, 3]
             if match[2] is not None:
                 kernel_size = [int(match[3])] * 2
             if match[4] is not None:
@@ -161,20 +163,21 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
 
             match = cnn_matcher.match(value)
             if match is None:
-                raise Exception("CNN structure needs: cnn=[filters]:[h]x[w] but got {}".format(value))
+                raise Exception(f"CNN structure needs: cnn=[filters]:[h]x[w]:[sx]x[sy] but got {value}")
 
             match = match.groups()
-            kernel_size = [2, 2]
+            kernel_size = [3, 3]
+            stride = [1, 1]
             if match[1] is not None:
-                kernel_size = [int(match[2])] * 2
-            if match[3] is not None:
-                kernel_size = [int(match[2]), int(match[4])]
+                kernel_size = [int(match[2]), int(match[3])]
+            if match[4] is not None:
+                stride = [int(match[5]), int(match[6])]
 
             layers.append(
                 Conv2DLayerParams(
                     filters=int(match[0]),
                     kernel_size=IntVec2D(*kernel_size),
-                    strides=IntVec2D(1, 1),
+                    strides=IntVec2D(*stride),
                 )
             )
         elif label in {"tcnn", "tconv", "tconv2d"}:
@@ -186,12 +189,12 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
                 raise Exception("Transposed CNN structure needs: tcnn=[filters]:[sx]x[sy]")
 
             match = match.groups()
-            kernel_size = [2, 2]
+            kernel_size = [3, 3]
             stride = [2, 2]
             if match[1] is not None:
-                stride = [int(match[2])] * 2
-            if match[3] is not None:
-                stride = [int(match[2]), int(match[4])]
+                stride = [int(match[2]), int(match[3])]
+            if match[4] is not None:
+                kernel_size = [int(match[5]), int(match[6])]
 
             layers.append(
                 TransposedConv2DLayerParams(
@@ -213,16 +216,11 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
                 kernel_size = [int(match[0]), int(match[2])]
 
             if match[3] is not None:
-                stride = [int(match[4]), int(match[5])]
+                stride = IntVec2D(int(match[4]), int(match[5]))
             else:
-                stride = kernel_size
+                stride = None
 
-            layers.append(
-                MaxPool2DLayerParams(
-                    pool_size=IntVec2D(*kernel_size),
-                    strides=IntVec2D(*stride),
-                )
-            )
+            layers.append(MaxPool2DLayerParams(pool_size=IntVec2D(*kernel_size), strides=stride))
         else:
             raise Exception("Unknown layer with name: {}".format(label))
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Tuple, Any, Union
 
-from paiargparse import pai_dataclass
+from paiargparse import pai_dataclass, pai_meta
 from tfaip.model.modelbaseparams import ModelBaseParams
 
 from calamari_ocr.ocr.model.layers.layer import LayerParams, IntVec2D
@@ -23,10 +23,33 @@ def default_layers():
     ]
 
 
+def all_layers():
+    from calamari_ocr.ocr.model.layers.bilstm import BiLSTMLayerParams
+    from calamari_ocr.ocr.model.layers.concat import ConcatLayerParams
+    from calamari_ocr.ocr.model.layers.conv2d import Conv2DLayerParams
+    from calamari_ocr.ocr.model.layers.dilatedblock import DilatedBlockLayerParams
+    from calamari_ocr.ocr.model.layers.dropout import DropoutLayerParams
+    from calamari_ocr.ocr.model.layers.pool2d import MaxPool2DLayerParams
+    from calamari_ocr.ocr.model.layers.transposedconv2d import TransposedConv2DLayerParams
+
+    return [
+        Conv2DLayerParams,
+        ConcatLayerParams,
+        MaxPool2DLayerParams,
+        BiLSTMLayerParams,
+        DropoutLayerParams,
+        DilatedBlockLayerParams,
+        TransposedConv2DLayerParams,
+    ]
+
+
 @pai_dataclass
 @dataclass
 class ModelParams(ModelBaseParams):
-    layers: List[LayerParams] = field(default_factory=default_layers)
+    layers: List[LayerParams] = field(
+        default_factory=default_layers,
+        metadata=pai_meta(choices=all_layers(), help="Layers of the graph. See the docs for more information."),
+    )
     classes: int = -1
     ctc_merge_repeated: bool = True
     ensemble: int = 0  # For usage with the ensemble-model graph
