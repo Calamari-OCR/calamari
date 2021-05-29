@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Type
 
-from paiargparse import pai_dataclass
+from paiargparse import pai_dataclass, pai_meta
 from tensorflow import keras
 
 from calamari_ocr.ocr.model.layers.layer import LayerParams, IntVec2D, Layer
@@ -28,8 +28,8 @@ class DilatedBlockLayerParams(LayerParams):
         return IntVec2D(factor.x * self.strides.x, factor.y * self.strides.y)
 
     filters: int = 40
-    kernel_size: IntVec2D = field(default_factory=lambda: IntVec2D(3, 3))
-    strides: IntVec2D = field(default_factory=lambda: IntVec2D(1, 1))
+    kernel_size: IntVec2D = field(default_factory=lambda: IntVec2D(3, 3), metadata=pai_meta(tuple_like=True))
+    strides: IntVec2D = field(default_factory=lambda: IntVec2D(1, 1), metadata=pai_meta(tuple_like=True))
 
     padding: str = "same"
     activation: str = "relu"

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Tuple, Type, Optional
 
-from paiargparse import pai_dataclass
+from paiargparse import pai_dataclass, pai_meta
 from tensorflow import keras
 
 from calamari_ocr.ocr.model.layers.layer import LayerParams, IntVec2D, Layer
@@ -19,15 +19,23 @@ class MaxPool2DLayerParams(LayerParams):
         return MaxPool2DLayer
 
     def downscale(self, size: IntVec2D) -> IntVec2D:
-        strides = self.strides if self.strides is not None else self.pool_size
+        strides = self.real_strides()
         return IntVec2D((size.x + strides.x - 1) // strides.x, (size.y + strides.y - 1) // strides.y)
 
     def downscale_factor(self, factor: IntVec2D) -> IntVec2D:
-        strides = self.strides if self.strides is not None else self.pool_size
+        strides = self.real_strides()
         return IntVec2D(factor.x * strides.x, factor.y * strides.y)
 
-    pool_size: IntVec2D = field(default_factory=lambda: IntVec2D(2, 2))
-    strides: Optional[IntVec2D] = field(default=None)
+    def real_strides(self) -> IntVec2D:
+        if self.strides is None:
+            return self.pool_size
+        return IntVec2D(
+            self.strides.x if self.strides.x >= 0 else self.pool_size.x,
+            self.strides.y if self.strides.y >= 0 else self.pool_size.y,
+        )
+
+    pool_size: IntVec2D = field(default_factory=lambda: IntVec2D(2, 2), metadata=pai_meta(tuple_like=True))
+    strides: IntVec2D = field(default_factory=lambda: IntVec2D(-1, -1), metadata=pai_meta(tuple_like=True))
 
     padding: str = "same"
 
@@ -38,7 +46,7 @@ class MaxPool2DLayer(Layer[MaxPool2DLayerParams]):
         self.conv = keras.layers.MaxPool2D(
             name="conv",
             pool_size=self.params.pool_size.to_tuple(),
-            strides=self.params.strides.to_tuple() if self.params.strides else self.params.pool_size.to_tuple(),
+            strides=self.params.real_strides().to_tuple(),
             padding=self.params.padding,
         )
 

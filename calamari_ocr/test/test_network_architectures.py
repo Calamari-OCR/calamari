@@ -98,13 +98,13 @@ class TestNetworkArchitectures(unittest.TestCase):
         trainer_params = uw3_trainer_params()
         trainer_params.scenario.model.layers = [
             Conv2DLayerParams(filters=10),
-            MaxPool2DLayerParams(),
+            MaxPool2DLayerParams(strides=IntVec2D(2, 2)),
             DilatedBlockLayerParams(filters=10),
             DilatedBlockLayerParams(filters=10),
             Conv2DLayerParams(filters=10),
         ]
         post_init(trainer_params)
-        cmd_line_trainer_params = parse_args(["--network", "conv=10,pool=2x2,db=10:2,db=10:2,conv=10"])
+        cmd_line_trainer_params = parse_args(["--network", "conv=10,pool=2x2:2x2,db=10:2,db=10:2,conv=10"])
         self.assertDictEqual(trainer_params.scenario.model.to_dict(), cmd_line_trainer_params.scenario.model.to_dict())
         cmd_line_trainer_params = parse_args(
             [
@@ -116,6 +116,9 @@ class TestNetworkArchitectures(unittest.TestCase):
                 "Conv",
                 "--model.layers.0.filters",
                 "10",
+                "--model.layers.1.strides",
+                "2",
+                "2",
                 "--model.layers.2.filters",
                 "10",
                 "--model.layers.3.filters",

@@ -102,7 +102,7 @@ class TrainerParams(AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrai
             post_init(self.scenario.model)
 
 
-def set_default_network_params(params: TrainerParams):
+def set_default_networkparams(params: TrainerParams):
     params.optimizer_params.optimizer = "Adam"
     params.scenario_params.model_params.dropout = 0
     params.scenario_params.model_params.ctc_merge_repeated = True
@@ -218,7 +218,7 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
             if match[3] is not None:
                 stride = IntVec2D(int(match[4]), int(match[5]))
             else:
-                stride = None
+                stride = IntVec2D(-1, -1)
 
             layers.append(MaxPool2DLayerParams(pool_size=IntVec2D(*kernel_size), strides=stride))
         else:
