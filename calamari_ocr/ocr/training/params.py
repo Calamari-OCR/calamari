@@ -43,6 +43,13 @@ class TrainerParams(AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrai
 
     # Current training progress: 0 standard, 1 retraining on non aug.
     current_stage: int = field(default=0, metadata=pai_meta(mode="ignore"))
+    scale_epoch_size_no_da_train: float = field(
+        default=-1,
+        metadata=pai_meta(
+            help="Similal to --scale_epoch_size but for no data augmentation training (stage=1), "
+            "defaults to --scale_epoch_size"
+        ),
+    )
 
     progress_bar: bool = True
 

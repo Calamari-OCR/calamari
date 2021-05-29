@@ -205,7 +205,13 @@ class Trainer(AIPTrainer):
 
             logger.info(f"Training on {len(train_pipeline.create_data_generator())} samples.")
 
+            ses_bkp = self.params.scale_epoch_size
+            if self.params.scale_epoch_size_no_da_train > 0:
+                self.params.scale_epoch_size = self.params.scale_epoch_size_no_da_train
             super(Trainer, self).setup_steps_per_epoch()
+            self.params.learning_rate.epochs = self.params.epochs
+            self.params.learning_rate.steps_per_epoch = self._steps_per_epoch
+            self.params.scale_epoch_size = ses_bkp
 
             # replace callbacks that require steps per epoch as parameter
             first = True
