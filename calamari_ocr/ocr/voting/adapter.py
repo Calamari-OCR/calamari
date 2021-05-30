@@ -1,4 +1,5 @@
 import json
+from functools import partial
 
 from tfaip.data.pipeline.definitions import Sample
 from tfaip.predict.multimodelpredictor import MultiModelVoter
@@ -25,7 +26,7 @@ class CalamariMultiModelVoter(MultiModelVoter):
         inputs, outputs, meta = sample.inputs, sample.outputs, sample.meta
         prediction_results = []
 
-        def out_to_in(x: int) -> int:
+        def out_to_in(x: int, meta) -> int:
             return self.out_to_in_transformer.local_to_global(
                 x,
                 model_factor=inputs["img_len"] / prediction.logits.shape[0],
@@ -39,7 +40,7 @@ class CalamariMultiModelVoter(MultiModelVoter):
                     prediction,
                     codec=data.params.codec,
                     text_postproc=post_,
-                    out_to_in_trans=out_to_in,
+                    out_to_in_trans=partial(out_to_in, meta=m),
                 )
             )
         # vote the results (if only one model is given, this will just return the sentences)

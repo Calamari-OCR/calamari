@@ -1,7 +1,10 @@
+import json
 import os
 import unittest
 
 import numpy as np
+from calamari_ocr.ocr import SavedCalamariModel
+from calamari_ocr.ocr.predict.params import PredictionResult, Predictions
 from tensorflow import keras
 
 from calamari_ocr.ocr.dataset.datareader.abbyy.reader import Abbyy
@@ -62,19 +65,40 @@ def predict_args(n_models=1, data: CalamariDataGeneratorParams = file_dataset())
     return p
 
 
-class TestValidationTrain(unittest.TestCase):
+class TestPrediction(unittest.TestCase):
     def tearDown(self) -> None:
         keras.backend.clear_session()
 
     def test_prediction_files(self):
         run(predict_args())
 
-    def test_prediction_extended(self):
+    def test_prediction_extended_and_positions(self):
+        # With actual model to evaluate correct positions
         args = predict_args()
+        args.checkpoint = [os.path.join(this_dir, "models", f"version{SavedCalamariModel.VERSION}", "0.ckpt")]
         args.extended_prediction_data = True
         run(args)
         jsons = [os.path.join(this_dir, "data", "uw3_50lines", "test", "*.json")]
         run_compute_avg_pred(ExtendedPredictionDataParams(files=jsons))
+
+        def assert_pos_in_interval(p, start, end):
+            self.assertGreaterEqual(p.global_start, start)
+            self.assertGreaterEqual(p.global_end, start)
+            self.assertLessEqual(p.global_start, end)
+            self.assertLessEqual(p.global_end, end)
+
+        with open(sorted(glob_all(jsons[0]))[0]) as f:
+            first_pred: Predictions = Predictions.from_json(f.read())
+            for p in first_pred.predictions:
+                # Check for correct prediction string (models is trained!)
+                self.assertEqual(p.sentence, "The problem, simplified for our purposes, is set up as")
+                # Check for correct character positions
+                assert_pos_in_interval(p.positions[0], 0, 24)  # T
+                assert_pos_in_interval(p.positions[1], 24, 43)  # h
+                assert_pos_in_interval(p.positions[2], 45, 63)  # e
+                # ...
+                assert_pos_in_interval(p.positions[-2], 1062, 1081)  # a
+                assert_pos_in_interval(p.positions[-1], 1084, 1099)  # s
 
     def test_prediction_voter_files(self):
         run(predict_args(n_models=3))
