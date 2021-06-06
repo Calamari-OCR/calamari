@@ -6,6 +6,11 @@ repos:
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
 -   repo: https://github.com/psf/black
-    rev: 21.5b1
+    rev: 21.5b2
     hooks:
     -   id: black
+- repo: https://gitlab.com/pycqa/flake8
+  rev: 3.9.2
+  hooks:
+      - id: flake8
+        args: ["--select=E9,F63,F7,F82", "--count"]

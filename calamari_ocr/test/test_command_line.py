@@ -30,10 +30,9 @@ class TestCommandList(unittest.TestCase):
                     "--network=cnn=4:3x3,pool=4x4,lstm=10,dropout=0.5",
                 ]
             )
-            check_call([
-                "calamari-resume-training",
-                os.path.join(d, "checkpoint", "checkpoint_0001", "trainer_params.json")
-            ])
+            check_call(
+                ["calamari-resume-training", os.path.join(d, "checkpoint", "checkpoint_0001", "trainer_params.json")]
+            )
 
     def test_command_line(self):
         pred_extension = "." + str(uuid.uuid4()) + ".pred.txt"
