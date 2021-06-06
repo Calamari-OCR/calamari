@@ -377,7 +377,7 @@ class TextRegularizerProcessorParams(DataProcessorParams):
 
 class TextRegularizerProcessor(TextProcessor[TextRegularizerProcessorParams]):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, *kwargs)
+        super().__init__(*args, **kwargs)
         if self.params.replacements is None:
             self.params.replacements = default_text_regularizer_replacements(self.params.replacement_groups)
 

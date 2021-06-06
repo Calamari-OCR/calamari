@@ -35,6 +35,14 @@ def file_dataset():
     return FileDataParams(images=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")])))
 
 
+def pagexml_dataset():
+    return PageXML(
+        images=[
+            os.path.join(this_dir, "data", "avicanon_pagexml", f"006.nrm.png"),
+        ],
+    )
+
+
 def default_predictor_params():
     p = PredictorParams(progress_bar=False, silent=True)
     p.pipeline.batch_size = 2
@@ -71,6 +79,15 @@ class TestPrediction(unittest.TestCase):
 
     def test_prediction_files(self):
         run(predict_args())
+
+    def test_prediction_extended_pagexml_with_voting(self):
+        # With actual model to evaluate correct positions
+        args = predict_args(data=pagexml_dataset())
+        args.checkpoint = [os.path.join(this_dir, "models", f"version{SavedCalamariModel.VERSION}", "0.ckpt")] * 2
+        args.extended_prediction_data = True
+        run(args)
+        jsons = [os.path.join(this_dir, "data", "uw3_50lines", "test", "*.json")]
+        run_compute_avg_pred(ExtendedPredictionDataParams(files=jsons))
 
     def test_prediction_extended_and_positions(self):
         # With actual model to evaluate correct positions

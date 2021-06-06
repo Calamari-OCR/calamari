@@ -737,6 +737,19 @@ All Parameters
                             Missing help string (default: )
 
 
+calamari-resume-training
+------------------------
+
+This script can be used to resume from checkpoints that are written during training in the ``checkpoint`` directory located within the ``--output_dir``.
+Call
+
+.. code-block:: shell
+
+    calamari-resume-training OUTPUT_DIR/checkpoint/checkpoint_XXX/trainer_params.json
+
+to resume training from a certain checkpoint.
+Modify the ``trainer_params.json`` to adapt training, e.g., extending the number of epochs or adapting early stopping.
+
 
 calamari-cross-fold-train
 -------------------------

@@ -9,6 +9,32 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 class TestCommandList(unittest.TestCase):
+    def test_resume_training(self):
+        with tempfile.TemporaryDirectory() as d:
+            # Test training
+            check_call(
+                [
+                    "calamari-train",
+                    "--train.images",
+                    os.path.join(this_dir, "data", "uw3_50lines", "train", "*.bin.png"),
+                    "--trainer.epochs",
+                    "1",
+                    "--trainer.samples_per_epoch",
+                    "16",
+                    "--trainer.output_dir",
+                    d,
+                    "--n_augmentations",
+                    "2",
+                    "--trainer.gen",
+                    "SplitTrain",
+                    "--network=cnn=4:3x3,pool=4x4,lstm=10,dropout=0.5",
+                ]
+            )
+            check_call([
+                "calamari-resume-training",
+                os.path.join(d, "checkpoint", "checkpoint_0001", "trainer_params.json")
+            ])
+
     def test_command_line(self):
         pred_extension = "." + str(uuid.uuid4()) + ".pred.txt"
         try:
