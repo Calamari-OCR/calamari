@@ -69,7 +69,7 @@ class PageXMLDatasetLoader:
             return self._samples_from_book(root, img, page_id)
 
     def _samples_gt_from_book(self, root, img, page_id) -> Iterable[Dict[str, Any]]:
-        ns = {"ns": root.nsmap[None]}
+        ns = {"ns": root.nsmap[root.prefix]}
         page = root.find(".//ns:Page", namespaces=ns)
         imgfile = page.attrib.get("imageFilename")
         if (self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}) and not split_all_ext(img)[0].endswith(
@@ -137,7 +137,7 @@ class PageXMLDatasetLoader:
             }
 
     def _samples_from_book(self, root, img, page_id) -> Iterable[Dict[str, Any]]:
-        ns = {"ns": root.nsmap[None]}
+        ns = {"ns": root.nsmap[root.prefix]}
         page = root.find(".//ns:Page", namespaces=ns)
         imgfile = page.attrib.get("imageFilename")
         if not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
