@@ -14,19 +14,11 @@ class TextProcessor(MappingDataProcessor[T], ABC):
         if isinstance(outputs, Prediction):
             prediction: Prediction = outputs
             prediction.sentence = self._apply_single(prediction.sentence, meta)
-            return sample
-        elif isinstance(targets, dict) and "sentence" in targets:
+        if isinstance(targets, dict) and "sentence" in targets:
             targets["sentence"] = self._apply_single(targets["sentence"], meta)
-            return sample
-        elif isinstance(outputs, dict) and "sentence" in outputs:
+        if isinstance(outputs, dict) and "sentence" in outputs:
             outputs["sentence"] = self._apply_single(outputs["sentence"], meta)
-            return sample
-        else:
-            if targets:
-                sample = sample.new_targets(self._apply_single(targets, meta))
-            if outputs:
-                sample = sample.new_outputs(self._apply_single(outputs, meta))
-            return sample
+        return sample
 
     @abstractmethod
     def _apply_single(self, txt: str, meta: dict) -> str:
