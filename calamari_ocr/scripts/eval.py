@@ -219,8 +219,8 @@ def main(args: EvalArgs):
 
     if args.checkpoint:
         saved_model = SavedCalamariModel(args.checkpoint, auto_update=True)
-        trainer_params = CalamariScenario.trainer_params_from_dict(saved_model.dict)
-        data_params = trainer_params.scenario_params.data_params
+        trainer_params = CalamariScenario.trainer_cls().params_cls().from_dict(saved_model.dict)
+        data_params = trainer_params.scenario.data
     else:
         data_params = Data.default_params()
 

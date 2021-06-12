@@ -8,6 +8,7 @@ before_script:
   - source venv/bin/activate
   - pip install -U pip
   - pip install -r requirements.txt
+  - pip install pytest
   - python setup.py install
 
 cache:
@@ -36,6 +37,7 @@ install_dependencies:
     - source venv/bin/activate
     - pip install -U pip
     - pip install -r requirements.txt
+    - pip install pytest
     - python setup.py install
 
 
@@ -158,3 +160,10 @@ test-train-pagexml:
   script:
     - set -e
     - python -m unittest calamari_ocr.test.test_train_pagexml
+
+
+test-processors:
+  stage: test
+  script:
+    - set -e
+    - pytest calamari_ocr/test/processors

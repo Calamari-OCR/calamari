@@ -15,10 +15,12 @@ from calamari_ocr.utils import glob_all
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
+checkpoint = os.path.join(this_dir, "models", f"version{SavedCalamariModel.VERSION}", "0.ckpt")
+
 
 def predict_args(data) -> PredictArgs:
     p = PredictArgs(
-        checkpoint=[os.path.join(this_dir, "models", f"version{SavedCalamariModel.VERSION}", "0.ckpt")],
+        checkpoint=[checkpoint],
         data=data,
     )
     return p
@@ -28,6 +30,7 @@ def eval_args(gt_data, pred_data=None) -> EvalArgs:
     return EvalArgs(
         gt=gt_data,
         pred=pred_data,
+        checkpoint=checkpoint,
     )
 
 

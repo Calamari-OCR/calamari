@@ -1,73 +1,92 @@
 import re
 from dataclasses import dataclass, field
-from typing import List, Type, Optional, Iterable
+from typing import List, Type, Optional, Iterable, Dict
 
 from dataclasses_json import dataclass_json
 from paiargparse import pai_dataclass, pai_meta
-from tfaip.data.pipeline.definitions import PipelineMode, Sample
 from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
+from tfaip.util.enum import StrEnum
 
 
-def default_groups():
-    return {
-        "quotes": False,
-        "spaces": False,
-        "roman_digits": False,
-        "ligatures-vocal": False,
-        "ligatures-consonantal": False,
-        "various": False,
-        "uvius": False,
-        "punctuation": False,
-    }
+class ReplacementGroup(StrEnum):
+    # Groups
+    Quotes = "quotes"
+    Spaces = "spaces"
+    RomanDigits = "roman_digits"
+    LigaturesVocal = "ligatures-vocal"
+    LigaturesConsonantal = "ligatures-consonantal"
+    Various = "Various"
+    Uvius = "Uvius"
+    Punctuation = "Punctuation"
+
+    # General (add to is_general_group)
+    No = "none"
+    Simple = "simple"
+    Extended = "extended"
+    All = "all"
+    Zpd = "zpd"
+
+    def is_general_group(self):
+        return self in {
+            ReplacementGroup.No,
+            ReplacementGroup.Simple,
+            ReplacementGroup.Extended,
+            ReplacementGroup.All,
+            ReplacementGroup.Zpd,
+        }
 
 
-def parse_groups(string_list):
+def default_groups() -> Dict[ReplacementGroup, bool]:
+    return {v: False for v in ReplacementGroup if not v.is_general_group()}
+
+
+def parse_choices(choices: Iterable[ReplacementGroup]) -> Dict[ReplacementGroup, bool]:
     groups = default_groups()
 
-    for s in map(str.lower, string_list):
-        if s == "none":
-            groups["quotes"] = False
-            groups["spaces"] = False
-            groups["roman_digits"] = False
-            groups["ligatures-consonantal"] = False
-            groups["ligatures-vocal"] = False
-            groups["various"] = False
-        elif s == "simple":
-            groups["quotes"] = False
-            groups["spaces"] = True
-            groups["roman_digits"] = False
-            groups["ligatures-consonantal"] = False
-            groups["ligatures-vocal"] = False
-            groups["various"] = True
-        elif s == "extended":
-            groups["quotes"] = True
-            groups["spaces"] = True
-            groups["roman_digits"] = True
-            groups["ligatures-consonantal"] = False
-            groups["ligatures-vocal"] = False
-            groups["various"] = True
-        elif s == "all":
-            groups["quotes"] = True
-            groups["spaces"] = True
-            groups["roman_digits"] = True
-            groups["ligatures-consonantal"] = True
-            groups["ligatures-vocal"] = True
-            groups["various"] = True
-        elif s == "zpd":  # work in progress
-            groups["quotes"] = True
-            groups["spaces"] = True
-            groups["roman_digits"] = True
-            groups["ligatures-consonantal"] = True
-            groups["ligatures-vocal"] = False
-            groups["various"] = True
+    for c in choices:
+        if c == ReplacementGroup.No:
+            groups[ReplacementGroup.Quotes] = False
+            groups[ReplacementGroup.Spaces] = False
+            groups[ReplacementGroup.RomanDigits] = False
+            groups[ReplacementGroup.LigaturesConsonantal] = False
+            groups[ReplacementGroup.LigaturesVocal] = False
+            groups[ReplacementGroup.Various] = False
+        elif c == ReplacementGroup.Simple:
+            groups[ReplacementGroup.Quotes] = False
+            groups[ReplacementGroup.Spaces] = True
+            groups[ReplacementGroup.RomanDigits] = False
+            groups[ReplacementGroup.LigaturesConsonantal] = False
+            groups[ReplacementGroup.LigaturesVocal] = False
+            groups[ReplacementGroup.Various] = True
+        elif c == ReplacementGroup.Extended:
+            groups[ReplacementGroup.Quotes] = True
+            groups[ReplacementGroup.Spaces] = True
+            groups[ReplacementGroup.RomanDigits] = True
+            groups[ReplacementGroup.LigaturesConsonantal] = False
+            groups[ReplacementGroup.LigaturesVocal] = False
+            groups[ReplacementGroup.Various] = True
+        elif c == ReplacementGroup.All:
+            groups[ReplacementGroup.Quotes] = True
+            groups[ReplacementGroup.Spaces] = True
+            groups[ReplacementGroup.RomanDigits] = True
+            groups[ReplacementGroup.LigaturesConsonantal] = True
+            groups[ReplacementGroup.LigaturesVocal] = True
+            groups[ReplacementGroup.Various] = True
+        elif c == ReplacementGroup.Zpd:  # work in progress
+            groups[ReplacementGroup.Quotes] = True
+            groups[ReplacementGroup.Spaces] = True
+            groups[ReplacementGroup.RomanDigits] = True
+            groups[ReplacementGroup.LigaturesConsonantal] = True
+            groups[ReplacementGroup.LigaturesVocal] = False
+            groups[ReplacementGroup.Various] = True
             groups["punctuation"] = True
             groups["uvius"] = True
-        elif s in groups:
-            groups[s] = True
+        elif c in groups:
+            groups[c] = True
         else:
-            raise KeyError("Unknown key '{}', allowed: {}".format(s, groups.keys()))
+            raise KeyError(f"Unknown key '{c}', allowed: {groups.keys()}")
 
     return groups
 
@@ -80,19 +99,19 @@ class Replacement:
     regex: bool = False
 
 
-def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -> List[Replacement]:
+def default_text_regularizer_replacements(choices: Iterable[ReplacementGroup]) -> List[Replacement]:
     r = []
-    groups = parse_groups(groups)
+    groups = parse_choices(choices)
 
     def replacement(old, new, regex=False):
         r.append(Replacement(old, new, regex))
 
-    if groups["various"]:
+    if groups[ReplacementGroup.Various]:
         replacement("µ", "μ")  # replace micro unit with greek character
         replacement("–", "-")  # variant length hyphens
         replacement("—", "-")  # variant length hyphens
 
-    if groups["quotes"]:
+    if groups[ReplacementGroup.Quotes]:
         replacement('"', "''")  # typewriter double quote
         replacement("`", "'")  # grave accent
         replacement("“", "''")  # fancy quotes
@@ -110,7 +129,7 @@ def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -
         replacement("‴", "'''")  # triple prime
         replacement("〃", "''")  # ditto mark
 
-    if groups["ligatures-vocal"]:
+    if groups[ReplacementGroup.LigaturesVocal]:
         # compare https://en.wikipedia.org/wiki/Typographic_ligature#Ligatures_in_Unicode_(Latin_alphabets)
         replacement("Ꜳ", "AA")
         replacement("ꜳ", "aa")
@@ -126,7 +145,7 @@ def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -
         replacement("ꝏ", "oo")
         replacement("ᵫ", "ue")
 
-    if groups["ligatures-consonantal"]:
+    if groups[ReplacementGroup.LigaturesConsonantal]:
         # compare https://en.wikipedia.org/wiki/Typographic_ligature#Ligatures_in_Unicode_(Latin_alphabets)
         replacement("Ꜹ", "AV")
         replacement("ꜹ", "av")
@@ -147,7 +166,7 @@ def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -
         replacement("Ꝡ", "VY")
         replacement("ꝡ", "vy")
 
-    if groups["roman_digits"]:
+    if groups[ReplacementGroup.RomanDigits]:
         replacement("Ⅰ", "I")  # expand unicode roman digits
         replacement("Ⅱ", "II")  # expand unicode roman digits
         replacement("Ⅲ", "III")  # expand unicode roman digits
@@ -182,7 +201,7 @@ def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -
         replacement("ⅿ", "m")  # expand unicode roman digits
 
     if groups[
-        "uvius"
+        ReplacementGroup.Uvius
     ]:  # work in progress; based on Uwe Springmann's work for the GT4HistOCR corpus (https://zenodo.org/record/1344132)
         replacement("''", '"')
 
@@ -346,12 +365,12 @@ def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -
         replacement("q̄", "q̃")
         replacement("r̄", "r̃")
 
-    if groups["punctuation"]:
+    if groups[ReplacementGroup.Punctuation]:
         replacement(
             r"(\S)(\s*)([.,:;?!])(\s*)(\S)", r"\1\3 \5", True
         )  # remove spaces before punctuation and add one after
 
-    if groups["spaces"]:
+    if groups[ReplacementGroup.Spaces]:
         replacement(r"(?u)\s+", " ", True)  # Multiple spaces to one
         replacement(r"(?u)\n", "", True)  # Remove line breaks
         replacement(r"(?u)^\s+", "", True)  # strip left
@@ -364,8 +383,8 @@ def default_text_regularizer_replacements(groups: Iterable[str] = ("simple",)) -
 @dataclass
 class TextRegularizerProcessorParams(DataProcessorParams):
     # TODO: groups as enums
-    replacement_groups: List[str] = field(
-        default_factory=lambda: ["extended"],
+    replacement_groups: List[ReplacementGroup] = field(
+        default_factory=lambda: [ReplacementGroup.Spaces],
         metadata=pai_meta(help="Text regularization to apply."),
     )
     replacements: Optional[List[Replacement]] = field(default=None, metadata=pai_meta(mode="ignore"))
@@ -389,9 +408,3 @@ class TextRegularizerProcessor(TextProcessor[TextRegularizerProcessorParams]):
                 txt = txt.replace(replacement.old, replacement.new)
 
         return txt
-
-
-if __name__ == "__main__":
-    n = TextRegularizerProcessorParams(replacement_groups=["quotes", "spaces"]).create(None, mode=PipelineMode.TRAINING)
-    assert n(Sample(targets="“Resolve quotes”")).targets == "''Resolve quotes''"
-    assert n(Sample(targets="  “Resolve   spaces  ”   ")).targets == "''Resolve spaces ''"
