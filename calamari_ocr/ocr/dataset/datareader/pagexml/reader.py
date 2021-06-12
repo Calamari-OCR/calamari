@@ -256,6 +256,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         coordstring: str,
         mode: CutMode,
         angle=0,
+        max_auto_angle=0,
         cval=None,
         scale=1,
     ):
@@ -270,7 +271,9 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             CutMode.MBR : cut minimum bounding rectangle around coordinates
         angle :
             float : rotate angle in clockwise direction
-            None : calculate angle from minimum bounding rectangle
+            None : guess angle from minimum bounding rectangle
+        max_auto_angle :
+            float : if angle is None, try to guess angle up to boundary
         cval :
             colour : mask and fill empty regions with
             None : calculate via maximum pixel
@@ -291,8 +294,13 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         # calculate angle if needed
         if angle is None:
-            mbr = cv.minAreaRect(coords)
-            angle = mbr[2] if maxX <= maxY else mbr[2] - 90
+            if max_auto_angle > 0:
+                mbr = cv.minAreaRect(coords)
+                angle = mbr[2] - 90 if mbr[2] > 45 else mbr[2]
+                if abs(angle) > max_auto_angle:
+                    angle = 0
+            else:
+                angle = 0
 
         # set cval if needed
         if cval is None:
