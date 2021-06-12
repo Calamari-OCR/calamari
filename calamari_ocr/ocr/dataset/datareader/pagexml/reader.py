@@ -75,7 +75,7 @@ class PageXMLDatasetLoader:
         if (self.mode in {PipelineMode.TRAINING, PipelineMode.EVALUATION}) and not split_all_ext(img)[0].endswith(
             split_all_ext(imgfile)[0]
         ):
-            raise Exception(
+            logger.warning(
                 "Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
                     img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]
                 )
@@ -141,7 +141,7 @@ class PageXMLDatasetLoader:
         page = root.find(".//ns:Page", namespaces=ns)
         imgfile = page.attrib.get("imageFilename")
         if not split_all_ext(img)[0].endswith(split_all_ext(imgfile)[0]):
-            raise Exception(
+            logger.warning(
                 "Mapping of image file to xml file invalid: {} vs {} (comparing basename {} vs {})".format(
                     img, imgfile, split_all_ext(img)[0], split_all_ext(imgfile)[0]
                 )
