@@ -6,6 +6,7 @@ from paiargparse import pai_dataclass, pai_meta
 from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
+from calamari_ocr.utils.image import to_uint8
 
 
 @pai_dataclass(alt="FinalPreparation")
@@ -62,7 +63,7 @@ class FinalPreparation(ImageProcessor[FinalPreparationProcessorParams]):
                     ]
                 )
 
-        data = (data * 255).astype(np.uint8)
+        data = to_uint8(data)
 
         if channels == 1:
             data = np.squeeze(data, axis=-1)
