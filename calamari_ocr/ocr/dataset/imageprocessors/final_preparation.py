@@ -6,7 +6,7 @@ from paiargparse import pai_dataclass, pai_meta
 from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor
-from calamari_ocr.utils.image import to_uint8
+from calamari_ocr.utils.image import to_uint8, to_float32
 
 
 @pai_dataclass(alt="FinalPreparation")
@@ -25,6 +25,8 @@ class FinalPreparationProcessorParams(DataProcessorParams):
 
 class FinalPreparation(ImageProcessor[FinalPreparationProcessorParams]):
     def _apply_single(self, data: np.ndarray, meta):
+        data = to_float32(data)
+
         if len(data.shape) != 3:
             data = np.expand_dims(data, axis=-1)  # add channels dimension
 

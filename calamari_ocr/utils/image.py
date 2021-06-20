@@ -73,11 +73,9 @@ def load_image(image_path: str) -> np.ndarray:
 
 
 def to_uint8(data: np.ndarray) -> np.ndarray:
-    """
-    Read an image and returns it as uint8
-    The optional page number allows images from files containing multiple
-    images to be addressed.  All arrays are rescaled to
-    the range 0...255 (unsigned)
+    """Read an image and returns it as uint8
+
+    All arrays are rescaled to the range 0...255 (unsigned)
     """
     if data.dtype == np.dtype("uint8"):
         data = data
@@ -91,6 +89,29 @@ def to_uint8(data: np.ndarray) -> np.ndarray:
         data = (data * 255).astype("uint8")
     elif data.dtype == bool:
         data = data.astype("uint8") * 255
+    else:
+        raise Exception("unknown image type: {}".format(data.dtype))
+
+    return data
+
+
+def to_float32(data: np.ndarray) -> np.ndarray:
+    """Read an image and returns it as float32
+
+    All arrays are rescaled to the range 0...1
+    """
+    if data.dtype == np.dtype("uint8"):
+        data = data.astype("float32") / 255
+    elif data.dtype == np.dtype("int8"):
+        data = (data.astype("int16") + 128).astype("float32") / 255
+    elif data.dtype == np.dtype("uint16"):
+        data = data.astype("float32") / 256 / 255
+    elif data.dtype == np.dtype("int16"):
+        data = ((data.astype("float32") / 128) + 128) / 255
+    elif data.dtype in [np.dtype("f"), np.dtype("float32"), np.dtype("float64")]:
+        data = data.astype("float32")
+    elif data.dtype == bool:
+        data = data.astype("float32")
     else:
         raise Exception("unknown image type: {}".format(data.dtype))
 

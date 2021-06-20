@@ -157,16 +157,16 @@ class TestPrediction(unittest.TestCase):
     def test_empty_image_raw_prediction(self):
         predictor = create_single_model_predictor()
         images = [
-            np.zeros(shape=(0, 0)),
-            np.zeros(shape=(1, 0)),
-            np.zeros(shape=(0, 1)),
+            np.zeros(shape=(0, 0), dtype="float32"),
+            np.zeros(shape=(1, 0), dtype="int16"),
+            np.zeros(shape=(0, 1), dtype="uint8"),
         ]
         for result in predictor.predict_raw(images):
             print(result.outputs.sentence)
 
     def test_white_image_raw_prediction(self):
         predictor = create_single_model_predictor()
-        images = [np.zeros(shape=(200, 50))]
+        images = [np.zeros(shape=(200, 50), dtype="uint8")]
         for result in predictor.predict_raw(images):
             print(result.outputs.sentence)
 
