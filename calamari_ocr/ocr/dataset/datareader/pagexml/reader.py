@@ -88,7 +88,7 @@ class PageXMLDatasetLoader:
             tequivs = textline.findall('./ns:TextEquiv[@index="{}"]'.format(self.text_index), namespaces=ns)
 
             if not tequivs:
-                tequivs = textline.findall("./ns:TextEquiv", namespaces=ns)
+                tequivs = [te for te in textline.findall("./ns:TextEquiv", namespaces=ns) if "index" not in te.attrib]
 
             if len(tequivs) > 1:
                 logger.warning("PageXML is invalid: TextLine includes TextEquivs with non unique ids")
