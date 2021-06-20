@@ -1,6 +1,14 @@
+import os
 from setuptools import setup, find_packages
 
-from calamari_ocr import __version__
+this_dir = os.path.dirname(os.path.realpath(__file__))
+
+# Parse version
+main_ns = {}
+with open(os.path.join(this_dir, "calamari_ocr", "version.py")) as f:
+    exec(f.read(), main_ns)
+    __version__ = main_ns["__version__"]
+
 
 setup(
     name="calamari_ocr",

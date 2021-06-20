@@ -1,1 +1,1 @@
-__version__ = "2.1.2"
+from calamari_ocr.version import __version__
