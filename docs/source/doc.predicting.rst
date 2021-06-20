@@ -10,6 +10,11 @@ The predictor must be created once but can then be used for multiple predictions
 Single Model
 ~~~~~~~~~~~~
 
+There are two options for prediction depending on your data and usecase.
+
+If you have already a `list of data` use the code below: create the predictor and call ``predict_raw``, ``predict_pipeline``, ``predict_dataset``.
+This will setup all internal pipelines and close them afterwards automatically.
+
 .. code-block:: python
 
     from calamari_ocr.ocr.predict.predictor import Predictor, PredictorParams
@@ -27,6 +32,22 @@ Whereby a ``raw_image_generator`` is of type ``Iterable[np.ndarray]`` for exampl
 
     raw_image_generator = [np.zeros(shape=(200, 50))]
 
+
+If instead the `samples (lines) are dynamically created` during the execution and the predictor shall be kept alive use the following:
+
+.. code-block:: python
+
+    # Create the predictor, and the raw predictor somewhere in your code
+    from calamari_ocr.ocr.predict.predictor import Predictor, PredictorParams
+    predictor = Predictor.from_checkpoint(
+        params=PredictorParams(),
+        checkpoint='PATH_TO_THE_MODEL_WITHOUT_EXT')
+    raw_predictor = predictor.raw().__enter()__  # you can also wrap the following lines in a `with`-block
+
+    # somehwere else in your code, just call the raw_predictor with a single image
+    sample = raw_predictor(raw_image)  # raw_image is e.g. np.zeros(200, 50)
+    inputs, prediction, meta = sample.inputs, sample.outputs, sample.meta
+    # prediction is usually what you are looking for
 
 Have a look at the `prediction tests <https://github.com/Calamari-OCR/calamari/blob/master/calamari_ocr/test/test_prediction.py>`_ for some more examples.
 

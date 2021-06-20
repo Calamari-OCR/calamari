@@ -176,6 +176,14 @@ class TestPrediction(unittest.TestCase):
         for result in predictor.predict_raw(images):
             self.assertGreater(result.outputs.avg_char_probability, 0)
 
+    def test_raw_prediction_queue(self):
+        predictor = create_single_model_predictor()
+        images = [gray_scale_image_loader.load_image(file) for file in file_dataset().images]
+        with predictor.raw() as raw_p:
+            for image in images:
+                r = raw_p(image)
+                self.assertGreater(r.outputs.avg_char_probability, 0)
+
     def test_dataset_prediction(self):
         predictor = create_single_model_predictor()
         for sample in predictor.predict(file_dataset()):
