@@ -58,8 +58,12 @@ class WarmStarterWithCodecAdaption(WarmStarter):
                 )
                 target_weight.assign(w_val)
             elif "bias" in target_weight.name:
+                # The bias will be initialized with a value that is (on average) smaller than the bias of
+                # all other classes. This reduces problems if the difference of the old and new (untrained) biases
+                # is too large
                 b_val = np.delete(source_weight, [i - 1 for i in indices_to_delete], axis=0)
-                b_val = np.concatenate((b_val[:-1], np.zeros((len(indices_to_add),)), b_val[-1:]), axis=0)
+                b_val_init = np.mean(b_val) - np.std(b_val)
+                b_val = np.concatenate((b_val[:-1], np.full((len(indices_to_add),), b_val_init), b_val[-1:]), axis=0)
                 target_weight.assign(b_val)
             else:
                 raise NotImplementedError("logits layer is expected to have kernel and bias and nothing else")

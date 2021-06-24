@@ -6,11 +6,9 @@ from tfaip.scenario.scenariobase import (
     TScenarioParams,
     TTrainerPipelineParams,
 )
+from tfaip.trainer.optimizer import AdamOptimizer
 from tfaip.trainer.scheduler import Constant
 
-from calamari_ocr.ocr.dataset.data import Data
-from calamari_ocr.ocr.model.ensemblemodel import EnsembleModel
-from calamari_ocr.ocr.model.model import Model
 from calamari_ocr.ocr.scenario_params import (
     CalamariScenarioParams,
     CalamariEnsembleScenarioParams,
@@ -51,10 +49,12 @@ class CalamariScenarioBase(ScenarioBase[TScenarioParams, CalamariDefaultTrainerP
         trainer_params.early_stopping.frequency = 1
         trainer_params.early_stopping.n_to_go = 5
         trainer_params.skip_model_load_test = True
-        trainer_params.optimizer.global_clip_norm = 5
         trainer_params.learning_rate = Constant()
         trainer_params.gen.setup.train.num_processes = 8
         trainer_params.gen.setup.val.num_processes = 8
+        # Optimizer with weight decay (by default) to ensure that the weights do not become too large
+        # which might lead to problems during fine-tuning and codec adaption.
+        trainer_params.optimizer = AdamOptimizer(weight_decay=1.0e-5, global_clip_norm=5)
         return trainer_params
 
 
