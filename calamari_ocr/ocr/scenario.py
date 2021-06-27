@@ -49,6 +49,7 @@ class CalamariScenarioBase(ScenarioBase[TScenarioParams, CalamariDefaultTrainerP
         trainer_params.early_stopping.frequency = 1
         trainer_params.early_stopping.n_to_go = 5
         trainer_params.skip_model_load_test = True
+        trainer_params.ema_decay = 0.99
         trainer_params.learning_rate = Constant()
         trainer_params.gen.setup.train.num_processes = 8
         trainer_params.gen.setup.val.num_processes = 8
