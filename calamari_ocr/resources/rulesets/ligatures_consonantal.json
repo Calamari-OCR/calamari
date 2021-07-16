@@ -1,0 +1,20 @@
+[
+  {"rule": ["Ꜹ", "AV"], "type": "raw"},
+  {"rule": ["ꜹ", "av"], "type": "raw"},
+  {"rule": ["Ꜻ", "AV"], "type": "raw"},
+  {"rule": ["ꜻ", "av"], "type": "raw"},
+  {"rule": ["Ꜽ", "AY"], "type": "raw"},
+  {"rule": ["ꜽ", "ay"], "type": "raw"},
+  {"rule": ["🙰", "et"], "type": "raw"},
+  {"rule": ["ﬀ", "ff"], "type": "raw"},
+  {"rule": ["ﬃ", "ffi"], "type": "raw"},
+  {"rule": ["ﬄ", "ffl"], "type": "raw"},
+  {"rule": ["ﬂ", "fl"], "type": "raw"},
+  {"rule": ["ﬁ", "fi"], "type": "raw"},
+  {"rule": ["ﬆ", "st"], "type": "raw"},
+  {"rule": ["ﬅ", "ſt"], "type": "raw"},
+  {"rule": ["Ꜩ", "TZ"], "type": "raw"},
+  {"rule": ["ꜩ", "tz"], "type": "raw"},
+  {"rule": ["Ꝡ", "VY"], "type": "raw"},
+  {"rule": ["ꝡ", "vy"], "type": "raw"}
+]

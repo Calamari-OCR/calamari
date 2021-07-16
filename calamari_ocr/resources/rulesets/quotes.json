@@ -1,0 +1,18 @@
+[
+  {"rule": ["\"", "''"], "type": "raw"},
+  {"rule": ["`", "'"], "type": "raw"},
+  {"rule": ["“", "''"], "type": "raw"},
+  {"rule": ["”", "''"], "type": "raw"},
+  {"rule": ["´", "'"], "type": "raw"},
+  {"rule": ["‘", "'"], "type": "raw"},
+  {"rule": ["’", "'"], "type": "raw"},
+  {"rule": ["“", "''"], "type": "raw"},
+  {"rule": ["”", "''"], "type": "raw"},
+  {"rule": ["“", "''"], "type": "raw"},
+  {"rule": ["„", ",,"], "type": "raw"},
+  {"rule": ["…", "..."], "type": "raw"},
+  {"rule": ["′", "'"], "type": "raw"},
+  {"rule": ["″", "''"], "type": "raw"},
+  {"rule": ["‴", "'''"], "type": "raw"},
+  {"rule": ["〃", "''"], "type": "raw"}
+]
