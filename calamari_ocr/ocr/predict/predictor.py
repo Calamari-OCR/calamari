@@ -70,12 +70,12 @@ class MultiPredictor(tfaip_cls.MultiModelPredictor):
 
     def create_voter(self, data_params: "DataParams") -> MultiModelVoter:
         # Cut non text processors (first two)
-        pipeline = self.data.create_pipeline(self.params.pipeline, None)
+        # force run_parallel = False because the voter itself already runs in separate threads
         post_proc_params = [
             SequentialProcessorPipelineParams(run_parallel=False, processors=data.params.post_proc.processors[2:])
             for data in self.datas
         ]
-        post_proc = [p.create(pipeline, self.data.params) for p in post_proc_params]
-        pre_proc = self.data.params.pre_proc.create(pipeline, self.data.params)
+        post_proc = [p.create(self.params.pipeline, self.data.params) for p in post_proc_params]
+        pre_proc = self.data.params.pre_proc.create(self.params.pipeline, self.data.params)
         out_to_in_transformer = OutputToInputTransformer(pre_proc)
         return CalamariMultiModelVoter(self.voter_params, self.datas, post_proc, out_to_in_transformer)

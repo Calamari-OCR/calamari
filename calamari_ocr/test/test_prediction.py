@@ -1,8 +1,8 @@
-import json
 import os
 import unittest
 
 import numpy as np
+
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.predict.params import PredictionResult, Predictions
 from tensorflow import keras
@@ -172,9 +172,11 @@ class TestPrediction(unittest.TestCase):
 
     def test_raw_prediction(self):
         predictor = create_single_model_predictor()
-        images = [gray_scale_image_loader.load_image(file) for file in file_dataset().images]
+        images = [gray_scale_image_loader.load_image(file) for file in file_dataset().images] * 10
         for result in predictor.predict_raw(images):
             self.assertGreater(result.outputs.avg_char_probability, 0)
+
+        predictor.benchmark_results.pretty_print()
 
     def test_raw_prediction_queue(self):
         predictor = create_single_model_predictor()
@@ -191,14 +193,18 @@ class TestPrediction(unittest.TestCase):
 
     def test_raw_prediction_voted(self):
         predictor = create_multi_model_predictor()
-        images = [gray_scale_image_loader.load_image(file) for file in file_dataset().images]
+        images = [gray_scale_image_loader.load_image(file) for file in file_dataset().images] * 100
         for sample in predictor.predict_raw(images):
             r, voted = sample.outputs
+
+        predictor.benchmark_results.pretty_print()
 
     def test_dataset_prediction_voted(self):
         predictor = create_multi_model_predictor()
         for sample in predictor.predict(file_dataset()):
             r, voted = sample.outputs
+
+        predictor.benchmark_results.pretty_print()
 
 
 if __name__ == "__main__":
