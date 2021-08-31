@@ -226,7 +226,7 @@ def main(args: EvalArgs):
 
     data = Data(data_params)
 
-    pred_data = args.pred if args.pred else args.gt.to_prediction()
+    pred_data = args.pred if args.pred is not None else args.gt.to_prediction()
     evaluator = Evaluator(args.evaluator, data=data)
     evaluator.preload_gt(gt_dataset=args.gt)
     r = evaluator.run(gt_dataset=args.gt, pred_dataset=pred_data)
