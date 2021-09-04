@@ -1,14 +1,7 @@
-black
 edit_distance
 h5py
 lxml
-numpy
-opencv-python-headless
-paiargparse
-prettytable
-pre-commit
 python-bidi
-scikit-image>=0.15.0
 tensorflow~=2.4.0
 tfaip==1.2.4
 xlsxwriter

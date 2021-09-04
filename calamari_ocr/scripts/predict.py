@@ -123,7 +123,7 @@ def run(args: PredictArgs):
     pipeline: CalamariPipeline = predictor.data.get_or_create_pipeline(predictor.params.pipeline, args.data)
     reader = pipeline.reader()
     if len(reader) == 0:
-        raise Exception("Empty dataset provided. Check your command line arguments")
+        raise Exception("Empty dataset provided. Check your command line arguments or if the provided files are empty.")
 
     avg_sentence_confidence = 0
     n_predictions = 0
