@@ -193,7 +193,7 @@ class TestPrediction(unittest.TestCase):
 
     def test_raw_prediction_voted(self):
         predictor = create_multi_model_predictor()
-        images = [gray_scale_image_loader.load_image(file) for file in file_dataset().images] * 100
+        images = [gray_scale_image_loader.load_image(file) for file in file_dataset().images] * 2
         for sample in predictor.predict_raw(images):
             r, voted = sample.outputs
 
