@@ -3,6 +3,7 @@ import json
 import os
 import logging
 
+import packaging.version
 from calamari_ocr import __version__
 from calamari_ocr.utils import split_all_ext
 
@@ -71,6 +72,15 @@ class SavedCalamariModel:
                 migrate2to5,
                 update_model,
             )
+            import tensorflow as tf
+
+            if packaging.version.parse(tf.__version__) >= packaging.version.parse("2.5.0"):
+                raise Exception(
+                    "Modules of checkpoint version 2 can only be upgraded by Tensorflow version 2.4. Please downgrade "
+                    "Tensorflow to 2.4.x (`pip install tensorflow~=2.4.0`) to convert the model to a newer version "
+                    "afterwards you can upgrade Tensorflow to a newver vesion (`pip install -U tensorflow`) "
+                    "and continue the model upgrade (if required)."
+                )
 
             # Calamari 1.3 -> Calamari 2.1
             self.dict = migrate2to5(self.dict)
@@ -82,7 +92,7 @@ class SavedCalamariModel:
                 update_model,
             )
 
-            # Calamari 2.0 -> Calamari 2.1
+            # Calamari 2.0 -> Calamari 2.1, 2.2
             if self.version == 3:
                 self.dict = migrate3to5(self.dict)
             update_model(self.dict, self.ckpt_path)
