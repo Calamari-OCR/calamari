@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import field, dataclass
 
 import tfaip.util.logging as logging
@@ -48,11 +49,18 @@ def main(args=None):
         action="store_true",
         help="Access as validation instead of training data.",
     )
+    parser.add_argument(
+        "--as_predict",
+        action="store_true",
+        help="Access as prediction instead of training data.",
+    )
     parser.add_argument("--n_augmentations", type=float, default=0)
     parser.add_argument("--no_plot", action="store_true", help="This parameter is for testing only")
 
     parser.add_root_argument("data", DataWrapper)
     args = parser.parse_args(args=args)
+
+    assert not (args.as_validation and args.as_predict), "only one of as_validation or as_predict can be set."
 
     data_wrapper: DataWrapper = args.data
     data_params = data_wrapper.data
@@ -61,12 +69,17 @@ def main(args=None):
     for p in data_params.pre_proc.processors_of_type(AugmentationProcessorParams):
         p.n_augmentations = args.n_augmentations
     data_params.__post_init__()
-    data_wrapper.pipeline.mode = PipelineMode.EVALUATION if args.as_validation else PipelineMode.TRAINING
+    if args.as_validation:
+        data_wrapper.pipeline.mode = PipelineMode.EVALUATION
+    elif args.as_predict:
+        data_wrapper.pipeline.mode = PipelineMode.PREDICTION
+    else:
+        data_wrapper.pipeline.mode = PipelineMode.TRAINING
     data_wrapper.gen.prepare_for_mode(data_wrapper.pipeline.mode)
 
     data = Data(data_params)
     if len(args.select) == 0:
-        args.select = list(range(len(data_wrapper.gen)))
+        args.select = itertools.count()
     else:
         try:
             data_wrapper.gen.select(args.select)
