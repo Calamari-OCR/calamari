@@ -82,7 +82,7 @@ class GeneratedLineDataset(CalamariDataGenerator[GeneratedLineDatasetParams]):
         for d in self.data_generators:
             d.start()
 
-    def store_text_prediction(self, sentence, sample_id, output_dir):
+    def store_text_prediction(self, prediction, sample_id, output_dir):
         pass
 
     def _load_sample(self, sample, text_only):

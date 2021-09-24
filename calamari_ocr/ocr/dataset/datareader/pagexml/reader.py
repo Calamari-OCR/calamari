@@ -361,7 +361,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
     def prepare_store(self):
         self._last_page_id = None
 
-    def store_text_prediction(self, sentence, sample_id, output_dir):
+    def store_text_prediction(self, prediction, sample_id, output_dir):
+        sentence = prediction.sentence
         sample = self.sample_by_id(sample_id)
         ns = sample["ns"]
         line = sample["xml_element"]
