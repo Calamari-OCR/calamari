@@ -59,7 +59,9 @@ class PageXMLDatasetLoader:
             else:
                 raise FileNotFoundError(f"File '{xml}' does not exist.")
 
-        root = etree.parse(xml).getroot()
+        # remove_blank_text=True is needed so we can add tags to the tree without the pretty printer breaking
+        parser = etree.XMLParser(remove_blank_text=True)
+        root = etree.parse(xml, parser).getroot()
         self.root = root
 
         page_id = split_all_ext(xml)[0]
@@ -250,6 +252,9 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         # store which pagexml was stored last, to check when a file is ready to be written during sequential prediction
         self._last_page_id = None
 
+        # counter for word tag ids
+        self._next_word_id = 0
+
     @staticmethod
     def cutout(
         pageimg: np.array,
@@ -360,6 +365,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
     def prepare_store(self):
         self._last_page_id = None
+        self._next_word_id = 0
 
     def store_text_prediction(self, prediction, sample_id, output_dir):
         sentence = prediction.sentence
@@ -375,6 +381,9 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             u_xml = etree.SubElement(textequivxml, "Unicode")
 
         u_xml.text = sentence
+
+        words = self._words_from_prediction(prediction)
+        self._store_words(words, line, ns)
 
         # check if page can be stored, this requires that (standard in prediction) the pages are passed sequentially
         if self._last_page_id != sample["page_id"]:
@@ -403,6 +412,66 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 page = self.pages(split_all_ext(xml)[0])
                 with open(split_all_ext(xml)[0] + extension, "w", encoding="utf-8") as f:
                     f.write(etree.tounicode(page.getroottree(), pretty_print=True))
+
+    def _store_glyph(self, glyph, word_id, word_xml, glyph_counter):
+        glyph_id = "{}g{}".format(word_id, str(glyph_counter))
+        glyph_xml = etree.SubElement(word_xml, "Glyph", attrib={"id": glyph_id})
+        coords_xml = etree.SubElement(glyph_xml, "Coords")
+        coords_xml.set("points", "0,0 1,0")  # TODO: Replace with actual glyph coordinates.
+
+        textequiv_xml = etree.SubElement(glyph_xml, "TextEquiv", attrib={"index": str(self.params.text_index)})
+        u_xml = etree.SubElement(textequiv_xml, "Unicode")
+        u_xml.text = glyph.chars[0].char
+
+    def _store_words(self, words, line_xml, ns):
+        # page schema requires that word tags are directly after coords (and baseline, if present)
+        coords_xml = line_xml.find("./ns:Coords", namespaces=ns)
+        baseline_xml = line_xml.find("./ns:Baseline", namespaces=ns)
+
+        if baseline_xml is not None:
+            insert_index = line_xml.index(baseline_xml) + 1
+        elif coords_xml is not None:
+            insert_index = line_xml.index(coords_xml) + 1
+        else:
+            insert_index = 0
+
+        for word in words:
+            word_id = "w" + str(self._next_word_id)
+            self._next_word_id += 1
+            word_xml = etree.SubElement(line_xml, "Word", attrib={"id": word_id})
+            coords_xml = etree.SubElement(word_xml, "Coords")
+
+            word_text = ""
+            glyph_counter = 0
+            for glyph in word:
+                word_text += glyph.chars[0].char
+                self._store_glyph(glyph, word_id, word_xml, glyph_counter)
+                glyph_counter += 1
+
+            textequiv_xml = etree.SubElement(word_xml, "TextEquiv", attrib={"index": str(self.params.text_index)})
+            u_xml = etree.SubElement(textequiv_xml, "Unicode")
+            u_xml.text = word_text
+
+            # TODO: Replace with actual word coordinates.
+            # word_start, word_end = word[0].global_start, word[-1].global_end
+            coords_xml.set("points", "0,0 1,0")
+            line_xml.insert(insert_index, word_xml)
+
+    # groups prediction positions by word, removing spaces
+    @staticmethod
+    def _words_from_prediction(prediction) -> list:
+        words = []
+        current_word = []
+
+        for pos in prediction.positions:
+            char = pos.chars[0].char
+            if char == ' ':
+                words.append(current_word)
+                current_word = []
+                continue
+            current_word.append(pos)
+
+        return words
 
     def _store_page(self, extension, page_id):
         page = self.pages[page_id]
