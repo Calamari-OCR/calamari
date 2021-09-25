@@ -1,4 +1,4 @@
-from tfaip.data.pipeline.processor.dataprocessor import DataProcessorBase, SequenceProcessor
+from tfaip.data.pipeline.processor.dataprocessor import SequenceProcessor
 from tfaip.data.pipeline.processor.pipeline import DataProcessorPipeline
 
 from calamari_ocr.ocr.dataset.imageprocessors.data_preprocessor import ImageProcessor

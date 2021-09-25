@@ -61,7 +61,6 @@ class Hdf5DatasetWriter:
 
 if __name__ == "__main__":
     from calamari_ocr.ocr.dataset.datareader.file import (
-        FileDataGenerator,
         FileDataParams,
     )
 

@@ -2,7 +2,7 @@ import codecs
 import os
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 import logging
