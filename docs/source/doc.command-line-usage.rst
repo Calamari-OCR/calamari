@@ -797,7 +797,7 @@ calamari-predict-and-eval
 calamari-eval
 -------------
 
-To compute the performance of a model first to predict the evaluation data set (see ``calamari-predict``).
+To compute the performance of a model first predict the evaluation data set (see ``calamari-predict``).
 Afterwards run
 
 .. code-block:: shell
