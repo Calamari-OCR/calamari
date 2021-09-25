@@ -78,7 +78,7 @@ def to_uint8(data: np.ndarray) -> np.ndarray:
     All arrays are rescaled to the range 0...255 (unsigned)
     """
     if data.dtype == np.dtype("uint8"):
-        data = data
+        pass
     elif data.dtype == np.dtype("int8"):
         data = (data.astype("int16") + 128).astype("uint8")
     elif data.dtype == np.dtype("uint16"):
