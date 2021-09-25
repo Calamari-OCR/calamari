@@ -135,7 +135,6 @@ def ctcTokenPassing(mat, classes, charWords, blankIdx=-1, word_separator=" "):
 
         for wIdx in sortedWordIdx:
             wPrime = primeWords[wIdx]
-            w = words[wIdx]
 
             # 15-17
             # if bigrams should be used, these lines have to be adapted
