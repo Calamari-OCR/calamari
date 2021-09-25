@@ -17,7 +17,7 @@ def benchmark_prediction(model, batch_size, processes, n_examples, runs=10):
     print("Running with bs={}, proc={}, n={}".format(batch_size, processes, n_examples))
     start = time.time()
     for i in range(runs):
-        list(predictor.predict_raw([data] * n_examples, batch_size=batch_size))
+        list(predictor.predict_raw([data] * n_examples))
     end = time.time()
 
     return (end - start) / runs
