@@ -62,7 +62,12 @@ class FileDataParams(CalamariDataGeneratorParams):
 
     def prepare_for_mode(self, mode: PipelineMode):
         logger.info("Resolving input files")
-        input_image_files = sorted(glob_all(self.images))
+        if len(self.images) == 1 and self.images[0][0] == "@":
+            filename = self.images[0][1:]
+            with open(filename) as f:
+                input_image_files = [line.rstrip() for line in f]
+        else:
+            input_image_files = sorted(glob_all(self.images))
 
         if not self.texts:
             gt_txt_files = [split_all_ext(f)[0] + self.gt_extension for f in input_image_files]
