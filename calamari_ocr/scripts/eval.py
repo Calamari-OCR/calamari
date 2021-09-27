@@ -2,19 +2,14 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import tfaip.util.logging
-from argparse import ArgumentParser
-import os
-import json
 import numpy as np
 from calamari_ocr.ocr.dataset.params import DATA_GENERATOR_CHOICES
 from paiargparse import PAIArgumentParser, pai_dataclass, pai_meta
-from tfaip.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.evaluator import EvaluatorParams
-from calamari_ocr.utils import glob_all, split_all_ext
 
 logger = tfaip.util.logging.logger(__name__)
 

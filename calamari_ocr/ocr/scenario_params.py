@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TypeVar, Generic
+from typing import TypeVar
 
 from paiargparse import pai_dataclass
 from tfaip import ScenarioBaseParams

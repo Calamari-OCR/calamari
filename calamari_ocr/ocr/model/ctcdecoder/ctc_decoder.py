@@ -3,7 +3,6 @@ from dataclasses import field, dataclass
 from typing import List
 
 import numpy as np
-from dataclasses_json import dataclass_json
 from paiargparse import pai_dataclass
 from tfaip.util.enum import StrEnum
 

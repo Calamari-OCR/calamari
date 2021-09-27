@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Dict
 
 from paiargparse import PAIArgumentParser
 from tfaip.util.logging import logger, WriteToLogFile
-from tfaip.util.tfaipargparse import post_init
 from tfaip.util.typing import AnyNumpy
 
 from calamari_ocr import __version__
