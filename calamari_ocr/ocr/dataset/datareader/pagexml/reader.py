@@ -471,10 +471,13 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         baseline_xml = line_xml.find("./ns:Baseline", namespaces=ns)
 
         if baseline_xml is not None:
+            # if there is a baseline element, insert after it
             insert_index = line_xml.index(baseline_xml) + 1
         elif coords_xml is not None:
+            # if there is a coords element, but no baseline element, insert after it
             insert_index = line_xml.index(coords_xml) + 1
         else:
+            # otherwise, insert at the start
             insert_index = 0
 
         _, line_y, _, line_height = self._bounding_rect_from_points(line_coords)
@@ -512,6 +515,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             coords_xml.set("points", self._coords_for_rectangle(word_x, word_y, word_width, word_height))
 
             line_xml.insert(insert_index, word_xml)
+            insert_index += 1
 
         return total_confidence
 
