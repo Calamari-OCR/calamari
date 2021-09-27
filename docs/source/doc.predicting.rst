@@ -44,7 +44,7 @@ If instead the `samples (lines) are dynamically created` during the execution an
         checkpoint='PATH_TO_THE_MODEL_WITHOUT_EXT')
     raw_predictor = predictor.raw().__enter__()  # you can also wrap the following lines in a `with`-block
 
-    # somehwere else in your code, just call the raw_predictor with a single image
+    # somewhere else in your code, just call the raw_predictor with a single image
     sample = raw_predictor(raw_image)  # raw_image is e.g. np.zeros(200, 50)
     inputs, prediction, meta = sample.inputs, sample.outputs, sample.meta
     # prediction is usually what you are looking for
