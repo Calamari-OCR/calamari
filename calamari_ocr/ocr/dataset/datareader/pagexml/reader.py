@@ -384,7 +384,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         u_xml.text = sentence
 
         words = self._words_from_prediction(prediction)
-        self._store_words(words, line, self._parse_coords(sample["coords"]), ns)
+        total_confidence = self._store_words(words, line, self._parse_coords(sample["coords"]), ns)
+        textequivxml.set("conf", str(total_confidence))
 
         # check if page can be stored, this requires that (standard in prediction) the pages are passed sequentially
         if self._last_page_id != sample["page_id"]:
@@ -453,14 +454,18 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         glyph_x, glyph_y = glyph.global_start, line_y
         glyph_width, glyph_height = glyph.global_end - glyph.global_start, line_height
-
         coords_xml.set("points", self._coords_for_rectangle(glyph_x, glyph_y, glyph_width, glyph_height))
 
-        textequiv_xml = etree.SubElement(glyph_xml, "TextEquiv", attrib={"index": str(self.params.text_index)})
-        u_xml = etree.SubElement(textequiv_xml, "Unicode")
-        u_xml.text = glyph.chars[0].char
+        char, confidence = glyph.chars[0].char, glyph.chars[0].probability
 
-    def _store_words(self, words, line_xml, line_coords, ns):
+        textequiv_xml = etree.SubElement(glyph_xml, "TextEquiv")
+        textequiv_xml.set("index", str(self.params.text_index))
+        textequiv_xml.set("conf", str(confidence))
+
+        u_xml = etree.SubElement(textequiv_xml, "Unicode")
+        u_xml.text = char
+
+    def _store_words(self, words, line_xml, line_coords, ns) -> float:
         # page schema requires that word tags are directly after coords (and baseline, if present)
         coords_xml = line_xml.find("./ns:Coords", namespaces=ns)
         baseline_xml = line_xml.find("./ns:Baseline", namespaces=ns)
@@ -474,6 +479,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         _, line_y, _, line_height = self._bounding_rect_from_points(line_coords)
 
+        total_confidence = 1
+
         for word in words:
             word_id = "w" + str(self._next_word_id)
             self._next_word_id += 1
@@ -481,13 +488,22 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             coords_xml = etree.SubElement(word_xml, "Coords")
 
             word_text = ""
+            word_confidence = 1
             glyph_counter = 0
+
             for glyph in word:
                 word_text += glyph.chars[0].char
+                word_confidence *= glyph.chars[0].probability
+
                 self._store_glyph(glyph, word_id, word_xml, line_y, line_height, glyph_counter)
                 glyph_counter += 1
 
-            textequiv_xml = etree.SubElement(word_xml, "TextEquiv", attrib={"index": str(self.params.text_index)})
+            total_confidence *= word_confidence
+
+            textequiv_xml = etree.SubElement(word_xml, "TextEquiv")
+            textequiv_xml.set("index", str(self.params.text_index))
+            textequiv_xml.set("conf", str(word_confidence))
+
             u_xml = etree.SubElement(textequiv_xml, "Unicode")
             u_xml.text = word_text
 
@@ -496,6 +512,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             coords_xml.set("points", self._coords_for_rectangle(word_x, word_y, word_width, word_height))
 
             line_xml.insert(insert_index, word_xml)
+
+        return total_confidence
 
     # groups prediction positions by word, removing spaces
     @staticmethod
