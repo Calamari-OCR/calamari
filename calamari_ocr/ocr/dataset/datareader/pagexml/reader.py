@@ -2,6 +2,7 @@ import os
 from copy import deepcopy
 from dataclasses import dataclass, field
 from random import shuffle
+import math
 
 import numpy as np
 from paiargparse import pai_dataclass, pai_meta
@@ -13,7 +14,7 @@ from tfaip.data.pipeline.definitions import (
 from tqdm import tqdm
 from lxml import etree
 import cv2 as cv
-from typing import List, Generator, Optional, Iterable, Dict, Any
+from typing import List, Generator, Optional, Iterable, Dict, Any, Tuple
 from enum import IntEnum
 from calamari_ocr.ocr.dataset.datareader.base import (
     CalamariDataGenerator,
@@ -383,7 +384,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         u_xml.text = sentence
 
         words = self._words_from_prediction(prediction)
-        self._store_words(words, line, ns)
+        self._store_words(words, line, self._parse_coords(sample["coords"]), ns)
 
         # check if page can be stored, this requires that (standard in prediction) the pages are passed sequentially
         if self._last_page_id != sample["page_id"]:
@@ -413,17 +414,53 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 with open(split_all_ext(xml)[0] + extension, "w", encoding="utf-8") as f:
                     f.write(etree.tounicode(page.getroottree(), pretty_print=True))
 
-    def _store_glyph(self, glyph, word_id, word_xml, glyph_counter):
+    @staticmethod
+    def _parse_coords(coords: str) -> List[Tuple[int, int]]:
+        points = []
+
+        for coord in coords.split():
+            x, y = coord.split(sep=',', maxsplit=2)
+            points.append((int(x), int(y)))
+
+        return points
+
+    @staticmethod
+    def _bounding_rect_from_points(points: List[Tuple[int, int]]) -> Tuple[int, int, int, int]:
+        min_x, min_y = math.inf, math.inf
+        max_x, max_y = -math.inf, -math.inf
+
+        for x, y in points:
+            if x < min_x:
+                min_x = x
+            if y < min_y:
+                min_y = y
+            if x > max_x:
+                max_x = x
+            if y > max_y:
+                max_y = y
+
+        width, height = max_x - min_x, max_y - min_y
+        return min_x, min_y, width, height
+
+    @staticmethod
+    def _coords_for_rectangle(x, y, width, height):
+        return f"{int(x)},{int(y)} {int(x+width)},{int(y)} {int(x+width)},{int(y+height)} {int(x)},{int(y+height)}"
+
+    def _store_glyph(self, glyph, word_id, word_xml, line_y, line_height, glyph_counter):
         glyph_id = "{}g{}".format(word_id, str(glyph_counter))
         glyph_xml = etree.SubElement(word_xml, "Glyph", attrib={"id": glyph_id})
         coords_xml = etree.SubElement(glyph_xml, "Coords")
-        coords_xml.set("points", "0,0 1,0")  # TODO: Replace with actual glyph coordinates.
+
+        glyph_x, glyph_y = glyph.global_start, line_y
+        glyph_width, glyph_height = glyph.global_end - glyph.global_start, line_height
+
+        coords_xml.set("points", self._coords_for_rectangle(glyph_x, glyph_y, glyph_width, glyph_height))
 
         textequiv_xml = etree.SubElement(glyph_xml, "TextEquiv", attrib={"index": str(self.params.text_index)})
         u_xml = etree.SubElement(textequiv_xml, "Unicode")
         u_xml.text = glyph.chars[0].char
 
-    def _store_words(self, words, line_xml, ns):
+    def _store_words(self, words, line_xml, line_coords, ns):
         # page schema requires that word tags are directly after coords (and baseline, if present)
         coords_xml = line_xml.find("./ns:Coords", namespaces=ns)
         baseline_xml = line_xml.find("./ns:Baseline", namespaces=ns)
@@ -435,6 +472,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         else:
             insert_index = 0
 
+        _, line_y, _, line_height = self._bounding_rect_from_points(line_coords)
+
         for word in words:
             word_id = "w" + str(self._next_word_id)
             self._next_word_id += 1
@@ -445,16 +484,17 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             glyph_counter = 0
             for glyph in word:
                 word_text += glyph.chars[0].char
-                self._store_glyph(glyph, word_id, word_xml, glyph_counter)
+                self._store_glyph(glyph, word_id, word_xml, line_y, line_height, glyph_counter)
                 glyph_counter += 1
 
             textequiv_xml = etree.SubElement(word_xml, "TextEquiv", attrib={"index": str(self.params.text_index)})
             u_xml = etree.SubElement(textequiv_xml, "Unicode")
             u_xml.text = word_text
 
-            # TODO: Replace with actual word coordinates.
-            # word_start, word_end = word[0].global_start, word[-1].global_end
-            coords_xml.set("points", "0,0 1,0")
+            word_x, word_y = word[0].global_start, line_y
+            word_width, word_height = word[-1].global_end - word_x, line_height
+            coords_xml.set("points", self._coords_for_rectangle(word_x, word_y, word_width, word_height))
+
             line_xml.insert(insert_index, word_xml)
 
     # groups prediction positions by word, removing spaces
