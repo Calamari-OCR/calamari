@@ -191,6 +191,14 @@ class PageXML(CalamariDataGeneratorParams):
     )
     skip_commented: bool = field(default=False, metadata=pai_meta(help='Skip lines with "comments" attribute.'))
     cut_mode: CutMode = field(default=CutMode.POLYGON, metadata=pai_meta(help="Mode for cutting out the lines."))
+    output_confidences: bool = field(
+        default=False,
+        metadata=pai_meta(help='Write prediction confidences into the output.')
+    )
+    output_glyphs: bool = field(
+        default=False,
+        metadata=pai_meta(help='Output the words and glyphs each line is made up of.')
+    )
 
     def __len__(self):
         return len(self.images)
@@ -383,9 +391,12 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         u_xml.text = sentence
 
-        words = self._words_from_prediction(prediction)
-        total_confidence = self._store_words(words, line, self._parse_coords(sample["coords"]), ns)
-        textequivxml.set("conf", str(total_confidence))
+        if self.params.output_glyphs:
+            words = self._words_from_prediction(prediction)
+            self._store_words(words, line, self._parse_coords(sample["coords"]), ns)
+
+        if self.params.output_confidences:
+            textequivxml.set("conf", str(prediction.avg_char_probability))
 
         # check if page can be stored, this requires that (standard in prediction) the pages are passed sequentially
         if self._last_page_id != sample["page_id"]:
@@ -460,7 +471,9 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         textequiv_xml = etree.SubElement(glyph_xml, "TextEquiv")
         textequiv_xml.set("index", str(self.params.text_index))
-        textequiv_xml.set("conf", str(confidence))
+
+        if self.params.output_confidences:
+            textequiv_xml.set("conf", str(confidence))
 
         u_xml = etree.SubElement(textequiv_xml, "Unicode")
         u_xml.text = char
@@ -482,8 +495,6 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         _, line_y, _, line_height = self._bounding_rect_from_points(line_coords)
 
-        total_confidence = 1
-
         for word in words:
             word_id = "w" + str(self._next_word_id)
             self._next_word_id += 1
@@ -501,11 +512,11 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 self._store_glyph(glyph, word_id, word_xml, line_y, line_height, glyph_counter)
                 glyph_counter += 1
 
-            total_confidence *= word_confidence
-
             textequiv_xml = etree.SubElement(word_xml, "TextEquiv")
             textequiv_xml.set("index", str(self.params.text_index))
-            textequiv_xml.set("conf", str(word_confidence))
+
+            if self.params.output_confidences:
+                textequiv_xml.set("conf", str(word_confidence))
 
             u_xml = etree.SubElement(textequiv_xml, "Unicode")
             u_xml.text = word_text
@@ -516,8 +527,6 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
             line_xml.insert(insert_index, word_xml)
             insert_index += 1
-
-        return total_confidence
 
     # groups prediction positions by word, removing spaces
     @staticmethod
