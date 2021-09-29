@@ -23,6 +23,7 @@ from calamari_ocr.ocr.dataset.datareader.base import (
     SampleMeta,
 )
 from calamari_ocr.utils import split_all_ext, filename, glob_all
+from calamari_ocr.ocr.predict.params import Prediction
 
 import logging
 
@@ -198,6 +199,12 @@ class PageXML(CalamariDataGeneratorParams):
     output_glyphs: bool = field(
         default=False,
         metadata=pai_meta(help='Output the words and glyphs each line is made up of.')
+    )
+    max_glyph_alternatives: int = field(
+        default=1,
+        metadata=pai_meta(
+            help='When output_glyphs is True, determines the maximum amount of glyph alternatives to output.'
+        )
     )
 
     def __len__(self):
@@ -458,25 +465,26 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
     def _coords_for_rectangle(x, y, width, height):
         return f"{int(x)},{int(y)} {int(x+width)},{int(y)} {int(x+width)},{int(y+height)} {int(x)},{int(y+height)}"
 
-    def _store_glyph(self, glyph, word_id, word_xml, line_y, line_height, glyph_counter):
+    def _store_glyph(self, glyph, word_id, word_xml, line_x, line_y, line_height, glyph_counter):
         glyph_id = "{}g{}".format(word_id, str(glyph_counter))
         glyph_xml = etree.SubElement(word_xml, "Glyph", attrib={"id": glyph_id})
         coords_xml = etree.SubElement(glyph_xml, "Coords")
 
-        glyph_x, glyph_y = glyph.global_start, line_y
+        glyph_x, glyph_y = glyph.local_start + line_x, line_y
         glyph_width, glyph_height = glyph.global_end - glyph.global_start, line_height
         coords_xml.set("points", self._coords_for_rectangle(glyph_x, glyph_y, glyph_width, glyph_height))
 
-        char, confidence = glyph.chars[0].char, glyph.chars[0].probability
+        for index in range(min(len(glyph.chars), self.params.max_glyph_alternatives)):
+            char, confidence = glyph.chars[index].char, glyph.chars[index].probability
 
-        textequiv_xml = etree.SubElement(glyph_xml, "TextEquiv")
-        textequiv_xml.set("index", str(self.params.text_index))
+            textequiv_xml = etree.SubElement(glyph_xml, "TextEquiv")
+            textequiv_xml.set("index", str(self.params.text_index + index))
 
-        if self.params.output_confidences:
-            textequiv_xml.set("conf", str(confidence))
+            if self.params.output_confidences:
+                textequiv_xml.set("conf", str(confidence))
 
-        u_xml = etree.SubElement(textequiv_xml, "Unicode")
-        u_xml.text = char
+            u_xml = etree.SubElement(textequiv_xml, "Unicode")
+            u_xml.text = char
 
     def _store_words(self, words, line_xml, line_coords, ns) -> float:
         # page schema requires that word tags are directly after coords (and baseline, if present)
@@ -493,9 +501,13 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             # otherwise, insert at the start
             insert_index = 0
 
-        _, line_y, _, line_height = self._bounding_rect_from_points(line_coords)
+        line_x, line_y, _, line_height = self._bounding_rect_from_points(line_coords)
 
         for word in words:
+            if not word:
+                # ignore empty words
+                continue
+
             word_id = "w" + str(self._next_word_id)
             self._next_word_id += 1
             word_xml = etree.SubElement(line_xml, "Word", attrib={"id": word_id})
@@ -509,7 +521,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 word_text += glyph.chars[0].char
                 word_confidence *= glyph.chars[0].probability
 
-                self._store_glyph(glyph, word_id, word_xml, line_y, line_height, glyph_counter)
+                self._store_glyph(glyph, word_id, word_xml, line_x, line_y, line_height, glyph_counter)
                 glyph_counter += 1
 
             textequiv_xml = etree.SubElement(word_xml, "TextEquiv")
@@ -521,7 +533,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             u_xml = etree.SubElement(textequiv_xml, "Unicode")
             u_xml.text = word_text
 
-            word_x, word_y = word[0].global_start, line_y
+            word_x, word_y = word[0].local_start + line_x, line_y
             word_width, word_height = word[-1].global_end - word_x, line_height
             coords_xml.set("points", self._coords_for_rectangle(word_x, word_y, word_width, word_height))
 
@@ -530,7 +542,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
     # groups prediction positions by word, removing spaces
     @staticmethod
-    def _words_from_prediction(prediction) -> list:
+    def _words_from_prediction(prediction: Prediction) -> list:
         words = []
         current_word = []
 
