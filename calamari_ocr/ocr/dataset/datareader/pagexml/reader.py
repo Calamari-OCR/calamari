@@ -470,7 +470,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         glyph_xml = etree.SubElement(word_xml, "Glyph", attrib={"id": glyph_id})
         coords_xml = etree.SubElement(glyph_xml, "Coords")
 
-        glyph_x, glyph_y = glyph.local_start + line_x, line_y
+        glyph_x, glyph_y = glyph.global_start + line_x, line_y
         glyph_width, glyph_height = glyph.global_end - glyph.global_start, line_height
         coords_xml.set("points", self._coords_for_rectangle(glyph_x, glyph_y, glyph_width, glyph_height))
 
@@ -533,8 +533,10 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             u_xml = etree.SubElement(textequiv_xml, "Unicode")
             u_xml.text = word_text
 
-            word_x, word_y = word[0].local_start + line_x, line_y
-            word_width, word_height = word[-1].global_end - word_x, line_height
+            word_x, word_y = word[0].global_start + line_x, line_y
+
+            print(f"{word_text}: {word[0].global_start} to {word[-1].global_end}")
+            word_width, word_height = word[-1].global_end - word[0].global_start, line_height
             coords_xml.set("points", self._coords_for_rectangle(word_x, word_y, word_width, word_height))
 
             line_xml.insert(insert_index, word_xml)
