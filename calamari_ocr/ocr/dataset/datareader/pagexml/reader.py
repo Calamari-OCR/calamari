@@ -534,8 +534,6 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             u_xml.text = word_text
 
             word_x, word_y = word[0].global_start + line_x, line_y
-
-            print(f"{word_text}: {word[0].global_start} to {word[-1].global_end}")
             word_width, word_height = word[-1].global_end - word[0].global_start, line_height
             coords_xml.set("points", self._coords_for_rectangle(word_x, word_y, word_width, word_height))
 
@@ -555,6 +553,9 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 current_word = []
                 continue
             current_word.append(pos)
+
+        if current_word:
+            words.append(current_word)
 
         return words
 
