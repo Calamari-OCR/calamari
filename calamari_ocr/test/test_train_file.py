@@ -24,18 +24,24 @@ from calamari_ocr.utils import glob_all
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-def uw3_trainer_params(with_validation=False, with_split=False, preload=True, debug=False):
+def uw3_trainer_params(with_validation=False, with_split=False, preload=True, debug=False, from_files_file=False):
     p = CalamariTestScenario.default_trainer_params()
     p.force_eager = debug
 
+    train_path = os.path.join(this_dir, "data", "uw3_50lines", "train", "*.png")
+    test_path = os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")
+    if from_files_file:
+        train_path = os.path.join(this_dir, "data", "uw3_50lines", "train.files")
+        test_path = os.path.join(this_dir, "data", "uw3_50lines", "test.files")
+
     train = FileDataParams(
-        images=glob_all([os.path.join(this_dir, "data", "uw3_50lines", "train", "*.png")]),
+        images=glob_all([train_path]),
         preload=preload,
     )
     if with_split:
         p.gen = CalamariSplitTrainerPipelineParams(validation_split_ratio=0.2, train=train)
     elif with_validation:
-        p.gen.val.images = glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")])
+        p.gen.val.images = glob_all([test_path])
         p.gen.val.preload = preload
         p.gen.train = train
         p.gen.__post_init__()
@@ -56,6 +62,12 @@ class TestTrainFile(unittest.TestCase):
 
     def test_simple_train(self):
         trainer_params = uw3_trainer_params(with_validation=False)
+        with tempfile.TemporaryDirectory() as d:
+            trainer_params.output_dir = d
+            main(trainer_params)
+
+    def test_train_from_files_file(self):
+        trainer_params = uw3_trainer_params(with_validation=True, from_files_file=True)
         with tempfile.TemporaryDirectory() as d:
             trainer_params.output_dir = d
             main(trainer_params)
