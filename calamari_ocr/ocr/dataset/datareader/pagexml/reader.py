@@ -193,18 +193,16 @@ class PageXML(CalamariDataGeneratorParams):
     skip_commented: bool = field(default=False, metadata=pai_meta(help='Skip lines with "comments" attribute.'))
     cut_mode: CutMode = field(default=CutMode.POLYGON, metadata=pai_meta(help="Mode for cutting out the lines."))
     output_confidences: bool = field(
-        default=False,
-        metadata=pai_meta(help='Write prediction confidences into the output.')
+        default=False, metadata=pai_meta(help="Write prediction confidences into the output.")
     )
     output_glyphs: bool = field(
-        default=False,
-        metadata=pai_meta(help='Output the words and glyphs each line is made up of.')
+        default=False, metadata=pai_meta(help="Output the words and glyphs each line is made up of.")
     )
     max_glyph_alternatives: int = field(
         default=1,
         metadata=pai_meta(
-            help='When output_glyphs is True, determines the maximum amount of glyph alternatives to output.'
-        )
+            help="When output_glyphs is True, determines the maximum amount of glyph alternatives to output."
+        ),
     )
 
     def __len__(self):
@@ -438,7 +436,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         points = []
 
         for coord in coords.split():
-            x, y = coord.split(sep=',', maxsplit=2)
+            x, y = coord.split(sep=",", maxsplit=2)
             points.append((int(x), int(y)))
 
         return points
@@ -548,7 +546,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         for pos in prediction.positions:
             char = pos.chars[0].char
-            if char == ' ':
+            if char == " ":
                 words.append(current_word)
                 current_word = []
                 continue
