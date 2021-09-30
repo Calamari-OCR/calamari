@@ -148,7 +148,7 @@ class CalamariDataGenerator(DataGenerator[T], ABC):
             sample["fold_id"] = -1  # dummy fold ID
         self._samples.append(sample)
 
-    def store_text_prediction(self, sentence, sample_id, output_dir):
+    def store_text_prediction(self, prediction, sample_id, output_dir):
         raise NotImplementedError
 
     def store_extended_prediction(self, data, sample, output_dir, extension):

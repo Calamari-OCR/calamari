@@ -201,9 +201,9 @@ class FileDataGenerator(CalamariDataGenerator[FileDataParams]):
 
         return img
 
-    def store_text_prediction(self, sentence, sample_id, output_dir):
+    def store_text_prediction(self, prediction, sample_id, output_dir):
         sample = self.sample_by_id(sample_id)
         output_dir = output_dir if output_dir else os.path.dirname(sample["image_path"])
         bn = sample.get("base_name", sample["id"])
         with codecs.open(os.path.join(output_dir, bn + self.params.pred_extension), "w", "utf-8") as f:
-            f.write(sentence)
+            f.write(prediction.sentence)
