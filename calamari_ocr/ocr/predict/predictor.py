@@ -1,10 +1,7 @@
 from typing import List
 
 from tensorflow import keras
-from tfaip import DataGeneratorParams
 
-from tfaip.data.pipeline.definitions import PipelineMode
-from tfaip.data.pipeline.processor.dataprocessor import SequenceProcessorParams
 from tfaip.data.pipeline.processor.params import SequentialProcessorPipelineParams
 from tfaip.device.device_config import DeviceConfig
 import tfaip.imports as tfaip_cls
@@ -12,7 +9,6 @@ from tfaip.predict.multimodelpredictor import MultiModelVoter
 
 from calamari_ocr.ocr.predict.params import PredictorParams
 from calamari_ocr.ocr.scenario import CalamariScenario
-from calamari_ocr.ocr.dataset.data import Data
 from calamari_ocr.ocr.voting import VoterParams
 from calamari_ocr.ocr import SavedCalamariModel, DataParams
 from calamari_ocr.ocr.voting.adapter import CalamariMultiModelVoter

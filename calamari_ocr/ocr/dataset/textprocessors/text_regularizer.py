@@ -3,7 +3,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Type, Optional, Iterable, Dict, Tuple, Union, Callable
+from typing import List, Type, Optional, Dict, Tuple, Union, Callable
 
 from dataclasses_json import dataclass_json
 from paiargparse import pai_dataclass, pai_meta

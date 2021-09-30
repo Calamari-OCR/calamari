@@ -350,7 +350,7 @@ All Parameters
       --trainer.current_epoch TRAINER.CURRENT_EPOCH
                             The epoch to start with. Usually 0, but can be overwritten for resume training. (default: 0)
       --trainer.samples_per_epoch TRAINER.SAMPLES_PER_EPOCH
-                            The number of samples (not batches!) to process per epoch. By default (-1) the size fo the training dataset. (default: -1)
+                            The number of samples (not batches!) to process per epoch. By default (-1) the size of the training dataset. (default: -1)
       --trainer.scale_epoch_size TRAINER.SCALE_EPOCH_SIZE
                             Multiply the number of samples per epoch by this factor. This is useful when using the dataset size as samples per epoch (--samples_per_epoch=-1, the default), but if you desire to set it e.g. to the half dataset size
                             (--scale_epoch_size=0.5) (default: 1)
@@ -373,7 +373,7 @@ All Parameters
       --trainer.output_dir TRAINER.OUTPUT_DIR
                             Dictionary to use to write checkpoints, logging files, and export of best and last model. (default: None)
       --trainer.write_checkpoints TRAINER.WRITE_CHECKPOINTS
-                            Write checkpoints to output_dir during training. Checkpoints are obligatory if you want support toresume the training (see tfaip-resume-training script) (default: True)
+                            Write checkpoints to output_dir during training. Checkpoints are obligatory if you want support to resume the training (see tfaip-resume-training script) (default: True)
       --trainer.export_best TRAINER.EXPORT_BEST
                             Continuously export the best model during testing to output_dir/best. (default: None)
       --trainer.export_final TRAINER.EXPORT_FINAL
@@ -447,7 +447,7 @@ All Parameters
       --scenario.print_eval_limit SCENARIO.PRINT_EVAL_LIMIT
                             Number of evaluation examples to print per evaluation, use -1 to print all (default: 10)
       --scenario.tensorboard_logger_history_size SCENARIO.TENSORBOARD_LOGGER_HISTORY_SIZE
-                            Number of instances to store for outputing into tensorboard. Default (last n=5) (default: 5)
+                            Number of instances to store for outputting into tensorboard. Default (last n=5) (default: 5)
       --scenario.export_serve SCENARIO.EXPORT_SERVE
                             Export the serving model (saved model format) (default: True)
       --model MODEL

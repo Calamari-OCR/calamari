@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Tuple, Type, Optional
+from typing import Type
 
 from paiargparse import pai_dataclass, pai_meta
 from tensorflow import keras
