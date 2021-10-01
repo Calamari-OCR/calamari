@@ -216,7 +216,7 @@ class Evaluator:
             if n_empty == len(gt_data):
                 raise ValueError(
                     f"No lines could be matched by their ID. First 10 gt ids "
-                    f"{list(gt_data.keys())[:10]}, first 10 pred ids {list(pred_data.keys())[:100]}"
+                    f"{list(gt_data.keys())[:10]}, first 10 pred ids {list(pred_data.keys())[:10]}"
                 )
             pred_data = mapped_pred_data
 
