@@ -16,7 +16,7 @@ For users (especially less technical ones) in need of an all-in-one package `OCR
 Example Usage
 ~~~~~~~~~~~~~
 
-The script at least requires the model (``path_to_model.ckpy``) to apply and the paths to the images (``your_images.*.png``) to transcribe:
+The script at least requires the model (``path_to_model.ckpt``) to apply and the paths to the images (``your_images.*.png``) to transcribe:
 
 .. code-block:: shell
 
