@@ -50,6 +50,7 @@ class FileDataParams(CalamariDataGeneratorParams):
         return len(self.images) if self.images else len(self.texts)
 
     def to_prediction(self):
+        self.texts = sorted(glob_all(self.texts))
         pred = deepcopy(self)
         pred.texts = [split_all_ext(t)[0] + self.pred_extension for t in self.texts]
         return pred
@@ -181,8 +182,11 @@ class FileDataGenerator(CalamariDataGenerator[FileDataParams]):
             else:
                 raise Exception("Text file at '{}' does not exist".format(gt_txt_path))
 
-        with codecs.open(gt_txt_path, "r", "utf-8") as f:
-            return f.read()
+        try:
+            with codecs.open(gt_txt_path, "r", "utf-8") as f:
+                return f.read()
+        except Exception as e:
+            raise Exception(f"Could not read {gt_txt_path} as text file.") from e
 
     def _load_line(self, image_path):
         if image_path is None:

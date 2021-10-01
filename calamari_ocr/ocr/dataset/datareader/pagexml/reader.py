@@ -215,6 +215,7 @@ class PageXML(CalamariDataGeneratorParams):
             self.xml_files = [self.xml_files[i] for i in indices]
 
     def to_prediction(self):
+        self.xml_files = sorted(glob_all(self.xml_files))
         pred = deepcopy(self)
         pred.xml_files = [split_all_ext(f)[0] + self.pred_extension for f in self.xml_files]
         return pred

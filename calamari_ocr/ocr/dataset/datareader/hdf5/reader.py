@@ -31,6 +31,7 @@ class Hdf5(CalamariDataGeneratorParams):
         return len(self.files)
 
     def to_prediction(self):
+        self.files = sorted(glob_all(self.files))
         pred = deepcopy(self)
         pred.files = [split_all_ext(f)[0] + self.pred_extension for f in self.files]
         return pred
