@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from dataclasses import dataclass, field
@@ -7,6 +8,7 @@ from paiargparse import pai_meta, pai_dataclass
 from tfaip import TrainerParams as AIPTrainerParams, TrainerPipelineParamsBase
 from tfaip.util.tfaipargparse import post_init
 
+from calamari_ocr import calamari_ocr_dir
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.dataset.codec import CodecConstructionParams
 from calamari_ocr.ocr.model.layers.bilstm import BiLSTMLayerParams
@@ -89,6 +91,7 @@ class TrainerParams(AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrai
         metadata=pai_meta(
             mode="flat",
             help="Pass a network configuration to construct a simple graph. "
+            "Alternatively, you can pass a predefined network name or a path to a json file."
             "Defaults to: --network=cnn=40:3x3,pool=2x2,cnn=60:3x3,pool=2x2,lstm=200,dropout=0.5",
         ),
     )
@@ -105,7 +108,7 @@ class TrainerParams(AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrai
             self.gen.val_gen().n_folds = self.scenario.model.ensemble
 
         if self.network:
-            self.scenario.model.layers = graph_params_from_definition_string(self.network)
+            self.scenario.model.layers = parse_network_param(self.network)
             post_init(self.scenario.model)
 
 
@@ -114,6 +117,22 @@ def set_default_networkparams(params: TrainerParams):
     params.scenario_params.model_params.dropout = 0
     params.scenario_params.model_params.ctc_merge_repeated = True
     params.learning_rate_params.lr = 1e-3
+
+
+def parse_network_param(s: str) -> List[LayerParams]:
+    if s.endswith(".json"):
+        # parse as jsonfile
+        with open(s) as f:
+            d = json.load(f)
+            return list(LayerParams.from_dict(layer_params) for layer_params in d)
+
+    if s in _default_networks:
+        # parse default networks
+        with open(_default_networks[s]) as f:
+            d = json.load(f)
+            return list(LayerParams.from_dict(layer_params) for layer_params in d)
+
+    return graph_params_from_definition_string(s)
 
 
 def graph_params_from_definition_string(s: str) -> List[LayerParams]:
@@ -232,3 +251,12 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
             raise Exception("Unknown layer with name: {}".format(label))
 
     return layers
+
+
+# LOAD DEFAULT NETWORK ARCHITECTURES
+# =================================
+
+_networks_dir = calamari_ocr_dir / "resources" / "networks"
+_default_networks = {p.stem: p for p in _networks_dir.iterdir() if p.suffix == ".json"}
+
+logger.debug(f"Found default networks: {list(_default_networks.keys())}")

@@ -245,6 +245,18 @@ Network Architecture
 Calamari allows to fully modify the network architecture in two exclusive ways.
 Following layers are supported: ``BiLSTM``, ``Concat``, ``Conv2D``, ``DilatedBlock``, ``Dropout``, ``Pool2D``, ``TransposedConv2D``.
 
+
+Predefined
+""""""""""
+
+Calamari provides several predefined network architectures, that can be passed to the `--network` argument.
+
+* ``deep1``: The default Calamari network with conv, max-pool, conv, max-pool, and one BiLSTM layer.
+* ``deep3``: The default Calamari network with conv, max-pool, conv, max-pool, conv, and three BiLSTM layer.
+* ``htr+``: The default network architecture of Transkribus (see, e.g., `Michael et al. (2019) <https://arxiv.org/pdf/1903.07377>`_).
+  Note that this network should/must be applied on a larger line height (recommended is 64: ``--data.line_height=64``)
+
+
 Simple
 """"""
 
