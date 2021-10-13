@@ -93,16 +93,17 @@ def main(args=None):
         data_pipeline = data_pipeline.as_preloaded()
 
     if args.no_plot:
-        with data_pipeline as dataset:
-            list(zip(args.select, dataset.generate_input_samples(auto_repeat=False)))
+        with data_pipeline.generate_input_samples(auto_repeat=False) as samples:
+            list(zip(args.select, samples))
         return
 
     import matplotlib.pyplot as plt
 
     f, ax = plt.subplots(args.n_rows, args.n_cols, sharey="all")
     row, col = 0, 0
-    with data_pipeline as dataset:
-        for i, (id, sample) in enumerate(zip(args.select, dataset.generate_input_samples(auto_repeat=False))):
+    gen_pipeline = data_pipeline.generate_input_samples(auto_repeat=False)
+    with gen_pipeline as samples:
+        for i, (id, sample) in enumerate(zip(args.select, samples)):
             line, text, params = sample.inputs, sample.targets, sample.meta
             if args.n_cols == 1:
                 ax[row].imshow(line.transpose())
@@ -116,7 +117,7 @@ def main(args=None):
                 row = 0
                 col += 1
 
-            if col == args.n_cols or i == len(dataset) - 1:
+            if col == args.n_cols or i == len(gen_pipeline) - 1:
                 plt.show()
                 f, ax = plt.subplots(args.n_rows, args.n_cols, sharey="all")
                 row, col = 0, 0
