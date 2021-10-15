@@ -470,9 +470,10 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         glyph_xml = word_xml.find(f'./ns:Glyph[@id="{glyph_id}"]', namespaces=ns)
         if glyph_xml is None:
             glyph_xml = etree.SubElement(word_xml, "Glyph", attrib={"id": glyph_id})
+
+        coords_xml = glyph_xml.find("./ns:Coords", namespaces=ns)
+        if coords_xml is None:
             coords_xml = etree.SubElement(glyph_xml, "Coords")
-        else:
-            coords_xml = glyph_xml.find("./ns:Coords", namespaces=ns) or etree.SubElement(glyph_xml, "Coords")
 
         glyph_x, glyph_y = glyph.global_start + line_x, line_y
         glyph_width, glyph_height = glyph.global_end - glyph.global_start, line_height
@@ -491,20 +492,22 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             if self.params.output_confidences:
                 textequiv_xml.set("conf", str(confidence))
 
-            u_xml = textequiv_xml.find("./ns:Unicode", namespaces=ns) or etree.SubElement(textequiv_xml, "Unicode")
+            u_xml = textequiv_xml.find("./ns:Unicode", namespaces=ns)
+            if u_xml is None:
+                u_xml = etree.SubElement(textequiv_xml, "Unicode")
             u_xml.text = char
 
     def _store_words(self, words, line_xml, line_coords, ns) -> float:
         # page schema requires that word tags are directly after coords (and baseline, if present)
-        coords_xml = line_xml.find("./ns:Coords", namespaces=ns)
-        baseline_xml = line_xml.find("./ns:Baseline", namespaces=ns)
+        line_coords_xml = line_xml.find("./ns:Coords", namespaces=ns)
+        line_baseline_xml = line_xml.find("./ns:Baseline", namespaces=ns)
 
-        if baseline_xml is not None:
+        if line_baseline_xml is not None:
             # if there is a baseline element, insert after it
-            insert_index = line_xml.index(baseline_xml) + 1
-        elif coords_xml is not None:
+            insert_index = line_xml.index(line_baseline_xml) + 1
+        elif line_coords_xml is not None:
             # if there is a coords element, but no baseline element, insert after it
-            insert_index = line_xml.index(coords_xml) + 1
+            insert_index = line_xml.index(line_coords_xml) + 1
         else:
             # otherwise, insert at the start
             insert_index = 0
@@ -525,9 +528,10 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             if word_xml is None:
                 # no word with this id, create a new word element
                 word_xml = etree.SubElement(line_xml, "Word", attrib={"id": word_id})
+
+            coords_xml = word_xml.find("./ns:Coords", namespaces=ns)
+            if coords_xml is None:
                 coords_xml = etree.SubElement(word_xml, "Coords")
-            else:
-                coords_xml = word_xml.find("./ns:Coords", namespaces=ns) or etree.SubElement(word_xml, "Coords")
 
             word_text = ""
             word_confidence = 1
@@ -550,7 +554,9 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             if self.params.output_confidences:
                 textequiv_xml.set("conf", str(word_confidence))
 
-            u_xml = textequiv_xml.find("./ns:Unicode", namespaces=ns) or etree.SubElement(textequiv_xml, "Unicode")
+            u_xml = textequiv_xml.find("./ns:Unicode", namespaces=ns)
+            if u_xml is None:
+                u_xml = etree.SubElement(textequiv_xml, "Unicode")
             u_xml.text = word_text
 
             word_x, word_y = word[0].global_start + line_x, line_y
