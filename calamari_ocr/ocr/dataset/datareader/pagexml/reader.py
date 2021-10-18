@@ -204,6 +204,13 @@ class PageXML(CalamariDataGeneratorParams):
             help="When output_glyphs is True, determines the maximum amount of glyph alternatives to output."
         ),
     )
+    delete_old_words: bool = field(
+        default=False,
+        metadata=pai_meta(
+            help="If there are already words in the input, "
+            + "delete them instead of writing the new ones alongside them."
+        ),
+    )
 
     def __len__(self):
         return len(self.images)
@@ -399,6 +406,9 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         if self.params.output_glyphs:
             words = self._words_from_prediction(prediction)
+
+            # delete or rename old words before writing the new ones
+            self._store_old_words(line, ns)
             self._store_words(words, line, self._parse_coords(sample["coords"]), ns)
 
         if self.params.output_confidences:
@@ -463,6 +473,21 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
     @staticmethod
     def _coords_for_rectangle(x, y, width, height):
         return f"{int(x)},{int(y)} {int(x+width)},{int(y)} {int(x+width)},{int(y+height)} {int(x)},{int(y+height)}"
+
+    def _store_old_word(self, word_xml, ns):
+        word_xml.set("id", f"{word_xml.get('id')}_old")
+
+        for glyph_xml in word_xml.findall("./ns:Glyph", namespaces=ns):
+            glyph_xml.set("id", f"{glyph_xml.get('id')}_old")
+
+    def _store_old_words(self, line_xml, ns):
+        for word_xml in line_xml.findall("./ns:Word", namespaces=ns):
+            if self.params.delete_old_words:
+                # or rather, don't store old words
+                line_xml.remove(word_xml)
+            else:
+                # append _old suffix to old words and their glyphs
+                self._store_old_word(word_xml, ns)
 
     def _store_glyph(self, glyph, word_id, word_xml, line_x, line_y, line_height, glyph_counter, ns):
         glyph_id = f"{word_id}g{str(glyph_counter)}"
