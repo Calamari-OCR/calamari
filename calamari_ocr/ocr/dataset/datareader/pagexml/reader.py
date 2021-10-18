@@ -205,7 +205,7 @@ class PageXML(CalamariDataGeneratorParams):
         ),
     )
     delete_old_words: bool = field(
-        default=False,
+        default=True,
         metadata=pai_meta(
             help="If there are already words in the input, "
             + "delete them instead of writing the new ones alongside them."
