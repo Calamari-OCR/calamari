@@ -165,17 +165,6 @@ class EvalArgs:
         default=None,
         metadata=pai_meta(help="Optionally write a xlsx file with the evaluation results", mode="flat"),
     )
-    non_existing_file_handling_mode: str = field(
-        default="error",
-        metadata=pai_meta(
-            mode="flat",
-            choices=["error", "skip", "empty"],
-            help="How to handle non existing .pred.txt files. Possible modes: skip, empty, error. "
-            "'Skip' will simply skip the evaluation of that file (not counting it to errors). "
-            "'Empty' will handle this file as would it be empty (fully checking for errors)."
-            "'Error' will throw an exception if a file is not existing. This is the default behaviour.",
-        ),
-    )
     skip_empty_gt: bool = field(
         default=False,
         metadata=pai_meta(help="Ignore lines of the gt that are empty.", mode="flat"),
