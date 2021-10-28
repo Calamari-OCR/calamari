@@ -28,14 +28,14 @@ class EvaluatorParams:
     progress_bar: bool = True
     skip_empty_gt: bool = False
     non_existing_pred_handling_mode: str = field(
-        default="error",
+        default="empty",
         metadata=pai_meta(
             mode="flat",
             choices=["error", "skip", "empty"],
             help="How to handle non existing prediction data. Possible modes: skip, empty, error. "
             "'Skip' will simply skip the evaluation of that file (not counting it to errors). "
-            "'Empty' will handle this file as would it be empty (fully checking for errors)."
-            "'Error' will throw an exception if a file is not existing. This is the default behaviour.",
+            "'Empty' will handle this file as would it be empty (fully checking for errors). "
+            "'Error' will throw an exception if a file is not existing.",
         ),
     )
 
