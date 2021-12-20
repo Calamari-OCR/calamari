@@ -302,7 +302,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         coords = [p.split(",") for p in coordstring.split()]
         if not coords:
-            return pageimg[0 : 0, 0 : 0]
+            return pageimg[0:0, 0:0]
         coords = [(int(scale * int(c[1])), int(scale * int(c[0]))) for c in coords]
         coords = np.array(coords, np.int32).reshape((-1, 1, 2))
         maxX, maxY = np.amax(coords, 0).squeeze()
