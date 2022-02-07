@@ -25,7 +25,7 @@ class TestNetworkArchitectures(unittest.TestCase):
         clear_session()
 
     def test_predefined_networks(self):
-        self.assertListEqual(default_layers(), parse_network_param("deep1"))
+        self.assertListEqual(default_layers(), parse_network_param("def"))
 
     def test_default_architecture(self):
         trainer_params = uw3_trainer_params()
