@@ -3,7 +3,6 @@ import json
 import logging
 import multiprocessing
 import os
-import subprocess
 import sys
 import tempfile
 from copy import deepcopy
@@ -153,6 +152,7 @@ class CrossFoldTrainerParams:
             "This option should not be used with `--device.gpus`",
         ),
     )
+    no_train: bool = field(default=False, metadata=pai_meta(mode="flat", help="Only create the folds. Do not train."))
 
     def __post_init__(self):
         if self.max_parallel_models <= 0:
@@ -313,10 +313,14 @@ class CrossFoldTrainer:
                 }
             )
 
-        # Launch the individual processes for each training
-        with multiprocessing.pool.ThreadPool(processes=self.params.max_parallel_models) as pool:
-            # workaround to forward keyboard interrupt
-            pool.map_async(train_individual_model, run_args).get()
+        if not self.params.no_train:
+            logger.info("Starting the training.")
+            # Launch the individual processes for each training
+            with multiprocessing.pool.ThreadPool(processes=self.params.max_parallel_models) as pool:
+                # workaround to forward keyboard interrupt
+                pool.map_async(train_individual_model, run_args).get()
+        else:
+            logger.info("Not training since the `no_train` flag is set.")
 
         if not self.params.keep_temporary_files:
             import shutil
