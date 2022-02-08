@@ -132,7 +132,7 @@ def run(args: PredictArgs):
 
     # output the voted results to the appropriate files
     for s in do_prediction:
-        inputs, (result, prediction), meta = s.inputs, s.outputs, s.meta
+        _, (result, prediction), meta = s.inputs, s.outputs, s.meta
         sample = reader.sample_by_id(meta["id"])
         n_predictions += 1
         sentence = prediction.sentence
@@ -144,7 +144,7 @@ def run(args: PredictArgs):
 
         output_dir = args.output_dir if args.output_dir else os.path.dirname(prediction.line_path)
 
-        reader.store_text_prediction(sentence, meta["id"], output_dir=output_dir)
+        reader.store_text_prediction(prediction, meta["id"], output_dir=output_dir)
 
         if args.extended_prediction_data:
             ps = Predictions()

@@ -34,11 +34,11 @@ def eval_args(gt_data, pred_data=None) -> EvalArgs:
     )
 
 
-class TestValidationTrain(unittest.TestCase):
+class TestEvaluation(unittest.TestCase):
     def tearDown(self) -> None:
         keras.backend.clear_session()
 
-    def test_prediction_files(self):
+    def test_eval_files(self):
         run_predict(
             predict_args(
                 data=FileDataParams(
@@ -63,7 +63,24 @@ class TestValidationTrain(unittest.TestCase):
             args.xlsx_output = os.path.join(d, "output.xlsx")
             run_eval(args)
 
-    def test_prediction_files_with_different_extension(self):
+    def test_eval_list_files(self):
+        run_predict(
+            predict_args(
+                data=FileDataParams(
+                    images=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test.files")]))
+                )
+            )
+        )
+        r = run_eval(
+            eval_args(
+                gt_data=FileDataParams(
+                    texts=sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test.gt.files")]))
+                )
+            )
+        )
+        self.assertLess(r["avg_ler"], 0.0009, msg="Current best model yields about 0.09% CER")
+
+    def test_eval_files_with_different_extension(self):
         run_predict(
             predict_args(
                 data=FileDataParams(
@@ -82,7 +99,7 @@ class TestValidationTrain(unittest.TestCase):
         )
         self.assertLess(r["avg_ler"], 0.0009, msg="Current best model yields about 0.09% CER")
 
-    def test_prediction_files_with_different_sources(self):
+    def test_eval_files_with_different_sources(self):
         run_predict(
             predict_args(
                 data=FileDataParams(
@@ -115,7 +132,7 @@ class TestValidationTrain(unittest.TestCase):
         )
         self.assertLess(r["avg_ler"], 0.0009, msg="Current best model yields about 0.09% CER")
 
-    def test_prediction_pagexml(self):
+    def test_eval_pagexml(self):
         run_predict(
             predict_args(
                 data=PageXML(
@@ -131,7 +148,7 @@ class TestValidationTrain(unittest.TestCase):
             )
         )
 
-    def test_prediction_abbyy(self):
+    def test_eval_abbyy(self):
         run_predict(
             predict_args(
                 data=Abbyy(
@@ -161,7 +178,7 @@ class TestValidationTrain(unittest.TestCase):
             )
         )
 
-    def test_prediction_hdf5(self):
+    def test_eval_hdf5(self):
         run_predict(
             predict_args(
                 data=Hdf5(
