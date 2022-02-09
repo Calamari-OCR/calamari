@@ -1,14 +1,16 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Type, TypeVar, Generic, Tuple, Optional
 
-from paiargparse import pai_dataclass
+from paiargparse import pai_dataclass, pai_meta
 from tensorflow import keras
 
 
 @pai_dataclass
 @dataclass
 class IntVec2D:
+    """2D-Vector as data (parameter) class to be set from the command line if used"""
+
     x: int
     y: int
 
@@ -19,7 +21,14 @@ class IntVec2D:
 @pai_dataclass
 @dataclass
 class LayerParams(ABC):
-    name: Optional[str] = None
+    """Base parameter class for layers that are available within the Calamari Graph."""
+
+    name: Optional[str] = field(
+        default=None,
+        metadata=pai_meta(
+            help="Name of the layer within the graph. Usually this should not be changed by the command line."
+        ),
+    )
 
     @classmethod
     @abstractmethod

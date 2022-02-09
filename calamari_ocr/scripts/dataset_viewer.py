@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import field, dataclass
 
 import tfaip.util.logging as logging
@@ -48,11 +49,18 @@ def main(args=None):
         action="store_true",
         help="Access as validation instead of training data.",
     )
+    parser.add_argument(
+        "--as_predict",
+        action="store_true",
+        help="Access as prediction instead of training data.",
+    )
     parser.add_argument("--n_augmentations", type=float, default=0)
     parser.add_argument("--no_plot", action="store_true", help="This parameter is for testing only")
 
     parser.add_root_argument("data", DataWrapper)
     args = parser.parse_args(args=args)
+
+    assert not (args.as_validation and args.as_predict), "only one of as_validation or as_predict can be set."
 
     data_wrapper: DataWrapper = args.data
     data_params = data_wrapper.data
@@ -61,12 +69,17 @@ def main(args=None):
     for p in data_params.pre_proc.processors_of_type(AugmentationProcessorParams):
         p.n_augmentations = args.n_augmentations
     data_params.__post_init__()
-    data_wrapper.pipeline.mode = PipelineMode.EVALUATION if args.as_validation else PipelineMode.TRAINING
+    if args.as_validation:
+        data_wrapper.pipeline.mode = PipelineMode.EVALUATION
+    elif args.as_predict:
+        data_wrapper.pipeline.mode = PipelineMode.PREDICTION
+    else:
+        data_wrapper.pipeline.mode = PipelineMode.TRAINING
     data_wrapper.gen.prepare_for_mode(data_wrapper.pipeline.mode)
 
     data = Data(data_params)
     if len(args.select) == 0:
-        args.select = list(range(len(data_wrapper.gen)))
+        args.select = itertools.count()
     else:
         try:
             data_wrapper.gen.select(args.select)
@@ -80,16 +93,17 @@ def main(args=None):
         data_pipeline = data_pipeline.as_preloaded()
 
     if args.no_plot:
-        with data_pipeline as dataset:
-            list(zip(args.select, dataset.generate_input_samples(auto_repeat=False)))
+        with data_pipeline.generate_input_samples(auto_repeat=False) as samples:
+            list(zip(args.select, samples))
         return
 
     import matplotlib.pyplot as plt
 
     f, ax = plt.subplots(args.n_rows, args.n_cols, sharey="all")
     row, col = 0, 0
-    with data_pipeline as dataset:
-        for i, (id, sample) in enumerate(zip(args.select, dataset.generate_input_samples(auto_repeat=False))):
+    gen_pipeline = data_pipeline.generate_input_samples(auto_repeat=False)
+    with gen_pipeline as samples:
+        for i, (id, sample) in enumerate(zip(args.select, samples)):
             line, text, params = sample.inputs, sample.targets, sample.meta
             if args.n_cols == 1:
                 ax[row].imshow(line.transpose())
@@ -103,7 +117,7 @@ def main(args=None):
                 row = 0
                 col += 1
 
-            if col == args.n_cols or i == len(dataset) - 1:
+            if col == args.n_cols or i == len(gen_pipeline) - 1:
                 plt.show()
                 f, ax = plt.subplots(args.n_rows, args.n_cols, sharey="all")
                 row, col = 0, 0
