@@ -77,8 +77,8 @@ class SavedCalamariModel:
             if packaging.version.parse(tf.__version__) >= packaging.version.parse("2.5.0"):
                 raise Exception(
                     "Modules of checkpoint version 2 can only be upgraded by Tensorflow version 2.4. Please downgrade "
-                    "Tensorflow to 2.4.x (`pip install tensorflow~=2.4.0`) to convert the model to a newer version "
-                    "afterwards you can upgrade Tensorflow to a newver vesion (`pip install -U tensorflow`) "
+                    "Tensorflow to 2.4.x (`pip install tensorflow~=2.4.0`) to convert the model to a newer version. "
+                    "Afterwards you can upgrade Tensorflow to a newer version (`pip install -U tensorflow`) "
                     "and continue the model upgrade (if required)."
                 )
 
