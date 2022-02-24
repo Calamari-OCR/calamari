@@ -28,7 +28,9 @@ logger = tfaip.util.logging.logger(__name__)
 @pai_dataclass
 @dataclass
 class PredictArgs:
-    checkpoint: List[str] = field(metadata=pai_meta(mode="flat", help="Path to the checkpoint without file extension"))
+    checkpoint: List[str] = field(
+        default_factory=list, metadata=pai_meta(mode="flat", help="Path to the checkpoint without file extension")
+    )
     data: CalamariDataGeneratorParams = field(
         default_factory=FileDataParams,
         metadata=pai_meta(mode="flat", choices=DATA_GENERATOR_CHOICES),
