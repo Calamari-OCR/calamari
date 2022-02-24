@@ -172,7 +172,8 @@ def run(args: PredictArgs):
                 extension=args.extended_prediction_data_format,
             )
 
-    logger.info("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
+    avg_sentence_confidence = avg_sentence_confidence / n_predictions if n_predictions else 0
+    logger.info("Average sentence confidence: {:.2%}".format(avg_sentence_confidence))
 
     reader.store()
     logger.info("All prediction files written")
