@@ -1,4 +1,5 @@
 myst-parser
 sphinx
 sphinx-rtd-theme
-Sphinx-Substitution-Extensions
+sphinx-prompt
+sphinx_substitution_extensions
