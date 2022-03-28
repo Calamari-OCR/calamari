@@ -31,6 +31,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def create_subelement(parent, tag, **kwargs):
+    return etree.SubElement(parent, f"{{{parent.nsmap[parent.prefix]}}}{tag}", nsmap=parent.nsmap, **kwargs)
+
+
 class CutMode(IntEnum):
     BOX = 0
     POLYGON = 1
@@ -398,11 +402,11 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         line = sample["xml_element"]
         textequivxml = line.find('./ns:TextEquiv[@index="{}"]'.format(self.params.text_index), namespaces=ns)
         if textequivxml is None:
-            textequivxml = etree.SubElement(line, "TextEquiv", attrib={"index": str(self.params.text_index)})
+            textequivxml = create_subelement(line, "TextEquiv", attrib={"index": str(self.params.text_index)})
 
         u_xml = textequivxml.find("./ns:Unicode", namespaces=ns)
         if u_xml is None:
-            u_xml = etree.SubElement(textequivxml, "Unicode")
+            u_xml = create_subelement(textequivxml, "Unicode")
 
         u_xml.text = sentence
 
@@ -496,11 +500,11 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         glyph_xml = word_xml.find(f'./ns:Glyph[@id="{glyph_id}"]', namespaces=ns)
         if glyph_xml is None:
-            glyph_xml = etree.SubElement(word_xml, "Glyph", attrib={"id": glyph_id})
+            glyph_xml = create_subelement(word_xml, "Glyph", attrib={"id": glyph_id})
 
         coords_xml = glyph_xml.find("./ns:Coords", namespaces=ns)
         if coords_xml is None:
-            coords_xml = etree.SubElement(glyph_xml, "Coords")
+            coords_xml = create_subelement(glyph_xml, "Coords")
 
         glyph_x, glyph_y = glyph.global_start + line_x, line_y
         glyph_width, glyph_height = glyph.global_end - glyph.global_start, line_height
@@ -513,7 +517,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
             textequiv_xml = glyph_xml.find(f'./ns:TextEquiv[@index="{glyph_index}"]', namespaces=ns)
             if textequiv_xml is None:
-                textequiv_xml = etree.SubElement(glyph_xml, "TextEquiv")
+                textequiv_xml = create_subelement(glyph_xml, "TextEquiv")
                 textequiv_xml.set("index", str(glyph_index))
 
             if self.params.output_confidences:
@@ -521,7 +525,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
             u_xml = textequiv_xml.find("./ns:Unicode", namespaces=ns)
             if u_xml is None:
-                u_xml = etree.SubElement(textequiv_xml, "Unicode")
+                u_xml = create_subelement(textequiv_xml, "Unicode")
             u_xml.text = char
 
     def _store_words(self, words, line_xml, line_coords, ns) -> float:
@@ -554,11 +558,11 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             word_xml = line_xml.find(f'./ns:Word[@id="{word_id}"]', namespaces=ns)
             if word_xml is None:
                 # no word with this id, create a new word element
-                word_xml = etree.SubElement(line_xml, "Word", attrib={"id": word_id})
+                word_xml = create_subelement(line_xml, "Word", attrib={"id": word_id})
 
             coords_xml = word_xml.find("./ns:Coords", namespaces=ns)
             if coords_xml is None:
-                coords_xml = etree.SubElement(word_xml, "Coords")
+                coords_xml = create_subelement(word_xml, "Coords")
 
             word_text = ""
             word_confidence = 1
@@ -575,7 +579,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
             textequiv_xml = word_xml.find(f'./ns:TextEquiv[@index="{self.params.text_index}"]', namespaces=ns)
             if textequiv_xml is None:
-                textequiv_xml = etree.SubElement(word_xml, "TextEquiv")
+                textequiv_xml = create_subelement(word_xml, "TextEquiv")
                 textequiv_xml.set("index", str(self.params.text_index))
 
             if self.params.output_confidences:
@@ -583,7 +587,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
             u_xml = textequiv_xml.find("./ns:Unicode", namespaces=ns)
             if u_xml is None:
-                u_xml = etree.SubElement(textequiv_xml, "Unicode")
+                u_xml = create_subelement(textequiv_xml, "Unicode")
             u_xml.text = word_text
 
             word_x, word_y = word[0].global_start + line_x, line_y
