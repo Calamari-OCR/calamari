@@ -65,6 +65,13 @@ class Trainer(AIPTrainer):
             )
             self._params.warmstart.model = self.checkpoint.ckpt_path + ".h5"
             self._params.warmstart.trim_graph_name = False
+            network = self.checkpoint.trainer_params.network
+            if self._params.network != network:
+                self._params.network = network
+                network_str = "def" if network is None else network
+                logger.warning(
+                    f"Changing the network structure is not supported. Keeping existing network ({network_str})."
+                )
 
         self._codec_changes = None
         data_aug = self._params.scenario.data.pre_proc.processors_of_type(AugmentationProcessorParams)
