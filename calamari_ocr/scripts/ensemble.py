@@ -13,7 +13,7 @@ from calamari_ocr.ocr.model.graph import Graph
 def split(args):
     ckpt = SavedCalamariModel(args.model)
     keras_model = keras.models.load_model(
-        ckpt.ckpt_path + ".h5",
+        ckpt.ckpt_path,
         custom_objects={
             "Graph": Graph,
             "EnsembleGraph": EnsembleGraph,
@@ -62,7 +62,7 @@ def split(args):
         path = os.path.join(ckpt.dirname, f"{ckpt.basename}_split_{i}.ckpt")
         with open(path + ".json", "w") as f:
             json.dump(ckpt_dict, f, indent=2)
-        split_model.save(path + ".h5")
+        split_model.save(path)
         print(f"Saved {i + 1}/{len(split_models)}")
 
 

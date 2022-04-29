@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class SavedCalamariModel:
-    VERSION = 5
+    VERSION = 6
 
     def __init__(self, json_path: str, auto_update=True, dry_run=False):
         self.json_path = json_path if json_path.endswith(".json") else json_path + ".json"
@@ -97,6 +97,12 @@ class SavedCalamariModel:
                 self.dict = migrate3to5(self.dict)
             update_model(self.dict, self.ckpt_path)
             self.version = 5
+
+        elif self.version == 5:
+            from calamari_ocr.ocr.savedmodel.migrations.version5to6 import update_model
+
+            update_model(self.dict, self.ckpt_path)
+            self.version = 6
 
         self._update_json_version()
 

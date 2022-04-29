@@ -25,7 +25,7 @@ class Predictor(tfaip_cls.Predictor):
         predictor = Predictor(params, scenario.create_data())
         predictor.set_model(
             keras.models.load_model(
-                ckpt.ckpt_path + ".h5",
+                ckpt.ckpt_path,
                 custom_objects=CalamariScenario.model_cls().all_custom_objects(),
             )
         )
@@ -50,11 +50,12 @@ class MultiPredictor(tfaip_cls.MultiModelPredictor):
 
         DeviceConfig(predictor_params.device)
         checkpoints = [SavedCalamariModel(ckpt, auto_update=auto_update_checkpoints) for ckpt in checkpoints]
+
         multi_predictor = super(MultiPredictor, cls).from_paths(
             [ckpt.json_path for ckpt in checkpoints],
             predictor_params,
             CalamariScenario,
-            model_paths=[ckpt.ckpt_path + ".h5" for ckpt in checkpoints],
+            model_paths=[ckpt.ckpt_path for ckpt in checkpoints],
             predictor_args={"voter_params": voter_params},
         )
 
