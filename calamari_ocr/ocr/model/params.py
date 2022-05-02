@@ -53,7 +53,7 @@ class ModelParams(ModelBaseParams):
     classes: int = -1
     ctc_merge_repeated: bool = True
     ensemble: int = 0  # For usage with the ensemble-model graph
-    temperature: float = field(default=1, metadata=pai_meta(help="Value to divide logits by (temperature scaling)."))
+    temperature: float = field(default=-1, metadata=pai_meta(help="Value to divide logits by (temperature scaling)."))
     masking_mode: int = False  # This parameter is for evaluation only and should not be used in production
 
     @staticmethod
