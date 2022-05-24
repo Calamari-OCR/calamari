@@ -174,7 +174,7 @@ The type of data to process is adapted by specifying the type of ``--train`` and
 
 .. code-block:: shell
 
-    calamari-train --train PageXML --train.images TRAIN/FILES.png --val PageXXML --val.images VAL/FILES.png
+    calamari-train --train PageXML --train.images TRAIN/FILES.png --val PageXML --val.images VAL/FILES.png
 
 to train and validate on PageXML files.
 
@@ -797,7 +797,7 @@ calamari-predict-and-eval
 calamari-eval
 -------------
 
-To compute the performance of a model first to predict the evaluation data set (see ``calamari-predict``).
+To compute the performance of a model first predict the evaluation data set (see ``calamari-predict``).
 Afterwards run
 
 .. code-block:: shell
