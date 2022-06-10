@@ -19,7 +19,7 @@ def print_confusions(r, n_confusions):
     if n_confusions != 0 and r["total_sync_errs"] > 0:
         total_percent = 0
         keys = sorted(r["confusion"].items(), key=lambda item: -item[1])
-        print("{:8s} {:8s} {:8s} {:10s}".format("GT", "PRED", "COUNT", "PERCENT"))
+        print("{:8s} {:8s} {:8s} {:10s}".format("GT", "PRED", "COUNT", "PERC (CER)"))
 
         for i, ((gt, pred), count) in enumerate(keys):
             gt_fmt = "{" + gt + "}"
@@ -95,7 +95,7 @@ def write_xlsx(xlsx_file, eval_datas):
 
         # total confusions
         ws = workbook.add_worksheet("{} - global".format(prefix))
-        for i, heading in enumerate(["GT", "PRED", "COUNT", "PERCENT"]):
+        for i, heading in enumerate(["GT", "PRED", "COUNT", "PERC (CER)"]):
             ws.write(0, i, heading)
 
         keys = sorted(r["confusion"].items(), key=lambda item: -item[1])
