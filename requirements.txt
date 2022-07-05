@@ -3,5 +3,5 @@ h5py
 lxml
 python-bidi
 tensorflow~=2.4.0
-tfaip==1.2.5
+git+https://github.com/p42ul/tfaip@3738106#egg=tfaip
 xlsxwriter
