@@ -4,6 +4,7 @@ from typing import Type
 from paiargparse import pai_dataclass, pai_meta
 from tensorflow import keras
 
+from calamari_ocr.ocr.model.layers.activation import activation_by_str
 from calamari_ocr.ocr.model.layers.layer import LayerParams, IntVec2D, Layer
 
 
@@ -44,7 +45,7 @@ class Conv2DLayer(Layer[Conv2DLayerParams]):
             kernel_size=self.params.kernel_size.to_tuple(),
             strides=self.params.strides.to_tuple(),
             padding=self.params.padding,
-            activation=self.params.activation,
+            activation=activation_by_str(self.params.activation),
         )
 
     def input_dims(self) -> int:

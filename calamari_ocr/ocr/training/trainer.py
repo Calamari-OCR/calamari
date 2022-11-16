@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Type
 
 from tfaip.data.pipeline.datapipeline import RawDataPipeline
@@ -64,8 +65,21 @@ class Trainer(AIPTrainer):
             )
             self._params.warmstart.model = self.checkpoint.ckpt_path + ".h5"
             self._params.warmstart.trim_graph_name = False
+            network = self.checkpoint.trainer_params.network
+            if self._params.network != network:
+                self._params.network = network
+                network_str = "def" if network is None else network
+                logger.warning(
+                    f"Changing the network structure is not supported. Keeping existing network ({network_str})."
+                )
 
         self._codec_changes = None
+        data_aug = self._params.scenario.data.pre_proc.processors_of_type(AugmentationProcessorParams)
+        self._retrain_on_original = (
+            self._params.data_aug_retrain_on_original
+            and len(data_aug) > 0
+            and any(p.n_augmentations != 0 for p in data_aug)
+        )
 
     def train(self, callbacks=None, **kwargs):
         callbacks = callbacks if callbacks else []
@@ -180,16 +194,9 @@ class Trainer(AIPTrainer):
 
         last_logs = None
         if self._params.current_stage == 0:
-            last_logs = super(Trainer, self).train(
-                callbacks=callbacks,
-            )
+            last_logs = super().train(callbacks=callbacks)
 
-        data_aug = self._data.params.pre_proc.processors_of_type(AugmentationProcessorParams)
-        if (
-            self._params.data_aug_retrain_on_original
-            and len(data_aug) > 0
-            and any(p.n_augmentations != 0 for p in data_aug)
-        ):
+        if self._retrain_on_original:
             logger.info("Starting training on original data only")
             if self._params.current_stage == 0:
                 self._params.current_epoch = 0
@@ -208,7 +215,7 @@ class Trainer(AIPTrainer):
             ses_bkp = self.params.scale_epoch_size
             if self.params.scale_epoch_size_no_da_train > 0:
                 self.params.scale_epoch_size = self.params.scale_epoch_size_no_da_train
-            super(Trainer, self).setup_steps_per_epoch()
+            super().setup_steps_per_epoch()
             self.params.learning_rate.epochs = self.params.epochs
             self.params.learning_rate.steps_per_epoch = self._steps_per_epoch
             self.params.scale_epoch_size = ses_bkp
@@ -217,7 +224,9 @@ class Trainer(AIPTrainer):
             first = True
             for i, cb in enumerate(self._callbacks[:]):
                 if isinstance(cb, TensorBoardCallback):
-                    cb.steps_per_epoch = self._steps_per_epoch
+                    self._callbacks[i] = TensorBoardCallback(
+                        os.path.join(self.params.output_dir, "real_data"), self._steps_per_epoch, cb.extracted_logs_cb
+                    )
 
                 if isinstance(cb, TrainerCheckpointsCallback):
                     if first:
@@ -230,7 +239,7 @@ class Trainer(AIPTrainer):
                             store_params=True, store_weights=False
                         )
             logger_callback = next(c for c in self._callbacks if isinstance(c, LoggerCallback))
-            super(Trainer, self).fit()
+            super().fit()
             last_logs = logger_callback.last_logs
 
         logger.info("Training finished")
@@ -238,3 +247,16 @@ class Trainer(AIPTrainer):
 
     def create_warmstarter(self) -> WarmStarter:
         return WarmStarterWithCodecAdaption(self.params.warmstart, codec_changes=self._codec_changes)
+
+    def setup_callbacks(
+        self,
+        optimizer,
+        callbacks=None,
+    ):
+        cbs = super().setup_callbacks(optimizer, callbacks)
+        if self._retrain_on_original:
+            for i, cb in enumerate(cbs[:]):
+                if isinstance(cb, TensorBoardCallback):
+                    cb.log_dir = os.path.join(cb.log_dir, "aug_data")
+
+        return cbs

@@ -1,0 +1,116 @@
+[
+  {
+    "name": null,
+    "filters": 8,
+    "kernel_size": {
+      "x": 2,
+      "y": 4,
+      "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+    },
+    "strides": {
+      "x": 2,
+      "y": 4,
+      "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+    },
+    "padding": "same",
+    "activation": "leaky_relu",
+    "__cls__": "calamari_ocr.ocr.model.layers.conv2d:Conv2DLayerParams"
+  },
+  {
+    "name": null,
+    "filters": 32,
+    "kernel_size": {
+      "x": 2,
+      "y": 4,
+      "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+    },
+    "strides": {
+      "x": 1,
+      "y": 1,
+      "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+    },
+    "padding": "same",
+    "activation": "leaky_relu",
+    "__cls__": "calamari_ocr.ocr.model.layers.conv2d:Conv2DLayerParams"
+  },
+  {
+    "name": null,
+    "pool_size": {
+      "x": 2,
+      "y": 4,
+      "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+    },
+    "strides": {
+      "x": 2,
+      "y": 4,
+      "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+    },
+    "padding": "same",
+    "__cls__": "calamari_ocr.ocr.model.layers.pool2d:MaxPool2DLayerParams"
+  },
+  {
+    "name": null,
+    "filters": 64,
+    "kernel_size": {
+      "x": 3,
+      "y": 3,
+      "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+    },
+    "strides": {
+      "x": 1,
+      "y": 1,
+      "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+    },
+    "padding": "same",
+    "activation": "leaky_relu",
+    "__cls__": "calamari_ocr.ocr.model.layers.conv2d:Conv2DLayerParams"
+  },
+  {
+    "name": null,
+    "pool_size": {
+      "x": 2,
+      "y": 1,
+      "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+    },
+    "strides": {
+      "x": 2,
+      "y": 1,
+      "__cls__": "calamari_ocr.ocr.model.layers.layer:IntVec2D"
+    },
+    "padding": "same",
+    "__cls__": "calamari_ocr.ocr.model.layers.pool2d:MaxPool2DLayerParams"
+  },
+  {
+    "name": null,
+    "hidden_nodes": 256,
+    "merge_mode": "sum",
+    "__cls__": "calamari_ocr.ocr.model.layers.bilstm:BiLSTMLayerParams"
+  },
+  {
+    "name": null,
+    "rate": 0.5,
+    "__cls__": "calamari_ocr.ocr.model.layers.dropout:DropoutLayerParams"
+  },
+  {
+    "name": null,
+    "hidden_nodes": 256,
+    "merge_mode": "sum",
+    "__cls__": "calamari_ocr.ocr.model.layers.bilstm:BiLSTMLayerParams"
+  },
+  {
+    "name": null,
+    "rate": 0.5,
+    "__cls__": "calamari_ocr.ocr.model.layers.dropout:DropoutLayerParams"
+  },
+  {
+    "name": null,
+    "hidden_nodes": 256,
+    "merge_mode": "sum",
+    "__cls__": "calamari_ocr.ocr.model.layers.bilstm:BiLSTMLayerParams"
+  },
+  {
+    "name": null,
+    "rate": 0.5,
+    "__cls__": "calamari_ocr.ocr.model.layers.dropout:DropoutLayerParams"
+  }
+]
