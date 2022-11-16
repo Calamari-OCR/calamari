@@ -6,7 +6,7 @@ from edit_distance import edit_distance
 
 from collections import namedtuple
 
-from paiargparse import pai_dataclass
+from paiargparse import pai_dataclass, pai_meta
 from tfaip.data.databaseparams import DataPipelineParams
 from tfaip.data.pipeline.definitions import PipelineMode
 from tfaip.util.multiprocessing.parallelmap import parallel_map, tqdm_wrapper
@@ -27,7 +27,17 @@ class EvaluatorParams:
     setup: DataPipelineParams = field(default_factory=DataPipelineParams)
     progress_bar: bool = True
     skip_empty_gt: bool = False
-    non_existing_pred_as_empty: bool = True
+    non_existing_pred_handling_mode: str = field(
+        default="empty",
+        metadata=pai_meta(
+            mode="flat",
+            choices=["error", "skip", "empty"],
+            help="How to handle non existing prediction data. Possible modes: skip, empty, error. "
+            "'Skip' will simply skip the evaluation of that file (not counting it to errors). "
+            "'Empty' will handle this file as would it be empty (fully checking for errors). "
+            "'Error' will throw an exception if a file is not existing.",
+        ),
+    )
 
 
 class Evaluator:
@@ -206,14 +216,17 @@ class Evaluator:
         -------
         evaluation dictionary
         """
-        if self.params.non_existing_pred_as_empty:
+        if self.params.non_existing_pred_handling_mode != "error":
             n_empty = 0
             mapped_pred_data = {}
             for sample_id in gt_data.keys():
                 if sample_id in pred_data:
                     mapped_pred_data[sample_id] = pred_data[sample_id]
                 else:
-                    mapped_pred_data[sample_id] = ""
+                    if self.params.non_existing_pred_handling_mode == "empty":
+                        mapped_pred_data[sample_id] = ""
+                    else:
+                        pass  # skip
                     n_empty += 1
             logger.info(f"{n_empty}/{len(gt_data)} lines could not be matched during the evaluation.")
             if n_empty == len(gt_data):
@@ -225,7 +238,7 @@ class Evaluator:
 
         gt_ids, pred_ids = set(gt_data.keys()), set(pred_data.keys())
         if len(gt_ids) != len(gt_data):
-            raise ValueError(f"Non unique keys in ground truth data.")
+            raise ValueError("Non unique keys in ground truth data.")
         if gt_ids != pred_ids:
             raise Exception(
                 f"Mismatch in gt and pred. Samples could not be matched by ID. "
