@@ -253,4 +253,6 @@ class Evaluator:
             desc="Evaluation",
         )
 
-        return Evaluator.evaluate_single_list(out, True)
+        res = Evaluator.evaluate_single_list(out, True)
+        res["ids"] = gt_ids
+        return res
