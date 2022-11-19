@@ -12,6 +12,7 @@ from calamari_ocr.ocr.model.layers.layer import IntVec2D
 from calamari_ocr.ocr.model.layers.pool2d import MaxPool2DLayerParams
 from calamari_ocr.ocr.model.layers.transposedconv2d import TransposedConv2DLayerParams
 from calamari_ocr.ocr.model.params import default_layers
+from calamari_ocr.ocr.training.params import parse_network_param
 from calamari_ocr.scripts.train import main, parse_args
 from calamari_ocr.test.test_train_file import uw3_trainer_params
 
@@ -23,9 +24,16 @@ class TestNetworkArchitectures(unittest.TestCase):
     def tearDown(self) -> None:
         clear_session()
 
+    def test_predefined_networks(self):
+        self.assertListEqual(default_layers(), parse_network_param("def"))
+
     def test_default_architecture(self):
         trainer_params = uw3_trainer_params()
         trainer_params.scenario.model.layers = default_layers()
+
+        # make some minor modifications
+        trainer_params.scenario.model.layers[0].activation = "leaky_relu"  # test that leaky_relu is a valid layer
+
         with tempfile.TemporaryDirectory() as d:
             trainer_params.output_dir = d
             main(trainer_params)

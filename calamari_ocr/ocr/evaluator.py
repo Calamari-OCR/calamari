@@ -7,11 +7,11 @@ from edit_distance import edit_distance
 from collections import namedtuple
 
 from paiargparse import pai_dataclass, pai_meta
-from tfaip import DataGeneratorParams
 from tfaip.data.databaseparams import DataPipelineParams
 from tfaip.data.pipeline.definitions import PipelineMode
 from tfaip.util.multiprocessing.parallelmap import parallel_map, tqdm_wrapper
 
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.textprocessors import synchronize
 
 if TYPE_CHECKING:
@@ -48,7 +48,7 @@ class Evaluator:
         self.preloaded_gt = None
         self.params.setup.mode = PipelineMode.TARGETS
 
-    def preload_gt(self, gt_dataset: DataGeneratorParams, progress_bar=False):
+    def preload_gt(self, gt_dataset: CalamariDataGeneratorParams, progress_bar=False):
         """Preload gt to be used for several experiments
 
         Use this method to specify ground truth data to be tested versus many predictions
@@ -61,12 +61,13 @@ class Evaluator:
             show a progress bar
 
         """
-        with self.data.create_pipeline(self.params.setup, gt_dataset) as dataset:
+        pipeline = self.data.create_pipeline(self.params.setup, gt_dataset).generate_input_samples()
+        with pipeline as samples:
             self.preloaded_gt = {
                 sample.meta["id"]: sample.targets
                 for sample in tqdm_wrapper(
-                    dataset.generate_input_samples(),
-                    total=len(dataset),
+                    samples,
+                    total=len(pipeline),
                     progress_bar=progress_bar,
                     desc="Loading GT",
                 )
@@ -75,7 +76,7 @@ class Evaluator:
         if len(self.preloaded_gt) == 0:
             raise ValueError("Empty GT dataset.")
 
-    def run(self, *, gt_dataset: DataGeneratorParams, pred_dataset: DataGeneratorParams):
+    def run(self, *, gt_dataset: CalamariDataGeneratorParams, pred_dataset: CalamariDataGeneratorParams):
         """evaluate on the given dataset
         Returns
         -------
@@ -84,23 +85,25 @@ class Evaluator:
         if self.preloaded_gt:
             gt_data = self.preloaded_gt
         else:
-            with self.data.create_pipeline(self.params.setup, gt_dataset) as data:
+            pipeline = self.data.create_pipeline(self.params.setup, gt_dataset).generate_input_samples()
+            with pipeline as samples:
                 gt_data = {
                     sample.meta["id"]: sample.targets
                     for sample in tqdm_wrapper(
-                        data.generate_input_samples(),
-                        total=len(data),
+                        samples,
+                        total=len(pipeline),
                         progress_bar=self.params.progress_bar,
                         desc="Loading GT",
                     )
                 }
 
-        with self.data.create_pipeline(self.params.setup, pred_dataset) as data:
+        pipeline = self.data.create_pipeline(self.params.setup, pred_dataset).generate_input_samples()
+        with pipeline as samples:
             pred_data = {
                 sample.meta["id"]: sample.targets
                 for sample in tqdm_wrapper(
-                    data.generate_input_samples(),
-                    total=len(data),
+                    samples,
+                    total=len(pipeline),
                     progress_bar=self.params.progress_bar,
                     desc="Loading Prediction",
                 )

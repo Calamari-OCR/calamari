@@ -58,14 +58,3 @@ class TestModelMigration(unittest.TestCase):
 
             ckpt = SavedCalamariModel(os.path.join(d, "0.ckpt.json"))
             self.predict_and_eval(ckpt.ckpt_path)
-
-    def test_upgrade_from_2(self):
-        with tempfile.TemporaryDirectory() as d:
-            for filename in {"0.ckpt.h5", "0.ckpt.json"}:
-                shutil.copyfile(
-                    os.path.join(models_dir, "version2", filename),
-                    os.path.join(d, filename),
-                )
-
-            ckpt = SavedCalamariModel(os.path.join(d, "0.ckpt.json"))
-            self.predict_and_eval(ckpt.ckpt_path)

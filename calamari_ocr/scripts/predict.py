@@ -28,7 +28,9 @@ logger = tfaip.util.logging.logger(__name__)
 @pai_dataclass
 @dataclass
 class PredictArgs:
-    checkpoint: List[str] = field(metadata=pai_meta(mode="flat", help="Path to the checkpoint without file extension"))
+    checkpoint: List[str] = field(
+        default_factory=list, metadata=pai_meta(mode="flat", help="Path to the checkpoint without file extension")
+    )
     data: CalamariDataGeneratorParams = field(
         default_factory=FileDataParams,
         metadata=pai_meta(mode="flat", choices=DATA_GENERATOR_CHOICES),
@@ -172,7 +174,8 @@ def run(args: PredictArgs):
                 extension=args.extended_prediction_data_format,
             )
 
-    logger.info("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
+    avg_sentence_confidence = avg_sentence_confidence / n_predictions if n_predictions else 0
+    logger.info("Average sentence confidence: {:.2%}".format(avg_sentence_confidence))
 
     reader.store()
     logger.info("All prediction files written")
