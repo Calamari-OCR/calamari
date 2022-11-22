@@ -219,14 +219,14 @@ class Evaluator:
         if self.params.non_existing_pred_handling_mode != "error":
             n_empty = 0
             mapped_pred_data = {}
-            for sample_id in gt_data.keys():
+            for sample_id in list(gt_data.keys()):
                 if sample_id in pred_data:
                     mapped_pred_data[sample_id] = pred_data[sample_id]
                 else:
                     if self.params.non_existing_pred_handling_mode == "empty":
                         mapped_pred_data[sample_id] = ""
                     else:
-                        pass  # skip
+                        del gt_data[sample_id]  # skip
                     n_empty += 1
             logger.info(f"{n_empty}/{len(gt_data)} lines could not be matched during the evaluation.")
             if n_empty == len(gt_data):
@@ -256,4 +256,6 @@ class Evaluator:
             desc="Evaluation",
         )
 
-        return Evaluator.evaluate_single_list(out, True)
+        res = Evaluator.evaluate_single_list(out, True)
+        res["ids"] = gt_ids
+        return res
