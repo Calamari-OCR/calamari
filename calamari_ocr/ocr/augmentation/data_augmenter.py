@@ -56,7 +56,7 @@ class SimpleDataAugmenter(DataAugmenter):
     def augment_single(self, data, gt_txt):
         import calamari_ocr.thirdparty.ocrodeg as ocrodeg
         original_dtype = data.dtype
-        data = data.astype(np.float)
+        data = data.astype(np.float32)
         m = data.max()
         data = data / (1 if m == 0 else m)
         data = ocrodeg.random_pad(data, (0, data.shape[1] * 2))
