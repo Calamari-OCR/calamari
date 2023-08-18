@@ -6,6 +6,6 @@ edit_distance
 xlsxwriter
 lxml
 h5py
-protobuf
+protobuf<4
 prettytable
 tensorflow
