@@ -97,7 +97,7 @@ class TrainerParams(AIPTrainerParams[CalamariScenarioParams, CalamariDefaultTrai
     )
 
     def __post_init__(self):
-        self.scenario.default_serve_dir = f"{self.best_model_prefix}.ckpt.h5"
+        self.scenario.default_serve_dir = f"{self.best_model_prefix}.ckpt"
         self.scenario.trainer_params_filename = f"{self.best_model_prefix}.ckpt.json"
         self.early_stopping.best_model_name = ""
 

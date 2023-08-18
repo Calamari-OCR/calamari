@@ -63,7 +63,7 @@ class Trainer(AIPTrainer):
                 self._params.warmstart.model,
                 auto_update=self._params.auto_upgrade_checkpoints,
             )
-            self._params.warmstart.model = self.checkpoint.ckpt_path + ".h5"
+            self._params.warmstart.model = self.checkpoint.ckpt_path
             self._params.warmstart.trim_graph_name = False
             network = self.checkpoint.trainer_params.network
             if self._params.network != network:
