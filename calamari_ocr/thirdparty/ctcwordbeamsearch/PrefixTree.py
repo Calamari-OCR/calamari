@@ -10,9 +10,7 @@ class Node:
         self.isWord = False  # does this prefix represent a word
 
     def __str__(self):
-        s = ""
-        for k in self.children.keys():
-            s += k
+        s = "" + "".join(self.children.keys())
         return "isWord: " + str(self.isWord) + "; children: " + s
 
 
