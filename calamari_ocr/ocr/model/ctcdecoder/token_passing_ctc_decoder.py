@@ -48,10 +48,7 @@ class Token:
         self.history = history if history else []
 
     def __str__(self):
-        res = "class Token: " + str(self.score) + "; "
-        for w in self.history:
-            res += str(w) + "; "
-        return res
+        return "class Token: " + str(self.score) + "; " + "; ".join([str(w) for w in self.history])
 
 
 class TokenList:
