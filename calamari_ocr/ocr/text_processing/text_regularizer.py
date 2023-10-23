@@ -72,7 +72,7 @@ def default_text_regularizer_params(params=TextProcessorParams(), groups=["simpl
 
     def replacement(old, new, regex=False):
         r = params.replacements.add()
-        r.old = old
+        r.old = "(?u)" + old[:-4] if regex and old.endswith("(?u)") else old
         r.new = new
         r.regex = regex
 
