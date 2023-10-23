@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.ndimage import filters
+import scipy.ndimage as filters
 from calamari_ocr.ocr.data_processing.data_preprocessor import DataPreprocessor
 from calamari_ocr.ocr.data_processing.scale_to_height_processor import ScaleToHeightProcessor
 

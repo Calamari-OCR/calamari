@@ -152,6 +152,6 @@ class EarlyStoppingCallback(keras.callbacks.Callback):
         def generate_cer():
             it = iter(self.data_gen)
             for _ in range(count):
-                yield np.mean(self.predict_func(next(it))[0])
+                yield np.mean(self.predict_func(next(it)[0])[0])
 
         return np.mean([cer for cer in tqdm_wrapper(generate_cer(), total=count, progress_bar=self.progress_bar, desc="Early stopping") if np.isfinite(cer)])

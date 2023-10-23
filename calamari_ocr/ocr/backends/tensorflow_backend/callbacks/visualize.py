@@ -64,5 +64,5 @@ class VisCallback(keras.callbacks.Callback):
 
     def _generate(self, count):
         it = iter(self.data_gen)
-        cer, target, decoded = zip(*[self.predict_func(next(it)) for _ in range(count)])
+        cer, target, decoded = zip(*[self.predict_func(next(it)[0]) for _ in range(count)])
         return np.mean(cer), sum(map(sparse_to_lists, target), []), sum(map(sparse_to_lists, decoded), [])

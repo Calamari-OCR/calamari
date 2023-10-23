@@ -317,7 +317,7 @@ class TensorflowModel(ModelInterface):
         else:
             val_dataset_gen = None
 
-        predict_func = K.function({t.op.name: t for t in [self.input_data, self.input_length, self.input_params, self.targets, self.targets_length]}, [self.cer, self.sparse_targets, self.sparse_decoded])
+        predict_func = K.function({t.name: t for t in [self.input_data, self.input_length, self.input_params, self.targets, self.targets_length]}, [self.cer, self.sparse_targets, self.sparse_decoded])
         steps_per_epoch = max(1, int(dataset.epoch_size() / checkpoint_params.batch_size))
         v_cb = VisCallback(training_callback, self.codec, dataset_gen, predict_func, checkpoint_params, steps_per_epoch, text_post_proc)
         es_cb = EarlyStoppingCallback(training_callback, self.codec, val_dataset_gen, predict_func, checkpoint_params,

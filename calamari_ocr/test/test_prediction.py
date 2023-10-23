@@ -18,6 +18,9 @@ class PredictionAttrs:
         # self.checkpoint = sorted(glob_all([os.path.join(this_dir, "..", "..", "..", "calamari_models/antiqua_modern/*.ckpt.json")]))
         self.processes = 1
         self.batch_size = 1
+        self.beam_width = 25
+        self.dictionary = False
+        self.dataset_pad = 0
         self.verbose = True
         self.voter = "confidence_voter_default_ctc"
         self.output_dir = None

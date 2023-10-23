@@ -1,7 +1,7 @@
 import numpy as np
 from calamari_ocr.ocr.data_processing.data_preprocessor import DataPreprocessor
 from calamari_ocr.proto import DataPreprocessorParams
-from scipy.ndimage import interpolation
+import scipy.ndimage as interpolation
 
 
 class ScaleToHeightProcessor(DataPreprocessor):
