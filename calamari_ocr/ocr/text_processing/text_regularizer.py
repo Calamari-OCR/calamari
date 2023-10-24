@@ -72,7 +72,7 @@ def default_text_regularizer_params(params=TextProcessorParams(), groups=["simpl
 
     def replacement(old, new, regex=False):
         r = params.replacements.add()
-        r.old = "(?u)" + old[:-4] if regex and old.endswith("(?u)") else old
+        r.old = old
         r.new = new
         r.regex = regex
 
@@ -343,6 +343,14 @@ class TextRegularizer(TextProcessor):
     def __init__(self, params=default_text_regularizer_params()):
         super().__init__()
         self.params = params
+        self._fix_regex_flags()
+
+    def _fix_regex_flags(self):
+        # Fix regex replacements for older models where global flags were put at the end
+        # of the pattern string. These patterns are invalid as of Python 3.11.
+        for replacement in self.params.replacements:
+            if replacement.regex and replacement.old.endswith("(?u)"):
+                replacement.old = "(?u)" + replacement.old[:-4]
 
     def _apply_single(self, txt):
         for replacement in self.params.replacements:
