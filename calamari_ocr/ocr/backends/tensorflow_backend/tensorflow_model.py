@@ -55,7 +55,7 @@ class TensorflowModel(ModelInterface):
         else:
             self.model = self.create_predictor()
 
-        print(self.model.summary())
+        self.model.summary()
 
     def create_predictor(self):
         return Model(inputs=[
