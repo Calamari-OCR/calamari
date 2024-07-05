@@ -26,6 +26,10 @@ which will install Calamari and all of its dependencies.
 
 To install the package without a virtual environment simply run
 
+.. code-block:: shell
+
+    pip install calamari-ocr
+
 Installation from Source
 ------------------------
 
