@@ -7,7 +7,7 @@ opencv-python-headless
 paiargparse
 prettytable
 pre-commit
-python-bidi
+python-bidi~=0.4.2
 scikit-image>=0.15.0
 tensorflow~=2.4.0
 tfaip==1.2.2
