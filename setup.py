@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 from setuptools import setup, find_packages
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -9,6 +11,9 @@ with open(os.path.join(this_dir, "calamari_ocr", "version.py")) as f:
     exec(f.read(), main_ns)
     __version__ = main_ns["__version__"]
 
+# List all resources (to be included in distribution)
+resources_path = Path(this_dir) / "calamari_ocr" / "resources"
+resources = [r.relative_to(resources_path.parent.parent).as_posix() for r in resources_path.rglob("*") if r.is_file()]
 
 setup(
     name="calamari_ocr",
@@ -37,5 +42,5 @@ setup(
     python_requires=">=3.7",
     install_requires=open("requirements.txt").read().split("\n"),
     keywords=["OCR", "optical character recognition", "ocropy", "ocropus", "kraken"],
-    data_files=[("", ["requirements.txt"])],
+    data_files=[("", ["requirements.txt"] + resources)],
 )

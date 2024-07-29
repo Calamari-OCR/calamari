@@ -1,22 +1,19 @@
 from dataclasses import dataclass
 
 import tensorflow as tf
-from typing import Dict, Type, List, Tuple, Any
+from typing import Dict, List, Tuple
 import bidi.algorithm as bidi
 import Levenshtein
 from paiargparse import pai_dataclass
 from tfaip import Sample
-from tfaip.model.graphbase import GraphBase
 
-from tfaip.model.modelbase import ModelBase, ModelBaseParams
+from tfaip.model.modelbase import ModelBase
 from tfaip.util.tftyping import AnyTensor
-from tfaip.util.typing import AnyNumpy
 
 from calamari_ocr.ocr.model.params import ModelParams
 from tensorflow.python.ops import math_ops
 
 from calamari_ocr.ocr.model.ensemblegraph import EnsembleGraph
-from calamari_ocr.ocr.predict.params import Prediction
 
 keras = tf.keras
 K = keras.backend

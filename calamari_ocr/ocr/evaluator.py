@@ -6,12 +6,12 @@ from edit_distance import edit_distance
 
 from collections import namedtuple
 
-from paiargparse import pai_dataclass
-from tfaip import DataGeneratorParams
+from paiargparse import pai_dataclass, pai_meta
 from tfaip.data.databaseparams import DataPipelineParams
 from tfaip.data.pipeline.definitions import PipelineMode
 from tfaip.util.multiprocessing.parallelmap import parallel_map, tqdm_wrapper
 
+from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.textprocessors import synchronize
 
 if TYPE_CHECKING:
@@ -27,7 +27,17 @@ class EvaluatorParams:
     setup: DataPipelineParams = field(default_factory=DataPipelineParams)
     progress_bar: bool = True
     skip_empty_gt: bool = False
-    non_existing_pred_as_empty: bool = True
+    non_existing_pred_handling_mode: str = field(
+        default="empty",
+        metadata=pai_meta(
+            mode="flat",
+            choices=["error", "skip", "empty"],
+            help="How to handle non existing prediction data. Possible modes: skip, empty, error. "
+            "'Skip' will simply skip the evaluation of that file (not counting it to errors). "
+            "'Empty' will handle this file as would it be empty (fully checking for errors). "
+            "'Error' will throw an exception if a file is not existing.",
+        ),
+    )
 
 
 class Evaluator:
@@ -38,7 +48,7 @@ class Evaluator:
         self.preloaded_gt = None
         self.params.setup.mode = PipelineMode.TARGETS
 
-    def preload_gt(self, gt_dataset: DataGeneratorParams, progress_bar=False):
+    def preload_gt(self, gt_dataset: CalamariDataGeneratorParams, progress_bar=False):
         """Preload gt to be used for several experiments
 
         Use this method to specify ground truth data to be tested versus many predictions
@@ -51,12 +61,13 @@ class Evaluator:
             show a progress bar
 
         """
-        with self.data.create_pipeline(self.params.setup, gt_dataset) as dataset:
+        pipeline = self.data.create_pipeline(self.params.setup, gt_dataset).generate_input_samples()
+        with pipeline as samples:
             self.preloaded_gt = {
                 sample.meta["id"]: sample.targets
                 for sample in tqdm_wrapper(
-                    dataset.generate_input_samples(),
-                    total=len(dataset),
+                    samples,
+                    total=len(pipeline),
                     progress_bar=progress_bar,
                     desc="Loading GT",
                 )
@@ -65,7 +76,7 @@ class Evaluator:
         if len(self.preloaded_gt) == 0:
             raise ValueError("Empty GT dataset.")
 
-    def run(self, *, gt_dataset: DataGeneratorParams, pred_dataset: DataGeneratorParams):
+    def run(self, *, gt_dataset: CalamariDataGeneratorParams, pred_dataset: CalamariDataGeneratorParams):
         """evaluate on the given dataset
         Returns
         -------
@@ -74,23 +85,25 @@ class Evaluator:
         if self.preloaded_gt:
             gt_data = self.preloaded_gt
         else:
-            with self.data.create_pipeline(self.params.setup, gt_dataset) as data:
+            pipeline = self.data.create_pipeline(self.params.setup, gt_dataset).generate_input_samples()
+            with pipeline as samples:
                 gt_data = {
                     sample.meta["id"]: sample.targets
                     for sample in tqdm_wrapper(
-                        data.generate_input_samples(),
-                        total=len(data),
+                        samples,
+                        total=len(pipeline),
                         progress_bar=self.params.progress_bar,
                         desc="Loading GT",
                     )
                 }
 
-        with self.data.create_pipeline(self.params.setup, pred_dataset) as data:
+        pipeline = self.data.create_pipeline(self.params.setup, pred_dataset).generate_input_samples()
+        with pipeline as samples:
             pred_data = {
                 sample.meta["id"]: sample.targets
                 for sample in tqdm_wrapper(
-                    data.generate_input_samples(),
-                    total=len(data),
+                    samples,
+                    total=len(pipeline),
                     progress_bar=self.params.progress_bar,
                     desc="Loading Prediction",
                 )
@@ -203,26 +216,29 @@ class Evaluator:
         -------
         evaluation dictionary
         """
-        if self.params.non_existing_pred_as_empty:
+        if self.params.non_existing_pred_handling_mode != "error":
             n_empty = 0
             mapped_pred_data = {}
-            for sample_id in gt_data.keys():
+            for sample_id in list(gt_data.keys()):
                 if sample_id in pred_data:
                     mapped_pred_data[sample_id] = pred_data[sample_id]
                 else:
-                    mapped_pred_data[sample_id] = ""
+                    if self.params.non_existing_pred_handling_mode == "empty":
+                        mapped_pred_data[sample_id] = ""
+                    else:
+                        del gt_data[sample_id]  # skip
                     n_empty += 1
             logger.info(f"{n_empty}/{len(gt_data)} lines could not be matched during the evaluation.")
             if n_empty == len(gt_data):
                 raise ValueError(
                     f"No lines could be matched by their ID. First 10 gt ids "
-                    f"{list(gt_data.keys())[:10]}, first 10 pred ids {list(pred_data.keys())[:100]}"
+                    f"{list(gt_data.keys())[:10]}, first 10 pred ids {list(pred_data.keys())[:10]}"
                 )
             pred_data = mapped_pred_data
 
         gt_ids, pred_ids = set(gt_data.keys()), set(pred_data.keys())
         if len(gt_ids) != len(gt_data):
-            raise ValueError(f"Non unique keys in ground truth data.")
+            raise ValueError("Non unique keys in ground truth data.")
         if gt_ids != pred_ids:
             raise Exception(
                 f"Mismatch in gt and pred. Samples could not be matched by ID. "
@@ -240,4 +256,6 @@ class Evaluator:
             desc="Evaluation",
         )
 
-        return Evaluator.evaluate_single_list(out, True)
+        res = Evaluator.evaluate_single_list(out, True)
+        res["ids"] = gt_ids
+        return res

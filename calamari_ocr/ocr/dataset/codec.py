@@ -135,7 +135,7 @@ class Codec:
             self.char2code[char] = code
 
     def __len__(self):
-        """Get the number of characeters in the charset
+        """Get the number of characters in the charset
 
         this is equal to the maximum possible label.
 
@@ -146,7 +146,7 @@ class Codec:
         return len(self.charset)
 
     def size(self):
-        """Get the number of characeters in the charset
+        """Get the number of characters in the charset
 
         this is equal to the maximum possible label.
 
@@ -162,7 +162,7 @@ class Codec:
         Parameters
         ----------
         s : str
-            sequence of characeters
+            sequence of characters
 
         Returns
         -------

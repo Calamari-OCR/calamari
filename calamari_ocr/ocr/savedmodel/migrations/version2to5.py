@@ -131,10 +131,15 @@ def convert_text_processor(proc: dict):
             )
         elif t == "TEXT_NORMALIZER":
             conv = ["NFC", "NFKC", "NFD", "NFKD"]
+            value = p.get("unicodeNormalization", 0)
+            if isinstance(value, int):
+                value = conv[value]
+            else:
+                assert value in conv, f"{value} not in {conv}"
             flat.append(
                 text_processor(
                     "TextNormalizer",
-                    args={"unicode_normalization": conv[p.get("unicodeNormalization", 0)]},
+                    args={"unicode_normalization": value},
                 )
             )
         elif t == "TEXT_REGULARIZER":

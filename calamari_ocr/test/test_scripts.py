@@ -10,6 +10,7 @@ class TestDatasetViewer(unittest.TestCase):
 
         main(add_args + ["--no_plot"])
         main(add_args + ["--no_plot", "--as_validation"])
+        main(add_args + ["--no_plot", "--as_predict"])
         main(add_args + ["--no_plot", "preload"])
         main(add_args + ["--no_plot", "--select", "0", "2"])
         main(add_args + ["--no_plot", "--n_augmentations", "5"])

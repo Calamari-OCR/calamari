@@ -1,7 +1,7 @@
 import os
 import json
 from contextlib import ExitStack
-from typing import List
+from typing import List, Optional
 
 from tfaip.data.pipeline.definitions import Sample, PipelineMode
 from tfaip.util.multiprocessing.parallelmap import tqdm_wrapper
@@ -12,12 +12,25 @@ from calamari_ocr.ocr.dataset.datareader.hdf5 import Hdf5DatasetWriter
 
 
 class CrossFold:
+    def to_dict(self):
+        return {
+            "n_folds": self.n_folds,
+            "data_generator_params": self.data_generator_params.to_dict(),
+            "output_dir": self.output_dir,
+            "folds": self.folds,
+        }
+
+    @staticmethod
+    def from_dict(d):
+        d["data_generator_params"] = CalamariDataGeneratorParams.from_dict(d["data_generator_params"])
+        return CrossFold(**d)
+
     def __init__(
         self,
         n_folds: int,
         data_generator_params: CalamariDataGeneratorParams,
         output_dir: str,
-        progress_bar=True,
+        folds: Optional[List[str]] = None,
     ):
         """Prepare cross fold training
 
@@ -39,8 +52,10 @@ class CrossFold:
         if self.n_folds <= 1:
             raise Exception("At least two folds are required")
 
-        # fill single fold files
+        self.is_h5_dataset = not isinstance(self.data_generator_params, FileDataParams)
+        self.folds = folds
 
+    def create_folds(self, progress_bar):
         data_generator = self.data_generator_params.create(PipelineMode.EVALUATION)
         if len(data_generator) == 0:
             raise ValueError("Empty dataset.")
@@ -49,15 +64,16 @@ class CrossFold:
                 "Less files than folds in the dataset which results in folds without any training example."
             )
 
-        # if a FileDataSet, we can just use the paths of the images
-        if isinstance(self.data_generator_params, FileDataParams):
-            self.is_h5_dataset = False
-            self.folds = [[] for _ in range(self.n_folds)]
-            file_data_gen: FileDataGenerator = data_generator
-            for i, sample in enumerate(file_data_gen.samples()):
-                self.folds[i % n_folds].append(sample["image_path"])
+        if not self.is_h5_dataset:
+            if isinstance(self.data_generator_params, FileDataParams):
+                # if a FileDataSet, we can just use the paths of the images
+                self.folds = [[] for _ in range(self.n_folds)]
+                file_data_gen: FileDataGenerator = data_generator
+                for i, sample in enumerate(file_data_gen.samples()):
+                    self.folds[i % self.n_folds].append(sample["image_path"])
+            else:
+                raise NotImplementedError
         else:
-            self.is_h5_dataset = True
             # else load the data of each fold and write it to hd5 data files
             with ExitStack() as stack:
                 folds = [

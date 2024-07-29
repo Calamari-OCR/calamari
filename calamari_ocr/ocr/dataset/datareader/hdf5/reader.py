@@ -31,6 +31,7 @@ class Hdf5(CalamariDataGeneratorParams):
         return len(self.files)
 
     def to_prediction(self):
+        self.files = sorted(glob_all(self.files))
         pred = deepcopy(self)
         pred.files = [split_all_ext(f)[0] + self.pred_extension for f in self.files]
         return pred
@@ -69,10 +70,10 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
                     }
                 )
 
-    def store_text_prediction(self, sentence, sample_id, output_dir):
+    def store_text_prediction(self, prediction, sample_id, output_dir):
         sample = self.sample_by_id(sample_id)
         codec = self.prediction[sample["filename"]]["codec"]
-        self.prediction[sample["filename"]]["transcripts"].append(list(map(codec.index, sentence)))
+        self.prediction[sample["filename"]]["transcripts"].append(list(map(codec.index, prediction.sentence)))
 
     def store(self):
         extension = self.params.pred_extension

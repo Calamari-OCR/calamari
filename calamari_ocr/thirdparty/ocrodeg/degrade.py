@@ -158,7 +158,7 @@ def make_multiscale_noise_uniform(shape, srange=(1.0, 100.0), nscales=4, span=(0
     scales /= np.amax(scales)
     scales *= hi - lo
     scales += lo
-    scales = 10 ** scales
+    scales = 10**scales
     weights = 2.0 * np.random.uniform(size=nscales)
     return make_multiscale_noise(shape, scales, weights=weights, span=span)
 

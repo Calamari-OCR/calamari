@@ -16,7 +16,7 @@ The documentation of Calamari is hosted [here](https://calamari-ocr.readthedocs.
 
 ##  Pretrained model repository
 Pretrained models are available at (https://github.com/Calamari-OCR/calamari_models).
-The current release can be accessed [here](https://github.com/Calamari-OCR/calamari_models/archive/1.0.zip) (336 MB).
+The current release can be accessed [here](https://github.com/Calamari-OCR/calamari_models/archive/2.0.zip) (255 MB).
 
 ## Installing
 

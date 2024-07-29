@@ -26,6 +26,16 @@ class TestModelMigration(unittest.TestCase):
                 sample.outputs.avg_char_probability, 0.95
             )  # The model was trained and should yield good results
 
+    def test_upgrade_from_6(self):
+        with tempfile.TemporaryDirectory() as d:
+            shutil.copytree(
+                os.path.join(models_dir, "version6", "0.ckpt"),
+                os.path.join(d, "0.ckpt"),
+            )
+            shutil.copyfile(os.path.join(models_dir, "version6", "0.ckpt.json"), os.path.join(d, "0.ckpt.json"))
+            ckpt = SavedCalamariModel(os.path.join(d, "0.ckpt.json"))
+            self.predict_and_eval(ckpt.ckpt_path)
+
     def test_upgrade_from_5(self):
         with tempfile.TemporaryDirectory() as d:
             for filename in {"0.ckpt.h5", "0.ckpt.json"}:
@@ -53,17 +63,6 @@ class TestModelMigration(unittest.TestCase):
             for filename in {"0.ckpt.h5", "0.ckpt.json"}:
                 shutil.copyfile(
                     os.path.join(models_dir, "version3", filename),
-                    os.path.join(d, filename),
-                )
-
-            ckpt = SavedCalamariModel(os.path.join(d, "0.ckpt.json"))
-            self.predict_and_eval(ckpt.ckpt_path)
-
-    def test_upgrade_from_2(self):
-        with tempfile.TemporaryDirectory() as d:
-            for filename in {"0.ckpt.h5", "0.ckpt.json"}:
-                shutil.copyfile(
-                    os.path.join(models_dir, "version2", filename),
                     os.path.join(d, filename),
                 )
 

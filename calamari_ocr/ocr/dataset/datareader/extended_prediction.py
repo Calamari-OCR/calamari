@@ -48,7 +48,7 @@ class ExtendedPredictionDataSet(CalamariDataGenerator[ExtendedPredictionDataPara
             self._load_sample(sample, False)
             self.add_sample(sample)
 
-    def store_text_prediction(self, sentence, sample_id, output_dir):
+    def store_text_prediction(self, prediction, sample_id, output_dir):
         raise NotImplementedError
 
     def _load_sample(self, sample, text_only):

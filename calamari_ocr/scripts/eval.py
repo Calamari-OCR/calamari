@@ -2,19 +2,14 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import tfaip.util.logging
-from argparse import ArgumentParser
-import os
-import json
 import numpy as np
 from calamari_ocr.ocr.dataset.params import DATA_GENERATOR_CHOICES
 from paiargparse import PAIArgumentParser, pai_dataclass, pai_meta
-from tfaip.data.pipeline.definitions import PipelineMode
 
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.dataset.datareader.base import CalamariDataGeneratorParams
 from calamari_ocr.ocr.dataset.datareader.file import FileDataParams
 from calamari_ocr.ocr.evaluator import EvaluatorParams
-from calamari_ocr.utils import glob_all, split_all_ext
 
 logger = tfaip.util.logging.logger(__name__)
 
@@ -24,7 +19,7 @@ def print_confusions(r, n_confusions):
     if n_confusions != 0 and r["total_sync_errs"] > 0:
         total_percent = 0
         keys = sorted(r["confusion"].items(), key=lambda item: -item[1])
-        print("{:8s} {:8s} {:8s} {:10s}".format("GT", "PRED", "COUNT", "PERCENT"))
+        print("{:8s} {:8s} {:8s} {:10s}".format("GT", "PRED", "COUNT", "PERC (CER)"))
 
         for i, ((gt, pred), count) in enumerate(keys):
             gt_fmt = "{" + gt + "}"
@@ -39,19 +34,19 @@ def print_confusions(r, n_confusions):
         print("The remaining but hidden errors make up {:.2%}".format(1.0 - total_percent))
 
 
-def print_worst_lines(r, gt_samples, n_worst_lines):
-    if len(r["single"]) != len(gt_samples):
+def print_worst_lines(r, n_worst_lines):
+    if len(r["single"]) != len(r["ids"]):
         raise Exception("Mismatch in number of predictions and gt files")
 
-    sorted_lines = sorted(zip(r["single"], gt_samples), key=lambda a: -a[0][1])
+    sorted_lines = sorted(zip(r["single"], r["ids"]), key=lambda a: -a[0][1])
 
     if n_worst_lines < 0:
-        n_worst_lines = len(gt_samples)
+        n_worst_lines = len(r["ids"])
 
     if n_worst_lines > 0:
         print("{:60s} {:4s} {:3s} {:3s} {}".format("GT FILE", "LEN", "ERR", "SER", "CONFUSIONS"))
-        for (len_gt, errs, sync_errs, confusion, gt_pred), sample in sorted_lines[:n_worst_lines]:
-            print("{:60s} {:4d} {:3d} {:3d} {}".format(sample["id"][-60:], len_gt, errs, sync_errs, confusion))
+        for (len_gt, errs, sync_errs, confusion, gt_pred), gtid in sorted_lines[:n_worst_lines]:
+            print("{:60s} {:4d} {:3d} {:3d} {}".format(gtid[-60:], len_gt, errs, sync_errs, confusion))
 
 
 def write_xlsx(xlsx_file, eval_datas):
@@ -100,7 +95,7 @@ def write_xlsx(xlsx_file, eval_datas):
 
         # total confusions
         ws = workbook.add_worksheet("{} - global".format(prefix))
-        for i, heading in enumerate(["GT", "PRED", "COUNT", "PERCENT"]):
+        for i, heading in enumerate(["GT", "PRED", "COUNT", "PERC (CER)"]):
             ws.write(0, i, heading)
 
         keys = sorted(r["confusion"].items(), key=lambda item: -item[1])
@@ -170,17 +165,6 @@ class EvalArgs:
         default=None,
         metadata=pai_meta(help="Optionally write a xlsx file with the evaluation results", mode="flat"),
     )
-    non_existing_file_handling_mode: str = field(
-        default="error",
-        metadata=pai_meta(
-            mode="flat",
-            choices=["error", "skip", "empty"],
-            help="How to handle non existing .pred.txt files. Possible modes: skip, empty, error. "
-            "'Skip' will simply skip the evaluation of that file (not counting it to errors). "
-            "'Empty' will handle this file as would it be empty (fully checking for errors)."
-            "'Error' will throw an exception if a file is not existing. This is the default behaviour.",
-        ),
-    )
     skip_empty_gt: bool = field(
         default=False,
         metadata=pai_meta(help="Ignore lines of the gt that are empty.", mode="flat"),
@@ -226,7 +210,7 @@ def main(args: EvalArgs):
 
     data = Data(data_params)
 
-    pred_data = args.pred if args.pred else args.gt.to_prediction()
+    pred_data = args.pred if args.pred is not None else args.gt.to_prediction()
     evaluator = Evaluator(args.evaluator, data=data)
     evaluator.preload_gt(gt_dataset=args.gt)
     r = evaluator.run(gt_dataset=args.gt, pred_dataset=pred_data)
@@ -243,9 +227,7 @@ def main(args: EvalArgs):
 
     # sort descending
     print_confusions(r, args.n_confusions)
-
-    samples = data.create_pipeline(evaluator.params.setup, args.gt).reader().samples()
-    print_worst_lines(r, samples, args.n_worst_lines)
+    print_worst_lines(r, args.n_worst_lines)
 
     if args.xlsx_output:
         write_xlsx(
@@ -254,7 +236,7 @@ def main(args: EvalArgs):
                 {
                     "prefix": "evaluation",
                     "results": r,
-                    "gt_files": [s["id"] for s in samples],
+                    "gt_files": r["ids"],
                 }
             ],
         )

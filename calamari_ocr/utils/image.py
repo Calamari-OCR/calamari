@@ -40,6 +40,8 @@ class ImageLoader:
 
         if img_channels == self.params.channels:
             pass  # good
+        elif img_channels == 2 and self.params.channels == 1:
+            img = img[:, :, 0]
         elif img_channels == 3 and self.params.channels == 1:
             if self.params.to_gray_method == "avg":
                 img = np.mean(img.astype("float32"), axis=-1).astype(dtype=img.dtype)
@@ -78,7 +80,7 @@ def to_uint8(data: np.ndarray) -> np.ndarray:
     All arrays are rescaled to the range 0...255 (unsigned)
     """
     if data.dtype == np.dtype("uint8"):
-        data = data
+        pass
     elif data.dtype == np.dtype("int8"):
         data = (data.astype("int16") + 128).astype("uint8")
     elif data.dtype == np.dtype("uint16"):

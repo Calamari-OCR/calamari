@@ -28,7 +28,9 @@ logger = tfaip.util.logging.logger(__name__)
 @pai_dataclass
 @dataclass
 class PredictArgs:
-    checkpoint: List[str] = field(metadata=pai_meta(mode="flat", help="Path to the checkpoint without file extension"))
+    checkpoint: List[str] = field(
+        default_factory=list, metadata=pai_meta(mode="flat", help="Path to the checkpoint without file extension")
+    )
     data: CalamariDataGeneratorParams = field(
         default_factory=FileDataParams,
         metadata=pai_meta(mode="flat", choices=DATA_GENERATOR_CHOICES),
@@ -123,7 +125,7 @@ def run(args: PredictArgs):
     pipeline: CalamariPipeline = predictor.data.get_or_create_pipeline(predictor.params.pipeline, args.data)
     reader = pipeline.reader()
     if len(reader) == 0:
-        raise Exception("Empty dataset provided. Check your command line arguments")
+        raise Exception("Empty dataset provided. Check your command line arguments or if the provided files are empty.")
 
     avg_sentence_confidence = 0
     n_predictions = 0
@@ -132,7 +134,7 @@ def run(args: PredictArgs):
 
     # output the voted results to the appropriate files
     for s in do_prediction:
-        inputs, (result, prediction), meta = s.inputs, s.outputs, s.meta
+        _, (result, prediction), meta = s.inputs, s.outputs, s.meta
         sample = reader.sample_by_id(meta["id"])
         n_predictions += 1
         sentence = prediction.sentence
@@ -144,7 +146,7 @@ def run(args: PredictArgs):
 
         output_dir = args.output_dir if args.output_dir else os.path.dirname(prediction.line_path)
 
-        reader.store_text_prediction(sentence, meta["id"], output_dir=output_dir)
+        reader.store_text_prediction(prediction, meta["id"], output_dir=output_dir)
 
         if args.extended_prediction_data:
             ps = Predictions()
@@ -172,7 +174,8 @@ def run(args: PredictArgs):
                 extension=args.extended_prediction_data_format,
             )
 
-    logger.info("Average sentence confidence: {:.2%}".format(avg_sentence_confidence / n_predictions))
+    avg_sentence_confidence = avg_sentence_confidence / n_predictions if n_predictions else 0
+    logger.info("Average sentence confidence: {:.2%}".format(avg_sentence_confidence))
 
     reader.store()
     logger.info("All prediction files written")

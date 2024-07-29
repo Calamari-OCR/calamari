@@ -34,7 +34,7 @@ class CalamariScenarioBase(ScenarioBase[TScenarioParams, CalamariDefaultTrainerP
         scenario_params = super(CalamariScenarioBase, cls).default_params()
         scenario_params.export_serve = True
         scenario_params.export_net_config = False
-        scenario_params.default_serve_dir = "best.ckpt.h5"
+        scenario_params.default_serve_dir = "best.ckpt"
         scenario_params.scenario_params_filename = "scenario_params.json"  # should never be written!
         scenario_params.trainer_params_filename = "best.ckpt.json"
         return scenario_params

@@ -1,0 +1,7 @@
+{
+  "no": [],
+  "simple": ["spaces", "various"],
+  "extended": ["quotes", "spaces", "roman_digits", "various"],
+  "all": ["*"],
+  "zpd": ["quotes", "spaces", "roman_digits", "ligatures_consonantal", "various", "punctuation", "uvius"]
+}

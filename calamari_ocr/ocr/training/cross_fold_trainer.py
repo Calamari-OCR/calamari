@@ -7,6 +7,7 @@ import sys
 import tempfile
 from copy import deepcopy
 from dataclasses import dataclass, field
+from subprocess import check_call
 from typing import Optional, List
 
 from paiargparse import pai_dataclass, pai_meta
@@ -108,11 +109,19 @@ class CrossFoldTrainerParams:
             "temporary dir will be used",
         ),
     )
-    run: Optional[str] = field(
+    run_train: Optional[str] = field(
         default=None,
         metadata=pai_meta(
             mode="flat",
             help="An optional command that will receive the train calls. Useful e.g. when using a resource "
+            "manager such as slurm.",
+        ),
+    )
+    run_split: Optional[str] = field(
+        default=None,
+        metadata=pai_meta(
+            mode="flat",
+            help="An optional command that will receive the split the data calls. Useful e.g. when using a resource "
             "manager such as slurm.",
         ),
     )
@@ -143,6 +152,7 @@ class CrossFoldTrainerParams:
             "This option should not be used with `--device.gpus`",
         ),
     )
+    no_train: bool = field(default=False, metadata=pai_meta(mode="flat", help="Only create the folds. Do not train."))
 
     def __post_init__(self):
         if self.max_parallel_models <= 0:
@@ -174,6 +184,7 @@ class CrossFoldTrainer:
         self.params = params
         # locate the training script (must be in the same dir as "this")
         self.train_script_path = os.path.abspath(os.path.join(this_absdir, "../..", "scripts", "train_from_params.py"))
+        self.cf_split_script_path = os.path.abspath(os.path.join(this_absdir, "standalone_cross_fold_split_script.py"))
         # location of best models output
         if not os.path.exists(self.params.best_models_dir):
             os.makedirs(self.params.best_models_dir)
@@ -203,9 +214,24 @@ class CrossFoldTrainer:
             n_folds=self.params.n_folds,
             data_generator_params=self.params.trainer.gen.train,
             output_dir=temporary_dir,
-            progress_bar=self.params.trainer.progress_bar,
         )
-        cross_fold.write_folds_to_json(fold_file)
+        if self.params.run_split is not None:
+            cfg_path = os.path.join(temporary_dir, "split.cfg.json")
+            with open(cfg_path, "w") as f:
+                json.dump(cross_fold.to_dict(), f)
+            check_call(
+                self.params.run_split.split()
+                + [sys.executable, "-u", self.cf_split_script_path, cfg_path, "--dir", fold_file]
+                + (["--progress_bar"] if self.params.trainer.progress_bar else []),
+                stdout=sys.stdout,
+                stderr=sys.stderr,
+            )
+            with open(cfg_path) as f:
+                cross_fold = CrossFold.from_dict(json.load(f))
+        else:
+            # do not run as separate call
+            cross_fold.create_folds(self.params.trainer.progress_bar)
+            cross_fold.write_folds_to_json(fold_file)
 
         # Create the json argument file for each individual training
         run_args = []
@@ -282,15 +308,19 @@ class CrossFoldTrainer:
                     "args": trainer_params,
                     "id": fold,
                     "train_script": self.train_script_path,
-                    "run": self.params.run,
+                    "run": self.params.run_train,
                     "verbose": True,
                 }
             )
 
-        # Launch the individual processes for each training
-        with multiprocessing.pool.ThreadPool(processes=self.params.max_parallel_models) as pool:
-            # workaround to forward keyboard interrupt
-            pool.map_async(train_individual_model, run_args).get()
+        if not self.params.no_train:
+            logger.info("Starting the training.")
+            # Launch the individual processes for each training
+            with multiprocessing.pool.ThreadPool(processes=self.params.max_parallel_models) as pool:
+                # workaround to forward keyboard interrupt
+                pool.map_async(train_individual_model, run_args).get()
+        else:
+            logger.info("Not training since the `no_train` flag is set.")
 
         if not self.params.keep_temporary_files:
             import shutil

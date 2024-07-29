@@ -47,6 +47,7 @@ class TestCrossFoldTrain(unittest.TestCase):
 
     def test_on_files(self):
         cfp = default_cross_fold_params(default_files_trainer_params())
+        cfp.run_split = ""
         with tempfile.TemporaryDirectory() as d:
             cfp.best_models_dir = d
             main(cfp)

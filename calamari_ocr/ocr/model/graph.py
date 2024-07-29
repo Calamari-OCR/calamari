@@ -56,6 +56,9 @@ class CalamariGraph(GraphBase[ModelParams]):
         self.reshape = ToInputDimsLayerParams(dims=3).create()
         self.logits = KL.Dense(params.classes, name="logits")
         self.softmax = KL.Softmax(name="softmax")
+        self.temperature = (
+            tf.constant(params.temperature, dtype=tf.float32, name="temperature") if params.temperature > 0 else None
+        )
 
     def build_graph(self, inputs, training=None):
         params: ModelParams = self._params
@@ -90,6 +93,9 @@ class CalamariGraph(GraphBase[ModelParams]):
         blank_last_softmax = self.softmax(blank_last_logits)
 
         logits = tf.roll(blank_last_logits, shift=1, axis=-1)
+        if self.temperature != None:
+            logits = tf.divide(logits, self.temperature)  ### TEST scale, seems to work...
+
         softmax = tf.nn.softmax(logits)
 
         greedy_decoded = ctc.ctc_greedy_decoder(
