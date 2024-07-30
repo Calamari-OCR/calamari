@@ -15,7 +15,6 @@ class XMLReader:
     """
 
     def __init__(self, imgfiles: [], abbyfiles: [], skip_invalid: bool):
-
         """
         Constructs an XMLReader class with the :param directory
 
@@ -27,7 +26,6 @@ class XMLReader:
         self.skip_invalid = skip_invalid
 
     def read(self) -> Book:
-
         """
         Start trying to read the data from the directory :var self.directory
 

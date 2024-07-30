@@ -478,7 +478,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
     @staticmethod
     def _make_subelement(parent, tag, attrib=None):
-        tag = '{' + parent.nsmap.get(parent.prefix, '') + '}' + tag
+        tag = "{" + parent.nsmap.get(parent.prefix, "") + "}" + tag
         return etree.SubElement(parent, tag, attrib=attrib, nsmap=parent.nsmap)
 
     def _store_old_word(self, word_xml, ns):
