@@ -67,7 +67,7 @@ class TokenList:
         return self.tokens[(w, s, t)]
 
     def dump(self, s, t):
-        for (k, v) in self.tokens.items():
+        for k, v in self.tokens.items():
             if k[1] == s and k[2] == t:
                 print(k, v)
 
@@ -75,7 +75,7 @@ class TokenList:
 def outputIndices(toks, words, s, t):
     """argmax_w tok(w,s,t)"""
     res = []
-    for (wIdx, _) in enumerate(words):
+    for wIdx, _ in enumerate(words):
         res.append(toks.get(wIdx, s, t))
 
     idx = [i[0] for i in sorted(enumerate(res), key=lambda x: x[1].score)]
@@ -109,7 +109,7 @@ def ctcTokenPassing(mat, classes, charWords, blankIdx=-1, word_separator=" "):
     toks = TokenList()
 
     # Initialisation: 1-9
-    for (wIdx, w) in enumerate(words):
+    for wIdx, w in enumerate(words):
         w = words[wIdx]
         wPrime = primeWords[wIdx]
 

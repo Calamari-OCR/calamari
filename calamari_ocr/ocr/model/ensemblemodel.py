@@ -78,7 +78,12 @@ class EnsembleModel(ModelBase[EnsembleModelParams]):
         # using the true codec size (the W/B-Matrix may change its shape however during loading/codec change
         # to match the true codec size
         sw = K.flatten(targets["gt_len"])
-        return [self.cer_total(cer(outputs["decoded"], targets["gt"], targets["gt_len"]), sample_weight=sw,)] + [
+        return [
+            self.cer_total(
+                cer(outputs["decoded"], targets["gt"], targets["gt_len"]),
+                sample_weight=sw,
+            )
+        ] + [
             self.sub_cer[i](
                 cer(outputs[f"decoded_{i}"], targets["gt"], targets["gt_len"]),
                 sample_weight=sw * tf.cast(tf.equal(K.flatten(targets["fold_id"]), i), tf.int32),

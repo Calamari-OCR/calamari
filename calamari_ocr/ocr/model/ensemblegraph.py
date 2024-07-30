@@ -112,6 +112,7 @@ class EnsembleGraph(GenericGraphBase[ModelParams]):
                 }
 
             empty_output = gen_empty_output(1)
+
             # Validation: Compute output for each graph but only for its own partition
             # Per sample this is one CER which is then used e. g. for early stopping
             def apply_single_model(batch):

@@ -28,7 +28,7 @@ if __name__ == "__main__":
     csv = Utils.CSVWriter()
 
     # decode each sample from dataset
-    for (idx, data) in enumerate(loader):
+    for idx, data in enumerate(loader):
         # decode matrix
         res = wordBeamSearch(data.mat, 10, loader.lm, useNGrams)
         print("Sample: " + str(idx + 1))

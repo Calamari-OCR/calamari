@@ -74,7 +74,6 @@ class XMLWriter:
 
     @staticmethod
     def _addElement(element, key, value):
-
         """
         Only add attributes to an tag if the key is not None
 
