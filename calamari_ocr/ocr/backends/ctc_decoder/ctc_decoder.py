@@ -7,21 +7,24 @@ from calamari_ocr.proto import Prediction, CTCDecoderParams
 
 def default_ctc_decoder_params():
     params = CTCDecoderParams()
-    params.word_separator = ' '
+    params.word_separator = " "
     params.non_word_chars[:] = list("0123456789[]()_.:;!?{}-'\"")
-    params.beam_width =25
+    params.beam_width = 25
     return params
 
 
 def create_ctc_decoder(codec, params=default_ctc_decoder_params()):
     if params.type == CTCDecoderParams.CTC_DEFAULT:
         from .default_ctc_decoder import DefaultCTCDecoder
+
         return DefaultCTCDecoder(params, codec)
     elif params.type == CTCDecoderParams.CTC_TOKEN_PASSING:
         from .token_passing_ctc_decoder import TokenPassingCTCDecoder
+
         return TokenPassingCTCDecoder(params, codec)
     elif params.type == CTCDecoderParams.CTC_WORD_BEAM_SEARCH:
         from .ctcwordbeamsearchdecoder import WordBeamSearchCTCDecoder
+
         return WordBeamSearchCTCDecoder(params, codec)
 
     raise NotImplemented

@@ -12,9 +12,14 @@ from calamari_ocr.ocr.datasets.hdf5_dataset.hdf5_dataset_writer import Hdf5Datas
 
 
 class CrossFold:
-    def __init__(self, n_folds, dataset, output_dir, progress_bar=True,
-                 ):
-        """ Prepare cross fold training
+    def __init__(
+        self,
+        n_folds,
+        dataset,
+        output_dir,
+        progress_bar=True,
+    ):
+        """Prepare cross fold training
 
         This class creates folds out of the given source files.
         The individual splits are the optionally written to the `output_dir` in a json format.
@@ -50,22 +55,35 @@ class CrossFold:
             self.dataset_type = DataSetType.FILE
             self.folds = [[] for _ in range(self.n_folds)]
             for i, sample in enumerate(self.dataset.samples()):
-                self.folds[i % n_folds].append(sample['image_path'])
+                self.folds[i % n_folds].append(sample["image_path"])
         else:
             self.dataset_type = DataSetType.HDF5
             # else load the data of each fold and write it to hd5 data files
-            with StreamingInputDataset(self.dataset, NoopDataPreprocessor(), NoopTextProcessor(), processes=1) as input_dataset:
+            with StreamingInputDataset(
+                self.dataset, NoopDataPreprocessor(), NoopTextProcessor(), processes=1
+            ) as input_dataset:
                 with ExitStack() as stack:
-                    folds = [stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, 'fold{}'.format(i)))) for i in range(self.n_folds)]
+                    folds = [
+                        stack.enter_context(
+                            Hdf5DatasetWriter(
+                                os.path.join(self.output_dir, "fold{}".format(i))
+                            )
+                        )
+                        for i in range(self.n_folds)
+                    ]
 
-                    for i, (data, text, _) in tqdm_wrapper(enumerate(input_dataset.generator(epochs=1)), progress_bar=progress_bar,
-                                                           total=len(dataset), desc="Creating hdf5 files"):
+                    for i, (data, text, _) in tqdm_wrapper(
+                        enumerate(input_dataset.generator(epochs=1)),
+                        progress_bar=progress_bar,
+                        total=len(dataset),
+                        desc="Creating hdf5 files",
+                    ):
                         folds[i % self.n_folds].write(data, text)
 
                     self.folds = [f.files for f in folds]
 
     def train_files(self, fold):
-        """ List the train files of the `fold`
+        """List the train files of the `fold`
 
         Parameters
         ----------
@@ -88,7 +106,7 @@ class CrossFold:
         return all_files
 
     def test_files(self, fold):
-        """ List the test files of the `fold`
+        """List the test files of the `fold`
 
         Parameters
         ----------
@@ -110,7 +128,7 @@ class CrossFold:
         return []
 
     def write_folds_to_json(self, filepath):
-        """ Write the fold split to the `filepath` as json.
+        """Write the fold split to the `filepath` as json.
 
         format is for 3 folds:
         {
@@ -128,10 +146,12 @@ class CrossFold:
         filepath : str
 
         """
-        with open(filepath, 'w') as f:
-            json.dump({
-                "type": self.dataset_type.name,
-                "folds": self.folds,
-            }, f, indent=4)
-
-
+        with open(filepath, "w") as f:
+            json.dump(
+                {
+                    "type": self.dataset_type.name,
+                    "folds": self.folds,
+                },
+                f,
+                indent=4,
+            )

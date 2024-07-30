@@ -2,8 +2,8 @@ from enum import Enum
 
 
 class DataAugmentationAmountReference(Enum):
-    ABSOLUTE = 'absolute'
-    PERCENTAGE = 'relative'
+    ABSOLUTE = "absolute"
+    PERCENTAGE = "relative"
 
 
 # ABS: amount is the factor how often the dataset is augmented, e.g. 100 samples, amount == 2 => 200 augmented samples
@@ -15,19 +15,26 @@ class DataAugmentationAmount:
     @staticmethod
     def from_factor(n):
         if n >= 1:
-            return DataAugmentationAmount(DataAugmentationAmountReference.ABSOLUTE, int(n), None)
+            return DataAugmentationAmount(
+                DataAugmentationAmountReference.ABSOLUTE, int(n), None
+            )
         elif n > 0:
-            return DataAugmentationAmount(DataAugmentationAmountReference.PERCENTAGE, None, n)
+            return DataAugmentationAmount(
+                DataAugmentationAmountReference.PERCENTAGE, None, n
+            )
         elif n == 0:
-            return DataAugmentationAmount(DataAugmentationAmountReference.PERCENTAGE, 0, 0)
+            return DataAugmentationAmount(
+                DataAugmentationAmountReference.PERCENTAGE, 0, 0
+            )
         else:
             raise ValueError("Factor must be between (0, +infty) but got {}".format(n))
 
-    def __init__(self,
-                 reference=DataAugmentationAmountReference.ABSOLUTE,
-                 amount=0,
-                 percentage=0,
-                 ):
+    def __init__(
+        self,
+        reference=DataAugmentationAmountReference.ABSOLUTE,
+        amount=0,
+        percentage=0,
+    ):
         self.reference = reference
         self.amount = amount
         self.percentage = percentage

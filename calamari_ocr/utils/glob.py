@@ -7,7 +7,7 @@ def glob_all(paths):
         out = []
         for p in paths:
             if p.endswith(".files"):
-                with open(p, 'r') as f:
+                with open(p, "r") as f:
                     for line in f:
                         out += glob.glob(line)
             else:

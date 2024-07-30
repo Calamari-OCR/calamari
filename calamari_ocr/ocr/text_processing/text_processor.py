@@ -14,9 +14,19 @@ class TextProcessor(ABC):
             if len(txts) == 0:
                 return []
 
-            return parallel_map(self._apply_single, txts, desc="Text Preprocessing", processes=processes, progress_bar=progress_bar)
+            return parallel_map(
+                self._apply_single,
+                txts,
+                desc="Text Preprocessing",
+                processes=processes,
+                progress_bar=progress_bar,
+            )
         else:
-            raise Exception("Unknown instance of txts: {}. Supported list and str".format(type(txts)))
+            raise Exception(
+                "Unknown instance of txts: {}. Supported list and str".format(
+                    type(txts)
+                )
+            )
 
     @abstractmethod
     def _apply_single(self, txt):

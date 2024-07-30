@@ -5,7 +5,9 @@ from calamari_ocr.ocr.text_processing import TextProcessor, TextProcessorParams
 
 def default_text_normalizer_params(params=TextProcessorParams(), default="NFC"):
     params.type = TextProcessorParams.TEXT_NORMALIZER
-    params.unicode_normalization = TextProcessorParams.UnicodeNormalizationType.Value(default.upper())
+    params.unicode_normalization = TextProcessorParams.UnicodeNormalizationType.Value(
+        default.upper()
+    )
 
     return params
 
@@ -17,8 +19,10 @@ class TextNormalizer(TextProcessor):
 
     def _apply_single(self, txt):
         txt = unicodedata.normalize(
-            TextProcessorParams.UnicodeNormalizationType.Name(self.params.unicode_normalization),
-            txt
+            TextProcessorParams.UnicodeNormalizationType.Name(
+                self.params.unicode_normalization
+            ),
+            txt,
         )
 
         return txt

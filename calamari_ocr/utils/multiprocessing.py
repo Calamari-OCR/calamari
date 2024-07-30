@@ -8,7 +8,9 @@ from tqdm import tqdm
 
 def tqdm_wrapper(iterable, _sentinel=None, total=1, desc="", progress_bar=False):
     if _sentinel:
-        raise Exception("You must call tqdm_wrapper by using parameter names to specify additional parameters.")
+        raise Exception(
+            "You must call tqdm_wrapper by using parameter names to specify additional parameters."
+        )
 
     if not progress_bar:
         return iterable
@@ -16,9 +18,20 @@ def tqdm_wrapper(iterable, _sentinel=None, total=1, desc="", progress_bar=False)
         return tqdm(iterable, total=total, desc=desc)
 
 
-def parallel_map(f, d, _sentinel=None, desc="", processes=1, progress_bar=False, use_thread_pool=False, max_tasks_per_child=None):
+def parallel_map(
+    f,
+    d,
+    _sentinel=None,
+    desc="",
+    processes=1,
+    progress_bar=False,
+    use_thread_pool=False,
+    max_tasks_per_child=None,
+):
     if _sentinel:
-        raise Exception("You must call parallel_map by using parameter names to specify additional parameters besides the default map(func, data).")
+        raise Exception(
+            "You must call parallel_map by using parameter names to specify additional parameters besides the default map(func, data)."
+        )
 
     if processes <= 0:
         processes = os.cpu_count()
@@ -39,7 +52,9 @@ def parallel_map(f, d, _sentinel=None, desc="", processes=1, progress_bar=False,
                 else:
                     out = pool.map(f, d)
         else:
-            with multiprocessing.Pool(processes=processes, maxtasksperchild=max_tasks_per_child) as pool:
+            with multiprocessing.Pool(
+                processes=processes, maxtasksperchild=max_tasks_per_child
+            ) as pool:
                 if progress_bar:
                     out = list(tqdm(pool.imap(f, d), desc=desc, total=len(d)))
                 else:
@@ -68,10 +83,10 @@ def run(command, verbose=False):
         print("Executing: {}".format(" ".join(command)))
 
     env = os.environ.copy()
-    env['PYTHONIOENCODING'] = 'utf-8'
+    env["PYTHONIOENCODING"] = "utf-8"
     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=False, env=env)
     while True:
-        line = process.stdout.readline().decode('utf-8')
+        line = process.stdout.readline().decode("utf-8")
 
         # check if process has finished
         if process.poll() is not None:
@@ -84,4 +99,6 @@ def run(command, verbose=False):
             yield line
 
     if process.returncode != 0:
-        raise Exception("Error: Process finished with code {}".format(process.returncode))
+        raise Exception(
+            "Error: Process finished with code {}".format(process.returncode)
+        )

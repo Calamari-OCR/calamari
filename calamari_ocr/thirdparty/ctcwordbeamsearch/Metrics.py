@@ -9,14 +9,14 @@ import editdistance
 class Metrics:
     "CER and WER"
 
-    def __init__(self, wordChars=r'\w'):
+    def __init__(self, wordChars=r"\w"):
         self.numWords = 0
         self.numChars = 0
 
         self.edWords = 0
         self.edChars = 0
 
-        self.pattern = '[' + wordChars + ']+'
+        self.pattern = "[" + wordChars + "]+"
 
     def getWordIDStrings(self, s1, s2):
         # get words in string 1 and string 2
@@ -58,9 +58,9 @@ class Metrics:
         return self.edWords / self.numWords
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     m = Metrics()
-    m.addSample('hxllo world', 'hello world')
-    m.addSample('yes we cxn', 'yes we can')
-    print('CER:', m.getCER())
-    print('WER:', m.getWER())
+    m.addSample("hxllo world", "hello world")
+    m.addSample("yes we cxn", "yes we can")
+    print("CER:", m.getCER())
+    print("WER:", m.getWER())

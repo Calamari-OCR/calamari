@@ -1,11 +1,9 @@
 class Rect:
-
     """
     Class defines the rectangle of an element in the Abbyy document
     """
 
     def __init__(self, l: int, t: int, r: int, b: int):
-
         """
         Constructs a Rect class
         :param l: length
@@ -22,12 +20,20 @@ class Rect:
         self.width = self.right - self.left
 
     def __str__(self):
-        return 'Rect:[l=\'' + self.left.__str__() + '\', t=\'' + self.top.__str__() + '\', r=\'' + \
-               self.right.__str__() + '\', b=\'' + self.bottom.__str__() + '\']'
+        return (
+            "Rect:[l='"
+            + self.left.__str__()
+            + "', t='"
+            + self.top.__str__()
+            + "', r='"
+            + self.right.__str__()
+            + "', b='"
+            + self.bottom.__str__()
+            + "']"
+        )
 
 
 class Book:
-
     """
     Main class; contains all subelements: book -> page -> block -> par -> line -> format
     """
@@ -46,16 +52,15 @@ class Book:
         for page in self.pages:
             s += page
             for block in page.blocks:
-                s += ('     '+block.__str__())
+                s += "     " + block.__str__()
                 for par in block.pars:
-                    s += ('         '+par.__str__())
+                    s += "         " + par.__str__()
                     for line in par.lines:
-                        s += '              '+line.__str__()
+                        s += "              " + line.__str__()
                         for format in line.formats:
-                            s += '                  ' + format.__str__()
+                            s += "                  " + format.__str__()
 
-    def getBlocks(self)->[]:
-
+    def getBlocks(self) -> []:
         """
         :return: All the blocks of this book
         """
@@ -68,8 +73,7 @@ class Book:
 
         return blocks
 
-    def getPars(self)->[]:
-
+    def getPars(self) -> []:
         """
         :return: All the paragraphs of this book
         """
@@ -83,8 +87,7 @@ class Book:
 
         return pars
 
-    def getLines(self)->[]:
-
+    def getLines(self) -> []:
         """
         :return: All the lines of this book
         """
@@ -99,8 +102,7 @@ class Book:
 
         return lines
 
-    def getFormats(self)->[]:
-
+    def getFormats(self) -> []:
         """
         :return: All the chars of this book
         """
@@ -118,13 +120,19 @@ class Book:
 
 
 class Page:
-
     """
     Subelement of the book class; contains a list with the subelement block
     """
 
-    def __init__(self, width: int, height: int, resolution: int, originalCoords: int, imgFile: str, xmlFile: str):
-
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        resolution: int,
+        originalCoords: int,
+        imgFile: str,
+        xmlFile: str,
+    ):
         """
         Construct a page class with an empty block list
         :param width: The width of the page (in pixel)
@@ -144,15 +152,23 @@ class Page:
         self.blocks = []
 
     def __str__(self):
-        return 'Page:[ImageFile=\''+self.imgFile +\
-                '\', XMLFile=\''+self.xmlFile +\
-                '\', width=\''+self.width.__str__() +\
-                '\', height=\''+self.height.__str__() +\
-                '\', resolution=\''+self.resolution.__str__() +\
-                '\', originalCoords=\''+self.originalCoords.__str__()+'\']'
+        return (
+            "Page:[ImageFile='"
+            + self.imgFile
+            + "', XMLFile='"
+            + self.xmlFile
+            + "', width='"
+            + self.width.__str__()
+            + "', height='"
+            + self.height.__str__()
+            + "', resolution='"
+            + self.resolution.__str__()
+            + "', originalCoords='"
+            + self.originalCoords.__str__()
+            + "']"
+        )
 
     def getPars(self) -> []:
-
         """
         :return: All the pars of this page
         """
@@ -165,9 +181,7 @@ class Page:
 
         return pars
 
-
     def getLines(self) -> []:
-
         """
         :return: All the lines of this page
         """
@@ -182,7 +196,6 @@ class Page:
         return lines
 
     def getFormats(self) -> []:
-
         """
         :return: All the Format Tags of this page
         """
@@ -199,13 +212,11 @@ class Page:
 
 
 class Block:
-
     """
     Subelement of the page class; contains a list with the subelement par
     """
 
     def __init__(self, blockType: str, blockName: str, rect: Rect):
-
         """
         Construct a block class with an empty line list
         :param blockType: The type of a block (further information in the abbyy doc)
@@ -218,10 +229,9 @@ class Block:
         self.pars = []
 
     def __str__(self):
-        return 'Block:[BlockType={}, rect={}]'.format(self.blockType, self.rect)
+        return "Block:[BlockType={}, rect={}]".format(self.blockType, self.rect)
 
     def getLines(self) -> []:
-
         """
         :return: All the lines of this block
         """
@@ -235,7 +245,6 @@ class Block:
         return lines
 
     def getFormats(self) -> []:
-
         """
         :return: All the Format Tags of this block
         """
@@ -251,12 +260,11 @@ class Block:
 
 
 class Par:
-    """"
+    """ "
     Subelement of the block class; contains a list with the subelement line
     """
 
     def __init__(self, align: str, startIndent: int, lineSpacing: int):
-
         """
         Construct a Paragraph Class with an empty line list
         :param align:
@@ -270,12 +278,17 @@ class Par:
         self.lines = []
 
     def __str__(self):
-        return 'Paragraph:[Align=\''+self.align.__str__()+\
-                '\', startIndent=\''+self.startIndent.__str__()+\
-                '\', lineSpacing=\''+self.lineSpacing.__str__()+'\']'
+        return (
+            "Paragraph:[Align='"
+            + self.align.__str__()
+            + "', startIndent='"
+            + self.startIndent.__str__()
+            + "', lineSpacing='"
+            + self.lineSpacing.__str__()
+            + "']"
+        )
 
     def getFormats(self) -> []:
-
         """
         :return: All the Format Tags of the Paragraph
         """
@@ -290,13 +303,11 @@ class Par:
 
 
 class Line:
-
-    """"
+    """ "
     Subelement of the par class; contains a list with the subelement format
     """
 
     def __init__(self, baseline: int, rect: Rect):
-
         """
         Construct a line class with an empty char list
         :param baseline: ???
@@ -308,8 +319,13 @@ class Line:
         self.formats = []
 
     def __str__(self):
-        return 'Line:[baseline=\''+self.baseline.__str__() +\
-                '\', '+self.rect.__str__()+']'
+        return (
+            "Line:[baseline='"
+            + self.baseline.__str__()
+            + "', "
+            + self.rect.__str__()
+            + "]"
+        )
 
 
 class Format:
@@ -320,5 +336,4 @@ class Format:
         self.text = text
 
     def __str__(self):
-        return 'Format:[lang=\''+self.lang.__str__() + \
-               '\', text=\''+self.text+'\']'
+        return "Format:[lang='" + self.lang.__str__() + "', text='" + self.text + "']"

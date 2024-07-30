@@ -21,15 +21,22 @@ class DataAugmenter(ABC):
     def augment_data_tuple(self, t):
         return self.augment_data(*t)
 
-    def augment_datas(self, datas, gt_txts, n_augmentations, processes=1, progress_bar=False):
+    def augment_datas(
+        self, datas, gt_txts, n_augmentations, processes=1, progress_bar=False
+    ):
         if n_augmentations < 0 or not isinstance(n_augmentations, int):
             raise ValueError("Number of augmentation must be an integer >= 0")
 
         if n_augmentations == 0:
             return datas, gt_txts
 
-        out = parallel_map(self.augment_data_tuple, list(zip(datas, gt_txts, [n_augmentations] * len(datas))),
-                           desc="Augmentation", processes=processes, progress_bar=progress_bar)
+        out = parallel_map(
+            self.augment_data_tuple,
+            list(zip(datas, gt_txts, [n_augmentations] * len(datas))),
+            desc="Augmentation",
+            processes=processes,
+            progress_bar=progress_bar,
+        )
         out_d, out_t = [], []
         for d, t in out:
             out_d += d
@@ -55,6 +62,7 @@ class SimpleDataAugmenter(DataAugmenter):
 
     def augment_single(self, data, gt_txt):
         import calamari_ocr.thirdparty.ocrodeg as ocrodeg
+
         original_dtype = data.dtype
         data = data.astype(np.float32)
         m = data.max()
@@ -70,15 +78,22 @@ class SimpleDataAugmenter(DataAugmenter):
         return data, gt_txt
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     aug = SimpleDataAugmenter()
     from PIL import Image
     import numpy as np
-    img = 255 - np.mean(np.array(Image.open("../../test/data/uw3_50lines/train/010001.bin.png"))[:, :, 0:2], axis=-1)
-    aug_img = [aug.augment_single(img.T, '')[0].T for _ in range(4)]
+
+    img = 255 - np.mean(
+        np.array(Image.open("../../test/data/uw3_50lines/train/010001.bin.png"))[
+            :, :, 0:2
+        ],
+        axis=-1,
+    )
+    aug_img = [aug.augment_single(img.T, "")[0].T for _ in range(4)]
     import matplotlib.pyplot as plt
+
     f, ax = plt.subplots(5, 1)
-    ax[0].imshow(255 - img, cmap='gray')
+    ax[0].imshow(255 - img, cmap="gray")
     for i, x in enumerate(aug_img):
-        ax[i + 1].imshow(255 - x, cmap='gray')
+        ax[i + 1].imshow(255 - x, cmap="gray")
     plt.show()

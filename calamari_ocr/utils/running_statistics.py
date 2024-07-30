@@ -1,7 +1,9 @@
 class RunningStatistics:
     def __init__(self, max_size, initial_values=None):
         self.max_size = max_size
-        self.values = list(map(float, initial_values)) if initial_values is not None else []
+        self.values = (
+            list(map(float, initial_values)) if initial_values is not None else []
+        )
         self.cur_sum = sum(self.values)
 
         if max_size < 1:

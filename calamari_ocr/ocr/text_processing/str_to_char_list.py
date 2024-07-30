@@ -15,7 +15,7 @@ class StrToCharList(TextProcessor):
             for char in self.chars:
                 if len(char) == 0:
                     continue  # blank
-                if txt[index:index+len(char)] == char:
+                if txt[index : index + len(char)] == char:
                     out.append(char)
                     index += len(char)
                     found = True
@@ -25,7 +25,8 @@ class StrToCharList(TextProcessor):
                 continue
 
             else:
-                raise Exception("Could not parse remainder '{}' of '{}'".format(txt[index:], txt))
+                raise Exception(
+                    "Could not parse remainder '{}' of '{}'".format(txt[index:], txt)
+                )
 
         return out
-

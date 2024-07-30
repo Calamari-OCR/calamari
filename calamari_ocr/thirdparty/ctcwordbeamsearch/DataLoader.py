@@ -26,7 +26,7 @@ def softmax(mat):
 
 def loadFromCSV(fn):
     "load matrix from csv file. Last entry in row terminated by semicolon."
-    mat = np.genfromtxt(fn, delimiter=';')[:, :-1]
+    mat = np.genfromtxt(fn, delimiter=";")[:, :-1]
     mat = softmax(mat)
     return mat
 
@@ -35,27 +35,31 @@ class Data:
     "holds matrix, ground truth and filenames of a sample"
 
     def __init__(self):
-        self.gt = ''
+        self.gt = ""
         self.mat = None
-        self.fn = ''
+        self.fn = ""
 
 
 class DataLoader:
     "load data from a given directory"
 
     def __init__(self, dataset, sampleEach=1):
-        self.path = '../data/' + dataset + '/'
-        self.chars = codecs.open(self.path + 'chars.txt', 'r', 'utf8').read()
-        self.wordChars = codecs.open(self.path + 'wordChars.txt', 'r', 'utf8').read()
-        self.lm = LanguageModel(codecs.open(self.path + 'corpus.txt', 'r', 'utf8').read(), self.chars, self.wordChars)
+        self.path = "../data/" + dataset + "/"
+        self.chars = codecs.open(self.path + "chars.txt", "r", "utf8").read()
+        self.wordChars = codecs.open(self.path + "wordChars.txt", "r", "utf8").read()
+        self.lm = LanguageModel(
+            codecs.open(self.path + "corpus.txt", "r", "utf8").read(),
+            self.chars,
+            self.wordChars,
+        )
         self.mats = []
         self.gts = []
         self.fns = []
 
         i = 0
         while True:
-            fnMat = self.path + 'mat_' + str(i) + '.csv'
-            fnGT = self.path + 'gt_' + str(i) + '.txt'
+            fnMat = self.path + "mat_" + str(i) + ".csv"
+            fnGT = self.path + "gt_" + str(i) + ".txt"
             i += 1
 
             # file not found
@@ -69,7 +73,7 @@ class DataLoader:
             # put into result
             self.mats.append(fnMat)
             self.gts.append(fnGT)
-            self.fns.append(fnMat + '|' + fnGT)
+            self.fns.append(fnMat + "|" + fnGT)
 
         self.currIdx = 0
 
@@ -82,7 +86,7 @@ class DataLoader:
 
         data = Data()
         data.mat = loadFromCSV(self.mats[self.currIdx])
-        data.gt = codecs.open(self.gts[self.currIdx], 'r', 'utf8').read()
+        data.gt = codecs.open(self.gts[self.currIdx], "r", "utf8").read()
         data.fn = self.fns[self.currIdx]
 
         self.currIdx += 1

@@ -40,21 +40,27 @@ def network_params_from_definition_string(str, params):
         elif label in floats:
             setattr(params, label, float(value))
         elif label == "solver":
-            params.solver = {"momentum": NetworkParams.MOMENTUM_SOLVER,
-                             "adam": NetworkParams.ADAM_SOLVER}[value.lower()]
+            params.solver = {
+                "momentum": NetworkParams.MOMENTUM_SOLVER,
+                "adam": NetworkParams.ADAM_SOLVER,
+            }[value.lower()]
         elif label == "lstm":
             lstm_appeared = True
             layer = params.layers.add()
             layer.type = LayerParams.LSTM
             layer.lstm_direction = LayerParams.BIDIRECTIONAL_LSTM
             layer.hidden_nodes = int(value)
-        elif label == 'concat':
+        elif label == "concat":
             if lstm_appeared:
                 raise Exception("LSTM layers must be placed proceeding to CNN/Pool")
 
             match = concat_matcher.match(value)
             if match is None:
-                raise Exception("Concat structure needs: concat=[index0]:[index1] but got concat={}".format(value))
+                raise Exception(
+                    "Concat structure needs: concat=[index0]:[index1] but got concat={}".format(
+                        value
+                    )
+                )
 
             match = match.groups()
             layer = params.layers.add()
@@ -66,7 +72,9 @@ def network_params_from_definition_string(str, params):
 
             match = db_matcher.match(value)
             if match is None:
-                raise Exception("Dilated block structure needs: db=[filters]:[depth>0]:[h]x[w]")
+                raise Exception(
+                    "Dilated block structure needs: db=[filters]:[depth>0]:[h]x[w]"
+                )
 
             match = match.groups()
             kernel_size = [2, 2]
@@ -89,7 +97,11 @@ def network_params_from_definition_string(str, params):
 
             match = cnn_matcher.match(value)
             if match is None:
-                raise Exception("CNN structure needs: cnn=[filters]:[h]x[w] but got {}".format(value))
+                raise Exception(
+                    "CNN structure needs: cnn=[filters]:[h]x[w] but got {}".format(
+                        value
+                    )
+                )
 
             match = match.groups()
             kernel_size = [2, 2]
@@ -111,7 +123,9 @@ def network_params_from_definition_string(str, params):
 
             match = cnn_matcher.match(value)
             if match is None:
-                raise Exception("Transposed CNN structure needs: tcnn=[filters]:[sx]x[sy]")
+                raise Exception(
+                    "Transposed CNN structure needs: tcnn=[filters]:[sx]x[sy]"
+                )
 
             match = match.groups()
             kernel_size = [2, 2]

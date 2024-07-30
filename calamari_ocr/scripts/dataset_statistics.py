@@ -5,15 +5,25 @@ import numpy as np
 from calamari_ocr.utils import glob_all, split_all_ext
 from calamari_ocr.ocr import create_dataset, DataSetType, DataSetMode
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--files", nargs="+", required=True,
-                        help="List of all image files with corresponding gt.txt files")
-    parser.add_argument("--dataset", type=DataSetType.from_string, choices=list(DataSetType), default=DataSetType.FILE)
-    parser.add_argument("--line_height", type=int, default=48,
-                        help="The line height")
-    parser.add_argument("--pad", type=int, default=16,
-                        help="Padding (left right) of the line")
+    parser.add_argument(
+        "--files",
+        nargs="+",
+        required=True,
+        help="List of all image files with corresponding gt.txt files",
+    )
+    parser.add_argument(
+        "--dataset",
+        type=DataSetType.from_string,
+        choices=list(DataSetType),
+        default=DataSetType.FILE,
+    )
+    parser.add_argument("--line_height", type=int, default=48, help="The line height")
+    parser.add_argument(
+        "--pad", type=int, default=16, help="Padding (left right) of the line"
+    )
 
     args = parser.parse_args()
 
@@ -24,7 +34,10 @@ def main():
     ds = create_dataset(
         args.dataset,
         DataSetMode.TRAIN,
-        images=image_files, texts=gt_files, non_existing_as_empty=True)
+        images=image_files,
+        texts=gt_files,
+        non_existing_as_empty=True,
+    )
 
     print("Loading {} files".format(len(image_files)))
     ds.load_samples(processes=1, progress_bar=True)
@@ -32,8 +45,11 @@ def main():
     statistics = {
         "n_lines": len(images),
         "chars": [len(c) for c in texts],
-        "widths": [img.shape[1] / img.shape[0] * args.line_height + 2 * args.pad for img in images
-                   if img is not None and img.shape[0] > 0 and img.shape[1] > 0],
+        "widths": [
+            img.shape[1] / img.shape[0] * args.line_height + 2 * args.pad
+            for img in images
+            if img is not None and img.shape[0] > 0 and img.shape[1] > 0
+        ],
         "total_line_width": 0,
         "char_counts": {},
     }
@@ -60,7 +76,6 @@ def main():
 
     del statistics["chars"]
     del statistics["widths"]
-
 
     print(statistics)
 

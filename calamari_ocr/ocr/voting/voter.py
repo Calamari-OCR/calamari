@@ -41,6 +41,7 @@ class Voter(ABC):
             else:
                 # we need to vote again
                 from calamari_ocr.ocr.voting import SequenceVoter
+
                 sv = SequenceVoter()
                 p.sentence = "".join([c for c, _ in sv.process_text(sentences)])
 
@@ -55,4 +56,3 @@ class Voter(ABC):
     @abstractmethod
     def _apply_vote(self, predictions, p):
         pass
-
