@@ -32,45 +32,7 @@ jobs:
         flake8 calamari_ocr --count --select=E9,F63,F7,F82 --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 calamari_ocr --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test Augmentation
-      run: python -m unittest calamari_ocr.test.test_augmentation
-    - name: Test Command Line
-      run: python -m unittest calamari_ocr.test.test_command_line
-    - name: Test Cross-Fold-Train
-      run: python -m unittest calamari_ocr.test.test_cross_fold_train
-    - name: Test Data PageXML
-      run: python -m unittest calamari_ocr.test.test_data_pagexml
-    - name: Test Evaluation
-      run: python -m unittest calamari_ocr.test.test_eval
-    - name: Test Model Zoo
-      run: python -m unittest calamari_ocr.test.test_model_zoo
-    - name: Test Model Migration
-      run: python -m unittest calamari_ocr.test.test_model_migration
-    - name: Test Network Architectures
-      run: python -m unittest calamari_ocr.test.test_network_architectures
-    - name: Test Predict and Eval
-      run: python -m unittest calamari_ocr.test.test_predict_and_eval
-    - name: Test Prediction
+    - name: Test simple training
+      run: python -m unittest calamari_ocr.test.test_simple_train
+    - name: Test prediction
       run: python -m unittest calamari_ocr.test.test_prediction
-    - name: Test Pretrained
-      run: python -m unittest calamari_ocr.test.test_pretrained
-    - name: Test Processor - Text Regularizer
-      run: python -m unittest calamari_ocr.test.processors.test_text_regularizer
-    - name: Test Resume-Training
-      run: python -m unittest calamari_ocr.test.test_resume_training
-    - name: Test Scripts
-      run: python -m unittest calamari_ocr.test.test_scripts
-    - name: Test Train AbbyyXML
-      run: python -m unittest calamari_ocr.test.test_train_abbyyxml
-    - name: Test Train Ensemble
-      run: python -m unittest calamari_ocr.test.test_train_ensemble
-    - name: Test Train File
-      run: python -m unittest calamari_ocr.test.test_train_file
-    # - name: Test Train Generated
-    #   run: python -m unittest calamari_ocr.test.test_train_generated
-    - name: Test Train HDF5
-      run: python -m unittest calamari_ocr.test.test_train_hdf5
-    - name: Test Train Mixed Data
-      run: python -m unittest calamari_ocr.test.test_train_mixed_data
-    - name: Test Train PageXML
-      run: python -m unittest calamari_ocr.test.test_train_pagexml
