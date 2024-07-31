@@ -15,10 +15,20 @@ class DataPreprocessor(ABC):
             if len(data) == 0:
                 return []
 
-            return parallel_map(self._apply_single, data, desc="Data Preprocessing",
-                                processes=processes, progress_bar=progress_bar, max_tasks_per_child=max_tasks_per_child)
+            return parallel_map(
+                self._apply_single,
+                data,
+                desc="Data Preprocessing",
+                processes=processes,
+                progress_bar=progress_bar,
+                max_tasks_per_child=max_tasks_per_child,
+            )
         else:
-            raise Exception("Unknown instance of data: {}. Supported list and str".format(type(data)))
+            raise Exception(
+                "Unknown instance of data: {}. Supported list and str".format(
+                    type(data)
+                )
+            )
 
     def local_to_global_pos(self, x, params):
         return x
@@ -53,7 +63,7 @@ class MultiDataProcessor(DataPreprocessor):
         return data, stacked_params
 
     def local_to_global_pos(self, x, params):
-        assert(len(params) == len(self.sub_processors))
+        assert len(params) == len(self.sub_processors)
         for i in reversed(range(len(self.sub_processors))):
             x = self.sub_processors[i].local_to_global_pos(x, params[i])
 

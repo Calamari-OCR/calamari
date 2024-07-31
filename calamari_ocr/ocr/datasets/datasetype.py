@@ -57,4 +57,3 @@ class DataSetType(IntEnum):
             DataSetType.HDF5: ".pred.h5",
             DataSetType.GENERATED_LINE: None,
         }[type]
-

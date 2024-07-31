@@ -10,10 +10,10 @@ class Node:
         self.isWord = False  # does this prefix represent a word
 
     def __str__(self):
-        s = ''
+        s = ""
         for k in self.children.keys():
             s += k
-        return 'isWord: ' + str(self.isWord) + '; children: ' + s
+        return "isWord: " + str(self.isWord) + "; children: " + s
 
 
 class PrefixTree:
@@ -30,7 +30,7 @@ class PrefixTree:
             if c not in node.children:
                 node.children[c] = Node()
             node = node.children[c]
-            isLast = (i + 1 == len(text))
+            isLast = i + 1 == len(text)
             if isLast:
                 node.isWord = True
 
@@ -100,9 +100,9 @@ class PrefixTree:
             del nodes[0]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     t = PrefixTree()  # create tree
-    t.addWords(['this', 'that'])  # add words
-    print(t.getNextChars('th'))  # chars following 'th'
-    print(t.getNextWords('tha'))  # all words of which 'th' is prefix
+    t.addWords(["this", "that"])  # add words
+    print(t.getNextChars("th"))  # chars following 'th'
+    print(t.getNextWords("tha"))  # all words of which 'th' is prefix
     t.dump()  # dump all nodes

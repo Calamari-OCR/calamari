@@ -6,12 +6,19 @@ from typing import List
 
 class Codec:
     @staticmethod
-    def from_input_dataset(input_dataset: List[InputDataset], whitelist=None, progress_bar=False):
+    def from_input_dataset(
+        input_dataset: List[InputDataset], whitelist=None, progress_bar=False
+    ):
         chars = set() if whitelist is None else set(whitelist)
         for ds in input_dataset:
             if not ds:
                 continue
-            for text in tqdm_wrapper(ds.text_generator(), total=len(ds), desc="Computing codec", progress_bar=progress_bar):
+            for text in tqdm_wrapper(
+                ds.text_generator(),
+                total=len(ds),
+                desc="Computing codec",
+                progress_bar=progress_bar,
+            ):
                 for c in text:
                     chars.add(c)
 
@@ -43,7 +50,7 @@ class Codec:
         return Codec(sorted(list(chars)))
 
     def __init__(self, charset):
-        """ Construct a codec based on a given charsed (symbols)
+        """Construct a codec based on a given charsed (symbols)
 
         A symbol is typically a character (e.g. a, b, c, d, ...) in OCR, in OMR this might be
         the position of a note in the staff.
@@ -77,7 +84,7 @@ class Codec:
             self.char2code[char] = code
 
     def __len__(self):
-        """ Get the number of characeters in the charset
+        """Get the number of characeters in the charset
 
         this is equal to the maximum possible label.
 
@@ -88,7 +95,7 @@ class Codec:
         return len(self.charset)
 
     def size(self):
-        """ Get the number of characeters in the charset
+        """Get the number of characeters in the charset
 
         this is equal to the maximum possible label.
 
@@ -99,7 +106,7 @@ class Codec:
         return len(self.charset)
 
     def encode(self, s):
-        """ Encode the string into labels
+        """Encode the string into labels
 
         Parameters
         ----------
@@ -117,7 +124,7 @@ class Codec:
         return [self.char2code[c] for c in s]
 
     def decode(self, l):
-        """ Decode the sequence of labels into a sequence of characters
+        """Decode the sequence of labels into a sequence of characters
 
         Parameters
         ----------
@@ -135,7 +142,7 @@ class Codec:
         return [self.code2char[c] for c in l]
 
     def extend(self, codec):
-        """ extend the codec by the given characeters
+        """extend the codec by the given characeters
 
         If a character is already present it will be skipped.
         The new characters will be added at the end of the codec (highest label numbers)
@@ -165,7 +172,7 @@ class Codec:
         return added
 
     def shrink(self, codec):
-        """ remove the given `codec` from this Codec
+        """remove the given `codec` from this Codec
 
         This algorithm will compute the positions of the codes in the old charset and ignore non present chars.
         This output can then be used to delete specific nodes in the neural net.
@@ -197,7 +204,7 @@ class Codec:
         return deleted_positions
 
     def align(self, codec, shrink=True, extend=True):
-        """ Change the codec to the new `codec` but keep the positions of chars that are in both codecs.
+        """Change the codec to the new `codec` but keep the positions of chars that are in both codecs.
 
         This function is used to compute a codec change: deleted labels, added characters.
 
@@ -226,7 +233,7 @@ class Codec:
 
 
 def ascii_codec():
-    """ default ascii codec
+    """default ascii codec
 
     Returns
     -------
@@ -235,4 +242,3 @@ def ascii_codec():
     """
     ascii_labels = ["", " ", "~"] + [chr(x) for x in range(33, 126)]
     return Codec(ascii_labels)
-

@@ -3,7 +3,9 @@ import os
 
 def keep_files_with_same_file_name(files1, files2):
     valid_files = set(map(filename, files1)).intersection(map(filename, files2))
-    return [f for f in files1 if filename(f) in valid_files], [f for f in files2 if filename(f) in valid_files]
+    return [f for f in files1 if filename(f) in valid_files], [
+        f for f in files2 if filename(f) in valid_files
+    ]
 
 
 def filename(file) -> str:
@@ -21,9 +23,9 @@ def checkpoint_path(path):
     if i < 0:
         raise FileNotFoundError("File path '{}' does not contain ckpt.".format(path))
 
-    return path[:i + 5]
+    return path[: i + 5]
 
 
-if __name__=="__main__":
-    assert(checkpoint_path("model.ckpt") == "model.ckpt")
-    assert(checkpoint_path("model.ckpt.json") == "model.ckpt")
+if __name__ == "__main__":
+    assert checkpoint_path("model.ckpt") == "model.ckpt"
+    assert checkpoint_path("model.ckpt.json") == "model.ckpt"

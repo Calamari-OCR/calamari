@@ -16,14 +16,14 @@ class FeedBackJoinableQueue(JoinableQueue):
 class MaxFeedJoinablQueue(JoinableQueue):
     def __init__(self, maxsize, ctx):
         super().__init__(maxsize=maxsize, ctx=ctx)
-        self._cursize = ctx.Value('i', 0)
+        self._cursize = ctx.Value("i", 0)
 
     def __getstate__(self):
-        return JoinableQueue.__getstate__(self) + (self._cursize, )
+        return JoinableQueue.__getstate__(self) + (self._cursize,)
 
     def __setstate__(self, state):
         JoinableQueue.__setstate__(self, state[:-1])
-        self._cursize, = state[-1:]
+        (self._cursize,) = state[-1:]
 
     def job_finished(self):
         with self._cond:
@@ -45,4 +45,3 @@ class MaxElementsQueuer:
         # in all queues is smaller than maxsize
         self.input_queue = MaxFeedJoinablQueue(maxsize, ctx)
         self.output_queue = FeedBackJoinableQueue(maxsize, self.input_queue, ctx)
-

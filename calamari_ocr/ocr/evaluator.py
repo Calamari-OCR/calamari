@@ -7,12 +7,14 @@ from calamari_ocr.ocr.datasets import StreamingInputDataset
 from collections import namedtuple
 
 
-SingleEvalData = namedtuple('SingleEvalData', ['chars', 'char_errs', 'sync_errs', 'conf', 'gt_pred'])
+SingleEvalData = namedtuple(
+    "SingleEvalData", ["chars", "char_errs", "sync_errs", "conf", "gt_pred"]
+)
 
 
 class Evaluator:
     def __init__(self, text_preprocessor=None, skip_empty_gt=False):
-        """ Class to evaluation the CER and errors of two datasets
+        """Class to evaluation the CER and errors of two datasets
 
         Parameters
         ----------
@@ -21,12 +23,16 @@ class Evaluator:
         skip_empty_gt : bool
             skip gt text lines that are empty
         """
-        self.text_preprocessor = text_preprocessor if text_preprocessor is not None else DefaultTextPreprocessor()
+        self.text_preprocessor = (
+            text_preprocessor
+            if text_preprocessor is not None
+            else DefaultTextPreprocessor()
+        )
         self.skip_empty_gt = skip_empty_gt
         self.preloaded_gt = None
 
     def preload_gt(self, gt_dataset, progress_bar=False):
-        """ Preload gt to be used for several experiments
+        """Preload gt to be used for several experiments
 
         Use this method to specify ground truth data to be tested versus many predictions
 
@@ -38,15 +44,28 @@ class Evaluator:
             show a progress bar
 
         """
-        with StreamingInputDataset(gt_dataset, None, self.text_preprocessor, processes=1) as gt_input_dataset:
-            self.preloaded_gt = [txt for _, txt, _ in tqdm_wrapper(gt_input_dataset.generator(text_only=True),
-                                                                   total=len(gt_dataset),
-                                                                   progress_bar=progress_bar,
-                                                                   desc="Loading GT",
-                                                                   )]
+        with StreamingInputDataset(
+            gt_dataset, None, self.text_preprocessor, processes=1
+        ) as gt_input_dataset:
+            self.preloaded_gt = [
+                txt
+                for _, txt, _ in tqdm_wrapper(
+                    gt_input_dataset.generator(text_only=True),
+                    total=len(gt_dataset),
+                    progress_bar=progress_bar,
+                    desc="Loading GT",
+                )
+            ]
 
-    def run(self, _sentinel=None, gt_dataset=None, pred_dataset=None, processes=1, progress_bar=False):
-        """ evaluate on the given dataset
+    def run(
+        self,
+        _sentinel=None,
+        gt_dataset=None,
+        pred_dataset=None,
+        processes=1,
+        progress_bar=False,
+    ):
+        """evaluate on the given dataset
 
         Parameters
         ----------
@@ -73,30 +92,47 @@ class Evaluator:
         else:
             # gt_dataset.load_samples(progress_bar=progress_bar)
             # gt_data = self.text_preprocessor.apply(gt_dataset.text_samples(), progress_bar=progress_bar)
-            with StreamingInputDataset(gt_dataset, None, self.text_preprocessor, processes=processes) as gt_input_dataset:
-                gt_data = [txt for _, txt, _ in tqdm_wrapper(gt_input_dataset.generator(text_only=True),
-                                                             total=len(gt_dataset),
-                                                             progress_bar=progress_bar,
-                                                             desc="Loading GT",
-                                                             )]
+            with StreamingInputDataset(
+                gt_dataset, None, self.text_preprocessor, processes=processes
+            ) as gt_input_dataset:
+                gt_data = [
+                    txt
+                    for _, txt, _ in tqdm_wrapper(
+                        gt_input_dataset.generator(text_only=True),
+                        total=len(gt_dataset),
+                        progress_bar=progress_bar,
+                        desc="Loading GT",
+                    )
+                ]
 
-        with StreamingInputDataset(pred_dataset, None, self.text_preprocessor, processes=processes) as pred_input_dataset:
-            pred_data = [txt for _, txt, _ in tqdm_wrapper(pred_input_dataset.generator(text_only=True),
-                                                           total=len(pred_dataset),
-                                                           progress_bar=progress_bar,
-                                                           desc="Loading Prediction"
-                                                           )]
+        with StreamingInputDataset(
+            pred_dataset, None, self.text_preprocessor, processes=processes
+        ) as pred_input_dataset:
+            pred_data = [
+                txt
+                for _, txt, _ in tqdm_wrapper(
+                    pred_input_dataset.generator(text_only=True),
+                    total=len(pred_dataset),
+                    progress_bar=progress_bar,
+                    desc="Loading Prediction",
+                )
+            ]
 
-        return self.evaluate(gt_data=gt_data, pred_data=pred_data, processes=processes, progress_bar=progress_bar,
-                             skip_empty_gt=self.skip_empty_gt)
+        return self.evaluate(
+            gt_data=gt_data,
+            pred_data=pred_data,
+            processes=processes,
+            progress_bar=progress_bar,
+            skip_empty_gt=self.skip_empty_gt,
+        )
 
     @staticmethod
     def evaluate_single_args(args):
         return Evaluator.evaluate_single(**args)
 
     @staticmethod
-    def evaluate_single(_sentinel=None, gt='', pred='', skip_empty_gt=False):
-        """ Evaluate a single pair of data
+    def evaluate_single(_sentinel=None, gt="", pred="", skip_empty_gt=False):
+        """Evaluate a single pair of data
 
         Parameters
         ----------
@@ -124,8 +160,7 @@ class Evaluator:
 
         """
         if _sentinel is not None:
-            raise Exception('Call this function by specifying gt and pred explicitly')
-
+            raise Exception("Call this function by specifying gt and pred explicitly")
 
         confusion = {}
         total_sync_errs = 0
@@ -158,7 +193,9 @@ class Evaluator:
         total_sync_errs = 0
         for chars, char_errs, sync_errs, conf, gt_pred in eval_results:
             if store_all:
-                all_eval.append(SingleEvalData(chars, char_errs, sync_errs, conf, gt_pred))
+                all_eval.append(
+                    SingleEvalData(chars, char_errs, sync_errs, conf, gt_pred)
+                )
 
             total_instances += 1
             total_chars += chars
@@ -186,8 +223,15 @@ class Evaluator:
         }
 
     @staticmethod
-    def evaluate(_sentinel=None, gt_data=None, pred_data=None, processes=1, progress_bar=False, skip_empty_gt=False):
-        """ evaluate on the given raw data
+    def evaluate(
+        _sentinel=None,
+        gt_data=None,
+        pred_data=None,
+        processes=1,
+        progress_bar=False,
+        skip_empty_gt=False,
+    ):
+        """evaluate on the given raw data
 
         Parameters
         ----------
@@ -209,10 +253,22 @@ class Evaluator:
         evaluation dictionary
         """
         if len(gt_data) != len(pred_data):
-            raise Exception("Mismatch in gt and pred files count: {} vs {}".format(len(gt_data), len(pred_data)))
+            raise Exception(
+                "Mismatch in gt and pred files count: {} vs {}".format(
+                    len(gt_data), len(pred_data)
+                )
+            )
 
         # evaluate single lines
-        out = parallel_map(Evaluator.evaluate_single_args, [{'gt': gt, 'pred': pred, 'skip_empty_gt': skip_empty_gt} for gt, pred in zip(gt_data, pred_data)],
-                           processes=processes, progress_bar=progress_bar, desc="Evaluation")
+        out = parallel_map(
+            Evaluator.evaluate_single_args,
+            [
+                {"gt": gt, "pred": pred, "skip_empty_gt": skip_empty_gt}
+                for gt, pred in zip(gt_data, pred_data)
+            ],
+            processes=processes,
+            progress_bar=progress_bar,
+            desc="Evaluation",
+        )
 
         return Evaluator.evaluate_single_list(out, True)

@@ -6,15 +6,25 @@ from PIL import Image
 from calamari_ocr.utils import glob_all
 
 from calamari_ocr.scripts.predict import run
-from calamari_ocr.ocr import DataSetType, Predictor, MultiPredictor, create_dataset, DataSetMode
+from calamari_ocr.ocr import (
+    DataSetType,
+    Predictor,
+    MultiPredictor,
+    create_dataset,
+    DataSetMode,
+)
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 class PredictionAttrs:
     def __init__(self):
-        self.files = sorted(glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")]))
-        self.checkpoint = [os.path.join(this_dir, "test_models", "uw3_50lines_best.ckpt")]
+        self.files = sorted(
+            glob_all([os.path.join(this_dir, "data", "uw3_50lines", "test", "*.png")])
+        )
+        self.checkpoint = [
+            os.path.join(this_dir, "test_models", "uw3_50lines_best.ckpt")
+        ]
         # self.checkpoint = sorted(glob_all([os.path.join(this_dir, "..", "..", "..", "calamari_models/antiqua_modern/*.ckpt.json")]))
         self.processes = 1
         self.batch_size = 1

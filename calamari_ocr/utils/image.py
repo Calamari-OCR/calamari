@@ -16,18 +16,18 @@ def to_uint8(data: np.ndarray) -> np.ndarray:
     images to be addressed.  All arrays are rescaled to
     the range 0...255 (unsigned)
     """
-    if data.dtype == np.dtype('uint8'):
+    if data.dtype == np.dtype("uint8"):
         data = data
-    elif data.dtype == np.dtype('int8'):
-        data = (data.astype('int16') + 128).astype('uint8')
-    elif data.dtype == np.dtype('uint16'):
-        data = (data / 256).astype('uint8')
-    elif data.dtype == np.dtype('int16'):
-        data = ((data / 128).astype('int16') + 128).astype('uint8')
-    elif data.dtype in [np.dtype('f'), np.dtype('float32'), np.dtype('float64')]:
-        data = (data * 255).astype('uint8')
+    elif data.dtype == np.dtype("int8"):
+        data = (data.astype("int16") + 128).astype("uint8")
+    elif data.dtype == np.dtype("uint16"):
+        data = (data / 256).astype("uint8")
+    elif data.dtype == np.dtype("int16"):
+        data = ((data / 128).astype("int16") + 128).astype("uint8")
+    elif data.dtype in [np.dtype("f"), np.dtype("float32"), np.dtype("float64")]:
+        data = (data * 255).astype("uint8")
     elif data.dtype == bool:
-        data = data.astype('uint8') * 255
+        data = data.astype("uint8") * 255
     else:
         raise Exception("unknown image type: {}".format(data.dtype))
 

@@ -21,7 +21,9 @@ class LineGeneratorProcess(Process):
         try:
             words = self.text_generator.generate()
             image = self.line_generator.draw(words) if not self.text_only else None
-            self.output_queue.put((image, TextGenerator.words_to_unformatted_text(words)))
+            self.output_queue.put(
+                (image, TextGenerator.words_to_unformatted_text(words))
+            )
         except ValueError as e:
             print("Exception during line generation:", e)
 
@@ -37,22 +39,30 @@ class LineGeneratorProcess(Process):
 
 
 class GeneratedLineDatasetGenerator(DatasetGenerator):
-    def __init__(self, mp_context, output_queue, mode: DataSetMode, samples,
-                 input_queue,
-                 ):
+    def __init__(
+        self,
+        mp_context,
+        output_queue,
+        mode: DataSetMode,
+        samples,
+        input_queue,
+    ):
         super().__init__(mp_context, output_queue, mode, samples)
         self.input_queue = input_queue
 
-    def _load_sample(self, sample, text_only) -> Generator[Tuple[np.array, str], None, None]:
+    def _load_sample(
+        self, sample, text_only
+    ) -> Generator[Tuple[np.array, str], None, None]:
         yield self.input_queue.get()
 
 
 class GeneratedLineDataset(DataSet):
-    def __init__(self,
-                 mode: DataSetMode,
-                 args: dict,
-                 ):
-        """ Create a dataset from memory
+    def __init__(
+        self,
+        mode: DataSetMode,
+        args: dict,
+    ):
+        """Create a dataset from memory
         Since this dataset already contains all data in the memory, this dataset may not be loaded
         Parameters
         ----------
@@ -61,9 +71,13 @@ class GeneratedLineDataset(DataSet):
 
         self.loaded = False
         self.lines_per_epoch = 10000
-        self._samples = [{'id': '{}'.format(i)} for i in range(self.lines_per_epoch)]
-        self.text_generator_params = args.get('text_generator_params', TextGeneratorParameters())
-        self.line_generator_params = args.get('line_generator_params', LineGeneratorParameters())
+        self._samples = [{"id": "{}".format(i)} for i in range(self.lines_per_epoch)]
+        self.text_generator_params = args.get(
+            "text_generator_params", TextGeneratorParameters()
+        )
+        self.line_generator_params = args.get(
+            "line_generator_params", LineGeneratorParameters()
+        )
         self.manager = Manager()
         self.data_queue = self.manager.Queue(50)
         self.data_generators = [
@@ -72,7 +86,8 @@ class GeneratedLineDataset(DataSet):
                 self.text_generator_params,
                 self.line_generator_params,
                 "{}".format(i),
-            ) for i in range(8)
+            )
+            for i in range(8)
         ]
         for d in self.data_generators:
             d.start()
@@ -81,7 +96,9 @@ class GeneratedLineDataset(DataSet):
         return self.data_queue.get()
 
     def create_generator(self, mp_context, output_queue) -> DatasetGenerator:
-        return GeneratedLineDatasetGenerator(mp_context, output_queue, self.mode, self.samples(), self.data_queue)
+        return GeneratedLineDatasetGenerator(
+            mp_context, output_queue, self.mode, self.samples(), self.data_queue
+        )
 
 
 if __name__ == "__main__":
@@ -100,33 +117,36 @@ if __name__ == "__main__":
     params.letter_spacing_sigma = 0.05
     params.bold_p = 0.5
     params.italic_p = 0.5
-    params.codec.charset.extend(list(
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()_-.;:'\""
-        "éèíìóòúù"
-        "ăȁĕȅĭŏőŭű"
-        "āĀǟǞēĒěīĪōŌȫȪūŪǖǕ"
-        "ẹḲḳ"
-        "αβγδεζηθικλμνξοπρστυφχψω"
-        "½"
-        "—"
-        "–"
-        "℔"
-        "šŠ"
-        "„“"
-        "†"
-    ))
-    args['text_generator_params'] = params
+    params.codec.charset.extend(
+        list(
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}[]()_-.;:'\""
+            "éèíìóòúù"
+            "ăȁĕȅĭŏőŭű"
+            "āĀǟǞēĒěīĪōŌȫȪūŪǖǕ"
+            "ẹḲḳ"
+            "αβγδεζηθικλμνξοπρστυφχψω"
+            "½"
+            "—"
+            "–"
+            "℔"
+            "šŠ"
+            "„“"
+            "†"
+        )
+    )
+    args["text_generator_params"] = params
 
     params = LineGeneratorParameters()
     params.font_size = 48
     params.min_script_offset = -0.5
     params.max_script_offset = 0.5
-    params.fonts.extend(['Junicode.ttf', 'DejaVuSerif.ttf'])
-    args['line_generator_params'] = params
+    params.fonts.extend(["Junicode.ttf", "DejaVuSerif.ttf"])
+    args["line_generator_params"] = params
 
     dataset = GeneratedLineDataset(DataSetMode.TRAIN, args)
 
     import matplotlib.pyplot as plt
+
     line, text = dataset.load_single_sample({}, None)
     print(text)
     plt.imshow(line)

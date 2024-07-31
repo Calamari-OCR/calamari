@@ -8,11 +8,14 @@ from calamari_ocr.utils import glob_all
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
-class Attrs():
+
+class Attrs:
     def __init__(self):
         self.dataset = DataSetType.FILE
         self.gt_extension = DataSetType.gt_extension(self.dataset)
-        self.files = glob_all([os.path.join(this_dir, "data", "uw3_50lines", "train", "*.png")])
+        self.files = glob_all(
+            [os.path.join(this_dir, "data", "uw3_50lines", "train", "*.png")]
+        )
         self.seed = 24
         self.backend = "tensorflow"
         self.network = "cnn=40:3x3,pool=2x2,cnn=60:3x3,pool=2x2,lstm=200,dropout=0.5"

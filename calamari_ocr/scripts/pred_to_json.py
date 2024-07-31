@@ -9,16 +9,21 @@ from calamari_ocr.proto import Predictions
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--files", type=str, default=[], nargs="+", required=True,
-                        help="Protobuf files to convert")
-    parser.add_argument("--logits", action="store_true",
-                        help="Do write logits")
+    parser.add_argument(
+        "--files",
+        type=str,
+        default=[],
+        nargs="+",
+        required=True,
+        help="Protobuf files to convert",
+    )
+    parser.add_argument("--logits", action="store_true", help="Do write logits")
     args = parser.parse_args()
 
     files = glob_all(args.files)
     for file in tqdm(files, desc="Converting"):
         predictions = Predictions()
-        with open(file, 'rb') as f:
+        with open(file, "rb") as f:
             predictions.ParseFromString(f.read())
 
         if not args.logits:
@@ -28,7 +33,7 @@ def main():
                 prediction.logits.data[:] = []
 
         out_json_path = split_all_ext(file)[0] + ".json"
-        with open(out_json_path, 'w') as f:
+        with open(out_json_path, "w") as f:
             f.write(MessageToJson(predictions, including_default_value_fields=True))
 
 

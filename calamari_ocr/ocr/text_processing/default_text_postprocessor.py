@@ -1,6 +1,10 @@
-from calamari_ocr.ocr.text_processing import \
-    MultiTextProcessor, StripTextProcessor, BidiTextProcessor, \
-    TextNormalizer, TextRegularizer
+from calamari_ocr.ocr.text_processing import (
+    MultiTextProcessor,
+    StripTextProcessor,
+    BidiTextProcessor,
+    TextNormalizer,
+    TextRegularizer,
+)
 
 
 class DefaultTextPostprocessor(MultiTextProcessor):

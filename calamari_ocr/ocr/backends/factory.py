@@ -1,4 +1,6 @@
-def create_backend_from_checkpoint(checkpoint_params, restore=None, weights=None, processes=-1):
+def create_backend_from_checkpoint(
+    checkpoint_params, restore=None, weights=None, processes=-1
+):
     """
     Create a Backend implementation object based on NetworkParameters.
 
@@ -19,6 +21,8 @@ def create_backend_from_checkpoint(checkpoint_params, restore=None, weights=None
         A net backend implementation object
 
     """
-    from calamari_ocr.ocr.backends.tensorflow_backend.tensorflow_backend import TensorflowBackend
-    return TensorflowBackend(checkpoint_params, processes=processes)
+    from calamari_ocr.ocr.backends.tensorflow_backend.tensorflow_backend import (
+        TensorflowBackend,
+    )
 
+    return TensorflowBackend(checkpoint_params, processes=processes)
