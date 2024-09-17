@@ -333,7 +333,7 @@ class MultiPredictor:
             )
 
     def predict_raw(
-        self, images, params=None, progress_bar=True, apply_preproc=True
+        self, images, params=None, progress_bar=True, batch_size=-1, apply_preproc=True
     ) -> Generator[List[PredictionResult], None, None]:
         if apply_preproc:
             images, params = zip(
@@ -345,7 +345,8 @@ class MultiPredictor:
 
         prediction = [
             predictor.predict_raw(
-                images, progress_bar=progress_bar, apply_preproc=False, params=params
+                images, progress_bar=progress_bar, batch_size=batch_size,
+                apply_preproc=False, params=params,
             )
             for predictor in self.predictors
         ]
