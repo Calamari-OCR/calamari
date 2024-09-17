@@ -345,8 +345,11 @@ class MultiPredictor:
 
         prediction = [
             predictor.predict_raw(
-                images, progress_bar=progress_bar, batch_size=batch_size,
-                apply_preproc=False, params=params,
+                images,
+                progress_bar=progress_bar,
+                batch_size=batch_size,
+                apply_preproc=False,
+                params=params,
             )
             for predictor in self.predictors
         ]
