@@ -8,7 +8,7 @@ from paiargparse import pai_meta, pai_dataclass
 from tfaip import TrainerParams as AIPTrainerParams, TrainerPipelineParamsBase
 from tfaip.util.tfaipargparse import post_init
 
-from calamari_ocr import calamari_ocr_dir
+from calamari_ocr.utils import resource_filename
 from calamari_ocr.ocr import SavedCalamariModel
 from calamari_ocr.ocr.dataset.codec import CodecConstructionParams
 from calamari_ocr.ocr.model.layers.bilstm import BiLSTMLayerParams
@@ -256,7 +256,7 @@ def graph_params_from_definition_string(s: str) -> List[LayerParams]:
 # LOAD DEFAULT NETWORK ARCHITECTURES
 # =================================
 
-_networks_dir = calamari_ocr_dir / "resources" / "networks"
+_networks_dir = resource_filename("calamari_ocr", "resources") / "networks"
 _default_networks = {p.stem: p for p in _networks_dir.iterdir() if p.suffix == ".json"}
 
 logger.debug(f"Found default networks: {list(_default_networks.keys())}")

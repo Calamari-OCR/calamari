@@ -1,5 +1,6 @@
 edit_distance
 h5py
+importlib_resources ; python_version < '3.10'
 lxml
 python-bidi~=0.4.2
 tensorflow>=2.4.0
