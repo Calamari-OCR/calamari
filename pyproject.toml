@@ -1,3 +1,95 @@
+[build-system]
+requires = [
+         "setuptools>=42",
+         "setuptools_scm[toml]",
+         "wheel",
+]  # PEP 508 specifications.
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "calamari_ocr"
+description = "Line based ATR Engine based on OCRopy"
+readme = "README.md"
+authors = [
+        {name = "Christoph Wick"},
+        {email = "christoph.wick@informatik.uni-wuerzburg.de"}
+]
+license = {text = "Apache License 2.0"}
+keywords = [
+         "OCR",
+         "HTR",
+         "optical character recognition",
+]
+classifiers = [
+            "Programming Language :: Python :: 3",
+            "Operating System :: OS Independent",
+            "License :: OSI Approved :: Apache Software License",
+            "Development Status :: 5 - Production/Stable",
+            "Environment :: Console",
+	    "Environment :: GPU :: NVIDIA CUDA",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Education",
+            "Intended Audience :: Science/Research",
+	    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+	    "Topic :: Scientific/Engineering :: Image Recognition",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+	    "Topic :: Text Processing :: General",
+]
+dynamic = ["version", "dependencies"]
+requires-python = ">=3.7"
+
+[project.urls]
+homepage = "https://github.com/Calamari-OCR/calamari"
+
+[project.scripts]
+calamari-eval = "calamari_ocr.scripts.eval:run"
+calamari-predict = "calamari_ocr.scripts.predict:main"
+calamari-resume-training = "calamari_ocr.scripts.resume_training:main"
+calamari-train = "calamari_ocr.scripts.train:run"
+calamari-cross-fold-train = "calamari_ocr.scripts.cross_fold_train:run"
+calamari-predict-and-eval = "calamari_ocr.scripts.predict_and_eval:run"
+calamari-dataset-viewer = "calamari_ocr.scripts.dataset_viewer:main"
+calamari-dataset-statistics = "calamari_ocr.scripts.dataset_statistics:main"
+
+[project.optional-dependencies]
+test = [
+     "pytest",
+     "pytest-cov",
+     "pytest-isolate",
+     "flake8",
+]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"*" = ["*.json"] # yml xml conf ?
+
+[tool.setuptools.packages.find]
+exclude = ["calamari_ocr/test"]
+
+[tool.setuptools_scm]
+write_to = "calamari_ocr/version.py"
+
 [tool.black]
 line-length = 120
-target-version = ['py37']
+target-version = ['py38']
+
+[tool.coverage.run]
+#branch = true
+source = ["calamari_ocr"]
+omit = ["calamari_ocr/test/*"]
+#command_line = "-m unittest discover -s calamari_ocr/test/"
+command_line = "-m pytest"
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report=xml --cov-report=html --cov-report=term-missing --isolate"
+testpaths = ["calamari_ocr/test"]
+
+[tool.flake8]
+min_python_version = "3.7.1"
+max-line-length = 127
+ignore = "E203,W503"
