@@ -22,13 +22,13 @@ class TestModelZoo(unittest.TestCase):
         clear_session()
 
     def test_model_zoo(self):
-        version = "2.0"
-        url = f"https://github.com/Calamari-OCR/calamari_models/archive/{version}.tar.gz"
+        version = "2.1"
+        url = f"https://github.com/Calamari-OCR/calamari_models/releases/download/{version}/uw3-modern-english.tar.gz"
         with tempfile.TemporaryDirectory() as d:
             d = "model_archive_permanent"  # for debugging
             os.makedirs(d, exist_ok=True)
             os.chdir(d)
-            if not os.path.exists("calamari_models"):
+            if not os.path.exists("uw3-modern-english"):
                 check_call(
                     [
                         "sh",
@@ -43,17 +43,13 @@ class TestModelZoo(unittest.TestCase):
                                 "|",
                                 "tar",
                                 "xz",
-                                "&&",
-                                "mv",
-                                f"calamari_models-{version}",
-                                "calamari_models",
                             ]
                         ),
                     ]
                 )
             trainer_params = uw3_trainer_params(with_validation=True)
             args = PredictAndEvalArgs(
-                checkpoint=glob(os.path.join("calamari_models", "uw3-modern-english", "*.ckpt.json")),
+                checkpoint=glob(os.path.join("uw3-modern-english", "*.ckpt.json")),
                 predictor=PredictorParams(pipeline=DataPipelineParams(batch_size=5)),
                 data=trainer_params.gen.val_gen(),
             )
