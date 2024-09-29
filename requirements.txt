@@ -3,5 +3,5 @@ h5py
 lxml
 python-bidi~=0.4.2
 tensorflow>=2.4.0
-tfaip==1.2.6
+ocrd-fork-tfaip>=1.2.7
 xlsxwriter
