@@ -1,5 +1,13 @@
 import os
-
+# cannot use importlib.resources until we move to 3.9+ forimportlib.resources.files
+import sys
+if sys.version_info < (3, 10):
+    import importlib_resources
+else:
+    import importlib.resources as importlib_resources
+from pathlib import Path
+import atexit
+from contextlib import ExitStack
 
 def keep_files_with_same_file_name(files1, files2):
     valid_files = set(map(filename, files1)).intersection(map(filename, files2))
@@ -25,6 +33,13 @@ def checkpoint_path(path):
 
     return path[: i + 5]
 
+
+file_manager = ExitStack()
+atexit.register(file_manager.close)
+
+def resource_filename(pkg : str, fname : str) -> Path:
+    ref = importlib_resources.files(pkg) / fname
+    return file_manager.enter_context(importlib_resources.as_file(ref))
 
 if __name__ == "__main__":
     assert checkpoint_path("model.ckpt") == "model.ckpt"

@@ -10,7 +10,7 @@ from paiargparse import pai_dataclass, pai_meta
 from tfaip.data.pipeline.processor.dataprocessor import DataProcessorParams
 from tfaip.util.enum import StrEnum
 
-from calamari_ocr import calamari_ocr_dir
+from calamari_ocr.utils import resource_filename
 from calamari_ocr.ocr.dataset.textprocessors import TextProcessor
 
 logger = logging.getLogger(__name__)
@@ -122,10 +122,10 @@ def parse_ruleset(r: Union[List[dict], Path, str]) -> List[Rule]:
 # LOAD DEFAULT RULE SETS AND GROUPS
 # =================================
 
-rulesets_dir = calamari_ocr_dir / "resources" / "rulesets"
+rulesets_dir = resource_filename("calamari_ocr", "resources") / "rulesets"
 default_rulesets = {p.stem: p for p in rulesets_dir.iterdir() if p.suffix == ".json"}
 
-rule_groups_file = calamari_ocr_dir / "resources" / "rulegroups.json"
+rule_groups_file = resource_filename("calamari_ocr", "resources") / "rulegroups.json"
 with open(rule_groups_file) as f:
     default_rule_groups: Dict[str, List[str]] = json.load(f)
 
