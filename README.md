@@ -2,10 +2,14 @@
 ![logo](resources/logo/calamari_200.png)
 
 [![Python Test](https://github.com/Calamari-OCR/calamari/actions/workflows/python-test.yml/badge.svg)](https://github.com/Calamari-OCR/calamari/actions/workflows/python-test.yml)
-[![Upload Python Package](https://github.com/Calamari-OCR/calamari/actions/workflows/python-publish.yml/badge.svg)](https://github.com/Calamari-OCR/calamari/actions/workflows/python-publish.yml)
+[![codecov](https://codecov.io/github/bertsky/calamari/graph/badge.svg?token=JKGPINQTKO)](https://codecov.io/github/bertsky/calamari)
 [![Lint](https://github.com/Calamari-OCR/calamari/actions/workflows/black.yml/badge.svg)](https://github.com/Calamari-OCR/calamari/actions/workflows/black.yml)
+[![Upload Python Package](https://github.com/Calamari-OCR/calamari/actions/workflows/python-publish.yml/badge.svg)](https://github.com/Calamari-OCR/calamari/actions/workflows/python-publish.yml)
+[![image](https://img.shields.io/pypi/v/calamari_ocr.svg)](https://pypi.org/project/calamari_ocr/)
 
-OCR Engine based on OCRopy and Kraken using python3.
+
+OCR Engine based on OCRopy and Kraken using Python 3.
+
 It is designed to both be easy to use from the command line but also be modular to be integrated and customized from other python scripts.
 
 ![preview](resources/preview.png)
@@ -15,8 +19,13 @@ It is designed to both be easy to use from the command line but also be modular 
 The documentation of Calamari is hosted [here](https://calamari-ocr.readthedocs.io).
 
 ##  Pretrained model repository
-Pretrained models are available at (https://github.com/Calamari-OCR/calamari_models).
-The current release can be accessed [here](https://github.com/Calamari-OCR/calamari_models/archive/2.0.zip) (255 MB).
+
+Pretrained models are available at [calamari_models](https://github.com/Calamari-OCR/calamari_models)
+and [calamari_models_experimental](https://github.com/Calamari-OCR/calamari_models_experimental).
+
+Current releases (with individual model tarballs) can be accessed
+[here](https://github.com/Calamari-OCR/calamari_models/releases/tag/2.1) and
+[here](https://github.com/Calamari-OCR/calamari_models_experimental/releases/tag/v0.0.3).
 
 ## Installing
 
