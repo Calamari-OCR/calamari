@@ -56,6 +56,7 @@ test = [
      "pytest",
      "pytest-cov",
      "pytest-isolate",
+     "pytest-xdist",
      "flake8",
 ]
 
@@ -83,10 +84,10 @@ target-version = ['py38']
 source = ["calamari_ocr"]
 omit = ["calamari_ocr/test/*"]
 #command_line = "-m unittest discover -s calamari_ocr/test/"
-command_line = "-m pytest"
+command_line = "-m pytest --cov --cov-report=xml --cov-report=html --cov-report=term-missing"
 
 [tool.pytest.ini_options]
-addopts = "--cov --cov-report=xml --cov-report=html --cov-report=term-missing --isolate"
+addopts = "--isolate"
 testpaths = ["calamari_ocr/test"]
 
 [tool.flake8]
