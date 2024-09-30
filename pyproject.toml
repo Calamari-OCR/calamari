@@ -84,7 +84,7 @@ target-version = ['py38']
 source = ["calamari_ocr"]
 omit = ["calamari_ocr/test/*"]
 #command_line = "-m unittest discover -s calamari_ocr/test/"
-command_line = "-m pytest --cov --cov-report=xml --cov-report=html --cov-report=term-missing"
+command_line = "-m pytest --junitxml=junit.xml -o junit_family=legacy"
 
 [tool.pytest.ini_options]
 addopts = "--isolate"
