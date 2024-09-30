@@ -478,20 +478,20 @@
                   "new": "m"
                 },
                 {
-                  "old": "\\s+(?u)",
+                  "old": "(?u)\\s+",
                   "new": " ",
                   "regex": true
                 },
                 {
-                  "old": "\\n(?u)",
+                  "old": "(?u)\\n",
                   "regex": true
                 },
                 {
-                  "old": "^\\s+(?u)",
+                  "old": "(?u)^\\s+",
                   "regex": true
                 },
                 {
-                  "old": "\\s+$(?u)",
+                  "old": "(?u)\\s+$",
                   "regex": true
                 }
               ]
@@ -750,20 +750,20 @@
                   "new": "m"
                 },
                 {
-                  "old": "\\s+(?u)",
+                  "old": "(?u)\\s+",
                   "new": " ",
                   "regex": true
                 },
                 {
-                  "old": "\\n(?u)",
+                  "old": "(?u)\\n",
                   "regex": true
                 },
                 {
-                  "old": "^\\s+(?u)",
+                  "old": "(?u)^\\s+",
                   "regex": true
                 },
                 {
-                  "old": "\\s+$(?u)",
+                  "old": "(?u)\\s+$",
                   "regex": true
                 }
               ]
