@@ -39,6 +39,8 @@ jobs:
         flake8 calamari_ocr --count --select=E9,F63,F7,F82 --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 calamari_ocr --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Install fonts for synthetic training
+      run: sudo apt-get install -y fonts-junicode fonts-dejavu-core
     - name: Test coverage with pytest
       run: |
         PYTEST_ADDOPTS="-vv -n4" coverage run
