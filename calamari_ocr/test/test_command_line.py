@@ -12,9 +12,10 @@ def assert_run(args):
     # cannot use check_call, because it blocks if the stdout FIFO is full
     # (i.e. there is sufficient data on the OS pipe buffer) and it is not read from
     # also, we want to see what failed in case of error
-    #check_call(args)
-    ret = run(args, encoding='utf-8', capture_output=True)
+    # check_call(args)
+    ret = run(args, encoding="utf-8", capture_output=True)
     assert ret.returncode == 0
+
 
 class TestCommandList(unittest.TestCase):
     def test_resume_training(self):
