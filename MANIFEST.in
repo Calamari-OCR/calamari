@@ -1,0 +1,2 @@
+# we need this to work around setuptools-scm#516
+prune calamari_ocr/test

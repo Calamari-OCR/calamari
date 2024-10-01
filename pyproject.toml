@@ -67,10 +67,12 @@ dependencies = {file = ["requirements.txt"]}
 include-package-data = true
 
 [tool.setuptools.package-data]
-"*" = ["*.json"] # yml xml conf ?
+"*" = ["*.json"]
 
 [tool.setuptools.packages.find]
-exclude = ["calamari_ocr/test"]
+include = ["calamari_ocr"]
+exclude = ["calamari_ocr/test*"]
+namespaces = false
 
 [tool.setuptools_scm]
 write_to = "calamari_ocr/version.py"
