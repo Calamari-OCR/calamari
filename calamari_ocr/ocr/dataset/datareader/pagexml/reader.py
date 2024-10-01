@@ -395,8 +395,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
     def store_text_prediction(self, prediction, sample_id, output_dir):
         sentence = prediction.sentence
         sample = self.sample_by_id(sample_id)
-        output_dir = output_dir or os.path.dirname(sample['page_id'])
-        self._output_dir[sample['page_id']] = output_dir
+        output_dir = output_dir or os.path.dirname(sample["page_id"])
+        self._output_dir[sample["page_id"]] = output_dir
         ns = sample["ns"]
         line = sample["xml_element"]
         textequivxml = line.find('./ns:TextEquiv[@index="{}"]'.format(self.params.text_index), namespaces=ns)
@@ -445,8 +445,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             ):
                 page_id = split_all_ext(xml)[0]
                 page = self.pages(page_id)
-                path = os.path.join(self._output_dir[page_id],
-                                    filename(xml) + extension)
+                path = os.path.join(self._output_dir[page_id], filename(xml) + extension)
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(etree.tounicode(page.getroottree(), pretty_print=True))
 
@@ -625,8 +624,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
     def _store_page(self, extension, page_id):
         page = self.pages[page_id]
-        path = os.path.join(self._output_dir[page_id],
-                            filename(page_id) + extension)
+        path = os.path.join(self._output_dir[page_id], filename(page_id) + extension)
         with open(path, "w", encoding="utf-8") as f:
             f.write(etree.tounicode(page.getroottree(), pretty_print=True))
 
