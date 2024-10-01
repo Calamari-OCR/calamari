@@ -75,7 +75,6 @@ class Font:
     def __init__(self, font: ImageFont):
         self.font = font
         self.offset = 0
-        self.font = font
         self.baseline = 0
         self.topline = 0
         self.char_width = 0
@@ -123,11 +122,12 @@ class Font:
             return np.zeros((0, 0), dtype=np.uint8)
         try:
             spacing = max(0, spacing)
+            left, top, right, bottom = self.font.getbbox(text)
             image = Image.new(
                 "L",
                 tuple(
                     np.add(
-                        self.font.getsize(text),
+                        (right - left, bottom - top),
                         [int(self.char_width * spacing * len(text) * 2), 0],
                     )
                 ),
@@ -142,8 +142,8 @@ class Font:
                 x = 0
                 for i, c in enumerate(text):
                     draw.text((x, 0), c, font=self.font)
-                    w, h = self.font.getsize(c)
-                    x += int(spacing * self.char_width + w)
+                    left, top, right, bottom = self.font.getbbox(c)
+                    x += int(spacing * self.char_width + right - left)
                 image = np.array(image)[self.offset :, :]
 
                 sums = np.mean(image, axis=0)
