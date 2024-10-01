@@ -22,7 +22,7 @@ class TestModelZoo(unittest.TestCase):
         clear_session()
 
     def test_model_zoo(self):
-        version = "2.1"
+        version = "2.2"
         url = f"https://github.com/Calamari-OCR/calamari_models/releases/download/{version}/uw3-modern-english.tar.gz"
         with tempfile.TemporaryDirectory() as d:
             d = "model_archive_permanent"  # for debugging
