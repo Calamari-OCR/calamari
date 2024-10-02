@@ -88,6 +88,7 @@ class Data(DataBase[DataParams]):
     def element_length_fn(self) -> Callable[[Dict[str, AnyTensor]], AnyTensor]:
         def img_len(x):
             return x["img_len"]
+
         return img_len
 
     def create_pipeline(
