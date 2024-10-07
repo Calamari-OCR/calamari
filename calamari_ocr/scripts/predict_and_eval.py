@@ -35,6 +35,7 @@ class PredictAndEvalArgs:
         default_factory=FileDataParams,
         metadata=pai_meta(mode="flat", help="Input data", choices=DATA_GENERATOR_CHOICES),
     )
+    voter: VoterParams = field(default_factory=VoterParams)
     predictor: PredictorParams = field(
         default_factory=PredictorParams,
         metadata=pai_meta(mode="flat", help="Predictor data"),
@@ -71,10 +72,9 @@ def main(args: PredictAndEvalArgs):
 
     from calamari_ocr.ocr.predict.predictor import MultiPredictor
 
-    voter_params = VoterParams()
     predictor = MultiPredictor.from_paths(
         checkpoints=args.checkpoint,
-        voter_params=voter_params,
+        voter_params=args.voter,
         predictor_params=args.predictor,
     )
     do_prediction = predictor.predict(args.data)
