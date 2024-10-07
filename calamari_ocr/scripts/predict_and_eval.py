@@ -85,8 +85,8 @@ def main(args: PredictAndEvalArgs):
     for s in do_prediction:
         (result, prediction) = s.outputs
         sentence = prediction.sentence
-        if prediction.voter_predictions is not None and args.output_individual_voters:
-            for i, p in enumerate(prediction.voter_predictions):
+        if args.output_individual_voters:
+            for i, p in enumerate(result):
                 if i not in all_prediction_sentences:
                     all_prediction_sentences[i] = {}
                 all_prediction_sentences[i][s.meta["id"]] = p.sentence
