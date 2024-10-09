@@ -88,7 +88,6 @@ class PredictionResult:
         self.chars = codec.decode(prediction.labels)
         self.sentence = self.text_postproc.apply_on_sample(Sample(inputs="", outputs="".join(self.chars))).outputs
         self.prediction.sentence = self.sentence
-        self.out_to_in_trans = out_to_in_trans
         self.ground_truth = ground_truth
 
         self.prediction.avg_char_probability = 0
@@ -97,8 +96,8 @@ class PredictionResult:
             for c in p.chars:
                 c.char = codec.code2char[c.label]
 
-            p.global_start = int(self.out_to_in_trans(p.local_start))
-            p.global_end = int(self.out_to_in_trans(p.local_end))
+            p.global_start = int(out_to_in_trans(p.local_start))
+            p.global_end = int(out_to_in_trans(p.local_end))
             if len(p.chars) > 0:
                 self.prediction.avg_char_probability += p.chars[0].probability
 
