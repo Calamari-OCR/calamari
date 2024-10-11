@@ -206,6 +206,12 @@ class TestPrediction(unittest.TestCase):
 
         predictor.benchmark_results.pretty_print()
 
+    def test_batch_bucketing(self):
+        args = predict_args()
+        args.predictor.pipeline.bucket_boundaries = [20, 50, 100, 200, 400, 800]
+        run(args)
+
+
 
 if __name__ == "__main__":
     unittest.main()
