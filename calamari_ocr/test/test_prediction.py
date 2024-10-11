@@ -212,6 +212,5 @@ class TestPrediction(unittest.TestCase):
         run(args)
 
 
-
 if __name__ == "__main__":
     unittest.main()
