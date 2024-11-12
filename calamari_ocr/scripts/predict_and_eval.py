@@ -35,6 +35,7 @@ class PredictAndEvalArgs:
         default_factory=FileDataParams,
         metadata=pai_meta(mode="flat", help="Input data", choices=DATA_GENERATOR_CHOICES),
     )
+    voter: VoterParams = field(default_factory=VoterParams)
     predictor: PredictorParams = field(
         default_factory=PredictorParams,
         metadata=pai_meta(mode="flat", help="Predictor data"),
@@ -71,10 +72,9 @@ def main(args: PredictAndEvalArgs):
 
     from calamari_ocr.ocr.predict.predictor import MultiPredictor
 
-    voter_params = VoterParams()
     predictor = MultiPredictor.from_paths(
         checkpoints=args.checkpoint,
-        voter_params=voter_params,
+        voter_params=args.voter,
         predictor_params=args.predictor,
     )
     do_prediction = predictor.predict(args.data)
@@ -85,8 +85,8 @@ def main(args: PredictAndEvalArgs):
     for s in do_prediction:
         (result, prediction) = s.outputs
         sentence = prediction.sentence
-        if prediction.voter_predictions is not None and args.output_individual_voters:
-            for i, p in enumerate(prediction.voter_predictions):
+        if args.output_individual_voters:
+            for i, p in enumerate(result):
                 if i not in all_prediction_sentences:
                     all_prediction_sentences[i] = {}
                 all_prediction_sentences[i][s.meta["id"]] = p.sentence

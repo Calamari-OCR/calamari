@@ -257,5 +257,5 @@ class Evaluator:
         )
 
         res = Evaluator.evaluate_single_list(out, True)
-        res["ids"] = gt_ids
+        res["ids"] = list(gt_ids)
         return res
