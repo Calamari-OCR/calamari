@@ -1,11 +1,9 @@
 class Rect:
-
     """
     Class defines the rectangle of an element in the Abbyy document
     """
 
     def __init__(self, l: int, t: int, r: int, b: int):
-
         """
         Constructs a Rect class
         :param l: length
@@ -36,7 +34,6 @@ class Rect:
 
 
 class Book:
-
     """
     Main class; contains all subelements: book -> page -> block -> par -> line -> format
     """
@@ -64,7 +61,6 @@ class Book:
                             s += "                  " + format.__str__()
 
     def getBlocks(self) -> []:
-
         """
         :return: All the blocks of this book
         """
@@ -78,7 +74,6 @@ class Book:
         return blocks
 
     def getPars(self) -> []:
-
         """
         :return: All the paragraphs of this book
         """
@@ -93,7 +88,6 @@ class Book:
         return pars
 
     def getLines(self) -> []:
-
         """
         :return: All the lines of this book
         """
@@ -109,7 +103,6 @@ class Book:
         return lines
 
     def getFormats(self) -> []:
-
         """
         :return: All the chars of this book
         """
@@ -127,7 +120,6 @@ class Book:
 
 
 class Page:
-
     """
     Subelement of the book class; contains a list with the subelement block
     """
@@ -141,7 +133,6 @@ class Page:
         imgFile: str,
         xmlFile: str,
     ):
-
         """
         Construct a page class with an empty block list
         :param width: The width of the page (in pixel)
@@ -178,7 +169,6 @@ class Page:
         )
 
     def getPars(self) -> []:
-
         """
         :return: All the pars of this page
         """
@@ -192,7 +182,6 @@ class Page:
         return pars
 
     def getLines(self) -> []:
-
         """
         :return: All the lines of this page
         """
@@ -207,7 +196,6 @@ class Page:
         return lines
 
     def getFormats(self) -> []:
-
         """
         :return: All the Format Tags of this page
         """
@@ -224,13 +212,11 @@ class Page:
 
 
 class Block:
-
     """
     Subelement of the page class; contains a list with the subelement par
     """
 
     def __init__(self, blockType: str, blockName: str, rect: Rect):
-
         """
         Construct a block class with an empty line list
         :param blockType: The type of a block (further information in the abbyy doc)
@@ -246,7 +232,6 @@ class Block:
         return "Block:[BlockType={}, rect={}]".format(self.blockType, self.rect)
 
     def getLines(self) -> []:
-
         """
         :return: All the lines of this block
         """
@@ -260,7 +245,6 @@ class Block:
         return lines
 
     def getFormats(self) -> []:
-
         """
         :return: All the Format Tags of this block
         """
@@ -281,7 +265,6 @@ class Par:
     """
 
     def __init__(self, align: str, startIndent: int, lineSpacing: int):
-
         """
         Construct a Paragraph Class with an empty line list
         :param align:
@@ -306,7 +289,6 @@ class Par:
         )
 
     def getFormats(self) -> []:
-
         """
         :return: All the Format Tags of the Paragraph
         """
@@ -321,13 +303,11 @@ class Par:
 
 
 class Line:
-
     """ "
     Subelement of the par class; contains a list with the subelement format
     """
 
     def __init__(self, baseline: int, rect: Rect):
-
         """
         Construct a line class with an empty char list
         :param baseline: ???

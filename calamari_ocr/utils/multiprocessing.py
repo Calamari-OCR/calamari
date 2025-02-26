@@ -78,7 +78,7 @@ def run(command, verbose=False):
             time.sleep(0.1)
         else:
             yield out, err
-    
+
     process.kill()
 
     if process.returncode != 0:

@@ -15,6 +15,7 @@ from calamari_ocr.utils.multiprocessing import parallel_map, run, prefix_run_com
 # path to the dir of this script to automatically detect the training script
 this_absdir = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
 
+
 # create necessary directories
 def run_for_single_line(args):
     # lines/network/pretraining as base dir
