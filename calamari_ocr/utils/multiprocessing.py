@@ -4,7 +4,7 @@ import subprocess
 import logging
 import sys
 from threading import Thread
-from queue import Queue, Empty
+from queue import SimpleQueue, Empty
 
 
 ON_POSIX = "posix" in sys.builtin_module_names
@@ -52,10 +52,10 @@ def run(command, verbose=False):
         encoding="utf-8",
     )
     # Make nonblocking output
-    stdout_queue = Queue()
+    stdout_queue = SimpleQueue()
     stdout_reader = Thread(target=enqueue_output, args=(process.stdout, stdout_queue), daemon=True)
     stdout_reader.start()
-    stderr_queue = Queue()
+    stderr_queue = SimpleQueue()
     stderr_reader = Thread(target=enqueue_output, args=(process.stderr, stderr_queue), daemon=True)
     stderr_reader.start()
     while True:
