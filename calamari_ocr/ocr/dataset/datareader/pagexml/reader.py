@@ -43,6 +43,7 @@ class PageXMLDatasetLoader:
         mode: PipelineMode,
         non_existing_as_empty: bool,
         text_index: int,
+        rtype: list,
         skip_invalid: bool = True,
         skip_commented=False,
     ):
@@ -50,6 +51,7 @@ class PageXMLDatasetLoader:
         self._non_existing_as_empty = non_existing_as_empty
         self.root = None
         self.text_index = text_index
+        self.rtype = rtype
         self.skip_invalid = skip_invalid
         self.skip_commented = skip_commented
 
@@ -72,6 +74,17 @@ class PageXMLDatasetLoader:
         else:
             return self._samples_from_book(root, img, page_id)
 
+    def _get_text_lines(self, root, ns):
+        if not self.rtype:
+            textlines = root.findall(".//ns:TextLine", namespaces=ns)
+        else:
+            textlines = [
+                textline
+                for rt in self.rtype
+                for textline in root.findall(f'.//ns:TextRegion[@type="{rt}//ns:TextLine"]', namespaces=ns)
+            ]
+        return textlines
+
     def _samples_gt_from_book(self, root, img, page_id) -> Iterable[Dict[str, Any]]:
         ns = {"ns": root.nsmap[root.prefix]}
         page = root.find(".//ns:Page", namespaces=ns)
@@ -86,9 +99,8 @@ class PageXMLDatasetLoader:
             )
 
         img_w = int(page.attrib.get("imageWidth"))
-        textlines = root.findall(".//ns:TextLine", namespaces=ns)
 
-        for textline in textlines:
+        for textline in self._get_text_lines(root, ns):
             tequivs = textline.findall('./ns:TextEquiv[@index="{}"]'.format(self.text_index), namespaces=ns)
 
             if not tequivs:
@@ -152,7 +164,7 @@ class PageXMLDatasetLoader:
             )
 
         img_w = int(page.attrib.get("imageWidth"))
-        for textline in root.findall(".//ns:TextLine", namespaces=ns):
+        for textline in self._get_text_lines(root, ns):
             if self.skip_commented and len(textline.attrib.get("comments", "")):
                 continue
             orientation = float(textline.getparent().attrib.get("orientation", default=0))
@@ -182,6 +194,10 @@ class PageXML(CalamariDataGeneratorParams):
         metadata=pai_meta(help="Default extension of the gt files (expected to exist in same dir)"),
     )
     text_index: int = 0
+    rtype: List[str] = field(
+        default_factory=list,
+        metadata=pai_meta(help="Only load regions of specified types"),
+    )
     pad: Optional[List[int]] = field(
         default=None,
         metadata=pai_meta(help="Additional padding after lines were cut out."),
@@ -263,6 +279,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 self.mode,
                 params.non_existing_as_empty,
                 params.text_index,
+                params.rtype,
                 params.skip_invalid,
                 params.skip_commented,
             )
@@ -640,6 +657,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             self.mode,
             self.params.non_existing_as_empty,
             self.params.text_index,
+            self.params.rtype,
             self.params.skip_invalid,
             self.params.skip_commented,
         )

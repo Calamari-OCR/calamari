@@ -94,13 +94,13 @@ class EnsembleModel(ModelBase[EnsembleModelParams]):
     def _print_evaluate(self, sample: Sample, data, print_fn):
         targets, outputs = sample.targets, sample.outputs
         gt_sentence = targets["sentence"]
-        lr = "\u202A\u202B"
+        lr = "\u202a\u202b"
         s = ""
 
         pred_sentence = outputs.sentence
         cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)
         s += "\n  PRED (CER={:.2f}): '{}{}{}'".format(
-            cer, lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C"
-        ) + "\n  TRUE:            '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C")
+            cer, lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202c"
+        ) + "\n  TRUE:            '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202c")
 
         print_fn(s)
