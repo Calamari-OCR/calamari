@@ -274,9 +274,6 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         # store which pagexml was stored last, to check when a file is ready to be written during sequential prediction
         self._last_page_id = None
 
-        # counter for word tag ids
-        self._next_word_id = 0
-
     @staticmethod
     def cutout(
         pageimg: np.array,
@@ -502,7 +499,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 self._store_old_word(word_xml, ns)
 
     def _store_glyph(self, glyph, word_id, word_xml, line_x, line_y, line_height, glyph_counter, ns):
-        glyph_id = f"{word_id}g{str(glyph_counter)}"
+        glyph_id = f"{word_id}_g{str(glyph_counter)}"
 
         glyph_xml = word_xml.find(f'./ns:Glyph[@id="{glyph_id}"]', namespaces=ns)
         if glyph_xml is None:
@@ -539,6 +536,9 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         line_coords_xml = line_xml.find("./ns:Coords", namespaces=ns)
         line_baseline_xml = line_xml.find("./ns:Baseline", namespaces=ns)
 
+        line_id = line_xml.attrib.get("id")
+        word_counter = 1
+        
         if line_baseline_xml is not None:
             # if there is a baseline element, insert after it
             insert_index = line_xml.index(line_baseline_xml) + 1
@@ -556,9 +556,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 # ignore empty words
                 continue
 
-            word_id = "w" + str(self._next_word_id)
-
-            self._next_word_id += 1
+            word_id = f"{line_id}_w{str(word_counter)}"
+            word_counter += 1
 
             # find if we already have words with this id and overwrite them
             word_xml = line_xml.find(f'./ns:Word[@id="{word_id}"]', namespaces=ns)
@@ -572,7 +571,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
             word_text = ""
             word_confidence = 1
-            glyph_counter = 0
+            glyph_counter = 1
 
             for glyph in word:
                 word_text += glyph.chars[0].char
@@ -582,7 +581,6 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 glyph_counter += 1
 
             # check if a TextEquiv with this index already exists
-
             textequiv_xml = word_xml.find(f'./ns:TextEquiv[@index="{self.params.text_index}"]', namespaces=ns)
             if textequiv_xml is None:
                 textequiv_xml = self._make_subelement(word_xml, "TextEquiv")
