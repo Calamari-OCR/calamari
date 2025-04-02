@@ -35,6 +35,12 @@ class CutMode(IntEnum):
     BOX = 0
     POLYGON = 1
     MBR = 2
+    
+
+class OutputPrecision(IntEnum):
+    LINES = 0
+    WORDS = 1
+    GLYPHS = 2
 
 
 class PageXMLDatasetLoader:
@@ -195,20 +201,23 @@ class PageXML(CalamariDataGeneratorParams):
     output_confidences: bool = field(
         default=False, metadata=pai_meta(help="Write prediction confidences into the output.")
     )
-    output_glyphs: bool = field(
-        default=False, metadata=pai_meta(help="Output the words and glyphs each line is made up of.")
+    #output_glyphs: bool = field(
+    #    default=False, metadata=pai_meta(help="Output the words and glyphs each line is made up of.")
+    #)
+    output_precision: OutputPrecision = field(
+        default=OutputPrecision.LINES, 
+        metadata=pai_meta(help="Define the precision of the output."),
     )
     max_glyph_alternatives: int = field(
         default=1,
         metadata=pai_meta(
-            help="When output_glyphs is True, determines the maximum amount of glyph alternatives to output."
+            help="When output_precision is set to Glyphs, determines the maximum amount of glyph alternatives to output."
         ),
     )
     delete_old_words: bool = field(
         default=True,
         metadata=pai_meta(
-            help="If there are already words in the input, "
-            + "delete them instead of writing the new ones alongside them."
+            help="If there are already words in the input, delete them instead of writing the new ones alongside them."
         ),
     )
 
@@ -406,7 +415,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         u_xml.text = sentence
 
-        if self.params.output_glyphs:
+        if self.params.output_precision > 0:
             words = self._words_from_prediction(prediction)
 
             # delete or rename old words before writing the new ones
@@ -577,7 +586,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 word_text += glyph.chars[0].char
                 word_confidence *= glyph.chars[0].probability
 
-                self._store_glyph(glyph, word_id, word_xml, line_x, line_y, line_height, glyph_counter, ns)
+                if self.params.output_precision > 1:
+                    self._store_glyph(glyph, word_id, word_xml, line_x, line_y, line_height, glyph_counter, ns)
                 glyph_counter += 1
 
             # check if a TextEquiv with this index already exists
