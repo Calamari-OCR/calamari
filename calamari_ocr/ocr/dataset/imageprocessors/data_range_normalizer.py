@@ -23,5 +23,8 @@ class DataRangeProcessor(ImageProcessor[DataRangeProcessorParams]):
 
         if data.ndim == 3:
             data = np.mean(data.astype("float32"), axis=2).astype(data.dtype)
-
+        meta["line_width"] = data.shape[1]
         return data
+
+    def local_to_global_pos(self, x, meta):
+        return min(max(x, 0), meta["line_width"])

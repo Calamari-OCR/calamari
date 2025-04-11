@@ -141,8 +141,8 @@ def run(args: PredictArgs):
 
         avg_sentence_confidence += prediction.avg_char_probability
         if args.verbose:
-            lr = "\u202A\u202B"
-            logger.info("{}: '{}{}{}'".format(meta["id"], lr[get_base_level(sentence)], sentence, "\u202C"))
+            lr = "\u202a\u202b"
+            logger.info("{}: '{}{}{}'".format(meta["id"], lr[get_base_level(sentence)], sentence, "\u202c"))
 
         output_dir = args.output_dir if args.output_dir else os.path.dirname(prediction.line_path)
 

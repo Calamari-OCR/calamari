@@ -15,7 +15,7 @@ class OutputToInputTransformer:
             else:
                 self.processors.extend(proc)
 
-        self.processors = list(filter(lambda p: isinstance(p, ImageProcessor), self.processors))
+        self.processors = list(filter(lambda p: isinstance(p, ImageProcessor), self.processors))[::-1]
 
     def local_to_global(self, x, model_factor, data_proc_params):
         assert model_factor >= 1  # Should never be < 0, this would mean, that the network increases the size
