@@ -35,7 +35,13 @@ class CutMode(IntEnum):
     BOX = 0
     POLYGON = 1
     MBR = 2
+    
 
+class OutputPrecision(IntEnum):
+    LINES = 0
+    WORDS = 1
+    GLYPHS = 2
+    
 
 class PageXMLDatasetLoader:
     def __init__(
@@ -195,13 +201,14 @@ class PageXML(CalamariDataGeneratorParams):
     output_confidences: bool = field(
         default=False, metadata=pai_meta(help="Write prediction confidences into the output.")
     )
-    output_glyphs: bool = field(
-        default=False, metadata=pai_meta(help="Output the words and glyphs each line is made up of.")
+    output_precision: OutputPrecision = field(
+        default=OutputPrecision.LINES,
+        metadata=(pai_meta(help="Specifies output precision."))
     )
     max_glyph_alternatives: int = field(
         default=1,
         metadata=pai_meta(
-            help="When output_glyphs is True, determines the maximum amount of glyph alternatives to output."
+            help="When output_precision is set to GLYPH, determines the maximum amount of glyph alternatives to output."
         ),
     )
     delete_old_words: bool = field(
@@ -273,9 +280,6 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         # store which pagexml was stored last, to check when a file is ready to be written during sequential prediction
         self._last_page_id = None
-
-        # counter for word tag ids
-        self._next_word_id = 0
 
     @staticmethod
     def cutout(
@@ -409,7 +413,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         u_xml.text = sentence
 
-        if self.params.output_glyphs:
+        if self.params.output_precision > 0:
             words = self._words_from_prediction(prediction)
 
             # delete or rename old words before writing the new ones
@@ -502,7 +506,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 self._store_old_word(word_xml, ns)
 
     def _store_glyph(self, glyph, word_id, word_xml, line_x, line_y, line_height, glyph_counter, ns):
-        glyph_id = f"{word_id}g{str(glyph_counter)}"
+        glyph_id = f"{word_id}_g{str(glyph_counter)}"
 
         glyph_xml = word_xml.find(f'./ns:Glyph[@id="{glyph_id}"]', namespaces=ns)
         if glyph_xml is None:
@@ -512,8 +516,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         if coords_xml is None:
             coords_xml = self._make_subelement(glyph_xml, "Coords")
 
-        glyph_x, glyph_y = glyph.global_start + line_x, line_y
-        glyph_width, glyph_height = glyph.global_end - glyph.global_start, line_height
+        glyph_x, glyph_y = glyph.global_start_ext + line_x, line_y
+        glyph_width, glyph_height = glyph.global_end_ext - glyph.global_start_ext, line_height
         coords_xml.set("points", self._coords_for_rectangle(glyph_x, glyph_y, glyph_width, glyph_height))
 
         for index in range(min(len(glyph.chars), self.params.max_glyph_alternatives)):
@@ -539,6 +543,9 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         line_coords_xml = line_xml.find("./ns:Coords", namespaces=ns)
         line_baseline_xml = line_xml.find("./ns:Baseline", namespaces=ns)
 
+        line_id = line_xml.attrib.get("id")
+        word_counter = 1
+        
         if line_baseline_xml is not None:
             # if there is a baseline element, insert after it
             insert_index = line_xml.index(line_baseline_xml) + 1
@@ -556,9 +563,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 # ignore empty words
                 continue
 
-            word_id = "w" + str(self._next_word_id)
-
-            self._next_word_id += 1
+            word_id = f"{line_id}_w{str(word_counter)}"
+            word_counter += 1
 
             # find if we already have words with this id and overwrite them
             word_xml = line_xml.find(f'./ns:Word[@id="{word_id}"]', namespaces=ns)
@@ -572,17 +578,17 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
             word_text = ""
             word_confidence = 1
-            glyph_counter = 0
+            glyph_counter = 1
 
             for glyph in word:
                 word_text += glyph.chars[0].char
                 word_confidence *= glyph.chars[0].probability
-
-                self._store_glyph(glyph, word_id, word_xml, line_x, line_y, line_height, glyph_counter, ns)
-                glyph_counter += 1
+                
+                if self.params.output_precision > 1:
+                    self._store_glyph(glyph, word_id, word_xml, line_x, line_y, line_height, glyph_counter, ns)
+                    glyph_counter += 1
 
             # check if a TextEquiv with this index already exists
-
             textequiv_xml = word_xml.find(f'./ns:TextEquiv[@index="{self.params.text_index}"]', namespaces=ns)
             if textequiv_xml is None:
                 textequiv_xml = self._make_subelement(word_xml, "TextEquiv")
@@ -596,8 +602,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                 u_xml = self._make_subelement(textequiv_xml, "Unicode")
             u_xml.text = word_text
 
-            word_x, word_y = word[0].global_start + line_x, line_y
-            word_width, word_height = word[-1].global_end - word[0].global_start, line_height
+            word_x, word_y = word[0].global_start_ext + line_x, line_y
+            word_width, word_height = word[-1].global_end_ext - word[0].global_start_ext, line_height
             coords_xml.set("points", self._coords_for_rectangle(word_x, word_y, word_width, word_height))
 
             line_xml.insert(insert_index, word_xml)
