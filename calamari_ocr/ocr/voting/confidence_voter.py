@@ -38,6 +38,8 @@ class MergeableCharacter:
         self.p = p
         self.start = start
         self.stop = stop
+        self.start_ext = start_ext
+        self.stop_ext = stop_ext
 
     def merge(self, char, p, start, stop, start_ext, stop_ext):
         assert self.char == char
