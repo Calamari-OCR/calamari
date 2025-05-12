@@ -35,13 +35,13 @@ class CutMode(IntEnum):
     BOX = 0
     POLYGON = 1
     MBR = 2
-    
+
 
 class OutputPrecision(IntEnum):
     LINES = 0
     WORDS = 1
     GLYPHS = 2
-    
+
 
 class PageXMLDatasetLoader:
     def __init__(
@@ -202,13 +202,12 @@ class PageXML(CalamariDataGeneratorParams):
         default=False, metadata=pai_meta(help="Write prediction confidences into the output.")
     )
     output_precision: OutputPrecision = field(
-        default=OutputPrecision.LINES,
-        metadata=(pai_meta(help="Specifies output precision."))
+        default=OutputPrecision.LINES, metadata=(pai_meta(help="Specifies output precision."))
     )
     max_glyph_alternatives: int = field(
         default=1,
         metadata=pai_meta(
-            help="When output_precision is set to GLYPH, determines the maximum amount of glyph alternatives to output."
+            help="When output_precision is set to GLYPHS, determines the maximum amount of glyph alternatives to output."
         ),
     )
     delete_old_words: bool = field(
@@ -545,7 +544,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
 
         line_id = line_xml.attrib.get("id")
         word_counter = 1
-        
+
         if line_baseline_xml is not None:
             # if there is a baseline element, insert after it
             insert_index = line_xml.index(line_baseline_xml) + 1
@@ -583,7 +582,7 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             for glyph in word:
                 word_text += glyph.chars[0].char
                 word_confidence *= glyph.chars[0].probability
-                
+
                 if self.params.output_precision > 1:
                     self._store_glyph(glyph, word_id, word_xml, line_x, line_y, line_height, glyph_counter, ns)
                     glyph_counter += 1
