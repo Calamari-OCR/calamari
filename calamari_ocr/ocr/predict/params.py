@@ -95,6 +95,7 @@ class PredictionResult:
 
         self.prediction.avg_char_probability = 0
 
+        last_p = None
         for n, p in enumerate(self.prediction.positions):
             for c in p.chars:
                 c.char = codec.code2char[c.label]
@@ -111,7 +112,7 @@ class PredictionResult:
 
             if n == len(self.prediction.positions) - 1:
                 line_len = out_to_in_trans(self.logits.shape[0])
-                p.global_end_ext = min(line_len, ceil((line_len + p.global_end + p_len) / 2))
+                p.global_end_ext = min(line_len - 1, ceil((line_len + p.global_end + p_len) / 2))
 
             if len(p.chars) > 0:
                 self.prediction.avg_char_probability += p.chars[0].probability
