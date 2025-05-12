@@ -55,7 +55,6 @@ class FontVariants:
         variants = [".ttf", "-regular.ttf", "-Regular.ttf", ".otf", "-regular.otf", "-Regular.otf"]
         self.font_name = base_font.split(".")[0]
 
-        
         for i, ext in enumerate(variants, start=1):
             try:
                 self.default_font = Font(ImageFont.truetype(self.font_name + ext, size=font_size))
@@ -66,7 +65,7 @@ class FontVariants:
                 if i < len(variants):
                     continue
                 raise e
-            
+
         def font_or_default(ttf):
             try:
                 return Font(ImageFont.truetype(ttf, size=font_size))
