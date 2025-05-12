@@ -51,11 +51,22 @@ class FontVariantType(IntEnum):
 
 
 class FontVariants:
-    def __init__(self, base_font_ttf: str, font_size: int):
-        self.font_name = base_font_ttf if not base_font_ttf.endswith(".ttf") else base_font_ttf[:-4]
+    def __init__(self, base_font: str, font_size: int):
+        variants = [".ttf", "-regular.ttf", "-Regular.ttf", ".otf", "-regular.otf", "-Regular.otf"]
+        self.font_name = base_font.split(".")[0]
 
-        self.default_font = Font(ImageFont.truetype(self.font_name + ".ttf", size=font_size))
-
+        
+        for i, ext in enumerate(variants, start=1):
+            try:
+                self.default_font = Font(ImageFont.truetype(self.font_name + ext, size=font_size))
+                self.ext = ext.split(".")[-1]
+                logger.info(f"Using font {self.default_font}")
+                break
+            except OSError as e:
+                if i < len(variants):
+                    continue
+                raise e
+            
         def font_or_default(ttf):
             try:
                 return Font(ImageFont.truetype(ttf, size=font_size))
@@ -65,9 +76,9 @@ class FontVariants:
 
         self.variants = [
             self.default_font,
-            font_or_default(self.font_name + "-Bold.ttf"),
-            font_or_default(self.font_name + "-Italic.ttf"),
-            font_or_default(self.font_name + "-BoldItalic.ttf"),
+            font_or_default(self.font_name + "-Bold." + self.ext),
+            font_or_default(self.font_name + "-Italic." + self.ext),
+            font_or_default(self.font_name + "-BoldItalic." + self.ext),
         ]
 
 
@@ -100,7 +111,7 @@ class Font:
 
         image = self.draw(test_text)
         sums = image.mean(axis=1)
-        while sums[self.offset + 1] == 255:
+        while self.offset + 1 < len(sums) and sums[self.offset + 1] == 255:
             self.offset += 1
 
         image = self.draw("ABCD")
@@ -108,7 +119,7 @@ class Font:
 
         image = self.draw("n")
         sums = image.mean(axis=1)
-        while sums[self.topline + 1] == 255:
+        while self.topline + 1 < len(sums) and sums[self.topline + 1] == 255:
             self.topline += 1
 
         self.center = (self.baseline + self.topline) // 2

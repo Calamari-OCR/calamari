@@ -55,7 +55,8 @@ calamari-dataset-statistics = "calamari_ocr.scripts.dataset_statistics:main"
 test = [
      "pytest",
      "pytest-cov",
-     "pytest-isolate",
+     "pytest-isolate ; python_version >= '3.9'",
+     "pytest-isolate (<0.0.4) ; python_version <'3.9'",
      "pytest-xdist",
      "flake8",
 ]
