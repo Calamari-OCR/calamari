@@ -69,10 +69,10 @@ class Model(ModelBase[ModelParams]):
         targets, outputs = sample.targets, sample.outputs
         pred_sentence = outputs.sentence
         gt_sentence = targets["sentence"]
-        lr = "\u202A\u202B"
+        lr = "\u202a\u202b"
         cer = Levenshtein.distance(pred_sentence, gt_sentence) / len(gt_sentence)
         print_fn(
             "\n  CER:  {}".format(cer)
-            + "\n  PRED: '{}{}{}'".format(lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202C")
-            + "\n  TRUE: '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202C")
+            + "\n  PRED: '{}{}{}'".format(lr[bidi.get_base_level(pred_sentence)], pred_sentence, "\u202c")
+            + "\n  TRUE: '{}{}{}'".format(lr[bidi.get_base_level(gt_sentence)], gt_sentence, "\u202c")
         )

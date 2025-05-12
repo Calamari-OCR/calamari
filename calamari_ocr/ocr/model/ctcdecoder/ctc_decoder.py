@@ -116,7 +116,7 @@ class CTCDecoder(ABC):
             p = probabilities[start:end]
             p = np.max(p, axis=0)
 
-            pos = PredictionPosition(local_start=start, local_end=end - 1)
+            pos = PredictionPosition(local_start=start, local_end=end)
             pred.positions.append(pos)
 
             for label in reversed(sorted(range(len(p)), key=lambda v: p[v])):

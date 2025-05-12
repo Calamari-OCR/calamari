@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Callable, List, Optional
+from math import ceil
 import numpy as np
 
 import tfaip as tfaip
@@ -28,6 +29,8 @@ class PredictionPosition:
     local_end: int = 0
     global_start: int = 0
     global_end: int = 0
+    global_start_ext: int = 0
+    global_end_ext: int = 0
 
 
 @dataclass_json
@@ -92,14 +95,29 @@ class PredictionResult:
 
         self.prediction.avg_char_probability = 0
 
-        for p in self.prediction.positions:
+        last_p = None
+        for n, p in enumerate(self.prediction.positions):
             for c in p.chars:
                 c.char = codec.code2char[c.label]
 
             p.global_start = int(out_to_in_trans(p.local_start))
-            p.global_end = int(out_to_in_trans(p.local_end))
+            p.global_end = ceil(out_to_in_trans(p.local_end))
+
+            p_len = max(1, p.global_end - p.global_start)
+            if n == 0:
+                p.global_start_ext = max(0, (p.global_start - p_len) // 2)
+            else:
+                p.global_start_ext = (p.global_start + last_p.global_end) // 2
+                last_p.global_end_ext = p.global_start_ext
+
+            if n == len(self.prediction.positions) - 1:
+                line_len = out_to_in_trans(self.logits.shape[0])
+                p.global_end_ext = min(line_len - 1, ceil((line_len + p.global_end + p_len) / 2))
+
             if len(p.chars) > 0:
                 self.prediction.avg_char_probability += p.chars[0].probability
+
+            last_p = p
 
         self.prediction.avg_char_probability /= (
             len(self.prediction.positions) if len(self.prediction.positions) > 0 else 1

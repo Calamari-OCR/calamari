@@ -33,17 +33,21 @@ def find_voters_with_most_frequent_length(sync, voters):
 
 
 class MergeableCharacter:
-    def __init__(self, char, p, start, stop):
+    def __init__(self, char, p, start, stop, start_ext, stop_ext):
         self.char = char
         self.p = p
         self.start = start
         self.stop = stop
+        self.start_ext = start_ext
+        self.stop_ext = stop_ext
 
-    def merge(self, char, p, start, stop):
+    def merge(self, char, p, start, stop, start_ext, stop_ext):
         assert self.char == char
         self.p += p
         self.start = min(start, self.start)
         self.stop = max(stop, self.stop)
+        self.start_ext = min(start_ext, self.start_ext)
+        self.stop_ext = max(stop_ext, self.stop_ext)
 
 
 def perform_conf_vote(voters):
@@ -71,9 +75,23 @@ def perform_conf_vote(voters):
                 pos = voters[voter_id]["positions"][idx]
                 for k, p in alts.items():
                     if k in c_p:
-                        c_p[k].merge(k, p / len(actual_voters), pos.global_start, pos.global_end)
+                        c_p[k].merge(
+                            k,
+                            p / len(actual_voters),
+                            pos.global_start,
+                            pos.global_end,
+                            pos.global_start_ext,
+                            pos.global_end_ext,
+                        )
                     else:
-                        c_p[k] = MergeableCharacter(k, p / len(actual_voters), pos.global_start, pos.global_end)
+                        c_p[k] = MergeableCharacter(
+                            k,
+                            p / len(actual_voters),
+                            pos.global_start,
+                            pos.global_end,
+                            pos.global_start_ext,
+                            pos.global_end_ext,
+                        )
 
             chars = sorted(c_p.values(), key=lambda v: -v.p)
             final_result.append(chars)
@@ -138,6 +156,8 @@ class ConfidenceVoter(Voter):
             if len(voted_pos) > 0:
                 pos.global_start = voted_pos[0].start
                 pos.global_end = voted_pos[0].stop
+                pos.global_start_ext = voted_pos[0].start_ext
+                pos.global_end_ext = voted_pos[0].stop_ext
                 sentence += voted_pos[0].char
 
         prediction_out.sentence = sentence
