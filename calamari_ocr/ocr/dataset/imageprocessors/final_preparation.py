@@ -55,6 +55,7 @@ class FinalPreparation(ImageProcessor[FinalPreparationProcessorParams]):
                         np.full((self.params.pad, w, channels), self.params.pad_value),
                     ]
                 )
+                meta["padded_width"] = data.shape[0]
             else:
                 w = data.shape[0]
                 data = np.hstack(
@@ -64,6 +65,7 @@ class FinalPreparation(ImageProcessor[FinalPreparationProcessorParams]):
                         np.full((w, self.params.pad, channels), self.params.pad_value),
                     ]
                 )
+                meta["padded_width"] = data.shape[1]
 
         data = to_uint8(data)
 
@@ -72,8 +74,8 @@ class FinalPreparation(ImageProcessor[FinalPreparationProcessorParams]):
 
         return data
 
-    def local_to_global_pos(self, x, params):
+    def local_to_global_pos(self, x, meta):
         if self.params.pad > 0 and self.params.transpose:
-            return x - self.params.pad
+            return min(max(x - self.params.pad, 0), meta["padded_width"] - (2 * self.params.pad))
         else:
             return x
