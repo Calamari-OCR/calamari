@@ -17,7 +17,7 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 def default_uw3_trainer_params(*, preload=True):
     p = uw3_trainer_params(with_validation=True, preload=preload)
-    p.learning_rate.lr = 0
+    p.learning_rate.lr = 0.0
     p.scenario.model.layers = default_layers()  # need for correct loading
     p.warmstart.model = os.path.join(this_dir, "models", f"version{SavedCalamariModel.VERSION}", "0.ckpt.json")
     return p
@@ -25,7 +25,7 @@ def default_uw3_trainer_params(*, preload=True):
 
 def default_pagexml_trainer_params(*, preload=True):
     p = pagexml_trainer_params(with_validation=True, preload=preload)
-    p.learning_rate.lr = 0
+    p.learning_rate.lr = 0.0
     p.scenario.model.layers = default_layers()  # need for correct loading
     p.warmstart.model = os.path.join(this_dir, "models", f"version{SavedCalamariModel.VERSION}", "0.ckpt.json")
     return p
