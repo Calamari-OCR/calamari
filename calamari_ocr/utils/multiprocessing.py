@@ -26,7 +26,7 @@ def prefix_run_command(command, prefix, args):
 
 
 def enqueue_output(out, queue):
-    for line in iter(out.readline, b""):
+    for line in iter(out.readline, ""):
         queue.put(line)
     out.close()
 
@@ -78,6 +78,18 @@ def run(command, verbose=False):
             time.sleep(0.1)
         else:
             yield out, err
+
+    stdout_reader.join(timeout=1)
+    stderr_reader.join(timeout=1)
+
+    try:
+        out, err = process.communicate(timeout=3)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        out, err = process.communicate()
+
+    if out not in ('', None) or err not in ('', None):
+        yield out, err
 
     if process.returncode != 0:
         raise Exception("Error: Process finished with code {}".format(process.returncode))
