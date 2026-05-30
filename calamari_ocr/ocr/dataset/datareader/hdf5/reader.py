@@ -53,9 +53,18 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
 
         for filename in self.params.files:
             f = h5py.File(filename, "r")
-            codec = list(map(chr, f["codec"]))
+            if "codec" in f.keys(): # convert old files
+                f.close()
+                f = h5py.File(filename, "r+")
+                codec = list(map(chr, f["codec"]))
+                del f["codec"]
+                transcribed = ["".join([codec[c] for c in text]) for text in f["transcripts"]]
+                del f["transcripts"]
+                dt = h5py.string_dtype(encoding="utf-8")
+                f.create_dataset("transcripts", (len(transcribed),), dtype=dt, data=transcribed)
+
             if mode == PipelineMode.PREDICTION or mode == PipelineMode.EVALUATION:
-                self.prediction[filename] = {"transcripts": [], "codec": codec}
+                self.prediction[filename] = {"transcripts": []}
 
             basename = split_all_ext(filename)[0]
 
@@ -69,24 +78,21 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
                         "filename": filename,
                     }
                 )
+            f.close()
 
     def store_text_prediction(self, prediction, sample_id, output_dir):
         sample = self.sample_by_id(sample_id)
-        codec = self.prediction[sample["filename"]]["codec"]
-        self.prediction[sample["filename"]]["transcripts"].append(list(map(codec.index, prediction.sentence)))
+        self.prediction[sample["filename"]]["transcripts"].append(prediction.sentence)
 
     def store(self):
         extension = self.params.pred_extension
 
         for filename, data in self.prediction.items():
             texts = data["transcripts"]
-            codec = data["codec"]
             basename, ext = split_all_ext(filename)
             with h5py.File(basename + extension, "w") as file:
-                dt = h5py.special_dtype(vlen=np.dtype("int32"))
-                file.create_dataset("transcripts", (len(texts),), dtype=dt)
-                file["transcripts"][...] = texts
-                file.create_dataset("codec", data=list(map(ord, codec)))
+                dt = h5py.string_dtype(encoding="utf-8")
+                file.create_dataset("transcripts", (len(texts),), dtype=dt, data=texts)
 
     def _sample_iterator(self):
         return self.params.files
@@ -99,10 +105,8 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
         for filename in filenames:
             basename = split_all_ext(filename)[0]
             with h5py.File(filename, "r") as f:
-                codec = list(map(chr, f["codec"]))
                 if text_only:
-                    for i, (text, idx) in enumerate(zip(f["transcripts"], range(len(f["transcripts"])))):
-                        text = "".join([codec[c] for c in text])
+                    for i, (text, idx) in enumerate(zip(f["transcripts"].astype('T'), range(len(f["transcripts"])))):
                         fold_id = idx % self.params.n_folds if self.params.n_folds > 0 else -1
                         yield InputSample(
                             None,
@@ -113,7 +117,7 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
                     gen = zip(
                         f["images"],
                         f["images_dims"],
-                        f["transcripts"],
+                        f["transcripts"].astype('T'),
                         range(len(f["images"])),
                     )
                     if self.mode == PipelineMode.TRAINING:
@@ -122,7 +126,6 @@ class Hdf5Generator(CalamariDataGenerator[Hdf5]):
 
                     for i, (image, shape, text, idx) in enumerate(gen):
                         image = np.reshape(image, shape)
-                        text = "".join([codec[c] for c in text])
                         fold_id = idx % self.params.n_folds if self.params.n_folds > 0 else -1
                         yield InputSample(
                             image,

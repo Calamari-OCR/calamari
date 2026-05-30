@@ -55,6 +55,22 @@ class CrossFold:
         self.is_h5_dataset = not isinstance(self.data_generator_params, FileDataParams)
         self.folds = folds
 
+    def _write_hdf5(self, data_generator):
+        with ExitStack() as stack:
+            folds = [
+                stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, "fold{}".format(i))))
+                for i in range(self.n_folds)
+            ]
+            for i, sample in tqdm_wrapper(
+                enumerate(data_generator.generate()),
+                progress_bar=False,
+                total=len(data_generator),
+                desc="Creating hdf5 files",
+            ):
+                sample: Sample = sample
+                folds[i % self.n_folds].write(sample)
+        return [f.files for f in folds]
+
     def create_folds(self, progress_bar):
         data_generator = self.data_generator_params.create(PipelineMode.EVALUATION)
         if len(data_generator) == 0:
@@ -75,21 +91,7 @@ class CrossFold:
                 raise NotImplementedError
         else:
             # else load the data of each fold and write it to hd5 data files
-            with ExitStack() as stack:
-                folds = [
-                    stack.enter_context(Hdf5DatasetWriter(os.path.join(self.output_dir, "fold{}".format(i))))
-                    for i in range(self.n_folds)
-                ]
-                for i, sample in tqdm_wrapper(
-                    enumerate(data_generator.generate()),
-                    progress_bar=progress_bar,
-                    total=len(data_generator),
-                    desc="Creating hdf5 files",
-                ):
-                    sample: Sample = sample
-                    folds[i % self.n_folds].write(sample.inputs, sample.targets)
-
-                self.folds = [f.files for f in folds]
+            self.folds = self._write_hdf5(data_generator)
 
     def train_files(self, fold: int) -> List[str]:
         """List the train files of the `fold`"""

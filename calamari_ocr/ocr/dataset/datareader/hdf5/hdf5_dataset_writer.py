@@ -2,12 +2,13 @@ import numpy as np
 import h5py
 from tfaip import PipelineMode
 
-
 class Hdf5DatasetWriter:
     def __init__(self, output_filename, n_max=10000):
         self.n_max = n_max
         self.data = []
         self.text = []
+        self.dims = []
+        self.file = None
         self.files = []
         self.current_chunk = 0
         self.output_filename = output_filename
@@ -16,47 +17,37 @@ class Hdf5DatasetWriter:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.finish_chunck()
-
-    def compute_codec(self):
-        codec = set()
-        for text in self.text:
-            codec = codec.union(set(text))
-
-        return list(codec)
-
-    def finish_chunck(self):
+        self.finish_chunk()
+    
+    def finish_chunk(self):
         if len(self.text) == 0:
             return
 
-        codec = self.compute_codec()
-
         filename = "{}_{:03d}{}".format(self.output_filename, self.current_chunk, ".h5")
         self.files.append(filename)
-        file = h5py.File(filename, "w")
-        dti32 = h5py.special_dtype(vlen=np.dtype("int32"))
-        dtui8 = h5py.special_dtype(vlen=np.dtype("uint8"))
-        file.create_dataset("transcripts", (len(self.text),), dtype=dti32, compression="gzip")
-        file.create_dataset("images_dims", data=[d.shape for d in self.data], dtype=int)
-        file.create_dataset("images", (len(self.text),), dtype=dtui8, compression="gzip")
-        file.create_dataset("codec", data=list(map(ord, codec)))
-        file["transcripts"][...] = [list(map(codec.index, d)) for d in self.text]
-        file["images"][...] = [d.reshape(-1) for d in self.data]
-        file.close()
+        with h5py.File(filename, "w") as file:
+            dtstr = h5py.string_dtype(encoding="utf-8")
+            dtui8 = h5py.vlen_dtype(np.dtype("uint8"))
+            file.create_dataset("transcripts", (len(self.text),), dtype=dtstr, compression="gzip", data=self.text)
+            file.create_dataset("images_dims", data=self.dims, dtype=int)
+            file.create_dataset("images", (len(self.text),), dtype=dtui8, compression="gzip", data=self.data)
 
         self.current_chunk += 1
         self.data = []
         self.text = []
+        self.dims = []
 
-    def write(self, data, text):
-        if not data.dtype == np.uint8:
+    def write(self, sample):
+        if not sample.inputs.dtype == np.uint8:
             raise TypeError("Data for hdf5 must have type np.uint8")
 
-        self.data.append(data)
-        self.text.append(text)
+        self.dims.append(sample.inputs.shape)
+        self.text.append(sample.targets)
+        self.data.append(sample.inputs.reshape(-1))
 
         if len(self.data) >= self.n_max:
-            self.finish_chunck()
+            self.finish_chunk()
+
 
 
 if __name__ == "__main__":
