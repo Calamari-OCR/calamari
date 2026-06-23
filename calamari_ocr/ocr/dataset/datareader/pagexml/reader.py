@@ -58,6 +58,7 @@ class PageXMLDatasetLoader:
         self.text_index = text_index
         self.skip_invalid = skip_invalid
         self.skip_commented = skip_commented
+        self._parser = etree.XMLParser(remove_blank_text=True) # needed so we can add tags without the pretty printer breaking
 
     def load(self, img, xml) -> Iterable[Dict[str, Any]]:
         if not os.path.exists(xml):
@@ -67,9 +68,7 @@ class PageXMLDatasetLoader:
             else:
                 raise FileNotFoundError(f"File '{xml}' does not exist.")
 
-        # remove_blank_text=True is needed so we can add tags to the tree without the pretty printer breaking
-        parser = etree.XMLParser(remove_blank_text=True)
-        root = etree.parse(xml, parser).getroot()
+        root = etree.parse(xml, self._parser).getroot()
         self.root = root
 
         page_id = split_all_ext(xml)[0]
@@ -136,7 +135,7 @@ class PageXMLDatasetLoader:
                 "page_id": page_id,
                 "ns": ns,
                 "rtype": textline.getparent().attrib.get("type", default=""),
-                "xml_element": textline,
+                "xml_element": textline if self.mode == PipelineMode.PREDICTION else None,
                 "image_path": img,
                 "id": "{}/{}".format(page_id, textline.attrib.get("id")),
                 "base_name": textline.attrib.get("id"),
@@ -167,7 +166,7 @@ class PageXMLDatasetLoader:
                 "page_id": page_id,
                 "ns": ns,
                 "rtype": textline.getparent().attrib.get("type", default=""),
-                "xml_element": textline,
+                "xml_element": textline if self.mode == PipelineMode.PREDICTION else None,
                 "image_path": img,
                 "id": "{}/{}".format(page_id, textline.attrib.get("id")),
                 "base_name": textline.attrib.get("id"),
@@ -274,8 +273,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             )
             for sample in loader.load(img, xml):
                 self.add_sample(sample)
-
-            self.pages[split_all_ext(xml)[0]] = loader.root
+            if self.mode == PipelineMode.PREDICTION:
+                self.pages[split_all_ext(xml)[0]] = loader.root
 
         # store which pagexml was stored last, to check when a file is ready to be written during sequential prediction
         self._last_page_id = None
@@ -651,8 +650,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
         image_path, xml_path, idx = sample
 
         img = None
-        if self.mode in INPUT_PROCESSOR:
-            img = self._load_image(image_path)
+        #if self.mode in INPUT_PROCESSOR:
+        #    img = self._load_image(image_path)
 
         for i, sample in enumerate(loader.load(image_path, xml_path)):
             fold_id = (idx + i) % self.params.n_folds if self.params.n_folds > 0 else -1
@@ -660,6 +659,8 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
             orientation = sample["orientation"]
 
             if not text_only and self.mode in INPUT_PROCESSOR:
+                if img is None:
+                    img = self._load_image(image_path)
                 ly, lx = img.shape[:2]
 
                 # rotate by orientation angle in clockwise direction to correct present skew
@@ -672,17 +673,18 @@ class PageXMLReader(CalamariDataGenerator[PageXML]):
                     angle=angle,
                     cval=None,
                     scale=lx / sample["img_width"],
-                )
+                ).copy()
 
                 # add padding as required from normal files
                 if self.params.pad:
-                    img = np.pad(
-                        img,
+                    line_img = np.pad(
+                        line_img,
                         self.params.pad,
                         mode="constant",
-                        constant_values=img.max(initial=0),
+                        constant_values=line_img.max(initial=0),
                     )
             else:
                 line_img = None
-
+            
             yield InputSample(line_img, text, SampleMeta(id=sample["id"], fold_id=fold_id))
+

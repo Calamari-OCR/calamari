@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class SavedCalamariModel:
-    VERSION = 6
+    VERSION = 7
 
     def __init__(self, json_path: str, auto_update=True, dry_run=False):
         self.json_path = json_path if json_path.endswith(".json") else json_path + ".json"
@@ -61,7 +61,10 @@ class SavedCalamariModel:
     def _single_upgrade(self):
         logger.info(f"Upgrading from version {self.version}")
         shutil.copyfile(self.json_path, self.json_path + f"_v{self.version}")
-        shutil.copyfile(self.ckpt_path + ".h5", self.ckpt_path + f".h5_v{self.version}")
+        if self.version < 6:
+            shutil.copyfile(self.ckpt_path + ".h5", self.ckpt_path + f".h5_v{self.version}")
+        if self.version == 6:
+            shutil.copytree(self.ckpt_path, self.ckpt_path + f"_v{self.version}")
         if self.version < 2:
             raise Exception(
                 f"Models of checkpoint-version lower than {self.version} are not supported anymore. "
@@ -103,6 +106,12 @@ class SavedCalamariModel:
 
             update_model(self.dict, self.ckpt_path)
             self.version = 6
+
+        elif self.version == 6:
+            from calamari_ocr.ocr.savedmodel.migrations.version6to7 import update_model
+
+            update_model(self.dict, self.ckpt_path)
+            self.version = 7
 
         self._update_json_version()
 

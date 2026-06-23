@@ -70,8 +70,8 @@ class ImageLoader:
 def load_image(image_path: str) -> np.ndarray:
     # Load an image in np.uint8 format
     with Image.open(image_path) as img:
-        img = np.array(img)
-        return to_uint8(img)
+        data = np.array(img)
+    return to_uint8(data)
 
 
 def to_uint8(data: np.ndarray) -> np.ndarray:

@@ -22,27 +22,16 @@ def calculate_padding(input, scaling_factor):
     shape = input.shape
     dyn_shape = K.shape(input)
     px = scale(shape[1] or K.gather(dyn_shape, 1), scaling_factor[0])
-    py = scale(shape[2] or K.gather(dyn_shape, 2), scaling_factor[1])
-    return px, py
+    return px
 
 
-def pad(input_tensors, x_only=False):
-    input, padding = input_tensors[0], input_tensors[1]
-    px, py = padding
+def pad(input_tensors):
+    input, px = input_tensors[0], input_tensors[1]
     shape = K.shape(input)
     static_shape = input.shape
-    if x_only:
-        output = tf.image.pad_to_bounding_box(
-            input, 0, 0, (static_shape[1] or K.gather(shape, 1)) + px, static_shape[2]
-        )
-    else:
-        output = tf.image.pad_to_bounding_box(
-            input,
-            0,
-            0,
-            (static_shape[1] or K.gather(shape, 1)) + px,
-            (static_shape[2] or K.gather(shape, 2)) + py,
-        )
+    output = tf.image.pad_to_bounding_box(
+        input, 0, 0, (static_shape[1] or K.gather(shape, 1)) + px, static_shape[2]
+    )
     return output
 
 
@@ -71,8 +60,8 @@ class CalamariGraph(GraphBase[ModelParams]):
         require_padding = any([isinstance(l, (ConcatLayerParams, TransposedConv2DLayerParams)) for l in params.layers])
         if require_padding:
             s = self._params.compute_max_downscale_factor()
-            padding = calculate_padding(input_data, s.to_tuple())
-            padded = KL.Lambda(partial(pad, x_only=True), name="padded_input")([input_data, padding])
+            px = calculate_padding(input_data, s.to_tuple())
+            padded = KL.Lambda(pad, name="padded_input")([input_data, px])
             last_layer_output = padded
         else:
             last_layer_output = input_data

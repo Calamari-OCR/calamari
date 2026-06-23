@@ -22,6 +22,8 @@ jobs:
           - '3.9'
           - '3.10'
           - '3.11'
+          - '3.12'
+          - '3.13'
 
     steps:
     - uses: actions/checkout@v4
@@ -32,6 +34,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install https://github.com/Calamari-OCR/paiargparse/archive/refs/heads/master.zip
+        pip install https://github.com/Calamari-OCR/tfaip/archive/refs/heads/pypi-fork.zip
         pip install -e ".[test]"
     - name: Lint with flake8
       run: |

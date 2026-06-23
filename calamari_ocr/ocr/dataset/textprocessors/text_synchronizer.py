@@ -1,96 +1,68 @@
 import numpy as np
-
+from difflib import SequenceMatcher
 
 class Sync:
-    def __init__(self, texts, substr=None, match=None):
+    def __init__(self, texts, substr=None):
         self.texts = texts
 
-        if substr:
+        if substr is not None:
             assert substr.shape[0] == len(self.texts)
             self.substr = substr
         else:
-            self.substr = np.zeros((len(texts), 3), dtype=int)
-
-        self.match = match
+            self.substr = np.zeros((len(texts), 2), dtype=int)
 
     def __str__(self):
         return str(self.substr)
 
     def get_text(self):
-        return [self.texts[i][start : start + length] for i, (start, end, length) in enumerate(self.substr)]
+        return [self.texts[i][start : start + length] for i, (start, length) in enumerate(self.substr)]
 
     def is_valid(self):
-        return np.any(self.substr[:, 2] > 0)
+        return np.any(self.substr[:, 1] > 0)
 
     def lengths(self):
-        return self.substr[:, 2]
+        return self.substr[:, 1]
 
     def start(self, idx):
         return self.substr[idx, 0]
 
     def stop(self, idx):
-        return self.substr[idx, 1]
+        return self.start(idx) + self.length(idx) - 1
 
     def length(self, idx):
-        return self.substr[idx, 2]
+        return self.substr[idx, 1]
 
     def set_start(self, idx, v):
         self.substr[idx, 0] = v
 
-    def set_stop(self, idx, v):
-        self.substr[idx, 1] = v
-
     def set_length(self, idx, v):
-        self.substr[idx, 2] = v
+        self.substr[idx, 1] = v
 
     def set_all(self, idx, v):
         self.substr[idx, :] = v
 
 
 def synchronize(texts):
+    n_texts = len(texts)
+    
     def init():
-        sync = Sync(texts)
-        for i, text in enumerate(texts):
-            sync.set_all(i, [0, len(text) - 1, len(text)])
-
+        sync = Sync(texts, substr=np.asarray([(0, len(t)) for t in texts], dtype=int))
         if sync.is_valid():
             return [sync]
-
         return []
 
-    def longest_match(maxlen, c1, start1, stop1, c2, start2, stop2):
-        mstart1 = 0
-        mstart2 = 0
-        s1limit = stop1 - maxlen
-        s2limit = stop2 - maxlen
-        for s1 in range(start1, s1limit + 1):
-            for s2 in range(start2, s2limit + 1):
-                if c1[s1] == c2[s2]:
-                    i1 = s1 + 1
-                    i2 = s2 + 1
-                    while i1 <= stop1 and i2 <= stop2 and c1[i1] == c2[i2]:
-                        i1 += 1
-                        i2 += 1
-
-                    increase = i1 - s1 - maxlen
-                    if increase > 0:
-                        s1limit -= increase
-                        s2limit -= increase
-                        maxlen += increase
-                        mstart1 = s1
-                        mstart2 = s2
-
-        return maxlen, mstart1, mstart2
-
-    def save_match(synclist, num_text, sync, start, length, match):
+    def longest_match(c1, start1, l1, c2, start2, l2):
+        m = SequenceMatcher(None, c1[start1:start1+l1], c2[start2:start2+l2]).find_longest_match()
+        return m.size, start1 + m.a, start2 + m.b
+    
+    def save_match(synclist, sync, start, length):
         left, right = Sync(texts), Sync(texts)
-        for i in range(num_text):
+        for i in range(n_texts):
+            left.set_all(i,  [sync.start(i), start[i] - sync.start(i)])
             stop = start[i] + length - 1
-            left.set_all(i, [sync.start(i), start[i] - 1, start[i] - sync.start(i)])
-            right.set_all(i, [stop + 1, sync.stop(i), sync.stop(i) - stop])
-            sync.set_all(i, [start[i], stop, length])
+            right.set_all(i, [stop + 1,      sync.stop(i) - stop])
+            sync.set_all(i,  [start[i],      length])
 
-        sync.match = match
         if left.is_valid():
             synclist.insert(synclist.index(sync), left)
 
@@ -102,18 +74,17 @@ def synchronize(texts):
         if np.any(sync.lengths() == 0):
             return
 
-        start = np.zeros(len(texts), dtype=int)
+        start = np.zeros(n_texts, dtype=int)
         start[0] = sync.start(0)
         length = sync.length(0)
         for i, text in enumerate(texts[1:], 1):
             length, new_start, start[i] = longest_match(
-                0,
                 texts[0],
                 start[0],
-                start[0] + length - 1,
+                length,
                 text,
                 sync.start(i),
-                sync.stop(i),
+                sync.length(i),
             )
 
             if length == 0:
@@ -124,7 +95,7 @@ def synchronize(texts):
                 for j in range(i):
                     start[j] += change
 
-        save_match(synclist, len(texts), sync, start, length, True)
+        save_match(synclist, sync, start, length)
 
         start_index = synclist.index(sync)
         if start_index - 1 >= 0:

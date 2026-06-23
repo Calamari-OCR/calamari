@@ -8,28 +8,21 @@ from calamari_ocr.ocr.dataset.textprocessors import synchronize
 from calamari_ocr.ocr.voting.voter import Voter
 
 
-def add_llocs(s, new):
-    for char in new.keys():
-        if char in s:
-            s[char] += new[char]
+def find_voters_with_most_frequent_length(sync):
+    ldict = {}
+    lengths = sync.lengths()
+    for length in lengths:
+        if length in ldict:
+            ldict[length] += 1
         else:
-            s[char] = new[char]
+            ldict[length] = 1
 
+    if len(ldict) == 1:
+        return list(range(len(lengths))), lengths[0]
 
-def find_voters_with_most_frequent_length(sync, voters):
-    lengths = {}
-
-    for i, voter in enumerate(voters):
-        length = sync.length(i)
-
-        if length in lengths:
-            lengths[length] += 1
-        else:
-            lengths[length] = 1
-
-    most_freq = max(lengths.items(), key=operator.itemgetter(1))[0]
-
-    return [i for i, voter in enumerate(voters) if sync.length(i) == most_freq], most_freq
+    most_freq = max(ldict.items(), key=operator.itemgetter(1))[0]
+    
+    return [i for i in range(len(lengths)) if lengths[i] == most_freq], most_freq
 
 
 class MergeableCharacter:
@@ -57,7 +50,7 @@ def perform_conf_vote(voters):
     final_result = []
 
     for sync in synclist:
-        actual_voters, most_freq_length = find_voters_with_most_frequent_length(sync, voters)
+        actual_voters, most_freq_length = find_voters_with_most_frequent_length(sync)
 
         # set of all characters (check if all say the same, then the set size is one)
         s = []
