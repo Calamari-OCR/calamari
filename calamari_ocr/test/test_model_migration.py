@@ -26,6 +26,16 @@ class TestModelMigration(unittest.TestCase):
                 sample.outputs.avg_char_probability, 0.95
             )  # The model was trained and should yield good results
 
+    def test_upgrade_from_7(self):
+        with tempfile.TemporaryDirectory() as d:
+            for filename in {"0.ckpt.keras", "0.ckpt.json"}:
+                shutil.copyfile(
+                    os.path.join(models_dir, "version7", filename),
+                    os.path.join(d, filename),
+                )
+            ckpt = SavedCalamariModel(os.path.join(d, "0.ckpt.json"))
+            self.predict_and_eval(ckpt.ckpt_path)
+    
     def test_upgrade_from_6(self):
         with tempfile.TemporaryDirectory() as d:
             shutil.copytree(
